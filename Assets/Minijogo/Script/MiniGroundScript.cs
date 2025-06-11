@@ -5,10 +5,11 @@ using UnityEngine.UIElements;
 
 public class MiniGroundScript : MonoBehaviour
 {
-    public int ground_id;
+
     private Collider Grass;
     private Collider Dirt;
     private float passCD = .4f;
+    private int points = 1;
     void Start()
     {
         if (transform.childCount > 2 )
@@ -21,13 +22,12 @@ public class MiniGroundScript : MonoBehaviour
     {
         if (other.transform.parent == transform) return;
         if (!other.CompareTag("Player")) return;
-
         float playerFeetY = other.bounds.min.y;
         float platformTopY = Grass.bounds.max.y;
-        MiniPlayerControl MPC = other.GetComponent<MiniPlayerControl>();
-        if (playerFeetY < platformTopY && (MPC.lastID == ground_id || MPC.lastID == -1))
+        if (playerFeetY < platformTopY)
         {
             StartCoroutine(PassLogic(other));
+            other.gameObject.GetComponent<MiniPlayerEvents>().AddPontuation(points);
         }
     }
 

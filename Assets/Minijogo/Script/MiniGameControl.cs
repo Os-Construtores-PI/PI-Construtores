@@ -13,12 +13,10 @@ public class MiniGameControl : MonoBehaviour
     [SerializeField] float tempload = .1f;
     [SerializeField] int Ydistance = 10;
     [SerializeField] int Xdistance;
-    private int lastNumb;
     public Dictionary<string, Color> colors = new() { { "Azul Claro", new(0.153f, 0.561f, 0.847f) }, { "Laranja", new(0.925f, 0.502f, 0.075f) }, { "Vermelho", new(1, 0.06987041f, 0) } };
     public Dictionary<int, string> nameColors = new() { { 0, "Azul Claro" }, { 1, "Laranja" }, { 2, "Vermelho" } };
     public int selected_numb = 3;
     public MiniMenuControl miniMenu;
-    private readonly Randomizer random = new();
     bool is_Running;
     void Start()
     {
@@ -34,39 +32,21 @@ public class MiniGameControl : MonoBehaviour
             GameObject plataforma = GameObject.FindWithTag("MiniPool").GetComponent<MiniGroundPool>().GetPooledObject();
             if (plataforma != null)
             {
-                MiniGroundScript groundScript = plataforma.GetComponent<MiniGroundScript>();
-                int rdn_number = random.NumbRandomizer(lastNumb, nameColors.Count);
-                lastNumb = rdn_number;
-                SetupPlataforma(groundScript, plataforma, rdn_number, amount, i);
+                SetupPlataforma(plataforma,amount,i);
                 GroundBase = plataforma.transform;
-                plataforma.SetActive(true);
                 yield return new WaitForSeconds(duration);
             }
         }
         miniMenu.FinishedLoading();
     }
-    void SetupPlataforma(MiniGroundScript script, GameObject ground, int Random, int amount, int iteraator)
+    void SetupPlataforma(GameObject ground, int amount, int iteraator)
     {
         ground.transform.position = new Vector3(GroundBase.transform.position.x + Xdistance, Ydistance + GroundBase.transform.position.y, 0);
-        ground.transform.GetChild(0).GetComponent<MeshRenderer>().material.color = colors[nameColors[Random]];
-        script.ground_id = Random;
-        SetupJumpground(ground);
         if (iteraator == (amount - 1))
         {
             SetupEndGame(ground);
         }
         ground.SetActive(true);
-    }
-    void SetupJumpground(GameObject ground)
-    {
-        GameObject PlatJ = ground.transform.GetChild(2).gameObject;
-        List<int> random_list = random.ListRandomizer(nameColors);
-        for (int i = 0; i < PlatJ.transform.childCount; i++)
-        {
-            GameObject plat = PlatJ.transform.GetChild(i).gameObject;
-            plat.GetComponent<MiniJumpGroundScript>().jumpground_id = random_list[i];
-            plat.GetComponent<MeshRenderer>().material.color = colors[nameColors[random_list[i]]];
-        }
     }
     void SetupEndGame(GameObject ground)
     {

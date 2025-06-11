@@ -7,12 +7,11 @@ public class MiniMenuControl : MonoBehaviour
     private SaveSystem saveSystem = new();
     private AudioSource audioSource;
 
-    [SerializeField] TextMeshProUGUI TextColor;
     [SerializeField] TextMeshProUGUI mainText;
     [SerializeField] TextMeshProUGUI ScoreText;
     [SerializeField] TextMeshProUGUI HealthText;
     [SerializeField] TextMeshProUGUI BestScoreText; // Death
-    [SerializeField] TextMeshProUGUI BestScoreText1;
+    [SerializeField] TextMeshProUGUI BestScoreText1; // Pause
 
     [SerializeField] GameObject mainTextPanel;
     [SerializeField] GameObject HUDPanel;
@@ -52,12 +51,13 @@ public class MiniMenuControl : MonoBehaviour
     public void DeathMessage()
     {
         SetActivePanel(DeathPanel);
+        PauseP.SetActive(false);
     }
     public void WinMessage()
     {
         SetActivePanel(WinPanel);
         SetMainTexto("Você ganhou! Tente novamente ou vá para o menu!");
-
+        PauseP.SetActive(false);
     }
     public void Pause()
     {
@@ -87,11 +87,6 @@ public class MiniMenuControl : MonoBehaviour
     {
         SetActivePanel(HUDPanel);
         mainText.gameObject.SetActive(false);
-    }
-    public void UI_UpdateHUD_Color(int id)
-    {
-        TextColor.text = "Próxima: " + MGC.nameColors[id];
-        TextColor.color = MGC.colors[MGC.nameColors[id]];
     }
     public void UI_UpdateHUD_Health(int health)
     {

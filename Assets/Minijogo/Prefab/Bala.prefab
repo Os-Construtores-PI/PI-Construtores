@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5261163929536255151}
   - component: {fileID: 8119140092504651093}
   - component: {fileID: 7238130928000937380}
+  - component: {fileID: 7430705237346841022}
   m_Layer: 0
   m_Name: Bala
   m_TagString: Untagged
@@ -29,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.33333334}
+  m_LocalScale: {x: 0.105, y: 0.105, z: 0.35}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -47,8 +48,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 1
-  coneAngle: 30
-  coneRadius: 17
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -134,3 +133,24 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!65 &7430705237346841022
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 649233215081504667}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 25.340008, y: 17.370005, z: -90.68}
+  m_Center: {x: 0, y: 0, z: 42.74}

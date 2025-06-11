@@ -39,19 +39,6 @@ public class MiniPlayerControl : MonoBehaviour
         IsGrounded = character.isGrounded;
         Gravity();
         PlayerMove();
-        SendColor();
-    }
-    void SendColor()
-    {
-        bool hit = Physics.Raycast(transform.position, Vector3.up,out next_plat, 100f, layerMask, QueryTriggerInteraction.Collide);
-        if(hit)
-        {
-            if (next_plat.collider.TryGetComponent(out MiniGroundScript miniscript))
-            {
-                int id_nextplat = miniscript.ground_id;
-                MGC.miniMenu.UI_UpdateHUD_Color(id_nextplat);
-            }
-        }
     }
 
     public void Jump() // função do pulo

@@ -7,8 +7,6 @@ public class BulletLogic : MonoBehaviour
     private int max = 5;
     private bool can_damage = true;
     private Rigidbody rb;
-    public float coneAngle = 45f;
-    public float coneRadius = 5f;
     public LayerMask targetLayer;
     public void Start()
     {
@@ -17,31 +15,10 @@ public class BulletLogic : MonoBehaviour
         targetLayer = LayerMask.GetMask("Player");
         InvokeRepeating(nameof(Counting), 0, 1f);
     }
-        void Update()
+    void OnTriggerEnter(Collider other)
     {
-        DetectTargetsInCone();
-    }
-
-    void DetectTargetsInCone()
-    {
-        // Pega todos os objetos próximos em uma esfera
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, coneRadius, targetLayer);
-
-        foreach (var hitCollider in hitColliders)
-        {
-            Vector3 directionToTarget = (hitCollider.transform.position - transform.position).normalized;
-            float angleToTarget = Vector3.Angle(transform.forward, directionToTarget);
-            if (angleToTarget < coneAngle * 0.5f)
-            {
-                if (hitCollider.CompareTag("Player"))
-                {
-                    if (can_damage)
-                    {
-                        Damage(hitCollider);                                       
-                    }
-                }
-            }
-        }
+        if (!other.CompareTag("Player")) return;
+        Damage(other);
     }
     void Awake()
     {
