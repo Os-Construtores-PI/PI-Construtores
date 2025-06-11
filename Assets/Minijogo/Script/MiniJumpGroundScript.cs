@@ -7,14 +7,16 @@ public class MiniJumpGroundScript : MonoBehaviour
     private RaycastHit hitinfo;
     private MiniGroundScript miniground;
     private Material material;
+    MeshRenderer meshRenderer;
     private Color MaterialColor;
-    private float glowIntensity = 2.5f;
+    private float glowIntensity = 5f;
     private int offset = 2;
 
     private void Start()
     {
         lm = LayerMask.GetMask("Ground");
-        material = GetComponent<MeshRenderer>().material;
+        meshRenderer = GetComponent<MeshRenderer>();
+        material = meshRenderer.material;
         MaterialColor = material.GetColor("_BaseColor");
         Invoke(nameof(Glow), 1f);
     }
@@ -53,6 +55,7 @@ public class MiniJumpGroundScript : MonoBehaviour
                 {
                     material.EnableKeyword("_EMISSION");
                     material.SetColor("_EmissionColor", MaterialColor * glowIntensity);
+                    DynamicGI.SetEmissive(meshRenderer, MaterialColor * glowIntensity);
                     DynamicGI.UpdateEnvironment();
                 }
             }
@@ -61,6 +64,7 @@ public class MiniJumpGroundScript : MonoBehaviour
         {
             material.EnableKeyword("_EMISSION");
             material.SetColor("_EmissionColor", MaterialColor * glowIntensity);
+            DynamicGI.SetEmissive(meshRenderer, MaterialColor * glowIntensity);
             DynamicGI.UpdateEnvironment();
         }
     }
