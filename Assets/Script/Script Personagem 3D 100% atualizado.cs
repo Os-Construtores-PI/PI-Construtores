@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,8 +26,7 @@ public class PlayerMove : MonoBehaviour
     private bool isGrounded;
     private bool canDash = true;
     private bool isDashing = false;
-    private bool canMove = true;
-
+    private InputAction move_action;
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
@@ -45,7 +45,7 @@ public class PlayerMove : MonoBehaviour
                 dir = transform.forward;
             }
             StartDash();
-            canMove = false;
+            move_action.Disable();
         }
     }
     private void StartDash()
@@ -78,8 +78,8 @@ public class PlayerMove : MonoBehaviour
 
     private void ResetDash()
     {
+        move_action.Enable();
         canDash = true;
-        canMove = true;
     }
     public void OnJump(InputAction.CallbackContext context)
     {
@@ -91,6 +91,7 @@ public class PlayerMove : MonoBehaviour
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
+        move_action = InputSystem.actions.FindAction("Move");
     }
     private void ApplyGravity()
     {
@@ -115,8 +116,8 @@ public class PlayerMove : MonoBehaviour
     }
     private void CalculateMovementVector()
     {
-        Vector2 target = new(Mathf.Lerp(movementVector.x,moveInput.x * speed,1-Mathf.Exp(-acceleration*Time.deltaTime)),Mathf.Lerp(movementVector.z,moveInput.y*speed,1-Mathf.Exp(-acceleration*Time.deltaTime)));
-        movementVector = new Vector3(target.x, movementVector.y,target.y);
+        Vector2 move = new(Mathf.Lerp(movementVector.x,moveInput.x * speed,1-Mathf.Exp(-acceleration*Time.deltaTime)),Mathf.Lerp(movementVector.z,moveInput.y*speed,1-Mathf.Exp(-acceleration*Time.deltaTime)));
+        movementVector = new Vector3(move.x, movementVector.y,move.y);
     }
 
     private void ApplyMovement()
