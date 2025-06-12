@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,7 +17,13 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float dashSpeed = 30f;
     [SerializeField] private float dashDuration = 0.3f;
     [SerializeField] private float dashCooldown = 1f;
-    private CharacterController characterController;
+
+    [Header("Componentes")]
+    [SerializeField] private CharacterController characterController;
+    [Header("Cinemachine Camera")]
+    [SerializeField] private CinemachineCamera cinemachineCamera;
+    [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
+
     private Vector3 movementVector = Vector3.zero;
     private Vector3 dir;
     private Vector2 moveInput;
@@ -27,6 +32,28 @@ public class PlayerMove : MonoBehaviour
     private bool canDash = true;
     private bool isDashing = false;
     private InputAction move_action;
+
+
+    private void Awake()
+    {
+        characterController = GetComponent<CharacterController>();
+        move_action = InputSystem.actions.FindAction("Move");
+        if (cinemachineCamera != null)
+        {
+            orbitalFollow = cinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
+        }
+    }
+    private void Update()
+    {
+        isGrounded = characterController.isGrounded;
+
+        ApplyGravity();
+        MovimentoChao();
+        DashLogic();
+    }
+
+
+    #region Input
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
@@ -48,6 +75,19 @@ public class PlayerMove : MonoBehaviour
             move_action.Disable();
         }
     }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            HandleJump();
+        }
+    }
+
+    #endregion
+
+
+    #region Dash
     private void StartDash()
     {
         canDash = false;
@@ -55,14 +95,8 @@ public class PlayerMove : MonoBehaviour
         Invoke(nameof(ResetDash), dashCooldown);
 
     }
-
-    private void Update()
+    void DashLogic()
     {
-        isGrounded = characterController.isGrounded;
-
-        ApplyGravity();
-        CalculateMovementVector();
-        ApplyMovement();
         if (isDashing)
         {
             characterController.Move(dashSpeed * Time.deltaTime * dir);
@@ -75,24 +109,13 @@ public class PlayerMove : MonoBehaviour
             }
         }
     }
-
     private void ResetDash()
     {
         move_action.Enable();
         canDash = true;
     }
-    public void OnJump(InputAction.CallbackContext context)
-    {
-        if (context.started)
-        {
-            HandleJump();
-        }
-    }
-    private void Awake()
-    {
-        characterController = GetComponent<CharacterController>();
-        move_action = InputSystem.actions.FindAction("Move");
-    }
+    #endregion
+    #region movimento Y
     private void ApplyGravity()
     {
         if (isGrounded && movementVector.y < 0)
@@ -114,14 +137,18 @@ public class PlayerMove : MonoBehaviour
             currentJumpCount++;
         }
     }
-    private void CalculateMovementVector()
-    {
-        Vector2 move = new(Mathf.Lerp(movementVector.x,moveInput.x * speed,1-Mathf.Exp(-acceleration*Time.deltaTime)),Mathf.Lerp(movementVector.z,moveInput.y*speed,1-Mathf.Exp(-acceleration*Time.deltaTime)));
-        movementVector = new Vector3(move.x, movementVector.y,move.y);
-    }
+    #endregion
 
-    private void ApplyMovement()
+    #region movimento X
+    private void MovimentoChao()
     {
+        Vector2 move = new(Mathf.Lerp(movementVector.x, moveInput.x * speed, 1 - Mathf.Exp(-acceleration * Time.deltaTime)), Mathf.Lerp(movementVector.z, moveInput.y * speed, 1 - Mathf.Exp(-acceleration * Time.deltaTime)));
+        movementVector = new Vector3(move.x, movementVector.y, move.y);
         characterController.Move(movementVector * Time.deltaTime);
     }
+    #endregion
+
+    #region Camera
+    // Em breve
+    #endregion
 }
