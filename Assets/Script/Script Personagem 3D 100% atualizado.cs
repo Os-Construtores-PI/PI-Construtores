@@ -1,55 +1,59 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMove : MonoBehaviour
 {
-    [Header("Movement Parameters")]
+    [Header("Movimento")]
     [SerializeField] private float speed = 10f;
-    [SerializeField] private float sprintSpeed = 15f;
-    [SerializeField] private float rotationSpeed = 100f;
+    [SerializeField] private float acceleration = 5;
 
-    [Header("Jumping Parameters")]
+    [Header("Parametros de Pulo")]
     [SerializeField] private float jumpForce = 10f;
     [SerializeField] private int maxJumpCount = 2; // Allow for double jump
     [SerializeField] private float gravity = -9.81f;
-
+    [Header("Dash Parametros")]
+    [SerializeField] private float dashSpeed = 30f;
+    [SerializeField] private float dashDuration = 0.3f;
+    [SerializeField] private float dashCooldown = 1f;
     private CharacterController characterController;
     private Vector3 movementVector = Vector3.zero;
+    private Vector3 dir;
     private Vector2 moveInput;
-    private bool isSprinting = false;
     private int currentJumpCount;
     private bool isGrounded;
-
-    // Input Action Callbacks
+    private bool canDash = true;
+    private bool isDashing = false;
+    private InputAction move_action;
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
     }
 
-    public void GetSprint(InputAction.CallbackContext context)
+    public void OnDash(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.started && canDash)
         {
-            isSprinting = true;
-        }
-        else if (context.canceled)
-        {
-            isSprinting = false;
-        }
-    }
-
-    public void OnJump(InputAction.CallbackContext context)
-    {
-        if (context.started)
-        {
-            HandleJump();
+            if (movementVector.x != 0 && movementVector.y != 0)
+            {
+                dir = new Vector3(movementVector.x, 0, movementVector.z).normalized;
+            }
+            else
+            {
+                dir = transform.forward;
+            }
+            StartDash();
+            move_action.Disable();
         }
     }
-
-    private void Awake()
+    private void StartDash()
     {
-        characterController = GetComponent<CharacterController>();
+        canDash = false;
+        isDashing = true;
+        Invoke(nameof(ResetDash), dashCooldown);
+
     }
 
     private void Update()
@@ -57,17 +61,44 @@ public class PlayerMove : MonoBehaviour
         isGrounded = characterController.isGrounded;
 
         ApplyGravity();
-        HandleRotation();
         CalculateMovementVector();
         ApplyMovement();
+        if (isDashing)
+        {
+            characterController.Move(dashSpeed * Time.deltaTime * dir);
+            dashDuration -= Time.deltaTime;
+
+            if (dashDuration <= 0f)
+            {
+                isDashing = false;
+                dashDuration = 0.4f;
+            }
+        }
     }
 
+    private void ResetDash()
+    {
+        move_action.Enable();
+        canDash = true;
+    }
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            HandleJump();
+        }
+    }
+    private void Awake()
+    {
+        characterController = GetComponent<CharacterController>();
+        move_action = InputSystem.actions.FindAction("Move");
+    }
     private void ApplyGravity()
     {
         if (isGrounded && movementVector.y < 0)
         {
-            movementVector.y = -2f; // Small downward force to keep grounded
-            currentJumpCount = 0; // Reset jump count when grounded
+            movementVector.y = -2f;
+            currentJumpCount = 0;
         }
         else
         {
@@ -83,34 +114,14 @@ public class PlayerMove : MonoBehaviour
             currentJumpCount++;
         }
     }
-
-    private void HandleRotation()
-    {
-        // Rotate the character based on horizontal input
-        Vector3 rotationDelta = new Vector3(0, Time.deltaTime * rotationSpeed * moveInput.x, 0);
-        transform.Rotate(rotationDelta);
-    }
-
     private void CalculateMovementVector()
     {
-        // Determine the current speed based on sprint state
-        float currentSpeed = isSprinting ? sprintSpeed : speed;
-
-        // Calculate the desired movement direction in local space (forward/backward)
-        // Only use the vertical input (moveInput.y) for forward/backward movement
-        Vector3 localMoveDirection = new Vector3(0, 0, moveInput.y * currentSpeed);
-
-        // Transform the local movement direction into world space based on the character's current rotation
-        Vector3 worldMoveDirection = transform.TransformDirection(localMoveDirection);
-
-        // Combine the world horizontal movement with the existing vertical movement (from ApplyGravity)
-        // Preserve the Y component calculated by ApplyGravity
-        movementVector = new Vector3(worldMoveDirection.x, movementVector.y, worldMoveDirection.z);
+        Vector2 move = new(Mathf.Lerp(movementVector.x,moveInput.x * speed,1-Mathf.Exp(-acceleration*Time.deltaTime)),Mathf.Lerp(movementVector.z,moveInput.y*speed,1-Mathf.Exp(-acceleration*Time.deltaTime)));
+        movementVector = new Vector3(move.x, movementVector.y,move.y);
     }
 
     private void ApplyMovement()
     {
-        // Apply the calculated movement vector to the character controller
         characterController.Move(movementVector * Time.deltaTime);
     }
 }
