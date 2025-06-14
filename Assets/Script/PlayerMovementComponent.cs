@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMove : MonoBehaviour
+public class PlayerMovementComponent : MonoBehaviour
 {
     [Header("Movimento")]
     [SerializeField] private float speed = 10f;
@@ -43,7 +43,7 @@ public class PlayerMove : MonoBehaviour
             orbitalFollow = cinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
         }
     }
-    private void Update()
+    private void FixedUpdate()
     {
         isGrounded = characterController.isGrounded;
 
