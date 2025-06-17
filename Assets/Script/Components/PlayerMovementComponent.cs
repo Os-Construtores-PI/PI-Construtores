@@ -16,7 +16,7 @@ public class PlayerMovementComponent : MonoBehaviour
     [Header("Dash Parametros")]
     [SerializeField] private float dashSpeed = 30f;
     [SerializeField] private float dashDuration = 0.3f;
-    [SerializeField] private float dashCooldown = 1f;
+    [SerializeField] private float dashCooldown = 5f;
 
     [Header("Componentes")]
     [SerializeField] private CharacterController characterController;
@@ -47,7 +47,6 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         isGrounded = characterController.isGrounded;
 
-        ApplyGravity();
         MovimentoChao();
         DashLogic();
     }
@@ -63,7 +62,7 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         if (context.started && canDash)
         {
-            if (movementVector.x != 0 && movementVector.y != 0)
+            if (movementVector.x != 0 && movementVector.z != 0)
             {
                 dir = new Vector3(movementVector.x, 0, movementVector.z).normalized;
             }
@@ -80,7 +79,7 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         if (context.started)
         {
-            HandleJump();
+            JumpLogica();
         }
     }
 
@@ -90,6 +89,7 @@ public class PlayerMovementComponent : MonoBehaviour
     #region Dash
     private void StartDash()
     {
+        characterController.Move(Vector3.zero);
         canDash = false;
         isDashing = true;
         Invoke(nameof(ResetDash), dashCooldown);
@@ -107,6 +107,10 @@ public class PlayerMovementComponent : MonoBehaviour
                 isDashing = false;
                 dashDuration = 0.4f;
             }
+        }
+        else
+        {
+            ApplyGravity();
         }
     }
     private void ResetDash()
@@ -129,7 +133,7 @@ public class PlayerMovementComponent : MonoBehaviour
         }
     }
 
-    private void HandleJump()
+    private void JumpLogica()
     {
         if (isGrounded || currentJumpCount < maxJumpCount)
         {
