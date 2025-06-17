@@ -4,7 +4,10 @@ using UnityEngine.SceneManagement;
 
 public class HealthComponent : EntityBehavior
 {
+    [Header("Tipo de Entidade")]
     [SerializeField] public EntityType entity;
+
+    [Header("Parâmetros de Vida")]
     [SerializeField] private float Health;
     [SerializeField] private float Max_Health;
 

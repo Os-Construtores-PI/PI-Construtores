@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EntityBehavior : MonoBehaviour
+public abstract class EntityBehavior : MonoBehaviour
 {
     public enum EntityType
     {

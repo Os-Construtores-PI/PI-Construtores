@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class DamageComponent : EntityBehavior
 {
+
+    [Header("Inimigos que irá triggar o dano")]
+    [SerializeField] private EntityType[] enemies;
+
+
+    [Header("Parâmetros de Dano")]
     [SerializeField] private int damage;
     [SerializeField] private float damageCooldown;
-    [SerializeField] private EntityType[] enemies;
     private bool can_damage;
 
 
