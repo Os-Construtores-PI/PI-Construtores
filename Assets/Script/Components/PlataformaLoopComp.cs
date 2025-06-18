@@ -8,6 +8,9 @@ public class PlataformaLoopComp : MonoBehaviour
 {
     List<Vector3> targetList = new();
     [SerializeField] Vector3[] targets;
+    [SerializeField] PathType tipo_path = PathType.Linear;
+    [SerializeField] Ease tipo_animacao = Ease.Linear;
+    [SerializeField] LoopType tipo_loop = LoopType.Yoyo;
     [SerializeField] float duration;
     [SerializeField] int num_of_loops;
     void Start()
@@ -16,8 +19,7 @@ public class PlataformaLoopComp : MonoBehaviour
         DOTween.Init();
         if (targets.Count() > 0)
         {
-            print("ta rodando");
-            transform.DOPath(targets, duration,PathType.Linear).SetLoops(num_of_loops, LoopType.Yoyo).SetEase(Ease.Linear).SetUpdate(UpdateType.Fixed);
+            transform.DOPath(targets, duration,tipo_path).SetLoops(num_of_loops,tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
         }
     }
     void InitTargets()
