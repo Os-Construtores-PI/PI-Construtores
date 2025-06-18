@@ -1,4 +1,5 @@
 using Unity.Cinemachine;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -28,6 +29,7 @@ public class PlayerMovementComponent : MonoBehaviour
     private Vector3 movementVector = Vector3.zero;
     private Vector3 dir;
     private Vector2 moveInput;
+    private Vector2 HorizontalLerp;
     private int currentJumpCount;
     private bool isGrounded;
     private bool canDash = true;
@@ -48,10 +50,17 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         isGrounded = characterController.isGrounded;
 
-        DashLogic();
+        DashLogica();
         Movement();
         RotateTransform();
+
+
+
         characterController.Move(movementVector * Time.deltaTime);
+    }
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawLine(transform.position,movementVector);
     }
 
 
@@ -98,7 +107,7 @@ public class PlayerMovementComponent : MonoBehaviour
         Invoke(nameof(ResetDash), dashCooldown);
 
     }
-    void DashLogic()
+    void DashLogica()
     {
         if (isDashing)
         {
@@ -127,7 +136,7 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         if (isGrounded && movementVector.y < 0)
         {
-            movementVector.y = -2f;
+            movementVector.y = 0f;
             currentJumpCount = 0;
         }
         else
@@ -149,8 +158,8 @@ public class PlayerMovementComponent : MonoBehaviour
     #region movimento X
     private void Movement()
     {
-        Vector2 move = new(Mathf.Lerp(movementVector.x, moveInput.x * speed, 1 - Mathf.Exp(-acceleration * Time.deltaTime)), Mathf.Lerp(movementVector.z, moveInput.y * speed, 1 - Mathf.Exp(-acceleration * Time.deltaTime)));
-        movementVector = new Vector3(move.x, movementVector.y, move.y);
+        Vector2 target = new(moveInput.x * speed, moveInput.y * speed);
+        HorizontalLerp = new(Mathf.Lerp(movementVector.x, target.x, 1 - Mathf.Exp(-acceleration * Time.deltaTime)), Mathf.Lerp(movementVector.z, target.y, 1 - Mathf.Exp(-acceleration * Time.deltaTime)));
     }
     #endregion
 
@@ -159,7 +168,12 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         if (orbitalFollow)
         {
-            transform.localEulerAngles = new(0,orbitalFollow.HorizontalAxis.Value,0);
+            transform.localEulerAngles = new(0f, orbitalFollow.HorizontalAxis.Value, 0f);
+
+            Vector3 horizontalMovement = new(HorizontalLerp.x, 0f, HorizontalLerp.y);
+            horizontalMovement = transform.TransformDirection(horizontalMovement);
+
+            movementVector = horizontalMovement + Vector3.up * movementVector.y;
         }
     }
     // Em breve
