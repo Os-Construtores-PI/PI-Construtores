@@ -9,10 +9,11 @@ public class PlataformaLoopComp : MonoBehaviour
     private List<Vector3> targetList;
     private Vector3[] targets;
 
-    [Header("Tipos")]
+    [Header("Tipos e Cor do Gizmo")]
     [SerializeField] PathType tipo_path = PathType.Linear;
     [SerializeField] Ease tipo_animacao = Ease.Linear;
     [SerializeField] LoopType tipo_loop = LoopType.Yoyo;
+    [SerializeField] Color cor_gizmo = Color.white;
 
 
 
@@ -21,14 +22,14 @@ public class PlataformaLoopComp : MonoBehaviour
     [SerializeField] int num_of_loops;
 
 
-    
+
     void Start()
     {
         InitTargets();
         DOTween.Init();
         if (targets.Count() > 0)
         {
-            transform.DOPath(targets, duration, tipo_path).SetLoops(num_of_loops, tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
+            transform.DOPath(targets, duration, tipo_path,gizmoColor:cor_gizmo).SetLoops(num_of_loops, tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
         }
     }
     void InitTargets()
