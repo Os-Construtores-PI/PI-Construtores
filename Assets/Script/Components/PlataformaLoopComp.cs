@@ -14,16 +14,21 @@ public class PlataformaLoopComp : MonoBehaviour
     [SerializeField] Ease tipo_animacao = Ease.Linear;
     [SerializeField] LoopType tipo_loop = LoopType.Yoyo;
 
+
+
     [Header("Duração e Quantidade de Loops (-1 para infinitos loops)")]
     [SerializeField] float duration;
     [SerializeField] int num_of_loops;
+
+
+    
     void Start()
     {
         InitTargets();
         DOTween.Init();
         if (targets.Count() > 0)
         {
-            transform.DOPath(targets, duration,tipo_path).SetLoops(num_of_loops,tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
+            transform.DOPath(targets, duration, tipo_path).SetLoops(num_of_loops, tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
         }
     }
     void InitTargets()
@@ -47,7 +52,11 @@ public class PlataformaLoopComp : MonoBehaviour
     void OnTriggerExit(Collider collision)
     {
         if (!collision.gameObject.CompareTag("Player")) return;
-        collision.transform.SetParent(null,true);
+        collision.transform.SetParent(null, true);
         collision.transform.localScale = Vector3.one;
+    }
+    void OnDestroy()
+    {
+        transform.DOKill();        
     }
 }
