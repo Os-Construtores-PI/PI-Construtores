@@ -6,4 +6,8 @@ public abstract class EntityBehavior : MonoBehaviour
     {
         player, enemy, entity
     }
+    public enum StatType
+    {
+        armor, attack, speed, jump
+    }
 }

@@ -1,6 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovementComponent : MonoBehaviour
@@ -11,7 +12,7 @@ public class PlayerMovementComponent : MonoBehaviour
 
     [Header("Parametros de Pulo")]
     [SerializeField] private float jumpForce = 10f;
-    [SerializeField] private int maxJumpCount = 2; // Allow for double jump
+    [SerializeField] private int maxJumpCount = 2;
     [SerializeField] private float gravity = -9.81f;
     [Header("Dash Parametros")]
     [SerializeField] private float dashSpeed = 30f;
@@ -47,8 +48,10 @@ public class PlayerMovementComponent : MonoBehaviour
     {
         isGrounded = characterController.isGrounded;
 
-        MovimentoChao();
         DashLogic();
+        Movement();
+        RotateTransform();
+        characterController.Move(movementVector * Time.deltaTime);
     }
 
 
@@ -144,15 +147,21 @@ public class PlayerMovementComponent : MonoBehaviour
     #endregion
 
     #region movimento X
-    private void MovimentoChao()
+    private void Movement()
     {
         Vector2 move = new(Mathf.Lerp(movementVector.x, moveInput.x * speed, 1 - Mathf.Exp(-acceleration * Time.deltaTime)), Mathf.Lerp(movementVector.z, moveInput.y * speed, 1 - Mathf.Exp(-acceleration * Time.deltaTime)));
         movementVector = new Vector3(move.x, movementVector.y, move.y);
-        characterController.Move(movementVector * Time.deltaTime);
     }
     #endregion
 
     #region Camera
+    private void RotateTransform()
+    {
+        if (orbitalFollow)
+        {
+            transform.localEulerAngles = new(0,orbitalFollow.HorizontalAxis.Value,0);
+        }
+    }
     // Em breve
     #endregion
 }

@@ -206,8 +206,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12186935, y: 0.00031643588, z: -0.000038853446, w: 0.99254614}
-  m_LocalPosition: {x: 0, y: 3.6234531, z: -6.79207}
+  m_LocalRotation: {x: 0.1305262, y: 0, z: 0, w: 0.9914449}
+  m_LocalPosition: {x: 0, y: 4.129962, z: -8.210369}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -422,7 +422,7 @@ GameObject:
   - component: {fileID: 462258511}
   - component: {fileID: 462258510}
   - component: {fileID: 462258509}
-  - component: {fileID: 462258508}
+  - component: {fileID: 462258512}
   - component: {fileID: 462258507}
   - component: {fileID: 462258506}
   m_Layer: 0
@@ -507,35 +507,6 @@ MonoBehaviour:
   references:
     version: 2
     RefIds: []
---- !u!114 &462258508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 462258505}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f38bda98361e1de48a4ca2bd86ea3c17, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Composition:
-    ScreenPosition: {x: -0.00041666627, y: 0}
-    DeadZone:
-      Enabled: 0
-      Size: {x: 0.2, y: 0.2}
-    HardLimits:
-      Enabled: 0
-      Size: {x: 0.8, y: 0.8}
-      Offset: {x: 0, y: 0}
-  CenterOnActivate: 1
-  TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 0.5, y: 0.5}
-  Lookahead:
-    Enabled: 0
-    Time: 0
-    Smoothing: 0
-    IgnoreY: 0
 --- !u!114 &462258509
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -556,7 +527,7 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   OrbitStyle: 0
-  Radius: 7
+  Radius: 8.5
   Orbits:
     Top:
       Radius: 2
@@ -580,7 +551,7 @@ MonoBehaviour:
       Time: 2
     Restrictions: 0
   VerticalAxis:
-    Value: 14
+    Value: 15
     Center: 17.5
     Range: {x: -10, y: 45}
     Wrap: 0
@@ -650,13 +621,26 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 462258505}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12186934, y: 0.00031643588, z: -0.00003885344, w: 0.99254614}
-  m_LocalPosition: {x: 0, y: 3.6234531, z: -6.79207}
+  m_LocalRotation: {x: 0.1305262, y: 0, z: 0, w: 0.9914449}
+  m_LocalPosition: {x: 0, y: 4.129962, z: -8.210369}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &462258512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 462258505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &601629744
 GameObject:
   m_ObjectHideFlags: 0
@@ -1260,7 +1244,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 2.1
+  m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1639029989
@@ -1350,7 +1334,7 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2.1
+  m_Height: 2
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
@@ -1515,7 +1499,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41ab4e2abcbc6f445932ec7a3474a5cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 15
+  speed: 7.5
   acceleration: 10
   jumpForce: 10
   maxJumpCount: 2
@@ -1555,7 +1539,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1673424099
 Transform:
@@ -2294,7 +2278,7 @@ MonoBehaviour:
   tipo_animacao: 1
   tipo_loop: 1
   resolution_path: 10
-  cor_gizmo: {r: 0, g: 0.8842337, b: 1, a: 1}
+  cor_gizmo: {r: 1, g: 0.13482335, b: 0, a: 1}
   duration: 5
   num_of_loops: -1
 --- !u!4 &8879865262123695164
