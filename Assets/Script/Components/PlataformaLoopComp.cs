@@ -6,15 +6,16 @@ using UnityEngine;
 
 public class PlataformaLoopComp : MonoBehaviour
 {
-    private List<Vector3> targetList;
+    private List<Vector3> targetList = new();
     private Vector3[] targets;
 
     [Header("Tipos e Cor do Gizmo")]
     [SerializeField] PathType tipo_path = PathType.Linear;
+    [SerializeField] PathMode modo_path = PathMode.Full3D;
     [SerializeField] Ease tipo_animacao = Ease.Linear;
     [SerializeField] LoopType tipo_loop = LoopType.Yoyo;
+    [SerializeField] int resolution_path = 10;
     [SerializeField] Color cor_gizmo = Color.white;
-
 
 
     [Header("Duração e Quantidade de Loops (-1 para infinitos loops)")]
@@ -29,7 +30,7 @@ public class PlataformaLoopComp : MonoBehaviour
         DOTween.Init();
         if (targets.Count() > 0)
         {
-            transform.DOPath(targets, duration, tipo_path,gizmoColor:cor_gizmo).SetLoops(num_of_loops, tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
+            transform.DOPath(targets, duration, tipo_path,modo_path,resolution_path,cor_gizmo).SetLoops(num_of_loops, tipo_loop).SetEase(tipo_animacao).SetUpdate(UpdateType.Fixed);
         }
     }
     void InitTargets()
