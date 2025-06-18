@@ -6,11 +6,15 @@ using UnityEngine;
 
 public class PlataformaLoopComp : MonoBehaviour
 {
-    List<Vector3> targetList = new();
-    [SerializeField] Vector3[] targets;
+    private List<Vector3> targetList;
+    private Vector3[] targets;
+
+    [Header("Tipos")]
     [SerializeField] PathType tipo_path = PathType.Linear;
     [SerializeField] Ease tipo_animacao = Ease.Linear;
     [SerializeField] LoopType tipo_loop = LoopType.Yoyo;
+
+    [Header("Duração e Quantidade de Loops (-1 para infinitos loops)")]
     [SerializeField] float duration;
     [SerializeField] int num_of_loops;
     void Start()
