@@ -1,17 +1,32 @@
+using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlataformaLoopComp : MonoBehaviour
 {
-    [SerializeField] Transform target;
+    List<Vector3> targetList = new();
+    [SerializeField] Vector3[] targets;
     [SerializeField] float duration;
     [SerializeField] int num_of_loops;
     void Start()
     {
-        target = transform.GetChild(0);
+        InitTargets();
         DOTween.Init();
-        transform.DOMove(target.position, duration).SetLoops(num_of_loops, LoopType.Yoyo).SetEase(Ease.Linear).SetUpdate(UpdateType.Fixed);
+        if (targets.Count() > 0)
+        {
+            print("ta rodando");
+            transform.DOPath(targets, duration,PathType.Linear).SetLoops(num_of_loops, LoopType.Yoyo).SetEase(Ease.Linear).SetUpdate(UpdateType.Fixed);
+        }
+    }
+    void InitTargets()
+    {
+        foreach (Transform child in transform)
+        {
+            targetList.Add(child.position);
+        }
+        targets = targetList.ToArray();
     }
     void OnTriggerEnter(Collider collision)
     {
