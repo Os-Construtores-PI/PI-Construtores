@@ -47,8 +47,6 @@ public class PlayerMovementComponent : MonoBehaviour
         DashLogica();
         RotationAndMovement();
 
-
-        print(movementVector);
         characterController.Move(movementVector * Time.deltaTime);
     }
 
@@ -127,16 +125,16 @@ public class PlayerMovementComponent : MonoBehaviour
             currentJumpCount = 0;
             if (moveInput == Vector2.zero)
             {
-                movementVector.x = Mathf.Lerp(movementVector.x,0f,1f-Mathf.Exp(-friction*Time.deltaTime));
-                movementVector.z = Mathf.Lerp(movementVector.z,0f,1f-Mathf.Exp(-friction*Time.deltaTime));
+                movementVector.x = Interp(movementVector.x, 0, friction);
+                movementVector.z = Interp(movementVector.z, 0, friction);
             }
         }
         else
         {
             if (moveInput == Vector2.zero)
             {
-                movementVector.x = Mathf.Lerp(movementVector.x,0f,1f-Mathf.Exp(-airfriction*Time.deltaTime));
-                movementVector.z = Mathf.Lerp(movementVector.z,0f,1f-Mathf.Exp(-airfriction*Time.deltaTime));
+                movementVector.x = Interp(movementVector.x, 0, airfriction);
+                movementVector.z = Interp(movementVector.z, 0, airfriction);
             }
             movementVector.y += gravity * Time.deltaTime;
         }
@@ -153,27 +151,37 @@ public class PlayerMovementComponent : MonoBehaviour
     #endregion
 
     #region Movimentos
-private void RotationAndMovement()
-{
-    if (cinemachineCamera && moveInput != Vector2.zero)
+    private void RotationAndMovement()
     {
-        var cameraTransform = cinemachineCamera.transform;
-        Vector3 forward = cameraTransform.forward;
-        Vector3 right = cameraTransform.right;
-        forward.y = 0;
-        right.y = 0;
-        forward.Normalize();
-        right.Normalize();
-        Vector3 direction = forward * moveInput.y + right * moveInput.x;
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-        float targetX = direction.x * speed;
-        float targetZ = direction.z * speed;
-        targetX = Mathf.Lerp(movementVector.x, targetX, 1f - Mathf.Exp(-acceleration * Time.deltaTime));
-        targetZ = Mathf.Lerp(movementVector.z, targetZ, 1f - Mathf.Exp(-acceleration * Time.deltaTime));
-        movementVector = new(targetX, movementVector.y, targetZ);
+        if (cinemachineCamera && moveInput != Vector2.zero)
+        {
+            var cameraTransform = cinemachineCamera.transform;
+            Vector3 forward = cameraTransform.forward;
+            Vector3 right = cameraTransform.right;
+            forward.y = 0;
+            right.y = 0;
+            forward.Normalize();
+            right.Normalize();
+            Vector3 direction = forward * moveInput.y + right * moveInput.x;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            float targetX = direction.x * speed;
+            float targetZ = direction.z * speed;
+            targetX = Interp(movementVector.x, targetX, acceleration);
+            targetZ = Interp(movementVector.z, targetZ, acceleration);
+            movementVector = new(targetX, movementVector.y, targetZ);
+        }
     }
-}
 
+    #endregion
+
+
+    #region Utils
+    private float Interp(float from, float target, float smooth)
+    {
+        float newvalue = Mathf.Lerp(from, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
+        return newvalue;
+
+    }
     #endregion
 }

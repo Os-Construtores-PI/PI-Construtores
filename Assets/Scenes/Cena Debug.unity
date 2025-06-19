@@ -1503,7 +1503,7 @@ MonoBehaviour:
   speed: 7.5
   acceleration: 7
   friction: 10
-  airfriction: 0.7
+  airfriction: 1
   jumpForce: 10
   maxJumpCount: 2
   gravity: -9.81
@@ -1538,7 +1538,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bba845f72758144a0cc42674443d70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entity: 0
+  identity:
+    entity: 0
+    enemyType: 0
 --- !u!1 &1673424098
 GameObject:
   m_ObjectHideFlags: 0

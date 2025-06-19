@@ -15,8 +15,9 @@ public class HealthComponent : ComponentBehaviour
     {
         if (TryGetComponent(out BrainComponent cerebro))
         {
-            entity_type = cerebro.entity;
+            entity_type = cerebro.identity.entityType;
         }
+        
         SetAttribute(nameof(Health), Max_Health);
         SetAttribute(nameof(Max_Health), Max_Health);
 

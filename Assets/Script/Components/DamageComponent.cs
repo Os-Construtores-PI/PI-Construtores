@@ -35,7 +35,7 @@ public class DamageComponent : ComponentBehaviour
 
         if (other.TryGetComponent(out HealthComponent healthComponent) && other.TryGetComponent(out BrainComponent brainComponent))
             {
-                if (hashenemies.Contains(brainComponent.entity) && can_damage)
+                if (hashenemies.Contains(brainComponent.identity.entityType) && can_damage)
                 {
                     healthComponent.SubtractHealth(GetAttribute<float>(nameof(Damage)));
                     can_damage = false;
