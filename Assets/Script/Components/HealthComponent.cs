@@ -1,35 +1,43 @@
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class HealthComponent : EntityBehavior
+[RequireComponent(typeof(BrainComponent))]
+public class HealthComponent : ComponentBehaviour
 {
-    [Header("Tipo de Entidade")]
-    [SerializeField] public EntityType entity;
 
     [Header("Parâmetros de Vida")]
     [SerializeField] private float Health;
     [SerializeField] private float Max_Health;
 
+    private EntityType entity_type;
 
     private void Start()
     {
-        Health = Max_Health;
-    }
-    public void AddHealth(int amount)
-    {
-        Health += amount;
-        if (Health > Max_Health)
+        if (TryGetComponent(out BrainComponent cerebro))
         {
-            Health = Max_Health;
+            entity_type = cerebro.entity;
         }
-    }
-    public void SubtractHealth(int amount)
-    {
-        Health -= amount;
-        if (Health <= 0)
+        SetAttribute(nameof(Health), Max_Health);
+        SetAttribute(nameof(Max_Health), Max_Health);
+
+        SubscribeToAttribute(nameof(Health), (newValue) =>
         {
-            DeathEvent(entity);
+            print("AtualizarUI");
+        });
+    }
+    public void AddHealth(float amount)
+    {
+        float currentHealth = GetAttribute<float>("Health");
+        currentHealth += amount;
+        SetAttribute(nameof(Health), Mathf.Min(currentHealth, Max_Health));
+    }
+    public void SubtractHealth(float amount)
+    {
+        float currentHealth = GetAttribute<float>("Health");
+        currentHealth -= amount;
+        if (currentHealth <= 0)
+        {
+            DeathEvent(entity_type);
         }
     }
     private void DeathEvent(EntityType type)

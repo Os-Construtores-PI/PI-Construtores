@@ -1217,6 +1217,7 @@ GameObject:
   - component: {fileID: 1639029994}
   - component: {fileID: 1639029995}
   - component: {fileID: 1639029996}
+  - component: {fileID: 1639029997}
   m_Layer: 6
   m_Name: Pilula
   m_TagString: Player
@@ -1500,7 +1501,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 7.5
-  acceleration: 10
+  acceleration: 7
+  friction: 10
   jumpForce: 10
   maxJumpCount: 2
   gravity: -9.81
@@ -1509,7 +1511,6 @@ MonoBehaviour:
   dashCooldown: 1
   characterController: {fileID: 1639029993}
   cinemachineCamera: {fileID: 462258510}
-  orbitalFollow: {fileID: 0}
 --- !u!114 &1639029996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1522,9 +1523,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20ce103beb754974cbf5cf2f1ac2bf0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entity: 0
   Health: 0
   Max_Health: 100
+--- !u!114 &1639029997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639029987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82bba845f72758144a0cc42674443d70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entity: 0
 --- !u!1 &1673424098
 GameObject:
   m_ObjectHideFlags: 0

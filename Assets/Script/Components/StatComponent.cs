@@ -1,7 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class StatComponent : EntityBehavior
+public class StatComponent : ComponentBehaviour
 {
     [SerializeField] int stat_duration;
     [SerializeField] int stat_cooldown;
