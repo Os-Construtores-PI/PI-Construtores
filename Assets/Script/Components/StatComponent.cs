@@ -1,28 +1,132 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class StatComponent : ComponentBehaviour
 {
-    [SerializeField] int StatDuration;
-    [SerializeField] int StatCooldown;
-    private void Start()
+    [SerializeField] float statDuration;
+    [SerializeField] float statCooldown;
+
+    [SerializeField] StatType zoneStat;
+    [SerializeField] StatTier zoneTier;
+
+
+
+    private bool can_stat = true;
+    public enum StatType
     {
-        SetAttribute(nameof(StatDuration), StatDuration);
-        SetAttribute(nameof(StatCooldown), StatCooldown);
-        SubscribeToAttribute(nameof(StatDuration), (newDuration) =>
-        {
-            print("UpdateUI");
-         });
+        armor, attack, speed, jump
+    }
+    public enum StatTier
+    {
+        common, rare, epic, legendary
     }
 
-    public void ApplyStat(StatType newstat)
+
+    private void Start()
     {
-        // ...
-        StartCoroutine(RemoveStat(StatDuration, newstat));
+        SetAttribute(nameof(statDuration), statDuration);
+        SetAttribute(nameof(statCooldown), statCooldown);
     }
-    IEnumerator RemoveStat(int duration, StatType oldstat)
+
+    public void ApplyStat(StatType newstat, StatTier tier, GameObject target)
     {
+        if (can_stat)
+        {
+            switch (newstat)
+            {
+                case StatType.armor:
+                    //defense
+                    if (target.TryGetComponent(out HealthComponent health))
+                    {
+                        health.SetAttribute("defense",Mathf.Clamp(health.GetAttribute<float>("defense") * EvaluateStat(tier),0,health.GetAttribute<float>("max_Defense")));
+                    }
+                    break;
+                case StatType.attack:
+                    //damage
+                    if (target.TryGetComponent(out DamageComponent damage))
+                    {
+                        damage.SetAttribute("damage", damage.GetAttribute<float>("damage") * EvaluateStat(tier));
+                    }
+                    break;
+                case StatType.jump:
+                    //jumpForce
+                    PlayerStat("jumpForce", tier, target,"pos");
+                    break;
+                case StatType.speed:
+                    //speed
+                    PlayerStat("speed", tier, target,"pos");
+                    break;
+                default:
+                    return;
+            }
+            StartCoroutine(RemoveStat(statDuration, newstat, target,tier));
+        }
+    }
+    IEnumerator RemoveStat(float duration, StatType oldstat,GameObject target, StatTier tier)
+    {
+        StartCoroutine(CooldownStat());
         yield return new WaitForSeconds(duration);
+        switch (oldstat)
+        {
+            case StatType.armor:
+                //defense
+                if (target.TryGetComponent(out HealthComponent health))
+                {
+                    health.SetAttribute("defense",Mathf.Clamp(health.GetAttribute<float>("defense") / EvaluateStat(tier),0,health.GetAttribute<float>("max_Defense")));
+                }
+                break;
+            case StatType.attack:
+                //damage
+                if (target.TryGetComponent(out DamageComponent damage))
+                {
+                    damage.SetAttribute("damage", damage.GetAttribute<float>("damage") / EvaluateStat(tier));
+                }
+                break;
+            case StatType.jump:
+                //jumpForce
+                PlayerStat("jumpForce", tier, target,"neg");
+                break;
+            case StatType.speed:
+                //speed
+                PlayerStat("speed", tier, target,"neg");
+                break;
+        }
         // ...
+    }
+    IEnumerator CooldownStat()
+    {
+        yield return new WaitForSeconds(statCooldown);
+        can_stat = false;
+    }
+    private float EvaluateStat(StatTier tier)
+    {
+        Dictionary<StatTier, float> relationstat = new() { { StatTier.common, 1.15f }, { StatTier.rare, 1.30f }, { StatTier.epic, 1.45f }, { StatTier.legendary, 1.60f } };
+        return relationstat[tier];
+    }
+    private void PlayerStat(string atributo, StatTier tier,GameObject target, string op)
+    {
+        if (target.TryGetComponent(out PlayerMovementComponent playerMovement))
+        {
+            switch (op)
+            {
+                case "pos":
+                    playerMovement.SetAttribute(atributo, playerMovement.GetAttribute<float>(atributo) * EvaluateStat(tier));
+                    break;
+                case "neg":
+                    playerMovement.SetAttribute(atributo, playerMovement.GetAttribute<float>(atributo) / EvaluateStat(tier));
+                    break;
+            }
+        }
+    }
+
+
+    // Zone
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
+        ApplyStat(zoneStat, zoneTier,other.gameObject);
     }
 }

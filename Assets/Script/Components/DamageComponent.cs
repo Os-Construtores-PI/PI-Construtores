@@ -7,16 +7,16 @@ public class DamageComponent : ComponentBehaviour
 
     [Header("Inimigos que irá triggar o dano")]
     [SerializeField] private EntityType[] enemies;
-    private HashSet<EntityType> hashenemies;
+    private HashSet<EntityType> hashenemies = new();
 
 
     [Header("Parâmetros de Dano")]
-    [SerializeField] private int Damage;
-    [SerializeField] private float DamageCooldown;
+    [SerializeField] private float damage;
+    [SerializeField] private float damageCooldown;
 
 
     
-    private bool can_damage;
+    private bool can_damage = true;
 
 
 
@@ -26,8 +26,8 @@ public class DamageComponent : ComponentBehaviour
         {
             hashenemies.Add(entity);
         }
-        SetAttribute(nameof(Damage), Damage);
-        SetAttribute(nameof(DamageCooldown), DamageCooldown);
+        SetAttribute(nameof(damage), damage);
+        SetAttribute(nameof(damageCooldown), damageCooldown);
     }
     void OnTriggerEnter(Collider other)
     {
@@ -35,11 +35,11 @@ public class DamageComponent : ComponentBehaviour
 
         if (other.TryGetComponent(out HealthComponent healthComponent) && other.TryGetComponent(out BrainComponent brainComponent))
             {
-                if (hashenemies.Contains(brainComponent.identity.entityType) && can_damage)
+                if (hashenemies.Contains(brainComponent.identity.TipoEntidade) && can_damage)
                 {
-                    healthComponent.SubtractHealth(GetAttribute<float>(nameof(Damage)));
+                    healthComponent.SubtractHealth(GetAttribute<float>(nameof(damage)));
                     can_damage = false;
-                    StartCoroutine(DamageCD(GetAttribute<float>(nameof(DamageCooldown))));
+                    StartCoroutine(DamageCD(GetAttribute<float>(nameof(damageCooldown))));
                 }
             }
     }

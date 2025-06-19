@@ -5,8 +5,16 @@ using UnityEngine;
 
 public abstract class ComponentBehaviour : MonoBehaviour
 {
+    public event Action<string, object> OnAttributeChanged;
+    public void SubscribeToAttribute(string attributeName, Action<object> callback)
+    {
+        OnAttributeChanged += (name, value) =>
+        {
+            if (name == attributeName) callback(value);
+        };
+    }
 
-    protected Dictionary<string, object> attributes = new Dictionary<string, object>();
+    protected Dictionary<string, object> attributes = new();
     public bool TryGetAttribute<T>(string attributeName, out T value)
     {
         if (attributes.TryGetValue(attributeName, out object objValue) && objValue is T typedValue)
@@ -38,14 +46,6 @@ public abstract class ComponentBehaviour : MonoBehaviour
 
 
 
-    public event Action<string, object> OnAttributeChanged;
-    public void SubscribeToAttribute(string attributeName, Action<object> callback)
-    {
-        OnAttributeChanged += (name, value) =>
-        {
-            if (name == attributeName) callback(value);
-        };
-    }
 
 
 
@@ -53,8 +53,8 @@ public abstract class ComponentBehaviour : MonoBehaviour
     [Serializable]
     public struct Entities
     {
-        public EntityType entityType;
-        public Sub_EnemyType enemyType;
+        public EntityType TipoEntidade;
+        public Sub_EnemyType TipoInimigo;
     }
 
 
@@ -66,9 +66,4 @@ public abstract class ComponentBehaviour : MonoBehaviour
     {
         none,simple, ranged, flying, tank
     }
-    public enum StatType
-    {
-        armor, attack, speed, jump
-    }
-
 }

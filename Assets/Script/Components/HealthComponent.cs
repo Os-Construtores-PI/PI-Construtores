@@ -6,8 +6,10 @@ public class HealthComponent : ComponentBehaviour
 {
 
     [Header("Parâmetros de Vida")]
-    [SerializeField] private float Health;
-    [SerializeField] private float Max_Health;
+    [SerializeField] private float health;
+    [SerializeField] private float max_Health;
+    [SerializeField] private float defense = 10;
+    private float max_Defense = 100f;
 
     private EntityType entity_type;
 
@@ -15,31 +17,40 @@ public class HealthComponent : ComponentBehaviour
     {
         if (TryGetComponent(out BrainComponent cerebro))
         {
-            entity_type = cerebro.identity.entityType;
+            entity_type = cerebro.identity.TipoEntidade;
         }
-        
-        SetAttribute(nameof(Health), Max_Health);
-        SetAttribute(nameof(Max_Health), Max_Health);
 
-        SubscribeToAttribute(nameof(Health), (newValue) =>
+        SetAttribute(nameof(health), max_Health);
+        SetAttribute(nameof(max_Health), max_Health);
+        SetAttribute(nameof(defense), defense);
+        SetAttribute(nameof(max_Defense), max_Defense);
+
+        SubscribeToAttribute(nameof(health), (newValue) =>
         {
             print("AtualizarUI");
+            print("health:" + newValue);
+        });
+        SubscribeToAttribute(nameof(defense), (newValue) =>
+        {
+            print("AtualizarUI");
+            print("newdefense: "+newValue);
         });
     }
     public void AddHealth(float amount)
     {
-        float currentHealth = GetAttribute<float>("Health");
+        float currentHealth = GetAttribute<float>(nameof(health));
         currentHealth += amount;
-        SetAttribute(nameof(Health), Mathf.Min(currentHealth, Max_Health));
+        SetAttribute(nameof(health), Mathf.Min(currentHealth, max_Health));
     }
     public void SubtractHealth(float amount)
     {
-        float currentHealth = GetAttribute<float>("Health");
-        currentHealth -= amount;
+        float currentHealth = GetAttribute<float>(nameof(health));
+        currentHealth -= amount * (1-Mathf.Min(GetAttribute<float>(nameof(defense)) / max_Defense, .80f));
         if (currentHealth <= 0)
         {
             DeathEvent(entity_type);
         }
+        SetAttribute(nameof(health), currentHealth);
     }
     private void DeathEvent(EntityType type)
     {

@@ -3,8 +3,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovementComponent : MonoBehaviour
+public class PlayerMovementComponent : ComponentBehaviour
 {
+    #region Variáveis
     [Header("Movimento")]
     [SerializeField] private float speed = 10f;
     [SerializeField] private float acceleration = 5;
@@ -33,8 +34,22 @@ public class PlayerMovementComponent : MonoBehaviour
     private bool canDash = true;
     private bool isDashing = false;
     private InputAction move_action;
+    #endregion
 
 
+    private void Start()
+    {
+        StartAtributes();
+
+        SubscribeToAttribute(nameof(speed), (newSpeed) =>
+        {
+            speed = (float) newSpeed;
+        });
+        SubscribeToAttribute(nameof(jumpForce), (newJumpForce) =>
+        {
+            jumpForce = (float) newJumpForce;
+        });
+    }
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
@@ -176,12 +191,23 @@ public class PlayerMovementComponent : MonoBehaviour
     #endregion
 
 
+
+
+
+
+
+
     #region Utils
     private float Interp(float from, float target, float smooth)
     {
         float newvalue = Mathf.Lerp(from, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
         return newvalue;
 
+    }
+    private void StartAtributes()
+    {
+        SetAttribute(nameof(speed), speed);
+        SetAttribute(nameof(jumpForce), jumpForce);
     }
     #endregion
 }

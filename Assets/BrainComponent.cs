@@ -3,6 +3,13 @@ using UnityEngine;
 
 public class BrainComponent : ComponentBehaviour
 {
-    [Header("Tipo de Entidade")]
+    public enum Behavior
+    {
+        Agressive,Friendly,Neutral,Individual    
+    }
+
+
+    [Header("Características")]
     [SerializeField] public Entities identity;
+    [SerializeField] public Behavior comportamento;
 }
