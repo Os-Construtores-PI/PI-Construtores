@@ -28,6 +28,11 @@ public class DamageComponent : ComponentBehaviour
         }
         SetAttribute(nameof(damage), damage);
         SetAttribute(nameof(damageCooldown), damageCooldown);
+
+        SubscribeToAttribute(nameof(damage), (newDamage) =>
+        {
+            damage = (float)newDamage;
+        });
     }
     void OnTriggerEnter(Collider other)
     {

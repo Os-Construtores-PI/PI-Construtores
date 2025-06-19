@@ -9,7 +9,7 @@ public class HealthComponent : ComponentBehaviour
     [SerializeField] private float health;
     [SerializeField] private float max_Health;
     [SerializeField] private float defense = 10;
-    private float max_Defense = 100f;
+    private const float max_Defense = 100f;
 
     private EntityType entity_type;
 
@@ -25,15 +25,15 @@ public class HealthComponent : ComponentBehaviour
         SetAttribute(nameof(defense), defense);
         SetAttribute(nameof(max_Defense), max_Defense);
 
-        SubscribeToAttribute(nameof(health), (newValue) =>
+        SubscribeToAttribute(nameof(health), (newHealth) =>
         {
             print("AtualizarUI");
-            print("health:" + newValue);
+            print("health:" + newHealth);
         });
-        SubscribeToAttribute(nameof(defense), (newValue) =>
+        SubscribeToAttribute(nameof(defense), (newDefense) =>
         {
             print("AtualizarUI");
-            print("newdefense: "+newValue);
+            print("newdefense: "+newDefense);
         });
     }
     public void AddHealth(float amount)
