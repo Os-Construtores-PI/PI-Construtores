@@ -9,6 +9,7 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] private float speed = 10f;
     [SerializeField] private float acceleration = 5;
     [SerializeField] private float friction = 2f;
+    [SerializeField] private float airfriction = 2f;
 
     [Header("Parametros de Pulo")]
     [SerializeField] private float jumpForce = 10f;
@@ -132,6 +133,11 @@ public class PlayerMovementComponent : MonoBehaviour
         }
         else
         {
+            if (moveInput == Vector2.zero)
+            {
+                movementVector.x = Mathf.Lerp(movementVector.x,0f,1f-Mathf.Exp(-airfriction*Time.deltaTime));
+                movementVector.z = Mathf.Lerp(movementVector.z,0f,1f-Mathf.Exp(-airfriction*Time.deltaTime));
+            }
             movementVector.y += gravity * Time.deltaTime;
         }
     }
@@ -146,7 +152,7 @@ public class PlayerMovementComponent : MonoBehaviour
     }
     #endregion
 
-    #region Camera
+    #region Movimentos
 private void RotationAndMovement()
 {
     if (cinemachineCamera && moveInput != Vector2.zero)
@@ -163,19 +169,11 @@ private void RotationAndMovement()
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
         float targetX = direction.x * speed;
         float targetZ = direction.z * speed;
-        if (moveInput == Vector2.zero)
-        {
-            targetX = Mathf.Lerp(movementVector.x, 0, 1f - Mathf.Exp(-friction * Time.deltaTime));
-            targetZ = Mathf.Lerp(movementVector.z, 0, 1f - Mathf.Exp(-friction * Time.deltaTime));
-        }
-        else
-        {
-            targetX = Mathf.Lerp(movementVector.x, targetX, 1f - Mathf.Exp(-acceleration * Time.deltaTime));
-            targetZ = Mathf.Lerp(movementVector.z, targetZ, 1f - Mathf.Exp(-acceleration * Time.deltaTime));
-        }
+        targetX = Mathf.Lerp(movementVector.x, targetX, 1f - Mathf.Exp(-acceleration * Time.deltaTime));
+        targetZ = Mathf.Lerp(movementVector.z, targetZ, 1f - Mathf.Exp(-acceleration * Time.deltaTime));
         movementVector = new(targetX, movementVector.y, targetZ);
     }
 }
-    // Em breve
+
     #endregion
 }
