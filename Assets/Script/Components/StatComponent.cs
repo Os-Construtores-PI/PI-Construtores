@@ -9,10 +9,6 @@ public class StatComponent : ComponentBehaviour
     [SerializeField] float statDuration;
     [SerializeField] float statCooldown;
 
-    [SerializeField] StatType zoneStat;
-    [SerializeField] StatTier zoneTier;
-
-
 
     private bool can_stat = true;
     public enum StatType
@@ -51,13 +47,13 @@ public class StatComponent : ComponentBehaviour
                         damage.SetAttribute("damage", damage.GetAttribute<float>("damage") * EvaluateStat(tier));
                     }
                     break;
-                case StatType.jump:
-                    //jumpForce
-                    PlayerStat("jumpForce", tier, target,"pos");
-                    break;
                 case StatType.speed:
                     //speed
                     PlayerStat("speed", tier, target,"pos");
+                    break;
+                case StatType.jump:
+                    //jumpForce
+                    PlayerStat("jumpForce", tier, target,"pos");
                     break;
                 default:
                     return;
@@ -67,7 +63,6 @@ public class StatComponent : ComponentBehaviour
     }
     IEnumerator RemoveStat(float duration, StatType oldstat,GameObject target, StatTier tier)
     {
-        StartCoroutine(CooldownStat());
         yield return new WaitForSeconds(duration);
         switch (oldstat)
         {
@@ -94,7 +89,7 @@ public class StatComponent : ComponentBehaviour
                 PlayerStat("speed", tier, target,"neg");
                 break;
         }
-        // ...
+        StartCoroutine(CooldownStat());
     }
     IEnumerator CooldownStat()
     {
@@ -123,10 +118,5 @@ public class StatComponent : ComponentBehaviour
     }
 
 
-    // Zone
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
-        ApplyStat(zoneStat, zoneTier,other.gameObject);
-    }
+
 }
