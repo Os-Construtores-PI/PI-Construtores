@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using Project.Tools.DictionaryHelp;
 using UnityEngine;
 
 public class StatComponentZone : StatComponent
 {
-    [SerializeField] StatType zoneStat;
-    [SerializeField] StatTier zoneTier;
+    [SerializeField] private StatType zoneStat;
+    [SerializeField] private StatTier zoneTier;
 
-    Dictionary<StatType, List<string>> parTipoTag = new() {
+    [SerializeField] private SerializableDictionary<StatType, List<string>> parTipoStatus_Tags = new() {
         { StatType.armor, new List<string> {"Creature","Player"} },
         { StatType.speed,new List<string> {"Creature","Player"}},
         { StatType.attack,new List<string> {"Weapon","Zone"}},
@@ -15,7 +16,7 @@ public class StatComponentZone : StatComponent
     // Zone
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Entity")) && parTipoTag.TryGetValue(zoneStat,out List<string> tags) && tags.Contains(other.tag))
+        if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Entity")) && parTipoStatus_Tags.TryGetValue(zoneStat, out List<string> tags) && tags.Contains(other.tag))
         {
             ApplyStat(zoneStat, zoneTier, other.gameObject);
         }
