@@ -13,7 +13,7 @@ public class DamageComponent : ComponentBehaviour
     [Header("Parâmetros de Dano")]
     [SerializeField] private float damage;
     [SerializeField] private float damageCooldown;
-
+    [SerializeField] private float maxDamage;
 
     
     private bool can_damage = true;
@@ -28,6 +28,7 @@ public class DamageComponent : ComponentBehaviour
         }
         SetAttribute(nameof(damage), damage);
         SetAttribute(nameof(damageCooldown), damageCooldown);
+        SetAttribute("MAX_"+nameof(damage), maxDamage);
 
         SubscribeToAttribute(nameof(damage), (newDamage) =>
         {

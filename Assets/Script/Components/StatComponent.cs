@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,92 +30,92 @@ public class StatComponent : ComponentBehaviour
 
     public void ApplyStat(StatType newstat, StatTier tier, GameObject target)
     {
+        ErrorType status_code;
         if (can_stat)
         {
             switch (newstat)
             {
                 case StatType.armor:
                     //defense
-                    if (target.TryGetComponent(out HealthComponent health))
-                    {
-                        health.SetAttribute("defense",Mathf.Clamp(health.GetAttribute<float>("defense") * EvaluateStat(tier),0,health.GetAttribute<float>("max_Defense")));
-                    }
+                    status_code = Stat<HealthComponent, float>("defense", tier, target, "pos");
                     break;
                 case StatType.attack:
                     //damage
-                    if (target.TryGetComponent(out DamageComponent damage))
-                    {
-                        damage.SetAttribute("damage", damage.GetAttribute<float>("damage") * EvaluateStat(tier));
-                    }
+                    status_code = Stat<DamageComponent, float>("damage", tier, target, "pos");
                     break;
                 case StatType.speed:
                     //speed
-                    PlayerStat("speed", tier, target,"pos");
+                    status_code = Stat<PlayerMovementComponent, float>("speed", tier, target, "pos");
                     break;
                 case StatType.jump:
                     //jumpForce
-                    PlayerStat("jumpForce", tier, target,"pos");
+                    status_code = Stat<PlayerMovementComponent, float>("jumpForce", tier, target, "pos");
                     break;
                 default:
                     return;
             }
-            StartCoroutine(RemoveStat(statDuration, newstat, target,tier));
+            print($"ApplyStat_debugCode: {status_code}");
+            if (status_code == ErrorType.SUCCESS)
+            {
+                can_stat = false;
+                StartCoroutine(RemoveStat(statDuration, newstat, target, tier));
+            }
         }
     }
-    IEnumerator RemoveStat(float duration, StatType oldstat,GameObject target, StatTier tier)
+    IEnumerator RemoveStat(float duration, StatType oldstat, GameObject target, StatTier tier)
     {
+        StartCoroutine(CooldownStat(statCooldown));
         yield return new WaitForSeconds(duration);
         switch (oldstat)
         {
             case StatType.armor:
                 //defense
-                if (target.TryGetComponent(out HealthComponent health))
-                {
-                    health.SetAttribute("defense",Mathf.Clamp(health.GetAttribute<float>("defense") / EvaluateStat(tier),0,health.GetAttribute<float>("max_Defense")));
-                }
+                Stat<HealthComponent, float>("defense", tier, target, "neg");
                 break;
             case StatType.attack:
                 //damage
-                if (target.TryGetComponent(out DamageComponent damage))
-                {
-                    damage.SetAttribute("damage", damage.GetAttribute<float>("damage") / EvaluateStat(tier));
-                }
+                Stat<DamageComponent,float>("damage", tier, target, "neg");
                 break;
             case StatType.jump:
                 //jumpForce
-                PlayerStat("jumpForce", tier, target,"neg");
+                Stat<PlayerMovementComponent,float>("jumpForce", tier, target, "neg");
                 break;
             case StatType.speed:
                 //speed
-                PlayerStat("speed", tier, target,"neg");
+                Stat<PlayerMovementComponent,float>("speed", tier, target, "neg");
                 break;
         }
-        StartCoroutine(CooldownStat());
     }
-    IEnumerator CooldownStat()
+    IEnumerator CooldownStat(float cooldown)
     {
-        yield return new WaitForSeconds(statCooldown);
-        can_stat = false;
+        yield return new WaitForSeconds(cooldown);
+        can_stat = true;
     }
     private float EvaluateStat(StatTier tier)
     {
         Dictionary<StatTier, float> relationstat = new() { { StatTier.common, 1.15f }, { StatTier.rare, 1.30f }, { StatTier.epic, 1.45f }, { StatTier.legendary, 1.60f } };
         return relationstat[tier];
     }
-    private void PlayerStat(string atributo, StatTier tier,GameObject target, string op)
+    private ErrorType Stat<TComponent, TValue>(string atributo, StatTier tier, GameObject target, string op)
+    where TComponent : ComponentBehaviour
+    where TValue : struct, IComparable
     {
-        if (target.TryGetComponent(out PlayerMovementComponent playerMovement))
+        if (target.TryGetComponent(out TComponent component))
         {
-            switch (op)
+            bool hasMaxValue = component.TryGetAttribute("MAX_" + atributo, out TValue maxValue);
+            TValue currentValue = component.GetAttribute<TValue>(atributo);
+            float statMultiplier = EvaluateStat(tier);
+            TValue newValue = op == "pos"
+            ? Operators<TValue>.Multiply(currentValue, statMultiplier)
+            : Operators<TValue>.Divide(currentValue, statMultiplier);
+            if (hasMaxValue)
             {
-                case "pos":
-                    playerMovement.SetAttribute(atributo, playerMovement.GetAttribute<float>(atributo) * EvaluateStat(tier));
-                    break;
-                case "neg":
-                    playerMovement.SetAttribute(atributo, playerMovement.GetAttribute<float>(atributo) / EvaluateStat(tier));
-                    break;
+                newValue = Operators<TValue>.Clamp(newValue,default, maxValue);
             }
+            component.SetAttribute(atributo, newValue);
+            return ErrorType.SUCCESS;
         }
+        return ErrorType.COMPONENT_ERROR;
     }
 
 

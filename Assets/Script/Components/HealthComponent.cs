@@ -21,9 +21,9 @@ public class HealthComponent : ComponentBehaviour
         }
 
         SetAttribute(nameof(health), max_Health);
-        SetAttribute(nameof(max_Health), max_Health);
+        SetAttribute("MAX_"+nameof(health), max_Health);
         SetAttribute(nameof(defense), defense);
-        SetAttribute(nameof(max_Defense), max_Defense);
+        SetAttribute("MAX_"+nameof(defense), max_Defense);
 
         SubscribeToAttribute(nameof(health), (newHealth) =>
         {
@@ -56,7 +56,7 @@ public class HealthComponent : ComponentBehaviour
     {
         switch (type)
         {
-            case EntityType.player:
+            case EntityType.PLAYER:
                 GameObject Director = GameObject.FindWithTag("GameController");
                 if (Director && Director.TryGetComponent(out GameDirector directorscript))
                 {
@@ -67,11 +67,11 @@ public class HealthComponent : ComponentBehaviour
                     SceneManager.LoadScene("MenuGame");
                 }
                 break;
-            case EntityType.enemy:
+            case EntityType.ENEMY:
                 // Animação de morte e desativamento...
                 gameObject.SetActive(false);
                 break;
-            case EntityType.entity:
+            case EntityType.ENTITY:
                 // Flick branco e desativamento...
                 gameObject.SetActive(false);
                 break;

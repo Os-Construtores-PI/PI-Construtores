@@ -60,10 +60,14 @@ public abstract class ComponentBehaviour : MonoBehaviour
 
     public enum EntityType
     {
-        player, enemy, entity
+        PLAYER, ENEMY, ENTITY
     }
     public enum Sub_EnemyType
     {
-        none,simple, ranged, flying, tank
+        NONE, SIMPLE, RANGED, FLYING, TANK
+    }
+    public enum ErrorType
+    {
+        SUCCESS,ATTRIBUTE_ERROR,COMPONENT_ERROR
     }
 }
