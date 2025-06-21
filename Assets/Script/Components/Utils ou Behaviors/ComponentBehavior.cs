@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 
 public abstract class ComponentBehaviour : MonoBehaviour
@@ -42,32 +41,5 @@ public abstract class ComponentBehaviour : MonoBehaviour
 
         attributes[attributeName] = value;
         OnAttributeChanged?.Invoke(attributeName, value);
-    }
-
-
-
-
-
-
-
-    [Serializable]
-    public struct Entities
-    {
-        public EntityType TipoEntidade;
-        public Sub_EnemyType TipoInimigo;
-    }
-
-
-    public enum EntityType
-    {
-        PLAYER, ENEMY, ENTITY
-    }
-    public enum Sub_EnemyType
-    {
-        NONE, SIMPLE, RANGED, FLYING, TANK
-    }
-    public enum ErrorType
-    {
-        SUCCESS,ATTRIBUTE_ERROR,COMPONENT_ERROR
     }
 }

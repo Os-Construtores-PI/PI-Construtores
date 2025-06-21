@@ -5,7 +5,7 @@ public class BrainComponent : ComponentBehaviour
 {
     public enum Behavior
     {
-        Agressive,Friendly,Neutral,Individual    
+        AGRESSIVE,FRIENDLY,NEUTRAL,INDIVIDUAL    
     }
 
 
