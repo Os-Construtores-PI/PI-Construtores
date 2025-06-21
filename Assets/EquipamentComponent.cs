@@ -4,7 +4,7 @@ public class EquipamentComponent : ComponentBehaviour
 {
     public Transform handTransform;
     private GameObject equippedWeapon;
-    private ItemData currentItem;
+    public ItemData currentItem;
 
     [SerializeField] private StatComponent statComponent;
     private void Awake()

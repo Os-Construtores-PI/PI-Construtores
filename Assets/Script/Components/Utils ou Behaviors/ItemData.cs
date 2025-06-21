@@ -1,8 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
-
-
 
 
 [CreateAssetMenu(fileName = "NewItemData", menuName = "Inventory/Item Data")]
@@ -15,6 +12,8 @@ public class ItemData : ScriptableObject
     public bool Isunique;
     public GameObject item;
     public Sprite itemIcon;
+
+    
     [System.Serializable]
     public class StatEntry
     {

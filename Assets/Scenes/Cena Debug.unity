@@ -684,6 +684,7 @@ GameObject:
   m_Component:
   - component: {fileID: 601629745}
   - component: {fileID: 601629746}
+  - component: {fileID: 601629747}
   m_Layer: 0
   m_Name: GameDirector
   m_TagString: GameController
@@ -718,6 +719,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 770455bb049f8c74fbd18601f0c47a80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &601629747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 601629744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 020d1a2352496a14e81ea0b98a7efb23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  players: []
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1792,6 +1806,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handTransform: {fileID: 2132646069}
+  currentItem: {fileID: 0}
   statComponent: {fileID: 1639029998}
 --- !u!114 &1639030000
 MonoBehaviour:
@@ -1805,7 +1820,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af44193f220659d419357ea45c287cc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  items: []
   statComponent: {fileID: 1639029998}
 --- !u!1 &1673424098
 GameObject:
