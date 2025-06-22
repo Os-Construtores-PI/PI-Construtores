@@ -6,7 +6,6 @@ public class ItemDropZone : ItemComponent
     private GameObject visualInstance;
     private BoxCollider boxCollider;
     private Rigidbody rb;
-    private Bounds visual_bounds;
 
     private void Start()
     {
@@ -21,11 +20,11 @@ public class ItemDropZone : ItemComponent
             if (visualInstance.TryGetComponent<MeshRenderer>(out var mesh))
             {
                 boxCollider.size = mesh.bounds.size;
-                boxCollider.center = mesh.bounds.center;
+                boxCollider.center = Vector3.zero;
             }
         }
     }
-    void OnTriggerEnter(Collider other)
+    public void OnTriggerEnter(Collider other)
     {
         print("rodando");
         if (other.TryGetComponent(out InventoryComponent inventory))

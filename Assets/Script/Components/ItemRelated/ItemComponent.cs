@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using UnityEngine;
 
-
+[System.Serializable]
 public class InventoryItem
 {
     public ItemData data;
@@ -15,6 +13,6 @@ public class InventoryItem
 }
 public class ItemComponent : ComponentBehaviour
 {
-    [SerializeField] public ItemData itemData;
-    [SerializeField] public int quantity = 1;
+    public ItemData itemData;
+    public int quantity = 1;
 }

@@ -3,7 +3,11 @@ using UnityEngine;
 
 public class InventoryComponent : ComponentBehaviour
 {
-    public List<InventoryItem> items = new();
+    [SerializeField]
+    private List<InventoryItem> items = new();
+
+
+
     [SerializeField] StatComponent statComponent;
     private void Awake()
     {
@@ -21,7 +25,7 @@ public class InventoryComponent : ComponentBehaviour
             }
         }
         items.Add(new InventoryItem(data, quantity));
-        print($"Adicionado: {data.itemName} x{quantity}, {data.itemStats}, {data.usageType}");
+        print($"Adicionado: {data.itemName} x {quantity}, {data.itemStats}, {data.usageType}, {data.Isunique}");
     }
     public void RemoveItem(ItemData data, int quantity = 1)
     {
@@ -52,11 +56,18 @@ public class InventoryComponent : ComponentBehaviour
             {
                 equipment.Equip(data);
             }
+        }
+        else
+        {
+            Debug.LogWarning("Item não é utilizável.");
+        }
     }
-    else
+    public List<InventoryItem> GetItems()
     {
-        Debug.LogWarning("Item não é utilizável.");
+        return items;
     }
-}
-
+    public void ClearItems()
+    {
+        items.Clear();
+    }
 }

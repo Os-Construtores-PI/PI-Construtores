@@ -33,7 +33,7 @@ public class DataSystem : MonoBehaviour
                 health = p.health.GetAttribute<float>("health"),
                 equippedItemName = p.equipment.currentItem != null ? p.equipment.currentItem.itemName : null
             };
-            foreach (var item in p.inventory.items)
+            foreach (var item in p.inventory.GetItems())
             {
                 playerData.inventory.Add(new SavedItemEntry
                 {
@@ -66,7 +66,7 @@ public class DataSystem : MonoBehaviour
             var refPlayer = players.Find(p => p.playerId == savedPlayer.playerId);
             if (refPlayer == null) continue;
 
-            refPlayer.inventory.items.Clear();
+            refPlayer.inventory.ClearItems();
 
             foreach (var entry in savedPlayer.inventory)
             {
