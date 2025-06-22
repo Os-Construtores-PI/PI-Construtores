@@ -1,5 +1,7 @@
 using UnityEngine;
 
+
+[RequireComponent(typeof(InventoryComponent))]
 public class EquipamentComponent : ComponentBehaviour
 {
     public Transform handTransform;

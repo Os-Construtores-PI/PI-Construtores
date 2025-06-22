@@ -13,15 +13,13 @@ public class HealthComponent : ComponentBehaviour
     private const float max_Defense = 100f;
 
     private BrainComponent brain;
-    private EntityType entity_type;
-    private float CombatCD = 15;
+    private readonly float CombatCD = 15;
     private bool InCombat;
 
     private void Start()
     {
         if (TryGetComponent(out BrainComponent cerebro))
         {
-            entity_type = cerebro.identity.TipoEntidade;
             brain = cerebro;
         }
 
@@ -33,7 +31,7 @@ public class HealthComponent : ComponentBehaviour
         SubscribeToAttribute(nameof(health), (newHealth) =>
         {
             health = (float) newHealth;
-            if (entity_type == EntityType.PLAYER)
+            if (brain.identity.TipoEntidade == EntityType.PLAYER)
             {
                 HealthHUDComponent healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
                 float div = health / max_Health;
@@ -60,7 +58,7 @@ public class HealthComponent : ComponentBehaviour
             print("AtualizarUI");
             print("newdefense: " + newDefense);
         });
-        InvokeRepeating(nameof(Regeneration), 0, 3f);
+        InvokeRepeating(nameof(Regeneration), 0, 2f);
     }
     public void AddHealth(float amount)
     {
@@ -74,10 +72,10 @@ public class HealthComponent : ComponentBehaviour
         currentHealth -= amount * (1 - Mathf.Min(GetAttribute<float>(nameof(defense)) / max_Defense, .80f));
         if (currentHealth <= 0)
         {
-            brain.MorteCerebral(entity_type);
+            brain.MorteCerebral();
         }
         SetAttribute(nameof(health), currentHealth);
-        if (entity_type == EntityType.PLAYER)
+        if (brain.identity.TipoEntidade == EntityType.PLAYER)
         {
             InCombat = true;
             StartCoroutine(ExitCombat(CombatCD));
@@ -90,10 +88,10 @@ public class HealthComponent : ComponentBehaviour
     }
     private void Regeneration()
     {
-        if (!InCombat && TryGetAttribute(nameof(health), out float currentHealth))
+        if (!InCombat && TryGetAttribute("MAX_"+nameof(health), out float maxH))
         {
-            float percentage = .03f; // 3%
-            float formula = currentHealth * percentage;
+            float percentage = .06f; // 6%
+            float formula = maxH * percentage;
             AddHealth(formula);                    
         }
     }

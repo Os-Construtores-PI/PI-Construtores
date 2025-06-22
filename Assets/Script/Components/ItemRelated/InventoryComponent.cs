@@ -1,17 +1,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[RequireComponent(typeof(BrainComponent))]
 public class InventoryComponent : ComponentBehaviour
 {
     [SerializeField]
     private List<InventoryItem> items = new();
+    private EntityType type;
 
 
-
-    [SerializeField] StatComponent statComponent;
     private void Awake()
     {
-        statComponent = GetComponent<StatComponent>();
+        if (TryGetComponent(out BrainComponent brain))
+        {
+            type = brain.identity.TipoEntidade;
+        }
+
     }
     public void AddItem(ItemData data, int quantity = 1)
     {
@@ -41,20 +46,23 @@ public class InventoryComponent : ComponentBehaviour
     {
         if (!items.Exists(i => i.data == data)) return;
 
-        if ((data.usageType & ItemUsageType.Consumable) != 0)
+
+        if (data.usageType == ItemUsageType.Equipable && type == EntityType.PLAYER)
         {
-            foreach (var stat in data.itemStats)
-            {
-                statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.TEMPORARY);
-            }
-            RemoveItem(data, 1); // Consome
-        }
-        else if ((data.usageType & ItemUsageType.Equipable) != 0)
-        {
-            var equipment = GetComponent<EquipamentComponent>();
-            if (equipment != null)
+            if (TryGetComponent<EquipamentComponent>(out var equipment))
             {
                 equipment.Equip(data);
+            }
+        }
+        else if (data.usageType == ItemUsageType.Consumable)
+        {
+            if (TryGetComponent(out StatComponent statComponent))
+            {
+                foreach (var stat in data.itemStats)
+                {
+                    statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.TEMPORARY);
+                }
+                RemoveItem(data, 1); // Consome
             }
         }
         else

@@ -12,13 +12,31 @@ public class BrainComponent : ComponentBehaviour
 
 
     [Header("Características")]
-    [SerializeField] public Entities identity;
-    [SerializeField] public Behavior comportamento;
-    [SerializeField] public List<SkillData> skills;
-    
-    public void MorteCerebral(EntityType type)
+    [SerializeField]
+    public readonly Entities identity;
+    public Behavior comportamento;
+    public List<SkillData> skills;
+    private InventoryComponent inventory;
+
+    private void Awake()
     {
-        switch (type)
+        TryGetComponent(out inventory);
+    }
+
+    public void CerebroUsarItem(ItemData item)
+    {
+        if (inventory != null)
+        {
+            inventory.UseItem(item);
+        }
+        else
+        {
+            Debug.LogWarning("Nenhum inventário encontrado para usar o item.");
+        }
+    }
+    public void MorteCerebral()
+    {
+        switch (identity.TipoEntidade)
         {
             case EntityType.PLAYER:
                 GameObject Director = GameObject.FindWithTag("GameController");
