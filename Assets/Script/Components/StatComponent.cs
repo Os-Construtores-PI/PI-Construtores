@@ -15,6 +15,7 @@ public class StatComponent : ComponentBehaviour
 
     static readonly SerializableDictionary<QualityTier, float> relationstat = new() {
         { QualityTier.COMMON, 1.15f },
+        { QualityTier.UNCOMMON,1.25f},
         { QualityTier.RARE, 1.30f },
         { QualityTier.EPIC, 1.45f },
         { QualityTier.LEGENDARY, 1.60f } };

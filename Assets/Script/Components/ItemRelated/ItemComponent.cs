@@ -17,12 +17,4 @@ public class ItemComponent : ComponentBehaviour
 {
     [SerializeField] public ItemData itemData;
     [SerializeField] public int quantity = 1;
-    public GameObject item;
-
-    private void Awake()
-    {
-        item = gameObject;
-    }
-
-    public string GetName() => itemData != null ? itemData.itemName : null ?? "Unknown";
 }

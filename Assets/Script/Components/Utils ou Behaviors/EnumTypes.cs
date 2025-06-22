@@ -14,7 +14,7 @@ using System;
     }
     public enum QualityTier
     {
-        COMMON, RARE, EPIC, LEGENDARY
+        COMMON,UNCOMMON, RARE, EPIC, LEGENDARY
     }
     public enum StatType
     {

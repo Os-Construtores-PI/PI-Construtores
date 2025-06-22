@@ -21,7 +21,7 @@ public class InventoryComponent : ComponentBehaviour
             }
         }
         items.Add(new InventoryItem(data, quantity));
-        print($"Adicionado: {data.itemName} x{quantity}");
+        print($"Adicionado: {data.itemName} x{quantity}, {data.itemStats}, {data.usageType}");
     }
     public void RemoveItem(ItemData data, int quantity = 1)
     {
@@ -37,19 +37,26 @@ public class InventoryComponent : ComponentBehaviour
     {
         if (!items.Exists(i => i.data == data)) return;
 
-        switch (data.usageType)
+        if ((data.usageType & ItemUsageType.Consumable) != 0)
         {
-            case ItemUsageType.Consumable:
-                foreach (var stat in data.itemStats)
-                {
-                    statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.TEMPORARY);
-                }
-                RemoveItem(data, 1); // Consome uma unidade
-                break;
-
-            default:
-                Debug.LogWarning("Item não é consumível.");
-                break;
+            foreach (var stat in data.itemStats)
+            {
+                statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.TEMPORARY);
+            }
+            RemoveItem(data, 1); // Consome
         }
+        else if ((data.usageType & ItemUsageType.Equipable) != 0)
+        {
+            var equipment = GetComponent<EquipamentComponent>();
+            if (equipment != null)
+            {
+                equipment.Equip(data);
+            }
     }
+    else
+    {
+        Debug.LogWarning("Item não é utilizável.");
+    }
+}
+
 }
