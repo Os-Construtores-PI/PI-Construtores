@@ -11,7 +11,8 @@ public class AI_component : ComponentBehaviour
     [SerializeField] private string[] tags_methods = { "Spawner", "Weapon", "Hitbox" };
     [SerializeField] private float radius;
     [SerializeField] private bool can_AI = true;
-    [SerializeField] private float speed;
+    [SerializeField] private float speed = 10;
+    [SerializeField] private float acceleration = 10;
     private BrainComponent brain;
     private CharacterController character;
     private Transform target;
@@ -51,7 +52,8 @@ public class AI_component : ComponentBehaviour
             else
             {
                 Vector3 dir = (target.position - transform.position).normalized;
-                manual.Move(dir * speed * Time.deltaTime);
+                Vector3 move_vector = Vector3.Lerp(manual.velocity,speed * Time.deltaTime * dir,1-Mathf.Exp(-acceleration*Time.deltaTime));
+                manual.Move(move_vector);
             }
         }
     }

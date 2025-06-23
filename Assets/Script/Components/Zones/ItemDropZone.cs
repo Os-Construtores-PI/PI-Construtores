@@ -26,7 +26,6 @@ public class ItemDropZone : ItemComponent
     }
     public void OnTriggerEnter(Collider other)
     {
-        print("rodando");
         if (other.TryGetComponent(out InventoryComponent inventory))
         {
             if (itemData != null)
