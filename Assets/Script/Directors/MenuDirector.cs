@@ -2,17 +2,31 @@ using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MenuGamePandoraPI : MonoBehaviour
 {
     [SerializeField] Transform[] _painelMenu;
-    [SerializeField] Transform _painelLayout;
+    
+    [SerializeField] Transform[] _painelConfig;
+
+    [SerializeField] Button[] _botoes;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _painelLayout.DOScale(1, 3);
+       // _painelLayout.DOScale(1, 5);
         StartCoroutine(TimeStart());
+        PainelStartOff();
         
+
+        for (int i = 0; i < _painelMenu.Length; i++)
+        {
+            _painelMenu[i].localScale = Vector3.zero;
+        }
+        for (int i = 0; i < _painelConfig.Length; i++)
+        {
+            _painelConfig[i].localScale = Vector3.zero;
+        }
        
     }
 
@@ -30,6 +44,14 @@ public class MenuGamePandoraPI : MonoBehaviour
     }
 
     public void PainelStartOff()
+    {
+        for (int i = 0; i < _painelConfig.Length; i++)
+        {
+            _painelConfig[i].DOScale(0, .25f);
+        }
+    }
+
+    public void PainelCheck()
     {
         for (int i = 0; i < _painelMenu.Length; i++)
         {
@@ -51,6 +73,18 @@ public class MenuGamePandoraPI : MonoBehaviour
         }
     }
 
+    public void PainelConfigCheck(bool CheckON)
+    {
+        if (CheckON == true)
+        {
+            StartCoroutine(TimeConfig());
+        }
+        else
+        {
+            PainelStartOff();
+        }
+    }
+
     IEnumerator TimeStart()
     {
         for (int i = 0; i < _painelMenu.Length; i++)
@@ -62,9 +96,32 @@ public class MenuGamePandoraPI : MonoBehaviour
             _painelMenu[i].DOScale(1, .25f);
         }
 
+
+        yield return new WaitForSeconds(0.25f);
+
+        AtivarAnimator();
+
          
     }
 
-    
+    IEnumerator TimeConfig()
+    {
+        for (int i = 0; i < _painelConfig.Length; i++)
+        {
+            // _painelMenu[i].localScale = Vector3.zero;
+
+            _painelConfig[i].DOScale(1.5f, .25f);
+            yield return new WaitForSeconds(0.25f);
+            _painelConfig[i].DOScale(1, .25f);
+        }
+    }
+
+    private void AtivarAnimator()
+    {
+        foreach(Button botao in _botoes)
+        {
+            botao.gameObject.GetComponent<Animator>().enabled = true;
+        }
+    }
     
 }
