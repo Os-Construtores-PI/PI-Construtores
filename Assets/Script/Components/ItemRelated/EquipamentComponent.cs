@@ -24,7 +24,7 @@ public class EquipamentComponent : ComponentBehaviour
             currentItem = item;
             foreach (var stat in item.itemStats)
             {
-                statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.PERMANENT);
+                statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.PERMANENT,stat.duration,stat.cooldown);
             }
         }
     }

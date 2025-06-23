@@ -18,6 +18,8 @@ public class ItemData : ScriptableObject
     public class StatEntry
     {
         public StatType stat;
+        public float duration;
+        public float cooldown;
         public QualityTier tier;
     }
 }

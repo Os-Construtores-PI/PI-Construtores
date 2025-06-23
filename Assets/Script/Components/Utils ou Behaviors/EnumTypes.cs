@@ -4,13 +4,13 @@ using System;
     {
         PLAYER, ENEMY, ENTITY
     }
-    public enum Sub_EnemyType
+    public enum EnemyType
     {
         NONE, SIMPLE, RANGED, FLYING, TANK
     }
     public enum ErrorType
     {
-        SUCCESS, ATTRIBUTE_ERROR, COMPONENT_ERROR
+        SUCCESS, ATTRIBUTE_ERROR, COMPONENT_ERROR, TYPE_ERROR
     }
     public enum QualityTier
     {
@@ -27,8 +27,8 @@ using System;
         Passive
     }
     [Serializable]
-    public struct Entities
+    public struct Entidade
     {
     public EntityType TipoEntidade;
-    public Sub_EnemyType TipoInimigo;
+    public EnemyType TipoInimigo;
     }

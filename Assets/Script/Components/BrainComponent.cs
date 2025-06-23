@@ -13,7 +13,7 @@ public class BrainComponent : ComponentBehaviour
 
     [Header("Características")]
     [SerializeField]
-    public readonly Entities identity;
+    public readonly Entidade identity;
     public Behavior comportamento;
     public List<SkillData> skills;
     private InventoryComponent inventory;

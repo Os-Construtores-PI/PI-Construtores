@@ -6,12 +6,8 @@ using UnityEngine;
 
 public class StatComponent : ComponentBehaviour
 {
-    [SerializeField] float statDuration;
-    [SerializeField] float statCooldown;
+
     private readonly Dictionary<StatType, float> statModifiers = new();
-
-    public Dictionary<StatType, float> GetStatBonuses() => new(statModifiers);
-
 
     static readonly SerializableDictionary<QualityTier, float> relationstat = new() {
         { QualityTier.COMMON, 1.15f },
@@ -27,13 +23,7 @@ public class StatComponent : ComponentBehaviour
         PERMANENT,TEMPORARY
     }
 
-    private void Start()
-    {
-        SetAttribute(nameof(statDuration), statDuration);
-        SetAttribute(nameof(statCooldown), statCooldown);
-    }
-
-    public void ApplyStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime)
+    public void ApplyStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime, float duration=0, float cooldown=0)
     {
         ErrorType status_code;
         if (can_stat)
@@ -63,7 +53,7 @@ public class StatComponent : ComponentBehaviour
             if (status_code == ErrorType.SUCCESS && statTime == StatTime.TEMPORARY)
             {
                 can_stat = false;
-                StartCoroutine(RemoveTempStat(statDuration, newstat, target, tier));
+                StartCoroutine(RemoveTempStat(duration,cooldown, newstat, target, tier));
             }
         }
     }
@@ -85,9 +75,9 @@ public class StatComponent : ComponentBehaviour
             break;
     }
 }
-    IEnumerator RemoveTempStat(float duration, StatType oldstat, GameObject target, QualityTier tier)
+    IEnumerator RemoveTempStat(float duration,float cooldown, StatType oldstat, GameObject target, QualityTier tier)
     {
-        StartCoroutine(CooldownStat(statCooldown));
+        StartCoroutine(CooldownStat(cooldown));
         yield return new WaitForSeconds(duration);
         switch (oldstat)
         {
@@ -119,22 +109,36 @@ public class StatComponent : ComponentBehaviour
         return relationstat[tier];
     }
     private ErrorType Stat<TComponent, TValue>(string atributo, QualityTier tier, GameObject target, string op)
-    where TComponent : ComponentBehaviour
-    where TValue : struct, IComparable
+        where TComponent : ComponentBehaviour
+        where TValue : struct, IComparable
     {
         if (target.TryGetComponent(out TComponent component))
         {
             bool hasMaxValue = component.TryGetAttribute("MAX_" + atributo, out TValue maxValue);
             TValue currentValue = component.GetAttribute<TValue>(atributo);
             float statMultiplier = EvaluateStat(tier);
-            TValue newValue = op == "pos"
-            ? Operators<TValue>.Multiply(currentValue, statMultiplier)
-            : Operators<TValue>.Divide(currentValue, statMultiplier);
-            if (hasMaxValue)
-            {
-                newValue = Operators<TValue>.Clamp(newValue,default, maxValue);
-            }
-            component.SetAttribute(atributo, newValue);
+            object newVal;
+
+        if (typeof(TValue) == typeof(int))
+        {
+            int curr = Convert.ToInt32(currentValue);
+            newVal = op=="pos" ?  Mathf.RoundToInt(curr * statMultiplier) : Mathf.RoundToInt(curr / statMultiplier);
+        }
+        else if (typeof(TValue) == typeof(float))
+        {
+            float curr = Convert.ToSingle(currentValue);
+            newVal = op=="pos"?  curr * statMultiplier : curr / statMultiplier;
+        }
+        else if (typeof(TValue) == typeof(bool))
+        {
+            newVal = op == "pos";
+        }
+        else
+        {
+            Debug.LogError($"Tipo de atributo '{typeof(TValue)}' não suportado.");
+            return ErrorType.TYPE_ERROR;
+        }
+            component.SetAttribute(atributo, newVal);
             return ErrorType.SUCCESS;
         }
         return ErrorType.COMPONENT_ERROR;
