@@ -10,7 +10,7 @@ using System;
     }
     public enum ErrorType
     {
-        SUCCESS, ATTRIBUTE_ERROR, COMPONENT_ERROR, TYPE_ERROR
+        SUCCESS, ATTRIBUTE_ERROR, COMPONENT_ERROR, TYPE_ERROR, ENEMYTYPE_ERROR,ENTITYTYPE_ERROR,ID_ERROR
     }
     public enum QualityTier
     {
@@ -26,9 +26,12 @@ using System;
         Consumable,
         Passive
     }
-    [Serializable]
-    public struct Entidade
-    {
+
+
+[Serializable]
+public struct Entidade
+{
+    public int ID;
     public EntityType TipoEntidade;
     public EnemyType TipoInimigo;
-    }
+}

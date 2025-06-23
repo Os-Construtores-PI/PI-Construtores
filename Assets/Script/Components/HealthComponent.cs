@@ -1,7 +1,9 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem.Interactions;
 using UnityEngine.SceneManagement;
 
+[DefaultExecutionOrder(-100)]
 [RequireComponent(typeof(BrainComponent))]
 public class HealthComponent : ComponentBehaviour
 {
@@ -28,29 +30,19 @@ public class HealthComponent : ComponentBehaviour
         SetAttribute(nameof(defense), defense);
         SetAttribute("MAX_" + nameof(defense), max_Defense);
 
+        SubscribeToAttribute("MAX_" + nameof(health), (newMaxHealth) =>
+        {
+            print((float)newMaxHealth);
+            max_Health = (float) newMaxHealth;
+        });
         SubscribeToAttribute(nameof(health), (newHealth) =>
         {
             health = (float) newHealth;
             if (brain.identity.TipoEntidade == EntityType.PLAYER)
             {
                 HealthHUDComponent healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
-                float div = health / max_Health;
-                if (div >= 1)
-                {
-                    healthHUD.ChangeIcon(3);
-                }
-                else if (div >= .75f)
-                {
-                    healthHUD.ChangeIcon(2);
-                }
-                else if (div >= .50f)
-                {
-                    healthHUD.ChangeIcon(1);
-                }
-                else
-                {
-                    healthHUD.ChangeIcon(0);
-                }
+                float maxHealth = GetAttribute<float>("MAX_" + nameof(health));
+                healthHUD.UpdateSlider( health / maxHealth);
             }
         });
         SubscribeToAttribute(nameof(defense), (newDefense) =>
@@ -59,7 +51,9 @@ public class HealthComponent : ComponentBehaviour
             print("newdefense: " + newDefense);
         });
         InvokeRepeating(nameof(Regeneration), 0, 2f);
+        //Debug.Log($"{gameObject.name} inicializou MAX_health com {max_Health}");
     }
+
     public void AddHealth(float amount)
     {
         float currentHealth = GetAttribute<float>(nameof(health));
@@ -88,10 +82,10 @@ public class HealthComponent : ComponentBehaviour
     }
     private void Regeneration()
     {
-        if (!InCombat && TryGetAttribute("MAX_"+nameof(health), out float maxH))
+        if (!InCombat)
         {
             float percentage = .06f; // 6%
-            float formula = maxH * percentage;
+            float formula = max_Health * percentage;
             AddHealth(formula);                    
         }
     }

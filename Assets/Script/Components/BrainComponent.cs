@@ -13,7 +13,7 @@ public class BrainComponent : ComponentBehaviour
 
     [Header("Características")]
     [SerializeField]
-    public readonly Entidade identity;
+    public Entidade identity;
     public Behavior comportamento;
     public List<SkillData> skills;
     private InventoryComponent inventory;
@@ -21,6 +21,7 @@ public class BrainComponent : ComponentBehaviour
     private void Awake()
     {
         TryGetComponent(out inventory);
+        DebugChecks();
     }
 
     public void CerebroUsarItem(ItemData item)
@@ -60,6 +61,26 @@ public class BrainComponent : ComponentBehaviour
             default:
                 Debug.Log("Você precisa colocar um tipo para este gameobj");
                 break;
+        }
+    }
+    private void DebugChecks()
+    {
+        ErrorType status;
+        if (gameObject.CompareTag("Player") && identity.TipoEntidade != EntityType.PLAYER)
+        {
+            status = ErrorType.ENTITYTYPE_ERROR;
+        }
+        else if (identity.TipoEntidade == EntityType.ENEMY && identity.TipoInimigo == EnemyType.NONE)
+        {
+            status = ErrorType.ENEMYTYPE_ERROR;
+        }
+        else
+        {
+            status = ErrorType.SUCCESS;
+        }
+        if (status != ErrorType.SUCCESS)
+        {
+            print($"Erro: {status}, Culpado: {gameObject.name}");
         }
     }
 }
