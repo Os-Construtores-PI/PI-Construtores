@@ -26,6 +26,7 @@ public class HealthComponent : ComponentBehaviour
 
     private BrainComponent brain;
     private HealthHUDComponent healthHUD;
+    private Coroutine exitcombatcoro;
 
 
     private void Start()
@@ -73,7 +74,7 @@ public class HealthComponent : ComponentBehaviour
         });
         InvokeRepeating(nameof(Regeneration), 0, 2f);
     }
-
+    
     public void AddHealth(float amount)
     {
         float currentHealth = GetAttribute<float>(HealthKey);
@@ -98,8 +99,11 @@ public class HealthComponent : ComponentBehaviour
     private void EnterCombat()
     {
         InCombat = true;
-        StopCoroutine(nameof(ExitCombat));
-        StartCoroutine(ExitCombat(CombatCD));
+        if (exitcombatcoro != null)
+        {
+            StopCoroutine(exitcombatcoro);
+        }
+        exitcombatcoro = StartCoroutine(ExitCombat(CombatCD));
     }
     IEnumerator ExitCombat(float combatcooldown)
     {

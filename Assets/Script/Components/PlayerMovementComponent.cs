@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,6 +12,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     [SerializeField] private float acceleration = 5;
     [SerializeField] private float friction = 2f;
     [SerializeField] private float airfriction = 2f;
+
 
     [Header("Parametros de Pulo")]
     [SerializeField] private float jumpForce = 10f;
@@ -40,14 +42,14 @@ public class PlayerMovementComponent : ComponentBehaviour
     private void Start()
     {
         StartAtributes();
-
+        DOTween.Init();
         SubscribeToAttribute(nameof(speed), (newSpeed) =>
         {
-            speed = (float) newSpeed;
+            speed = (float)newSpeed;
         });
         SubscribeToAttribute(nameof(jumpForce), (newJumpForce) =>
         {
-            jumpForce = (float) newJumpForce;
+            jumpForce = (float)newJumpForce;
         });
     }
     private void Awake()
@@ -84,6 +86,7 @@ public class PlayerMovementComponent : ComponentBehaviour
                 dir = transform.forward;
             }
             StartDash();
+            DashSequence();
             move_action.Disable();
         }
     }
@@ -209,5 +212,22 @@ public class PlayerMovementComponent : ComponentBehaviour
         SetAttribute(nameof(speed), speed);
         SetAttribute(nameof(jumpForce), jumpForce);
     }
+    #endregion
+
+
+    #region DOTWEEN
+    void OnDestroy()
+    {
+        DOTween.KillAll();
+    }
+    private void DashSequence()
+    {
+        Sequence dashsequence = DOTween.Sequence();
+        dashsequence.Append(transform.DOScaleY(.65f, dashDuration * .60f));
+        dashsequence.Append(transform.DOScaleY(1, dashDuration * .40f));
+        dashsequence.SetEase(Ease.InOutSine).SetUpdate(UpdateType.Fixed);
+        dashsequence.Play();
+    }
+
     #endregion
 }
