@@ -13,6 +13,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     [SerializeField] private float friction = 2f;
     [SerializeField] private float airfriction = 2f;
 
+
     [Header("Parametros de Pulo")]
     [SerializeField] private float jumpForce = 10f;
     [SerializeField] private int maxJumpCount = 2;
@@ -213,6 +214,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     }
     #endregion
 
+
     #region DOTWEEN
     void OnDestroy()
     {
@@ -222,7 +224,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     {
         Sequence dashsequence = DOTween.Sequence();
         dashsequence.Append(transform.DOScaleY(.65f, dashDuration * .60f));
-        dashsequence.Append(transform.DOScaleY(1, dashDuration*.40f));
+        dashsequence.Append(transform.DOScaleY(1, dashDuration * .40f));
         dashsequence.SetEase(Ease.InOutSine).SetUpdate(UpdateType.Fixed);
         dashsequence.Play();
     }
