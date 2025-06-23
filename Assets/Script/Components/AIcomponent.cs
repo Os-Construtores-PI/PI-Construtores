@@ -51,7 +51,8 @@ public class AI_component : ComponentBehaviour
             }
             else
             {
-                Vector3 dir = (target.position - transform.position).normalized;
+                Vector3 dir = (target.position - transform.position);
+                dir = new Vector3(dir.x, 0, dir.z).normalized;
                 Vector3 move_vector = Vector3.Lerp(manual.velocity,speed * Time.deltaTime * dir,1-Mathf.Exp(-acceleration*Time.deltaTime));
                 manual.Move(move_vector);
             }

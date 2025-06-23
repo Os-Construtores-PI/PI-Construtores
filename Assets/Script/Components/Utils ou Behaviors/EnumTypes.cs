@@ -39,3 +39,8 @@ public struct Entidade
     public EntityType TipoEntidade;
     public EnemyType TipoInimigo;
 }
+
+public enum HealthHUDType
+{
+    PLAYER,ENEMY,ENTITY
+}
