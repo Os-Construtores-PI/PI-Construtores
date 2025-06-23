@@ -2,10 +2,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HealthHUDComponent : MonoBehaviour
+public class HealthHUDComponent : ComponentBehaviour
 {
     [SerializeField] private IconData iconData;
-    [SerializeField] private int health_id_player;
+    public int health_id_player = 0;
     private Slider slider;
     private void Start()
     {
@@ -19,7 +19,8 @@ public class HealthHUDComponent : MonoBehaviour
                     brain.identity.ID == health_id_player &&
                     brain.identity.TipoEntidade == EntityType.PLAYER)
                 {
-                    slider.value = health.GetAttribute<float>("health") / health.GetAttribute<float>("MAX_health");
+                    if(health.TryGetAttribute("MAX_health",out float max_Health) && health.TryGetAttribute("health",out float health_v))
+                    slider.value = health_v/max_Health;
                 }
             }
         }

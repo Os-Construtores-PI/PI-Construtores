@@ -7,16 +7,26 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(BrainComponent))]
 public class HealthComponent : ComponentBehaviour
 {
+    private const string HealthKey = "health";
+    private const string MaxHealthKey = "MAX_health";
+    private const string DefenseKey = "defense";
+    private const string MaxDefenseKey = "MAX_defense";
+    private const float max_Defense = 100f;
+    private readonly float CombatCD = 15;
+    private bool InCombat;
+
+
 
     [Header("Parâmetros de Vida")]
     [SerializeField] private float health;
     [SerializeField] private float max_Health;
     [SerializeField] private float defense = 10;
-    private const float max_Defense = 100f;
+    [SerializeField] private bool enableRegen = true;
+
 
     private BrainComponent brain;
-    private readonly float CombatCD = 15;
-    private bool InCombat;
+    private HealthHUDComponent healthHUD;
+
 
     private void Start()
     {
@@ -24,56 +34,72 @@ public class HealthComponent : ComponentBehaviour
         {
             brain = cerebro;
         }
-
-        SetAttribute(nameof(health), max_Health);
-        SetAttribute("MAX_" + nameof(health), max_Health);
-        SetAttribute(nameof(defense), defense);
-        SetAttribute("MAX_" + nameof(defense), max_Defense);
-
-        SubscribeToAttribute("MAX_" + nameof(health), (newMaxHealth) =>
+        else
         {
-            print((float)newMaxHealth);
-            max_Health = (float) newMaxHealth;
+            return;
+        }
+
+
+        if (brain.identity.TipoEntidade == EntityType.PLAYER)
+        {
+            healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
+        }
+        SetAttribute(HealthKey, max_Health);
+        SetAttribute(MaxHealthKey, max_Health);
+        SetAttribute(DefenseKey, defense);
+        SetAttribute(MaxDefenseKey, max_Defense);
+
+        SubscribeToAttribute(MaxHealthKey, (newMaxHealth) =>
+        {
+            max_Health = (float)newMaxHealth;
         });
-        SubscribeToAttribute(nameof(health), (newHealth) =>
+
+        SubscribeToAttribute(HealthKey, (newHealth) =>
         {
-            health = (float) newHealth;
+            health = (float)newHealth;
             if (brain.identity.TipoEntidade == EntityType.PLAYER)
             {
-                HealthHUDComponent healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
-                float maxHealth = GetAttribute<float>("MAX_" + nameof(health));
-                healthHUD.UpdateSlider( health / maxHealth);
+                if (healthHUD.health_id_player == brain.identity.ID && healthHUD != null)
+                {
+                    float maxHealth = GetAttribute<float>(MaxHealthKey);
+                    healthHUD.UpdateSlider(health / maxHealth);
+                }
             }
         });
-        SubscribeToAttribute(nameof(defense), (newDefense) =>
+        SubscribeToAttribute(DefenseKey, (newDefense) =>
         {
             print("AtualizarUI");
             print("newdefense: " + newDefense);
         });
         InvokeRepeating(nameof(Regeneration), 0, 2f);
-        //Debug.Log($"{gameObject.name} inicializou MAX_health com {max_Health}");
     }
 
     public void AddHealth(float amount)
     {
-        float currentHealth = GetAttribute<float>(nameof(health));
+        float currentHealth = GetAttribute<float>(HealthKey);
         currentHealth += amount;
-        SetAttribute(nameof(health), Mathf.Min(currentHealth, max_Health));
+        SetAttribute(HealthKey, Mathf.Min(currentHealth, max_Health));
     }
     public void SubtractHealth(float amount)
     {
-        float currentHealth = GetAttribute<float>(nameof(health));
-        currentHealth -= amount * (1 - Mathf.Min(GetAttribute<float>(nameof(defense)) / max_Defense, .80f));
+        float currentHealth = GetAttribute<float>(HealthKey);
+        currentHealth -= amount * (1 - Mathf.Min(GetAttribute<float>(DefenseKey) / max_Defense, .80f));
         if (currentHealth <= 0)
         {
+            print($"{gameObject.name} MORREU!");
             brain.MorteCerebral();
         }
-        SetAttribute(nameof(health), currentHealth);
+        SetAttribute(HealthKey, currentHealth);
         if (brain.identity.TipoEntidade == EntityType.PLAYER)
         {
-            InCombat = true;
-            StartCoroutine(ExitCombat(CombatCD));
+             EnterCombat();
         }
+    }
+    private void EnterCombat()
+    {
+        InCombat = true;
+        StopCoroutine(nameof(ExitCombat));
+        StartCoroutine(ExitCombat(CombatCD));
     }
     IEnumerator ExitCombat(float combatcooldown)
     {
@@ -82,11 +108,9 @@ public class HealthComponent : ComponentBehaviour
     }
     private void Regeneration()
     {
-        if (!InCombat)
-        {
-            float percentage = .06f; // 6%
-            float formula = max_Health * percentage;
-            AddHealth(formula);                    
-        }
+        if (!enableRegen || InCombat) return;
+        float percentage = .06f; // 6%
+        float formula = max_Health * percentage;
+        AddHealth(formula);                    
     }
 }
