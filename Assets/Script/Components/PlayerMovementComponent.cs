@@ -1,15 +1,18 @@
+using DG.Tweening;
 using Unity.Cinemachine;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UIElements;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovementComponent : MonoBehaviour
+public class PlayerMovementComponent : ComponentBehaviour
 {
+    #region Variáveis
     [Header("Movimento")]
     [SerializeField] private float speed = 10f;
     [SerializeField] private float acceleration = 5;
+    [SerializeField] private float friction = 2f;
+    [SerializeField] private float airfriction = 2f;
+
 
     [Header("Parametros de Pulo")]
     [SerializeField] private float jumpForce = 10f;
@@ -24,45 +27,45 @@ public class PlayerMovementComponent : MonoBehaviour
     [SerializeField] private CharacterController characterController;
     [Header("Cinemachine Camera")]
     [SerializeField] private CinemachineCamera cinemachineCamera;
-    [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
 
     private Vector3 movementVector = Vector3.zero;
     private Vector3 dir;
     private Vector2 moveInput;
-    private Vector2 HorizontalLerp;
     private int currentJumpCount;
     private bool isGrounded;
     private bool canDash = true;
     private bool isDashing = false;
     private InputAction move_action;
+    #endregion
 
 
+    private void Start()
+    {
+        StartAtributes();
+        DOTween.Init();
+        SubscribeToAttribute(nameof(speed), (newSpeed) =>
+        {
+            speed = (float)newSpeed;
+        });
+        SubscribeToAttribute(nameof(jumpForce), (newJumpForce) =>
+        {
+            jumpForce = (float)newJumpForce;
+        });
+    }
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
         move_action = InputSystem.actions.FindAction("Move");
-        if (cinemachineCamera != null)
-        {
-            orbitalFollow = cinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
-        }
     }
     private void FixedUpdate()
     {
         isGrounded = characterController.isGrounded;
 
         DashLogica();
-        Movement();
-        RotateTransform();
-
-
+        RotationAndMovement();
 
         characterController.Move(movementVector * Time.deltaTime);
     }
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawLine(transform.position,movementVector);
-    }
-
 
     #region Input
     public void OnMove(InputAction.CallbackContext context)
@@ -83,6 +86,7 @@ public class PlayerMovementComponent : MonoBehaviour
                 dir = transform.forward;
             }
             StartDash();
+            DashSequence();
             move_action.Disable();
         }
     }
@@ -94,7 +98,6 @@ public class PlayerMovementComponent : MonoBehaviour
             JumpLogica();
         }
     }
-
     #endregion
 
 
@@ -138,9 +141,19 @@ public class PlayerMovementComponent : MonoBehaviour
         {
             movementVector.y = 0f;
             currentJumpCount = 0;
+            if (moveInput == Vector2.zero)
+            {
+                movementVector.x = Interp(movementVector.x, 0, friction);
+                movementVector.z = Interp(movementVector.z, 0, friction);
+            }
         }
         else
         {
+            if (moveInput == Vector2.zero)
+            {
+                movementVector.x = Interp(movementVector.x, 0, airfriction);
+                movementVector.z = Interp(movementVector.z, 0, airfriction);
+            }
             movementVector.y += gravity * Time.deltaTime;
         }
     }
@@ -155,27 +168,66 @@ public class PlayerMovementComponent : MonoBehaviour
     }
     #endregion
 
-    #region movimento X
-    private void Movement()
+    #region Movimentos
+    private void RotationAndMovement()
     {
-        Vector2 target = new(moveInput.x * speed, moveInput.y * speed);
-        HorizontalLerp = new(Mathf.Lerp(movementVector.x, target.x, 1 - Mathf.Exp(-acceleration * Time.deltaTime)), Mathf.Lerp(movementVector.z, target.y, 1 - Mathf.Exp(-acceleration * Time.deltaTime)));
+        if (cinemachineCamera && moveInput != Vector2.zero)
+        {
+            var cameraTransform = cinemachineCamera.transform;
+            Vector3 forward = cameraTransform.forward;
+            Vector3 right = cameraTransform.right;
+            forward.y = 0;
+            right.y = 0;
+            forward.Normalize();
+            right.Normalize();
+            Vector3 direction = forward * moveInput.y + right * moveInput.x;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            float targetX = direction.x * speed;
+            float targetZ = direction.z * speed;
+            targetX = Interp(movementVector.x, targetX, acceleration);
+            targetZ = Interp(movementVector.z, targetZ, acceleration);
+            movementVector = new(targetX, movementVector.y, targetZ);
+        }
+    }
+
+    #endregion
+
+
+
+
+
+
+
+
+    #region Utils
+    private float Interp(float from, float target, float smooth)
+    {
+        float newvalue = Mathf.Lerp(from, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
+        return newvalue;
+
+    }
+    private void StartAtributes()
+    {
+        SetAttribute(nameof(speed), speed);
+        SetAttribute(nameof(jumpForce), jumpForce);
     }
     #endregion
 
-    #region Camera
-    private void RotateTransform()
+
+    #region DOTWEEN
+    void OnDestroy()
     {
-        if (orbitalFollow)
-        {
-            transform.localEulerAngles = new(0f, orbitalFollow.HorizontalAxis.Value, 0f);
-
-            Vector3 horizontalMovement = new(HorizontalLerp.x, 0f, HorizontalLerp.y);
-            horizontalMovement = transform.TransformDirection(horizontalMovement);
-
-            movementVector = horizontalMovement + Vector3.up * movementVector.y;
-        }
+        DOTween.KillAll();
     }
-    // Em breve
+    private void DashSequence()
+    {
+        Sequence dashsequence = DOTween.Sequence();
+        dashsequence.Append(transform.DOScaleY(.65f, dashDuration * .60f));
+        dashsequence.Append(transform.DOScaleY(1, dashDuration * .40f));
+        dashsequence.SetEase(Ease.InOutSine).SetUpdate(UpdateType.Fixed);
+        dashsequence.Play();
+    }
+
     #endregion
 }

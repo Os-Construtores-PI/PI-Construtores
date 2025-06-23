@@ -1,23 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-public class DamageComponent : EntityBehavior
+public class DamageComponent : ComponentBehaviour
 {
 
     [Header("Inimigos que irá triggar o dano")]
     [SerializeField] private EntityType[] enemies;
-    private HashSet<EntityType> hashenemies;
+    private HashSet<EntityType> hashenemies = new();
 
 
     [Header("Parâmetros de Dano")]
-    [SerializeField] private int damage;
+    [SerializeField] private float damage;
     [SerializeField] private float damageCooldown;
-
+    [SerializeField] private float maxDamage;
 
     
-    private bool can_damage;
+    private bool can_damage = true;
 
 
 
@@ -27,18 +26,26 @@ public class DamageComponent : EntityBehavior
         {
             hashenemies.Add(entity);
         }
+        SetAttribute(nameof(damage), damage);
+        SetAttribute(nameof(damageCooldown), damageCooldown);
+        SetAttribute("MAX_"+nameof(damage), maxDamage);
+
+        SubscribeToAttribute(nameof(damage), (newDamage) =>
+        {
+            damage = (float)newDamage;
+        });
     }
     void OnTriggerEnter(Collider other)
     {
         if (!other.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
 
-        if (other.TryGetComponent(out HealthComponent healthComponent))
+        if (other.TryGetComponent(out HealthComponent healthComponent) && other.TryGetComponent(out BrainComponent brainComponent))
             {
-                if (hashenemies.Contains(healthComponent.entity) && can_damage)
+                if (hashenemies.Contains(brainComponent.identity.TipoEntidade) && can_damage)
                 {
-                    healthComponent.SubtractHealth(damage);
+                    healthComponent.SubtractHealth(GetAttribute<float>(nameof(damage)));
                     can_damage = false;
-                    StartCoroutine(DamageCD(damageCooldown));
+                    StartCoroutine(DamageCD(GetAttribute<float>(nameof(damageCooldown))));
                 }
             }
     }
