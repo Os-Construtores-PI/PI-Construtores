@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem.Interactions;
 using UnityEngine.SceneManagement;
 
@@ -25,7 +26,7 @@ public class HealthComponent : ComponentBehaviour
 
 
     private BrainComponent brain;
-    private HealthHUDComponent healthHUD;
+    public HealthHUDComponent healthHUD;
     private Coroutine exitcombatcoro;
 
 
@@ -41,9 +42,11 @@ public class HealthComponent : ComponentBehaviour
         }
 
 
-        if (brain.identity.TipoEntidade == EntityType.PLAYER)
+        switch (brain.identity.TipoEntidade)
         {
-            healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
+            case EntityType.PLAYER:
+                healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
+                break;
         }
         SetAttribute(HealthKey, max_Health);
         SetAttribute(MaxHealthKey, max_Health);
@@ -58,12 +61,17 @@ public class HealthComponent : ComponentBehaviour
         SubscribeToAttribute(HealthKey, (newHealth) =>
         {
             health = (float)newHealth;
-            if (brain.identity.TipoEntidade == EntityType.PLAYER)
+            if (healthHUD != null && brain.identity.ID == healthHUD.id_health)
             {
-                if (healthHUD.health_id_player == brain.identity.ID && healthHUD != null)
+                float maxHealth = GetAttribute<float>(MaxHealthKey);
+                switch (brain.identity.TipoEntidade)
                 {
-                    float maxHealth = GetAttribute<float>(MaxHealthKey);
-                    healthHUD.UpdateSlider(health / maxHealth);
+                    case EntityType.PLAYER:
+                            healthHUD.UpdateSlider(health / maxHealth);
+                        break;
+                    case EntityType.ENEMY:
+                            healthHUD.UpdateSlider(health / maxHealth);
+                        break;
                 }
             }
         });
@@ -74,7 +82,7 @@ public class HealthComponent : ComponentBehaviour
         });
         InvokeRepeating(nameof(Regeneration), 0, 2f);
     }
-    
+
     public void AddHealth(float amount)
     {
         float currentHealth = GetAttribute<float>(HealthKey);
