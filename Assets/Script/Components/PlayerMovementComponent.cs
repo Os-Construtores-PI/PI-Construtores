@@ -21,7 +21,7 @@ public class PlayerMovementComponent : ComponentBehaviour
 
     [Header("Dash Parâmetros")]
     [SerializeField] private float dashSpeed = 30f;              // Velocidade durante o dash
-    [SerializeField] private float dashDuration = 0.3f;          // Tempo que dura o dash
+    [SerializeField] private float initialDashDuration = 0.3f; // Duração inicial do dash
     [SerializeField] private float dashCooldown = 5f;            // Tempo de recarga para poder dar outro dash
 
     [Header("Componentes")]
@@ -37,6 +37,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     private bool canDash = true;                              // Controla se o dash pode ser executado (não está em cooldown)
     private bool isDashing = false;                           // Controla se o personagem está em estado de dash
     private InputAction move_action;                          // Ação de input para movimento
+    private float dashDuration;          // Tempo que dura o dash
     #endregion
 
     private void Start()
@@ -58,6 +59,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     {
         characterController = GetComponent<CharacterController>();
         move_action = InputSystem.actions.FindAction("Move");  // Pega a ação de input "Move" do sistema de input
+        dashDuration = initialDashDuration;
     }
 
     private void FixedUpdate()
@@ -127,18 +129,21 @@ public class PlayerMovementComponent : ComponentBehaviour
             if (dashDuration <= 0f)
             {
                 isDashing = false;         // Termina o dash
-                dashDuration = 0.4f;       // Reseta duração para próximo dash
+                dashDuration = initialDashDuration;       // Reseta duração para próximo dash
             }
         }
         else
         {
+            if (!move_action.enabled)
+            {
+                move_action.Enable();   // Reativa input de movimento após dash
+            }
             ApplyGravity(); // Aplica gravidade se não estiver dashando
         }
     }
 
     private void ResetDash()
     {
-        move_action.Enable();   // Reativa input de movimento após dash
         canDash = true;         // Permite dash novamente
     }
     #endregion
@@ -171,12 +176,22 @@ public class PlayerMovementComponent : ComponentBehaviour
 
     private void JumpLogica()
     {
-        // Permite pular se estiver no chão ou se ainda tiver pulos restantes
+        // Permite pular se estiver no chão ou ainda tiver pulos restantes
         if (isGrounded || currentJumpCount < maxJumpCount)
         {
-            movementVector.y = jumpForce; // Aplica força do pulo
-            currentJumpCount++;           // Incrementa contador de pulos usados
+            // Define um fator de redução com base na contagem de pulos
+            float jumpMultiplier = 1f - (0.3f * currentJumpCount); // Ex: 1.0, 0.7, 0.4...
+
+            // Garante que o multiplicador não fique negativo
+            jumpMultiplier = Mathf.Max(jumpMultiplier, 0.2f); // valor mínimo de força
+
+            // Aplica força do pulo com base na contagem
+            movementVector.y = jumpForce * jumpMultiplier;
+
+            // Incrementa o contador de pulos usados
+            currentJumpCount++;
         }
+    
     }
     #endregion
 

@@ -3,6 +3,8 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
+
+
 public class EnemyHUDManager : MonoBehaviour
 {
     // Array para armazenar todos os GameObjects com a tag "Creature"
@@ -59,26 +61,27 @@ public class EnemyHUDManager : MonoBehaviour
         {
             // Tenta encontrar o filho com nome "HealthBarTarget" para posicionar o HUD
             Transform target = enemy.transform.Find(target_name);
-
             if (target)
             {
                 // Instancia o HUD na posição do alvo e como filho do objeto "pai"
                 GameObject hud = Instantiate(HUD, target.position, Quaternion.identity, pai);
 
                 // Se o HUD possui componente HealthHUDComponent e o inimigo possui HealthComponent
-                if (hud.TryGetComponent(out HealthHUDComponent healthHUD) && enemy.TryGetComponent(out HealthComponent health))
+                if (hud.TryGetComponent(out HealthHUDComponent healthHUD) && enemy.TryGetComponent(out HealthComponent health) && enemy.TryGetComponent(out BrainComponent brain))
                 {
+
                     // Define o alvo que o HUD vai seguir (posição do inimigo)
                     healthHUD.enemy_target = target;
+                    healthHUD.id_health = brain.identity.ID;
 
                     // Guarda referência do HUD dentro do componente de saúde para atualizações futuras
-                    health.healthHUD = healthHUD;
-
+                    health.SetHealthHUD(healthHUD);
                     // Atualiza a barra de vida com o valor atual do inimigo
                     if (health.TryGetAttribute("health", out float health_value))
                     {
-                        healthHUD.UpdateSlider(health.GetAttribute<float>("health"));
+                        healthHUD.UpdateSlider(health_value);
                     }
+                        
                 }
             }
         }

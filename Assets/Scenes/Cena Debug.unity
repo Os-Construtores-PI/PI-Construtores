@@ -1662,7 +1662,7 @@ GameObject:
   - component: {fileID: 1144318761}
   - component: {fileID: 1144318760}
   m_Layer: 6
-  m_Name: Enemy
+  m_Name: ENEMY
   m_TagString: Creature
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1794,8 +1794,7 @@ MonoBehaviour:
   health: 0
   max_Health: 200
   defense: 10
-  enableRegen: 1
-  healthHUD: {fileID: 0}
+  enableRegen: 0
 --- !u!114 &1144318757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1836,14 +1835,16 @@ MonoBehaviour:
   layer:
     serializedVersion: 2
     m_Bits: 64
+  radius: 10
+  attackRange: 2
+  can_AI: 1
+  visionInterval: 0.5
+  speed: 0
+  acceleration: 10
   tags_methods:
   - Hitbox
   - Weapon
   - Spawner
-  radius: 10
-  can_AI: 1
-  speed: 0
-  acceleration: 10
 --- !u!143 &1144318761
 CharacterController:
   m_ObjectHideFlags: 0
@@ -2911,7 +2912,7 @@ GameObject:
   - component: {fileID: 1639029999}
   - component: {fileID: 1639029998}
   m_Layer: 6
-  m_Name: Pilula
+  m_Name: Pilula PLAYER
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3200,9 +3201,9 @@ MonoBehaviour:
   jumpForce: 10
   maxJumpCount: 2
   gravity: -9.81
-  dashSpeed: 15
-  dashDuration: 0.4
-  dashCooldown: 1
+  dashSpeed: 20
+  initialDashDuration: 0.35
+  dashCooldown: 2.5
   characterController: {fileID: 1639029993}
   cinemachineCamera: {fileID: 462258510}
 --- !u!114 &1639029996
@@ -3221,7 +3222,6 @@ MonoBehaviour:
   max_Health: 100
   defense: 35
   enableRegen: 1
-  healthHUD: {fileID: 0}
 --- !u!114 &1639029997
 MonoBehaviour:
   m_ObjectHideFlags: 0
