@@ -8,9 +8,7 @@ public class HealthHUDComponent : ComponentBehaviour
     // Configurações do HUD de vida
     [SerializeField] private GameObject healthBarObject; // Objeto da barra de vida
     [SerializeField] private IconData iconData;         // Dados de ícones (não utilizado no código atual)
-    [SerializeField] private HealthHUDType HUDType;     // Tipo de HUD (PLAYER ou ENEMY)
-    [SerializeField] private float enemyHealthBarDuration = 3f; // Duração da barra de vida para inimigos
-    
+    [SerializeField] private HealthHUDType HUDType;     // Tipo de HUD (PLAYER ou ENEMY)    
     public Transform enemy_target;  // Alvo (transform) do inimigo para seguir
     public int id_health = 0;      // ID do personagem associado a este HUD
     
