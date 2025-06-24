@@ -1,114 +1,164 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
-// Garante que o GameObject tenha um BrainComponent para acessar dados da entidade
+// Garante que o GameObject tenha um BrainComponent obrigatório
 [RequireComponent(typeof(BrainComponent))]
 public class AI_component : ComponentBehaviour
 {
-    [SerializeField] private LayerMask layer;              // Camada usada para detectar alvos no raio de visão
-    [SerializeField] private string[] tags_methods = { "Spawner", "Weapon", "Hitbox" }; // Tags para encontrar método de dano
-    [SerializeField] private float radius;                  // Raio de detecção para encontrar alvos
-    [SerializeField] private bool can_AI = true;            // Flag para ativar/desativar o comportamento da IA
-    [SerializeField] private float speed = 10;              // Velocidade para movimentação manual
-    [SerializeField] private float acceleration = 10;       // Aceleração para movimentação manual
+    [Header("Configurações de Detecção")]
+    [SerializeField] private LayerMask layer; // Camada que será checada pelo OverlapSphere (ex: "Player")
+    [SerializeField] private float radius;    // Raio de detecção para enxergar o jogador
+    [SerializeField] private float attackRange = 2f; // Distância mínima para atacar
 
-    private BrainComponent brain;                            // Referência ao componente Brain (dados da entidade)
-    private CharacterController character;                   // Referência ao CharacterController para movimentação manual
-    private Transform target;                                // Alvo atual detectado
-    private Transform method_of_damage;                      // Referência a algum filho que representa método de dano (ex: arma)
-    private NavMeshAgent automatic;                          // Componente para movimentação automática via NavMesh
-    private CharacterController manual;                      // Componente para movimentação manual
+    [Header("IA")]
+    [SerializeField] private bool can_AI = true;         // Habilita/desabilita IA
+    [SerializeField] private float visionInterval = 0.5f; // Intervalo de verificação da visão (por coroutine)
 
-    // Inicialização
+    [Header("Movimentação Manual")]
+    [SerializeField] private float speed = 10;
+    [SerializeField] private float acceleration = 10;
+
+    [Header("Método de Dano")]
+    [SerializeField] private string[] tags_methods = { "Spawner", "Weapon", "Hitbox" };
+
+    // Referências internas
+    private BrainComponent brain;
+    private CharacterController character;
+    private NavMeshAgent automatic;
+    private CharacterController manual;
+    private Animator animator;
+
+    private Transform target;               // Transform do jogador detectado
+    private Transform method_of_damage;     // Referência à arma ou objeto de ataque
+
+    private Collider[] result = new Collider[10];        // Buffer fixo para visão
+    private Collider[] attackResult = new Collider[5];   // Buffer fixo para ataque (menor)
+
+    // Inicializa referências
     private void Awake()
     {
-        // Obtém componentes Brain e CharacterController
         TryGetComponent(out brain);
         TryGetComponent(out character);
 
-        // Se existir os componentes, prepara o modo de IA baseado no tipo do inimigo
         if (brain && character)
         {
-            PrepareMode(ChooseMode(brain));
+            PrepareMode(ChooseMode(brain)); // Decide entre NavMesh ou movimentação manual
         }
 
-        // Encontra método de dano baseado nas tags configuradas
-        CheckMethod();
+        CheckMethod(); // Localiza o filho que representa a arma ou dano
+        animator = GetComponentInChildren<Animator>(); // Pega animador (assumindo que está num filho)
     }
 
-    // Chamado em intervalo fixo, usado para física e movimentação
-    void FixedUpdate()
+    // Inicia verificação de visão periódica
+    private void Start()
+    {
+        StartCoroutine(VisionCheckRoutine());
+    }
+
+    // Lógica de movimentação e ataque ocorre no FixedUpdate
+    private void FixedUpdate()
     {
         if (!brain || !character) return;
 
-        // Executa lógica de IA apenas se estiver habilitada e se existir método de dano
         if (can_AI && method_of_damage)
         {
-            AI(brain, character, radius);
+            AI(brain, character);       // Persegue o jogador
+            UpdateAttackLogic();       // Verifica se está no alcance de ataque
         }
     }
 
-    // Lógica principal da IA, movimenta em direção ao alvo detectado
-    void AI(BrainComponent cabecao, CharacterController controller, float rad)
+    // Movimenta o inimigo em direção ao alvo (via NavMesh ou manual)
+    void AI(BrainComponent cabecao, CharacterController controller)
     {
-        // Busca alvo dentro do raio usando visão
-        target = VisionAI(rad);
-
-        if (target != null)
+        if (target != null && target != transform)
         {
             if (automatic != null)
             {
-                // Movimenta automaticamente com NavMeshAgent para o destino do alvo
+                // NavMeshAgent leva até o destino
                 automatic.SetDestination(target.position);
             }
             else
             {
-                // Movimentação manual: calcula direção no plano XZ (ignora Y)
+                // Movimento manual no plano XZ
                 Vector3 dir = (target.position - transform.position);
                 dir = new Vector3(dir.x, 0, dir.z).normalized;
 
-                // Aplica suavização na movimentação com interpolação e aceleração
+                // Suaviza movimentação com interpolação exponencial
                 Vector3 move_vector = Vector3.Lerp(
                     manual.velocity,
                     speed * Time.deltaTime * dir,
                     1 - Mathf.Exp(-acceleration * Time.deltaTime));
 
-                // Move o personagem manualmente
                 manual.Move(move_vector);
             }
         }
     }
 
-    // Busca por um alvo válido dentro do raio de visão
-    private Transform VisionAI(float rad)
+    // Coroutine periódica para verificar jogadores próximos
+    private IEnumerator VisionCheckRoutine()
     {
-        // Array fixo para armazenar resultados da sobreposição de esfera
-        Collider[] result = new Collider[10];
+        while (true)
+        {
+            yield return new WaitForSeconds(visionInterval);
+            UpdateTarget(); // Atualiza o alvo detectado
+        }
+    }
 
-        // Faz uma checagem física para detectar colisores dentro do raio na camada especificada
-        int quantity = Physics.OverlapSphereNonAlloc(transform.position, rad, result, layer);
+    // Detecta um jogador dentro do raio de visão
+    private void UpdateTarget()
+    {
+        int quantity = Physics.OverlapSphereNonAlloc(transform.position, radius, result, layer);
 
         for (int i = 0; i < quantity; i++)
         {
             Collider subtarget = result[i];
 
-            // Se o objeto tiver BrainComponent e for do tipo jogador, retorna como alvo
-            if (subtarget.TryGetComponent(out BrainComponent brain))
+            // Evita detectar a si mesmo ou seus próprios filhos
+            if (subtarget.transform == transform || subtarget.transform.IsChildOf(transform))
+                continue;
+
+            if (subtarget.TryGetComponent(out BrainComponent b))
             {
-                if (brain.identity.TipoEntidade == EntityType.PLAYER)
+                if (b.identity.TipoEntidade == EntityType.PLAYER)
                 {
-                    return subtarget.transform;
+                    target = subtarget.transform; // Alvo encontrado
+                    return;
                 }
             }
         }
-        // Se nenhum alvo encontrado, retorna a própria posição (para não mover)
-        return transform;
+
+        target = transform; // Nenhum alvo válido, "desativa" a perseguição
     }
 
-    // Verifica entre os filhos se algum possui tags que indiquem método de dano
+    // Verifica se o jogador está no alcance de ataque
+    private void UpdateAttackLogic()
+    {
+        int quantity = Physics.OverlapSphereNonAlloc(transform.position, attackRange, attackResult, layer);
+
+        for (int i = 0; i < quantity; i++)
+        {
+            Collider nearby = attackResult[i];
+
+            if (nearby.transform == transform || nearby.transform.IsChildOf(transform))
+                continue;
+
+            if (nearby.TryGetComponent(out BrainComponent b))
+            {
+                if (b.identity.TipoEntidade == EntityType.PLAYER)
+                {
+                    // Dispara a animação de ataque
+                    animator?.SetTrigger("Attack");
+                    break;
+                }
+            }
+        }
+    }
+
+    // Verifica os filhos do inimigo procurando por armas ou objetos de dano
     private void CheckMethod()
     {
         foreach (Transform child in transform)
@@ -121,7 +171,7 @@ public class AI_component : ComponentBehaviour
         }
     }
 
-    // Define o modo de IA baseado no tipo do inimigo definido no BrainComponent
+    // Define o tipo de IA com base no tipo de inimigo
     private AIType ChooseMode(BrainComponent brain)
     {
         return brain.identity.TipoInimigo switch
@@ -134,7 +184,7 @@ public class AI_component : ComponentBehaviour
         };
     }
 
-    // Prepara o modo de movimentação baseado no tipo da IA (automatic/manual)
+    // Configura o componente de movimentação baseado no tipo
     private void PrepareMode(AIType type)
     {
         if (type != AIType.NONE)
@@ -142,11 +192,9 @@ public class AI_component : ComponentBehaviour
             switch (type)
             {
                 case AIType.AUTOMATIC:
-                    // Adiciona NavMeshAgent para movimentação automática
                     automatic = gameObject.AddComponent<NavMeshAgent>();
                     break;
                 case AIType.MANUAL:
-                    // Adiciona CharacterController para movimentação manual via código
                     manual = gameObject.AddComponent<CharacterController>();
                     break;
             }

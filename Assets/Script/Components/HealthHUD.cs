@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,10 +6,10 @@ public class HealthHUDComponent : ComponentBehaviour
     // Configurações do HUD de vida
     [SerializeField] private GameObject healthBarObject; // Objeto da barra de vida
     [SerializeField] private IconData iconData;         // Dados de ícones (não utilizado no código atual)
-    [SerializeField] private HealthHUDType HUDType;     // Tipo de HUD (PLAYER ou ENEMY)    
+    [SerializeField] public HealthHUDType HUDType;     // Tipo de HUD (PLAYER ou ENEMY)    
     public Transform enemy_target;  // Alvo (transform) do inimigo para seguir
     public int id_health = 0;      // ID do personagem associado a este HUD
-    
+
     private Slider slider;          // Componente Slider que mostra a vida
 
     private void Start()
@@ -20,7 +18,7 @@ public class HealthHUDComponent : ComponentBehaviour
         if (TryGetComponent(out Slider sl))
         {
             slider = sl;
-            
+
             // Configuração baseada no tipo de HUD
             switch (HUDType)
             {
@@ -30,21 +28,27 @@ public class HealthHUDComponent : ComponentBehaviour
                     foreach (var p in players)
                     {
                         // Verifica se é o jogador correto pelo ID
-                        if (p.TryGetComponent(out BrainComponent brain) && 
-                            p.TryGetComponent(out HealthComponent health) &&
-                            brain.identity.ID == id_health &&
-                            brain.identity.TipoEntidade == EntityType.PLAYER)
+                        if (AlignBrain_ID_ENTITY(p,EntityType.PLAYER, out BrainComponent brain,out HealthComponent health))
                         {
                             // Atualiza o slider com os valores de vida atuais
-                            if (health.TryGetAttribute("MAX_health", out float max_Health) && 
+                            if (health.TryGetAttribute("MAX_health", out float max_Health) &&
                                 health.TryGetAttribute("health", out float health_v))
                                 slider.value = health_v / max_Health;
                         }
                     }
                     break;
-                    
+
                 case HealthHUDType.ENEMY:
-                    // Preparação para futura implementação
+                    if (enemy_target)
+                    {
+                        GameObject enemy = enemy_target.parent.gameObject;
+                        if (AlignBrain_ID_ENTITY(enemy, EntityType.ENEMY, out BrainComponent brain, out HealthComponent health))
+                        {
+                            if (health.TryGetAttribute("MAX_health", out float max_Health) &&
+                                health.TryGetAttribute("health", out float health_v))
+                                slider.value = health_v / max_Health;
+                        }
+                    }
                     break;
             }
         }
@@ -82,6 +86,23 @@ public class HealthHUDComponent : ComponentBehaviour
             }
         }
     }
+
+    private bool AlignBrain_ID_ENTITY(GameObject target,EntityType target_type, out BrainComponent brain, out HealthComponent health)
+    {
+        // Tenta obter os dois componentes
+        if (target.TryGetComponent(out brain) && target.TryGetComponent(out health))
+        {
+            // Verifica se o ID e o tipo de entidade batem
+            return brain.identity.ID == id_health && brain.identity.TipoEntidade == target_type;
+        }
+
+        // Se não conseguiu pegar os dois componentes, define os out como null
+        brain = null;
+        health = null;
+        return false;
+    }
+
+
 
     // Método público para atualizar o valor do slider
     public void UpdateSlider(float value)

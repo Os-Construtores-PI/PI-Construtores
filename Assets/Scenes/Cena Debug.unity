@@ -1794,8 +1794,7 @@ MonoBehaviour:
   health: 0
   max_Health: 200
   defense: 10
-  enableRegen: 1
-  healthHUD: {fileID: 0}
+  enableRegen: 0
 --- !u!114 &1144318757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1836,14 +1835,16 @@ MonoBehaviour:
   layer:
     serializedVersion: 2
     m_Bits: 64
+  radius: 10
+  attackRange: 2
+  can_AI: 1
+  visionInterval: 0.5
+  speed: 0
+  acceleration: 10
   tags_methods:
   - Hitbox
   - Weapon
   - Spawner
-  radius: 10
-  can_AI: 1
-  speed: 0
-  acceleration: 10
 --- !u!143 &1144318761
 CharacterController:
   m_ObjectHideFlags: 0
@@ -3221,7 +3222,6 @@ MonoBehaviour:
   max_Health: 100
   defense: 35
   enableRegen: 1
-  healthHUD: {fileID: 0}
 --- !u!114 &1639029997
 MonoBehaviour:
   m_ObjectHideFlags: 0

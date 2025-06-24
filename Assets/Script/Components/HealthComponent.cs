@@ -4,9 +4,7 @@ using UnityEngine.AI;
 using UnityEngine.InputSystem.Interactions;
 using UnityEngine.SceneManagement;
 
-// Define a ordem de execução (-100 = executa antes da maioria dos scripts)
 // Requer o BrainComponent no mesmo GameObject
-[DefaultExecutionOrder(-100)]
 [RequireComponent(typeof(BrainComponent))]
 public class HealthComponent : ComponentBehaviour
 {
@@ -15,7 +13,7 @@ public class HealthComponent : ComponentBehaviour
     private const string MaxHealthKey = "MAX_health";   // Vida máxima
     private const string DefenseKey = "defense";        // Defesa atual
     private const string MaxDefenseKey = "MAX_defense"; // Defesa máxima
-    
+
     // Constantes de defesa
     private const float max_Defense = 100f; // Valor máximo de defesa
     private readonly float CombatCD = 15;   // Tempo de cooldown de combate em segundos
@@ -29,11 +27,18 @@ public class HealthComponent : ComponentBehaviour
 
     // Referências
     private BrainComponent brain;            // Componente cerebral da entidade
-    public HealthHUDComponent healthHUD;     // HUD de vida (barra de vida)
+    private HealthHUDComponent healthHUD;     // HUD de vida (barra de vida)
     private Coroutine exitcombatcoro;       // Referência para a corrotina de combate
 
     private void Start()
     {
+        // Inicializa os atributos com valores iniciais
+        SetAttribute(HealthKey, max_Health);
+        SetAttribute(MaxHealthKey, max_Health);
+        SetAttribute(DefenseKey, defense);
+        SetAttribute(MaxDefenseKey, max_Defense);
+
+
         // Obtém o BrainComponent
         if (!TryGetComponent(out brain))
         {
@@ -45,15 +50,17 @@ public class HealthComponent : ComponentBehaviour
         {
             case EntityType.PLAYER:
                 // Encontra e atribui o HUD do jogador
-                healthHUD = GameObject.FindWithTag("HealthHUD").GetComponent<HealthHUDComponent>();
+                GameObject[] healthHUDs = GameObject.FindGameObjectsWithTag("HealthHUD");
+                foreach (GameObject hud in healthHUDs)
+                {
+                    if (hud.TryGetComponent(out HealthHUDComponent hudhealth) && hudhealth.id_health == brain.identity.ID
+                    && hudhealth.HUDType == HealthHUDType.PLAYER)
+                    {
+                        healthHUD = hudhealth;
+                    }
+                }
                 break;
         }
-
-        // Inicializa os atributos com valores iniciais
-        SetAttribute(HealthKey, max_Health);
-        SetAttribute(MaxHealthKey, max_Health);
-        SetAttribute(DefenseKey, defense);
-        SetAttribute(MaxDefenseKey, max_Defense);
 
         // Assina as mudanças de atributos
         SubscribeToAttribute(MaxHealthKey, (newMaxHealth) =>
@@ -65,7 +72,7 @@ public class HealthComponent : ComponentBehaviour
         {
             health = (float)newHealth;
             // Atualiza HUD se for a entidade correspondente
-            if (healthHUD != null && brain.identity.ID == healthHUD.id_health)
+            if (healthHUD != null)
             {
                 float maxHealth = GetAttribute<float>(MaxHealthKey);
                 healthHUD.UpdateSlider(health / maxHealth); // Atualiza a barra de vida
@@ -78,6 +85,9 @@ public class HealthComponent : ComponentBehaviour
             print("AtualizarUI");
             print("newdefense: " + newDefense);
         });
+
+
+
 
         // Inicia a regeneração periódica de vida
         InvokeRepeating(nameof(Regeneration), 0, 2f);
@@ -112,7 +122,7 @@ public class HealthComponent : ComponentBehaviour
             print($"{gameObject.name} MORREU!");
             brain.MorteCerebral(); // Ativa a morte
         }
-        
+
         SetAttribute(HealthKey, currentHealth);
         EnterCombat(); // Coloca em estado de combate
     }
@@ -152,9 +162,21 @@ public class HealthComponent : ComponentBehaviour
         // - Não estiver em combate
         // - For uma entidade do tipo jogador
         if (!enableRegen || InCombat || brain.identity.TipoEntidade != EntityType.PLAYER) return;
-        
+
         float percentage = .06f; // Taxa de regeneração (6%)
         float formula = max_Health * percentage;
         AddHealth(formula);
     }
+    public void SetHealthHUD(HealthHUDComponent hud)
+    {
+        if (hud == null) return;
+        healthHUD = hud;
+        if (TryGetAttribute(MaxHealthKey, out float maxHealth))
+        {
+            healthHUD.UpdateSlider(health / maxHealth);
+        }
+    }
+
+
+
 }
