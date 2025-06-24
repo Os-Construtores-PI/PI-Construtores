@@ -2,7 +2,7 @@ using System;
 
 public enum EntityType
 {
-    PLAYER, ENEMY, ENTITY
+    PLAYER,BOSS, ENEMY, ENTITY
 }
 public enum EnemyType
 {
