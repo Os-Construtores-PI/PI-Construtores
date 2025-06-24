@@ -9,6 +9,7 @@ public class MenuGamePandoraPI : MonoBehaviour
     [SerializeField] Transform[] _painelMenu;
     
     [SerializeField] Transform[] _painelConfig;
+    [SerializeField] Transform[] _parts;
 
     [SerializeField] Button[] _botoes;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -27,7 +28,7 @@ public class MenuGamePandoraPI : MonoBehaviour
         {
             _painelConfig[i].localScale = Vector3.zero;
         }
-       
+        StartCoroutine(AnimaLogo());
     }
 
 
@@ -51,7 +52,7 @@ public class MenuGamePandoraPI : MonoBehaviour
         }
     }
 
-    public void PainelCheck()
+    public void PainelCheck() 
     {
         for (int i = 0; i < _painelMenu.Length; i++)
         {
@@ -113,6 +114,18 @@ public class MenuGamePandoraPI : MonoBehaviour
             _painelConfig[i].DOScale(1.5f, .25f);
             yield return new WaitForSeconds(0.25f);
             _painelConfig[i].DOScale(1, .25f);
+        }
+    }
+
+    IEnumerator AnimaLogo()
+    {
+        for (int i = 0; i < _parts.Length; i++)
+        {
+            _parts[i].DOLocalJump(new Vector3(0, 0, 0), 100, 5, 3f);
+            yield return new WaitForSeconds(3f);
+
+            Image img = _parts[i].GetComponent<Image>();
+            yield return new WaitForSeconds(1f);
         }
     }
 
