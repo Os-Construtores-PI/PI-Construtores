@@ -99,7 +99,14 @@ public class DataSystem : MonoBehaviour
         // Remove todos os itens dropados atuais da cena antes de recriar os salvos
         foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsSortMode.None))
         {
-            Destroy(drop.gameObject);
+            foreach (var saveDrop in gameData.droppedItems)
+            {
+                var subitemData = Resources.Load<ItemData>("Items/" + saveDrop.itemName);
+                if (drop.itemData == subitemData && drop.transform.position == saveDrop.position)
+                {
+                    Destroy(drop.gameObject);
+                }
+            }
         }
 
         // Recria todos os itens dropados salvos
