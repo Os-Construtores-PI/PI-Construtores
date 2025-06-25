@@ -18,7 +18,7 @@ public class DataSystem : MonoBehaviour
 
     public List<PlayerReference> players = new(); // Arraste Player1 e Player2 aqui
 
-    private string SavePath => Application.persistentDataPath + "/save.json";
+    private string SavePath => Application.persistentDataPath + "/GAMEDATA.json";
 
     public void Save()
     {
