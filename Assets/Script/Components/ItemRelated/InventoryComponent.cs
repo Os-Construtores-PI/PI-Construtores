@@ -84,7 +84,7 @@ public class InventoryComponent : ComponentBehaviour
                 // Aplica todos os efeitos de status do item (temporários)
                 foreach (var stat in data.itemStats)
                 {
-                    statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.TEMPORARY);
+                    statComponent.IncreaseStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.TEMPORARY);
                 }
                 // Remove uma unidade do item consumido
                 RemoveItem(data, 1);
@@ -108,4 +108,5 @@ public class InventoryComponent : ComponentBehaviour
     {
         items.Clear();
     }
+    
 }

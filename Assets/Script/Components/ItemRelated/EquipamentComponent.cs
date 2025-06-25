@@ -43,7 +43,7 @@ public class EquipamentComponent : ComponentBehaviour
             // Aplica os efeitos permanentes de status do equipamento ao personagem
             foreach (var stat in item.itemStats)
             {
-                statComponent.ApplyStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.PERMANENT, stat.duration, stat.cooldown);
+                statComponent.IncreaseStat(stat.stat, stat.tier, statComponent.gameObject, StatComponent.StatTime.PERMANENT, stat.duration, stat.cooldown);
             }
         }
     }
@@ -63,7 +63,7 @@ public class EquipamentComponent : ComponentBehaviour
         {
             foreach (var stat in currentItem.itemStats)
             {
-                statComponent.RemoveStat(stat.stat, stat.tier, statComponent.gameObject);
+                statComponent.DecreaseStat(stat.stat, stat.tier, statComponent.gameObject);
             }
 
             // Limpa a referência do item atual

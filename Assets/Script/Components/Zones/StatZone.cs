@@ -23,7 +23,7 @@ public class StatZone : StatComponent
         {
             if (other.TryGetComponent(out StatComponent component))
             {
-                component.ApplyStat(zoneStat, zoneTier, other.gameObject, statTime,statDuration,statCooldown);       
+                component.IncreaseStat(zoneStat, zoneTier, other.gameObject, statTime,statDuration,statCooldown);       
             }
         }
     }

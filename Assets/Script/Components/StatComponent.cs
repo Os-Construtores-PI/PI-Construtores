@@ -30,7 +30,7 @@ public class StatComponent : ComponentBehaviour
 
     // Método principal para aplicar um modificador de status a um alvo
     // Pode ser permanente ou temporário (com duração e cooldown)
-    public void ApplyStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime, float duration=0, float cooldown=0)
+    public void IncreaseStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime, float duration=0, float cooldown=0)
     {
         ErrorType status_code;
 
@@ -72,7 +72,7 @@ public class StatComponent : ComponentBehaviour
     }
 
     // Método para remover um status específico do alvo (usar efeito inverso)
-    public void RemoveStat(StatType stat, QualityTier tier, GameObject target)
+    public void DecreaseStat(StatType stat, QualityTier tier, GameObject target)
     {
         switch (stat)
         {

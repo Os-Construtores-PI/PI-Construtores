@@ -86,7 +86,16 @@ public class DataSystem : MonoBehaviour
                 }
             }
 
-            refPlayer.transform.position = savedPlayer.position;
+            if (refPlayer.transform.TryGetComponent(out CharacterController controller))
+            {
+                controller.enabled = false;
+                refPlayer.transform.position = savedPlayer.position;
+                controller.enabled = true;
+            }
+            else
+            {
+                refPlayer.transform.position = savedPlayer.position;
+            }
             refPlayer.health.SetAttribute("health", savedPlayer.health);
         }
 
