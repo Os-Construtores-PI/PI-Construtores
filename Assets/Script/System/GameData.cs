@@ -5,6 +5,7 @@ using UnityEngine;
 public class SavedGameData
 {
     public List<SavedPlayerData> players = new();
+    public List<SavedDroppedItem> droppedItems = new();
 }
 
 [System.Serializable]
@@ -21,6 +22,14 @@ public class SavedPlayerData
 public class SavedItemEntry
 {
     public string itemName;
+    public int quantity;
+}
+
+[System.Serializable]
+public class SavedDroppedItem
+{
+    public string itemName;
+    public Vector3 position;
     public int quantity;
 }
 

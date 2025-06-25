@@ -11,7 +11,7 @@ public class ItemDropZone : ItemComponent
     [Header("Tipos de Entidade que podem pegar o item")]
     [SerializeField] private EntityType[] allowedEntityTypes;  // Lista de entidades autorizadas
 
-    private void Start()
+    public void Initialize()
     {
         // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
         boxCollider = gameObject.AddComponent<BoxCollider>();

@@ -17,6 +17,7 @@ public class DataSystem : MonoBehaviour
     }
 
     public List<PlayerReference> players = new(); // Arraste Player1 e Player2 aqui
+    public List<SavedDroppedItem> droppedItems = new();
 
     private string SavePath => Application.persistentDataPath + "/GAMEDATA.json";
 
@@ -44,10 +45,31 @@ public class DataSystem : MonoBehaviour
 
             gameData.players.Add(playerData);
         }
+        // Salva os itens dropados no mundo
+        droppedItems.Clear();
+
+        // Procure todos os objetos com ItemDropZone ativos na cena
+        var drops = FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include,FindObjectsSortMode.None);
+        foreach (var drop in drops)
+        {
+            Debug.Log($" - {drop.name} at {drop.transform.position} with item: {(drop.itemData != null ? drop.itemData.itemName : null)}");
+            if (drop.itemData != null)
+            {
+                droppedItems.Add(new SavedDroppedItem
+                {
+                    itemName = drop.itemData.itemName,
+                    position = drop.transform.position,
+                    quantity = drop.quantity
+                });
+            }
+        }
+
+        gameData.droppedItems = droppedItems;
 
         var json = JsonUtility.ToJson(gameData, true);
         File.WriteAllText(SavePath, json);
-        Debug.Log("Jogo salvo com múltiplos jogadores.");
+        Debug.Log("Jogo salvo com múltiplos jogadores e itens dropados.");
+
     }
 
     public void Load()
@@ -61,6 +83,26 @@ public class DataSystem : MonoBehaviour
         var json = File.ReadAllText(SavePath);
         var gameData = JsonUtility.FromJson<SavedGameData>(json);
 
+        // Limpa itens dropados atuais
+        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsSortMode.None))
+        {
+            Destroy(drop.gameObject);
+        }
+
+        // Recria os itens dropados salvos na cena
+        foreach (var savedDrop in gameData.droppedItems)
+        {
+            var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
+            if (itemData != null)
+            {
+                GameObject go = new GameObject("ItemDrop_" + savedDrop.itemName);
+                go.transform.position = savedDrop.position;
+                var dropZone = go.AddComponent<ItemDropZone>();
+                dropZone.itemData = itemData;
+                dropZone.quantity = savedDrop.quantity;
+                dropZone.Initialize();
+            }
+        }
         foreach (var savedPlayer in gameData.players)
         {
             var refPlayer = players.Find(p => p.playerId == savedPlayer.playerId);
