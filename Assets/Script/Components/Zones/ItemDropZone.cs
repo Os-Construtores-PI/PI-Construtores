@@ -9,7 +9,7 @@ public class ItemDropZone : ItemComponent
     private Rigidbody rb;                 // Rigidbody para física (kinemático)
 
     [Header("Tipos de Entidade que podem pegar o item")]
-    [SerializeField] private EntityType[] allowedEntityTypes;  // Lista de entidades autorizadas
+    public EntityType[] allowedEntityTypes;  // Lista de entidades autorizadas
 
     public void Initialize()
     {
@@ -28,7 +28,7 @@ public class ItemDropZone : ItemComponent
 
 
         // Instancia o modelo visual do item se definido no ScriptableObject
-        if (itemData != null && itemData.item != null)
+        if (itemData != null && itemData.item != null && transform.childCount < 1)
         {
             visualInstance = Instantiate(itemData.item, transform);
             visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);

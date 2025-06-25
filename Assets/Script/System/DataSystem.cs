@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DataSystem : MonoBehaviour
@@ -66,7 +67,8 @@ public class DataSystem : MonoBehaviour
                 {
                     itemName = drop.itemData.itemName,
                     position = drop.transform.position,
-                    quantity = drop.quantity
+                    quantity = drop.quantity,
+                    allowedEntityTypes = drop.allowedEntityTypes
                 });
             }
         }
@@ -112,6 +114,7 @@ public class DataSystem : MonoBehaviour
                 var dropZone = go.AddComponent<ItemDropZone>();
                 dropZone.itemData = itemData;
                 dropZone.quantity = savedDrop.quantity;
+                dropZone.allowedEntityTypes = savedDrop.allowedEntityTypes;
                 dropZone.Initialize(); // Cria colisor, rigidbody e visual
             }
         }
