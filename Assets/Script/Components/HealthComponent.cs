@@ -81,9 +81,7 @@ public class HealthComponent : ComponentBehaviour
 
         SubscribeToAttribute(DefenseKey, (newDefense) =>
         {
-            // Logs para debug de mudanças de defesa
-            print("AtualizarUI");
-            print("newdefense: " + newDefense);
+            defense = (float) newDefense;
         });
 
 
