@@ -14,12 +14,18 @@ public class ItemDropZone : ItemComponent
     public void Initialize()
     {
         // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
-        boxCollider = gameObject.AddComponent<BoxCollider>();
-        boxCollider.isTrigger = true;
+        if (boxCollider == null)
+        {
+            boxCollider = gameObject.AddComponent<BoxCollider>();
+            boxCollider.isTrigger = true;
+        }
+        if (rb == null)
+        {
+            // Rigidbody kinemático para interagir com física sem ser afetado por forças
+            rb = gameObject.AddComponent<Rigidbody>();
+            rb.isKinematic = true;            
+        }
 
-        // Rigidbody kinemático para interagir com física sem ser afetado por forças
-        rb = gameObject.AddComponent<Rigidbody>();
-        rb.isKinematic = true;
 
         // Instancia o modelo visual do item se definido no ScriptableObject
         if (itemData != null && itemData.item != null)
@@ -34,6 +40,10 @@ public class ItemDropZone : ItemComponent
                 boxCollider.center = Vector3.zero;
             }
         }
+}
+    private void Start()
+    {
+        Initialize();
     }
 
     // Método chamado quando outra colisão entra no trigger
