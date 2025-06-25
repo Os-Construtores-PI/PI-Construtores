@@ -10,40 +10,41 @@ public class PlayerMovementComponent : ComponentBehaviour
     #region Variáveis
     [Header("Movimento")]
     [SerializeField] private float speed = 10f;               // Velocidade máxima do movimento horizontal
-    [SerializeField] private float acceleration = 5;           // Aceleração para suavizar mudança de velocidade
-    [SerializeField] private float friction = 2f;               // Atrito no chão para desacelerar quando parado
-    [SerializeField] private float airfriction = 2f;            // Atrito no ar para desacelerar quando parado no ar
+    [SerializeField] private float acceleration = 5;          // Aceleração para suavizar mudança de velocidade
+    [SerializeField] private float friction = 2f;              // Atrito no chão para desacelerar quando parado
+    [SerializeField] private float airfriction = 2f;           // Atrito no ar para desacelerar quando parado no ar
 
     [Header("Parâmetros de Pulo")]
-    [SerializeField] private float jumpForce = 10f;             // Força aplicada no pulo
-    [SerializeField] private int maxJumpCount = 2;               // Quantidade máxima de pulos (ex: pulo duplo)
-    [SerializeField] private float gravity = -9.81f;             // Gravidade aplicada no personagem
+    [SerializeField] private float jumpForce = 10f;            // Força aplicada no pulo
+    [SerializeField] private int maxJumpCount = 2;              // Quantidade máxima de pulos (ex: pulo duplo)
+    [SerializeField] private float gravity = -9.81f;            // Gravidade aplicada no personagem
 
     [Header("Dash Parâmetros")]
-    [SerializeField] private float dashSpeed = 30f;              // Velocidade durante o dash
-    [SerializeField] private float initialDashDuration = 0.3f; // Duração inicial do dash
-    [SerializeField] private float dashCooldown = 5f;            // Tempo de recarga para poder dar outro dash
+    [SerializeField] private float dashSpeed = 30f;             // Velocidade durante o dash
+    [SerializeField] private float dashDistance = 10f;          // Distância fixa que o dash deve percorrer
+    [SerializeField] private float dashCooldown = 5f;           // Tempo de recarga para poder dar outro dash
 
     [Header("Componentes")]
     [SerializeField] private CharacterController characterController; // Componente CharacterController para movimentação
     [Header("Cinemachine Camera")]
     [SerializeField] private CinemachineCamera cinemachineCamera;    // Referência à câmera Cinemachine para orientação
 
-    private Vector3 movementVector = Vector3.zero;            // Vetor de movimento atual incluindo gravidade e velocidade
-    private Vector3 dir;                                       // Direção do dash
+    private Vector3 movementVector = Vector3.zero;           // Vetor de movimento atual incluindo gravidade e velocidade
+    private Vector3 dir;                                      // Direção do dash
     private Vector2 moveInput;                                // Entrada do jogador para movimentação (Eixo XZ)
     private int currentJumpCount;                             // Quantidade atual de pulos já realizados (para limitar pulos)
     private bool isGrounded;                                  // Flag para saber se o personagem está no chão
     private bool canDash = true;                              // Controla se o dash pode ser executado (não está em cooldown)
     private bool isDashing = false;                           // Controla se o personagem está em estado de dash
     private InputAction move_action;                          // Ação de input para movimento
-    private float dashDuration;          // Tempo que dura o dash
+    private float dashDuration;                               // Duração calculada do dash (com base em distância/velocidade)
     #endregion
 
     private void Start()
     {
         StartAtributes();    // Inicializa atributos e eventos de mudança
         DOTween.Init();      // Inicializa DOTween para animações
+
         // Atualiza velocidade e força do pulo caso os atributos mudem dinamicamente
         SubscribeToAttribute(nameof(speed), (newSpeed) =>
         {
@@ -59,7 +60,6 @@ public class PlayerMovementComponent : ComponentBehaviour
     {
         characterController = GetComponent<CharacterController>();
         move_action = InputSystem.actions.FindAction("Move");  // Pega a ação de input "Move" do sistema de input
-        dashDuration = initialDashDuration;
     }
 
     private void FixedUpdate()
@@ -85,7 +85,7 @@ public class PlayerMovementComponent : ComponentBehaviour
         if (context.started && canDash)
         {
             // Define a direção do dash baseado no vetor de movimento atual, ou frente se parado
-            if (movementVector.x != 0 && movementVector.z != 0)
+            if (movementVector.x != 0 || movementVector.z != 0)
             {
                 dir = new Vector3(movementVector.x, 0, movementVector.z).normalized;
             }
@@ -93,6 +93,7 @@ public class PlayerMovementComponent : ComponentBehaviour
             {
                 dir = transform.forward;
             }
+
             StartDash();    // Começa o dash (seta flags e timers)
             DashSequence();// Animação visual do dash via DOTween
             move_action.Disable(); // Desabilita movimento enquanto dasha
@@ -115,6 +116,12 @@ public class PlayerMovementComponent : ComponentBehaviour
         characterController.Move(Vector3.zero); // Para movimento atual
         canDash = false;                        // Marca dash como indisponível até o cooldown
         isDashing = true;                      // Marca personagem como dashing
+
+        // Calcula duração do dash baseado na distância fixa e velocidade
+        dashDuration = dashDistance / dashSpeed;
+
+        movementVector.y = 0f; // Remove movimento vertical para dash totalmente horizontal
+
         Invoke(nameof(ResetDash), dashCooldown); // Agenda reativação do dash após cooldown
     }
 
@@ -123,13 +130,17 @@ public class PlayerMovementComponent : ComponentBehaviour
     {
         if (isDashing)
         {
-            characterController.Move(dashSpeed * Time.deltaTime * dir); // Move na direção do dash
-            dashDuration -= Time.deltaTime;                             // Diminui tempo restante do dash
+            // Move o personagem na direção do dash na velocidade definida
+            characterController.Move(dashSpeed * Time.deltaTime * dir);
 
+            // Reduz o tempo restante do dash
+            dashDuration -= Time.deltaTime;
+
+            // Quando acabar a duração, para o dash
             if (dashDuration <= 0f)
             {
-                isDashing = false;         // Termina o dash
-                dashDuration = initialDashDuration;       // Reseta duração para próximo dash
+                isDashing = false;
+                dashDuration = 0f;
             }
         }
         else
@@ -144,7 +155,7 @@ public class PlayerMovementComponent : ComponentBehaviour
 
     private void ResetDash()
     {
-        canDash = true;         // Permite dash novamente
+        canDash = true;         // Permite dash novamente após cooldown
     }
     #endregion
 
@@ -191,13 +202,13 @@ public class PlayerMovementComponent : ComponentBehaviour
             // Incrementa o contador de pulos usados
             currentJumpCount++;
         }
-    
     }
     #endregion
 
     #region Movimentos horizontais e rotação
     private void RotationAndMovement()
     {
+        // Executa somente se existir a câmera e houver input de movimento
         if (cinemachineCamera && moveInput != Vector2.zero)
         {
             // Pega direção da câmera para movimentação relativa à câmera
@@ -234,8 +245,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     // Função de interpolação suavizada para valores float
     private float Interp(float from, float target, float smooth)
     {
-        float newvalue = Mathf.Lerp(from, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
-        return newvalue;
+        return Mathf.Lerp(from, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
     }
 
     // Inicializa os atributos do componente para permitir modificações dinâmicas
