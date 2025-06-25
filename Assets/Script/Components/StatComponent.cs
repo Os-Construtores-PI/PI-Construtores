@@ -30,31 +30,40 @@ public class StatComponent : ComponentBehaviour
 
     // Método principal para aplicar um modificador de status a um alvo
     // Pode ser permanente ou temporário (com duração e cooldown)
-    public void IncreaseStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime, float duration=0, float cooldown=0)
+    public void IncreaseStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime, float duration = 0, float cooldown = 0)
     {
         ErrorType status_code;
 
         // Só aplica o status se estiver disponível (não estiver em cooldown)
         if (can_stat)
         {
+            bool reversivel;
             // Dependendo do tipo de status, chama o método genérico Stat para modificar o atributo correto no componente alvo
             switch (newstat)
             {
+                case StatType.HEAL:
+                    status_code = Heal(target, tier);
+                    reversivel = false;
+                    break;
                 case StatType.ARMOR:
                     // Modifica defesa no HealthComponent
                     status_code = Stat<HealthComponent, float>("defense", tier, target, "pos");
+                    reversivel = true;
                     break;
                 case StatType.ATTACK:
                     // Modifica dano no DamageComponent
                     status_code = Stat<DamageComponent, float>("damage", tier, target, "pos");
+                    reversivel = true;
                     break;
                 case StatType.SPEED:
                     // Modifica velocidade no PlayerMovementComponent
                     status_code = Stat<PlayerMovementComponent, float>("speed", tier, target, "pos");
+                    reversivel = true;
                     break;
                 case StatType.JUMP:
                     // Modifica força do pulo no PlayerMovementComponent
                     status_code = Stat<PlayerMovementComponent, float>("jumpForce", tier, target, "pos");
+                    reversivel = true;
                     break;
                 default:
                     return; // Status não reconhecido, não faz nada
@@ -63,7 +72,7 @@ public class StatComponent : ComponentBehaviour
             print($"ApplyStat_debugCode: {status_code}");
 
             // Se aplicado com sucesso e é temporário, inicia coroutine para remover o efeito após duração e cooldown
-            if (status_code == ErrorType.SUCCESS && statTime == StatTime.TEMPORARY)
+            if (status_code == ErrorType.SUCCESS && statTime == StatTime.TEMPORARY && reversivel)
             {
                 can_stat = false; // Bloqueia aplicação de novos stats temporários
                 StartCoroutine(RemoveTempStat(duration, cooldown, newstat, target, tier));
@@ -88,6 +97,9 @@ public class StatComponent : ComponentBehaviour
             case StatType.JUMP:
                 Stat<PlayerMovementComponent, float>("jumpForce", tier, target, "neg");
                 break;
+            default:
+                print("STATUS NÃO PROGRAMADO");
+                break;
         }
     }
 
@@ -111,6 +123,9 @@ public class StatComponent : ComponentBehaviour
                 break;
             case StatType.SPEED:
                 Stat<PlayerMovementComponent, float>("speed", tier, target, "neg");
+                break;
+            default:
+                print("STATUS NÃO PROGRAMADO");
                 break;
         }
     }
@@ -179,5 +194,26 @@ public class StatComponent : ComponentBehaviour
 
         // Retorna erro caso não encontre o componente
         return ErrorType.COMPONENT_ERROR;
+    }
+    private ErrorType Heal(GameObject target, QualityTier tier)
+    {
+        ErrorType substatus_code;
+        if (target.TryGetComponent(out HealthComponent health))
+        {
+            if (health.TryGetAttribute("health", out float health_value))
+            {
+                health.AddHealth(health_value * EvaluateStat(tier));
+                substatus_code = ErrorType.SUCCESS;
+            }
+            else
+            {
+                substatus_code = ErrorType.ATTRIBUTE_ERROR;
+            }
+        }
+        else
+        {
+            substatus_code = ErrorType.COMPONENT_ERROR;
+        }
+        return substatus_code;
     }
 }

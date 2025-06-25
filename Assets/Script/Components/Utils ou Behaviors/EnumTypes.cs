@@ -18,7 +18,7 @@ public enum QualityTier
 }
 public enum StatType
 {
-    ARMOR, ATTACK, SPEED, JUMP
+    ARMOR, ATTACK, SPEED, JUMP, HEAL
 }
 public enum ItemUsageType
 {

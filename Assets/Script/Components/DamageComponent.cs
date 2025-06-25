@@ -39,11 +39,19 @@ public class DamageComponent : ComponentBehaviour
     // Evento chamado ao detectar colisão com outro collider
     void OnTriggerEnter(Collider other)
     {
+        DamageLogic(other);
+    }
+    void OnTriggerStay(Collider other)
+    {
+        DamageLogic(other);
+    }
+    private void DamageLogic(Collider collider)
+    {
         // Verifica se o objeto colidido está na layer "Entity" para evitar danos a objetos errados
-        if (!other.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
+        if (!collider.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
 
         // Tenta obter os componentes de saúde e cérebro para validar se pode causar dano
-        if (other.TryGetComponent(out HealthComponent healthComponent) && other.TryGetComponent(out BrainComponent brainComponent))
+        if (collider.TryGetComponent(out HealthComponent healthComponent) && collider.TryGetComponent(out BrainComponent brainComponent))
         {
             // Aplica dano apenas se o tipo da entidade estiver na lista permitida e se o cooldown permitir
             if (hashenemies.Contains(brainComponent.identity.TipoEntidade) && can_damage)
