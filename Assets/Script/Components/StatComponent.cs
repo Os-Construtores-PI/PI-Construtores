@@ -1,34 +1,41 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Project.Tools.DictionaryHelp;
 using UnityEngine;
 
 public class StatComponent : ComponentBehaviour
 {
+    // Dicionário para armazenar modificadores aplicados (não utilizado diretamente neste código)
     private readonly Dictionary<StatType, float> statModifiers = new();
 
-    static readonly SerializableDictionary<QualityTier, float> relationstat = new() {
+    // Multiplicadores baseados na raridade do status (QualityTier)
+    static readonly SerializableDictionary<QualityTier, float> relationstat = new()
+    {
         { QualityTier.COMMON, 1.15f },
-        { QualityTier.UNCOMMON,1.25f},
+        { QualityTier.UNCOMMON, 1.25f },
         { QualityTier.RARE, 1.30f },
         { QualityTier.EPIC, 1.45f },
         { QualityTier.LEGENDARY, 1.60f }
     };
 
-    private bool can_stat = true;
+    private bool can_stat = true; // Flag que controla se é possível aplicar status (usado para cooldown)
 
+    // Define se o efeito é permanente ou temporário
     public enum StatTime
     {
         PERMANENT,
         TEMPORARY
     }
 
-    // Mapeia StatType para função que aplica o efeito positivo
+    // Dicionário que mapeia o StatType para a função que aplica o efeito positivo
     private readonly Dictionary<StatType, Func<GameObject, QualityTier, ErrorType>> applyStatActions;
-    // Mapeia StatType para função que remove o efeito (negativo)
+
+    // Dicionário que mapeia o StatType para a função que remove o efeito (negativo)
     private readonly Dictionary<StatType, Action<GameObject, QualityTier>> removeStatActions;
 
+    // Construtor: Inicializa os dicionários com as funções apropriadas
     public StatComponent()
     {
         applyStatActions = new Dictionary<StatType, Func<GameObject, QualityTier, ErrorType>>
@@ -49,25 +56,33 @@ public class StatComponent : ComponentBehaviour
         };
     }
 
+    /// <summary>
+    /// Aplica um status positivo no alvo, podendo ser permanente ou temporário.
+    /// Se temporário, inicia corrotina para remover após duração e aplicar cooldown.
+    /// </summary>
     public void IncreaseStat(StatType newstat, QualityTier tier, GameObject target, StatTime statTime, float duration = 0, float cooldown = 0)
     {
-        if (!can_stat) return;
+        if (!can_stat) return; // Se estiver em cooldown, não aplica
 
         if (!applyStatActions.TryGetValue(newstat, out var applyAction))
-            return;
+            return; // Status não suportado
 
-        bool reversivel = removeStatActions.ContainsKey(newstat);
+        bool reversivel = removeStatActions.ContainsKey(newstat); // Verifica se pode ser revertido
 
-        ErrorType status_code = applyAction.Invoke(target, tier);
+        ErrorType status_code = applyAction.Invoke(target, tier); // Aplica o efeito
         print($"ApplyStat_debugCode: {status_code}");
 
+        // Se sucesso e temporário, inicia corrotina para remover após duração e aplicar cooldown
         if (status_code == ErrorType.SUCCESS && statTime == StatTime.TEMPORARY && reversivel)
         {
-            can_stat = false;
+            can_stat = false; // Bloqueia aplicação de outros status temporários enquanto estiver em cooldown
             StartCoroutine(RemoveTempStat(duration, cooldown, newstat, target, tier));
         }
     }
 
+    /// <summary>
+    /// Remove um status do alvo (efeito negativo).
+    /// </summary>
     public void DecreaseStat(StatType stat, QualityTier tier, GameObject target)
     {
         if (!removeStatActions.TryGetValue(stat, out var removeAction))
@@ -78,27 +93,40 @@ public class StatComponent : ComponentBehaviour
         removeAction.Invoke(target, tier);
     }
 
+    /// <summary>
+    /// Corrotina que aguarda a duração do efeito, depois remove o status e inicia cooldown.
+    /// </summary>
     IEnumerator RemoveTempStat(float duration, float cooldown, StatType oldstat, GameObject target, QualityTier tier)
     {
-        StartCoroutine(CooldownStat(cooldown));
-        yield return new WaitForSeconds(duration);
+        StartCoroutine(CooldownStat(cooldown)); // Inicia cooldown
+        yield return new WaitForSeconds(duration); // Aguarda duração
 
         if (!removeStatActions.TryGetValue(oldstat, out var removeAction))
         {
             print("STATUS NÃO PROGRAMADO");
             yield break;
         }
-        removeAction.Invoke(target, tier);
+        removeAction.Invoke(target, tier); // Remove o status temporário
     }
 
+    /// <summary>
+    /// Corrotina que mantém o cooldown ativo para impedir aplicação de novos status temporários.
+    /// </summary>
     IEnumerator CooldownStat(float cooldown)
     {
         yield return new WaitForSeconds(cooldown);
-        can_stat = true;
+        can_stat = true; // Libera aplicação de status após cooldown
     }
 
+    /// <summary>
+    /// Retorna o multiplicador baseado no QualityTier.
+    /// </summary>
     private float EvaluateStat(QualityTier tier) => relationstat[tier];
 
+    /// <summary>
+    /// Aplica ou remove modificadores nos atributos genéricos dos componentes usando reflexão genérica.
+    /// "op" indica se é operação positiva ("pos") ou negativa ("neg").
+    /// </summary>
     private ErrorType Stat<TComponent, TValue>(string atributo, QualityTier tier, GameObject target, string op)
         where TComponent : ComponentBehaviour
         where TValue : struct, IComparable
@@ -136,6 +164,9 @@ public class StatComponent : ComponentBehaviour
         return ErrorType.SUCCESS;
     }
 
+    /// <summary>
+    /// Aplica cura direta na entidade alvo, baseada na raridade.
+    /// </summary>
     private ErrorType Heal(GameObject target, QualityTier tier)
     {
         if (!target.TryGetComponent(out HealthComponent health))
