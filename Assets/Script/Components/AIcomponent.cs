@@ -50,7 +50,7 @@ public class AI_component : ComponentBehaviour
         }
 
         CheckMethod(); // Localiza o filho que representa a arma ou dano
-        animator = GetComponentInChildren<Animator>(); // Pega animador (assumindo que está num filho)
+        //animator = GetComponentInChildren<Animator>(); // Pega animador (assumindo que está num filho)
     }
 
     // Inicia verificação de visão periódica
