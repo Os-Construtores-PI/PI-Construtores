@@ -47,7 +47,7 @@ public class BrainComponent : ComponentBehaviour
         DebugChecks();
     }
 
-    public void CerebroUsarItem(ItemData item)
+    public void CerebroUsarItem(ItemDataBase item)
     {
         if (Inventory != null)
         {
@@ -69,9 +69,12 @@ public class BrainComponent : ComponentBehaviour
         action.Invoke(gameObject);
     }
 
-    public void AddItem(ItemData item, int quantity)
+    public void AddItem(ItemDataBase item, int quantity)
     {
-        Inventory?.AddItem(item, quantity);
+        if (Inventory != null)
+        {
+            Inventory.AddItem(item, quantity);
+        }
     }
 
     private void DebugChecks()
