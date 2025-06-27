@@ -45,9 +45,7 @@ public class EquipamentComponent : ComponentBehaviour
                     stat.stat,                    // Tipo de stat (ex: força, agilidade)
                     stat.tier,                    // Qualidade do stat (ex: comum, raro)
                     gameObject,                   // Fonte do modificador
-                    StatComponent.StatTime.PERMANENT, // Duração do buff (aqui é permanente)
-                    stat.duration,                // Duração (pode ser usada se mudar o tipo de tempo)
-                    stat.cooldown                 // Tempo de recarga, se aplicável
+                    StatComponent.StatTime.PERMANENT // Duração do buff (aqui é permanente)
                 );
             }
         }

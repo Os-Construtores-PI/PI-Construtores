@@ -77,8 +77,8 @@ public class InventoryComponent : ComponentBehaviour
                             stat.tier,
                             gameObject,
                             StatComponent.StatTime.TEMPORARY,
-                            stat.duration,
-                            stat.cooldown
+                            consumable.duration,
+                            consumable.cooldown
                         );
                     }
                     RemoveItem(data, 1); // Consome o item
