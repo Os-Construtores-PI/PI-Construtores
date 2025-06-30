@@ -4,13 +4,13 @@
 public class InventoryItem
 {
     // Referência aos dados do item (nome, stats, tipo, etc)
-    public ItemData data;
+    public ItemDataBase data;
 
     // Quantidade desse item no inventário
     public int quantity;
 
     // Construtor para inicializar o item com dados e quantidade
-    public InventoryItem(ItemData data, int quantity = 1)
+    public InventoryItem(ItemDataBase data, int quantity = 1)
     {
         this.data = data;
         this.quantity = quantity;
@@ -21,7 +21,7 @@ public class InventoryItem
 public class ItemComponent : ComponentBehaviour
 {
     // Dados do item representado por esse componente
-    public ItemData itemData;
+    public ItemDataBase itemData;
 
     // Quantidade do item (geralmente 1 para objetos no mundo)
     public int quantity = 1;

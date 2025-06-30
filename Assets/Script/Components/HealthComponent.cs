@@ -4,57 +4,55 @@ using UnityEngine.AI;
 using UnityEngine.InputSystem.Interactions;
 using UnityEngine.SceneManagement;
 
-// Requer o BrainComponent no mesmo GameObject
+// Requer que o GameObject tenha um BrainComponent
 [RequireComponent(typeof(BrainComponent))]
 public class HealthComponent : ComponentBehaviour
 {
-    // Chaves para o sistema de atributos
+    // ==== Chaves para atributos no sistema ====
     private const string HealthKey = "health";          // Vida atual
     private const string MaxHealthKey = "MAX_health";   // Vida máxima
     private const string DefenseKey = "defense";        // Defesa atual
     private const string MaxDefenseKey = "MAX_defense"; // Defesa máxima
 
-    // Constantes de defesa
-    private const float max_Defense = 100f; // Valor máximo de defesa
-    private readonly float CombatCD = 15;   // Tempo de cooldown de combate em segundos
-    private bool InCombat;                 // Flag que indica se está em combate
+    // ==== Constantes ====
+    private const float max_Defense = 100f; // Defesa máxima padrão
+    private readonly float CombatCD = 15;   // Cooldown para sair do estado de combate
+    private bool InCombat;                 // Indica se a entidade está em combate
 
+    // ==== Parâmetros configuráveis no Inspector ====
     [Header("Parâmetros de Vida")]
-    [SerializeField] private float health;      // Vida atual
-    [SerializeField] private float max_Health;  // Vida máxima
-    [SerializeField] private float defense = 10; // Defesa atual
-    [SerializeField] private bool enableRegen = true; // Ativa/desativa regeneração
+    [SerializeField] private float health;           // Vida atual
+    [SerializeField] private float max_Health;       // Vida máxima
+    [SerializeField] private float defense = 10;     // Defesa atual
+    [SerializeField] private bool enableRegen = true; // Ativa a regeneração de vida fora de combate
 
-    // Referências
-    private BrainComponent brain;            // Componente cerebral da entidade
-    private HealthHUDComponent healthHUD;     // HUD de vida (barra de vida)
-    private Coroutine exitcombatcoro;       // Referência para a corrotina de combate
+    // ==== Referências ====
+    private BrainComponent brain;              // Referência ao "cérebro" da entidade
+    private HealthHUDComponent healthHUD;      // HUD de vida (barra de HP na tela)
+    private Coroutine exitcombatcoro;          // Controle da corrotina de combate
 
     private void Start()
     {
-        // Inicializa os atributos com valores iniciais
+        // === Inicialização dos atributos ===
         SetAttribute(HealthKey, max_Health);
         SetAttribute(MaxHealthKey, max_Health);
         SetAttribute(DefenseKey, defense);
         SetAttribute(MaxDefenseKey, max_Defense);
 
-
-        // Obtém o BrainComponent
+        // === Pega o BrainComponent ===
         if (!TryGetComponent(out brain))
-        {
-            return; // Sai se não encontrar
-        }
+            return;
 
-        // Configura o HUD baseado no tipo de entidade
+        // === Tenta localizar e associar o HUD de vida se for um jogador ===
         switch (brain.identity.TipoEntidade)
         {
             case EntityType.PLAYER:
-                // Encontra e atribui o HUD do jogador
                 GameObject[] healthHUDs = GameObject.FindGameObjectsWithTag("HealthHUD");
                 foreach (GameObject hud in healthHUDs)
                 {
-                    if (hud.TryGetComponent(out HealthHUDComponent hudhealth) && hudhealth.id_health == brain.identity.ID
-                    && hudhealth.HUDType == HealthHUDType.PLAYER)
+                    if (hud.TryGetComponent(out HealthHUDComponent hudhealth) &&
+                        hudhealth.id_health == brain.identity.ID &&
+                        hudhealth.HUDType == HealthHUDType.PLAYER)
                     {
                         healthHUD = hudhealth;
                     }
@@ -62,88 +60,90 @@ public class HealthComponent : ComponentBehaviour
                 break;
         }
 
-        // Assina as mudanças de atributos
+        // === Escuta mudanças nos atributos ===
+
+        // Atualiza o valor local da vida máxima sempre que ela mudar
         SubscribeToAttribute(MaxHealthKey, (newMaxHealth) =>
         {
-            max_Health = (float)newMaxHealth; // Atualiza vida máxima quando mudar
+            max_Health = (float)newMaxHealth;
         });
 
+        // Atualiza a vida atual e atualiza a HUD
         SubscribeToAttribute(HealthKey, (newHealth) =>
         {
             health = (float)newHealth;
-            // Atualiza HUD se for a entidade correspondente
             if (healthHUD != null)
             {
                 float maxHealth = GetAttribute<float>(MaxHealthKey);
-                healthHUD.UpdateSlider(health / maxHealth); // Atualiza a barra de vida
+                healthHUD.UpdateSlider(health / maxHealth); // Atualiza barra de vida
             }
         });
 
+        // Atualiza o valor de defesa local sempre que mudar
         SubscribeToAttribute(DefenseKey, (newDefense) =>
         {
-            defense = (float) newDefense;
+            defense = (float)newDefense;
         });
 
-
-
-
-        // Inicia a regeneração periódica de vida
+        // Inicia a regeneração periódica
         InvokeRepeating(nameof(Regeneration), 0, 2f);
     }
 
     /// <summary>
-    /// Adiciona vida à entidade
+    /// Aumenta a vida atual da entidade
     /// </summary>
-    /// <param name="amount">Quantidade de vida a adicionar</param>
     public void AddHealth(float amount)
     {
         float currentHealth = GetAttribute<float>(HealthKey);
         currentHealth += amount;
-        // Garante que não ultrapasse o máximo
-        SetAttribute(HealthKey, Mathf.Min(currentHealth, max_Health));
+        SetAttribute(HealthKey, Mathf.Min(currentHealth, max_Health)); // Garante que não passe do máximo
     }
 
     /// <summary>
-    /// Remove vida da entidade, considerando a defesa
+    /// Aplica dano, considerando a defesa
     /// </summary>
-    /// <param name="amount">Dano bruto</param>
     public void SubtractHealth(float amount)
     {
         float currentHealth = GetAttribute<float>(HealthKey);
-        // Calcula redução de dano (limitada a 80%)
-        float defenseFactor = Mathf.Min(GetAttribute<float>(DefenseKey) / max_Defense, .80f);
+
+        // Calcula quanto do dano será mitigado pela defesa (máx 80%)
+        float defenseFactor = Mathf.Min(GetAttribute<float>(DefenseKey) / max_Defense, 0.80f);
         currentHealth -= amount * (1 - defenseFactor);
 
-        // Verifica morte
+        // Verifica se a entidade morreu
         if (currentHealth <= 0)
         {
             print($"{gameObject.name} MORREU!");
-            brain.MorteCerebral(); // Ativa a morte
+            brain.MorteCerebral(); // Ativa lógica de morte
         }
 
+        // Atualiza a vida
         SetAttribute(HealthKey, currentHealth);
-        EnterCombat(); // Coloca em estado de combate
+
+        // Entra em estado de combate
+        EnterCombat();
     }
 
     /// <summary>
-    /// Coloca a entidade em estado de combate e inicia o timer
+    /// Coloca a entidade em combate e inicia cooldown para sair
     /// </summary>
     private void EnterCombat()
     {
         InCombat = true;
-        // Para o cooldown existente se estiver ativo
+
+        // Para o cooldown anterior, se existir
         if (exitcombatcoro != null)
         {
             StopCoroutine(exitcombatcoro);
         }
-        // Inicia novo timer de cooldown
+
+        // Inicia nova contagem para sair do estado de combate
         exitcombatcoro = StartCoroutine(ExitCombat(CombatCD));
     }
 
     /// <summary>
-    /// Corrotina que sai do estado de combate após o tempo
+    /// Sai do combate após um tempo
     /// </summary>
-    /// <param name="combatcooldown">Tempo em segundos</param>
     IEnumerator ExitCombat(float combatcooldown)
     {
         yield return new WaitForSeconds(combatcooldown);
@@ -151,30 +151,33 @@ public class HealthComponent : ComponentBehaviour
     }
 
     /// <summary>
-    /// Regenera vida periodicamente quando as condições são atendidas
+    /// Regenera vida gradualmente fora de combate
     /// </summary>
     private void Regeneration()
     {
         // Só regenera se:
-        // - Regeneração ativada
-        // - Não estiver em combate
-        // - For uma entidade do tipo jogador
+        // - Habilitado
+        // - Fora de combate
+        // - Entidade for jogador
         if (!enableRegen || InCombat || brain.identity.TipoEntidade != EntityType.PLAYER) return;
 
-        float percentage = .06f; // Taxa de regeneração (6%)
+        float percentage = .06f;
         float formula = max_Health * percentage;
         AddHealth(formula);
     }
+
+    /// <summary>
+    /// Atribui o HUD manualmente (ex: via spawn dinâmico)
+    /// </summary>
     public void SetHealthHUD(HealthHUDComponent hud)
     {
         if (hud == null) return;
+
         healthHUD = hud;
+
         if (TryGetAttribute(MaxHealthKey, out float maxHealth))
         {
             healthHUD.UpdateSlider(health / maxHealth);
         }
     }
-
-
-
 }

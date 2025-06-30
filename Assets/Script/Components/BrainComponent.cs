@@ -1,112 +1,118 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// Componente que representa o "cérebro" de uma entidade (jogador, inimigo, NPC etc.)
 public class BrainComponent : ComponentBehaviour
 {
-    // Enum que define os comportamentos possíveis da entidade
+    // Enum para definir o comportamento da entidade (usado provavelmente por IA)
     public enum Behavior
     {
-        AGRESSIVE,  // Comportamento agressivo (ataca automaticamente)
-        FRIENDLY,   // Comportamento amigável (aliado)
-        NEUTRAL,    // Comportamento neutro (reage apenas quando atacado)
-        INDIVIDUAL  // Comportamento individual (lógica personalizada)
+        AGRESSIVE,
+        FRIENDLY,
+        NEUTRAL,
+        INDIVIDUAL
     }
 
     [Header("Características")]
-    [SerializeField]
-    public Entidade identity;      // Identidade da entidade (tipo, ID, etc.)
-    public Behavior comportamento; // Comportamento atual da entidade
-    public List<SkillData> skills; // Lista de habilidades disponíveis
-    private InventoryComponent inventory; // Referência ao componente de inventário
+    // Identidade da entidade (script que provavelmente guarda tipo, nome, status etc.)
+    [SerializeField] public Entidade identity;
 
+    // Comportamento da entidade (definido no enum acima)
+    public Behavior comportamento;
+
+    // Lista de habilidades que a entidade pode usar
+    public List<SkillData> skills;
+
+    // Referência ao componente de inventário
+    private InventoryComponent inventory;
+
+    // Propriedade pública de acesso ao inventário
+    public InventoryComponent Inventory => inventory;
+
+    // Dicionário com ações a serem executadas ao morrer, dependendo do tipo da entidade
+    private static readonly Dictionary<EntityType, System.Action<GameObject>> onDeathActions =
+        new()
+    {
+        {
+            // Quando o jogador morre, tenta desligar o mundo ou volta para o menu
+            EntityType.PLAYER, static go =>
+            {
+                var director = GameObject.FindWithTag("GameController")?.GetComponent<GameDirector>();
+                if (director != null)
+                    director.ShutdownWorld(); // Encerra o jogo de forma apropriada
+                else
+                    SceneManager.LoadScene("MenuGame"); // Alternativa de fallback
+            }
+        },
+        {
+            // Quando inimigo morre, simplesmente desativa o GameObject
+            EntityType.ENEMY, static go => go.SetActive(false)
+        },
+        {
+            // Para entidades genéricas, mesma ação do inimigo
+            EntityType.ENTITY, static go => go.SetActive(false)
+        }
+    };
+
+    // Ao iniciar o componente, tenta obter o InventoryComponent e faz verificações de debug
     private void Awake()
     {
-        // Tenta obter o componente de inventário
         TryGetComponent(out inventory);
-        // Executa verificações de debug
         DebugChecks();
     }
 
-    /// <summary>
-    /// Método para usar um item do inventário
-    /// </summary>
-    /// <param name="item">Dados do item a ser usado</param>
-    public void CerebroUsarItem(ItemData item)
+    // Faz a entidade usar um item do inventário
+    public void CerebroUsarItem(ItemDataBase item)
     {
-        if (inventory != null)
+        if (Inventory != null)
         {
-            inventory.UseItem(item); // Delega o uso do item para o inventário
+            Inventory.UseItem(item);
         }
         else
         {
-            Debug.LogWarning("Nenhum inventário encontrado para usar o item.");
+            Debug.LogWarning($"Inventário não encontrado para usar o item {(item != null ? item.itemName : "null")}");
         }
     }
 
-    /// <summary>
-    /// Método chamado quando a entidade morre
-    /// </summary>
+    // Método para ser chamado quando a entidade "morre"
     public void MorteCerebral()
     {
-        switch (identity.TipoEntidade)
+        // Busca a ação correspondente ao tipo de entidade no dicionário
+        if (!onDeathActions.TryGetValue(identity.TipoEntidade, out var action))
         {
-            case EntityType.PLAYER:
-                // Lógica de morte do jogador
-                GameObject Director = GameObject.FindWithTag("GameController");
-                if (Director && Director.TryGetComponent(out GameDirector directorscript))
-                {
-                    directorscript.ShutdownWorld(); // Chama o game over
-                }
-                else
-                {
-                    SceneManager.LoadScene("MenuGame"); // Volta ao menu se não encontrar o director
-                }
-                break;
-                
-            case EntityType.ENEMY:
-                // Lógica de morte para inimigos (simples desativação)
-                gameObject.SetActive(false);
-                break;
-                
-            case EntityType.ENTITY:
-                // Lógica de morte para entidades genéricas
-                gameObject.SetActive(false);
-                break;
-                
-            default:
-                Debug.Log("Você precisa colocar um tipo para este gameobj");
-                break;
+            Debug.LogWarning($"Tipo de entidade inválido ou não definido para {gameObject.name}");
+            return;
+        }
+
+        // Executa a ação apropriada para o tipo da entidade
+        action.Invoke(gameObject);
+    }
+
+    // Adiciona um item ao inventário da entidade
+    public void AddItem(ItemDataBase item, int quantity)
+    {
+        if (Inventory != null)
+        {
+            Inventory.AddItem(item, quantity);
         }
     }
 
-    /// <summary>
-    /// Realiza verificações de consistência no setup da entidade
-    /// </summary>
+    // Verificações para garantir que a identidade da entidade esteja correta
     private void DebugChecks()
     {
-        ErrorType status;
-        
-        // Verifica se objetos marcados como Player tem o tipo correto
+        ErrorType status = ErrorType.SUCCESS;
+
+        // Se o objeto for um jogador mas o tipo da entidade não for PLAYER
         if (gameObject.CompareTag("Player") && identity.TipoEntidade != EntityType.PLAYER)
-        {
             status = ErrorType.ENTITYTYPE_ERROR;
-        }
-        // Verifica se inimigos tem um tipo definido
+
+        // Se for um inimigo mas o tipo do inimigo não foi definido
         else if (identity.TipoEntidade == EntityType.ENEMY && identity.TipoInimigo == EnemyType.NONE)
-        {
             status = ErrorType.ENEMYTYPE_ERROR;
-        }
-        else
-        {
-            status = ErrorType.SUCCESS;
-        }
-        
-        // Loga qualquer erro encontrado
+
+        // Se houve erro, registra no console
         if (status != ErrorType.SUCCESS)
-        {
-            print($"Erro: {status}, Culpado: {gameObject.name}");
-        }
+            Debug.LogError($"Erro: {status}, objeto: {gameObject.name}");
     }
 }

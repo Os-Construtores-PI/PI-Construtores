@@ -3,273 +3,228 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Requer que o GameObject tenha CharacterController para controlar movimento e colisão
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovementComponent : ComponentBehaviour
 {
     #region Variáveis
+
     [Header("Movimento")]
-    [SerializeField] private float speed = 10f;               // Velocidade máxima do movimento horizontal
-    [SerializeField] private float acceleration = 5;          // Aceleração para suavizar mudança de velocidade
-    [SerializeField] private float friction = 2f;              // Atrito no chão para desacelerar quando parado
-    [SerializeField] private float airfriction = 2f;           // Atrito no ar para desacelerar quando parado no ar
+    [SerializeField] private float speed = 10f;
+    [SerializeField] private float acceleration = 5f;
+    [SerializeField] private float friction = 2f;
+    [SerializeField] private float airfriction = 2f;
 
     [Header("Parâmetros de Pulo")]
-    [SerializeField] private float jumpForce = 10f;            // Força aplicada no pulo
-    [SerializeField] private int maxJumpCount = 2;              // Quantidade máxima de pulos (ex: pulo duplo)
-    [SerializeField] private float gravity = -9.81f;            // Gravidade aplicada no personagem
+    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private int maxJumpCount = 2;
+    [SerializeField] private float gravity = -9.81f;
 
-    [Header("Dash Parâmetros")]
-    [SerializeField] private float dashSpeed = 30f;             // Velocidade durante o dash
-    [SerializeField] private float dashDistance = 10f;          // Distância fixa que o dash deve percorrer
-    [SerializeField] private float dashCooldown = 5f;           // Tempo de recarga para poder dar outro dash
+    [Header("Dash")]
+    [SerializeField] private float dashSpeed = 30f;
+    [SerializeField] private float dashDistance = 10f;
+    [SerializeField] private float dashCooldown = 5f;
 
     [Header("Componentes")]
-    [SerializeField] private CharacterController characterController; // Componente CharacterController para movimentação
-    [Header("Cinemachine Camera")]
-    [SerializeField] private CinemachineCamera cinemachineCamera;    // Referência à câmera Cinemachine para orientação
+    [SerializeField] private CharacterController characterController;
+    [SerializeField] private CinemachineCamera cinemachineCamera;
 
-    private Vector3 movementVector = Vector3.zero;           // Vetor de movimento atual incluindo gravidade e velocidade
-    private Vector3 dir;                                      // Direção do dash
-    private Vector2 moveInput;                                // Entrada do jogador para movimentação (Eixo XZ)
-    private int currentJumpCount;                             // Quantidade atual de pulos já realizados (para limitar pulos)
-    private bool isGrounded;                                  // Flag para saber se o personagem está no chão
-    private bool canDash = true;                              // Controla se o dash pode ser executado (não está em cooldown)
-    private bool isDashing = false;                           // Controla se o personagem está em estado de dash
-    private InputAction move_action;                          // Ação de input para movimento
-    private float dashDuration;                               // Duração calculada do dash (com base em distância/velocidade)
+    private Vector3 movementVector = Vector3.zero;
+    private Vector3 dashDirection;
+    private Vector2 moveInput;
+    private int currentJumpCount;
+    private bool isGrounded;
+    private bool canDash = true;
+    private bool isDashing = false;
+    private InputAction moveAction;
+    private float dashDuration;
+
     #endregion
-
-    private void Start()
-    {
-        StartAtributes();    // Inicializa atributos e eventos de mudança
-        DOTween.Init();      // Inicializa DOTween para animações
-
-        // Atualiza velocidade e força do pulo caso os atributos mudem dinamicamente
-        SubscribeToAttribute(nameof(speed), (newSpeed) =>
-        {
-            speed = (float)newSpeed;
-        });
-        SubscribeToAttribute(nameof(jumpForce), (newJumpForce) =>
-        {
-            jumpForce = (float)newJumpForce;
-        });
-    }
 
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
-        move_action = InputSystem.actions.FindAction("Move");  // Pega a ação de input "Move" do sistema de input
+        moveAction = InputSystem.actions.FindAction("Move");
+    }
+
+    private void Start()
+    {
+        InitializeAttributes();
+        DOTween.Init();
+
+        SubscribeToAttribute(nameof(speed), newSpeed => speed = (float)newSpeed);
+        SubscribeToAttribute(nameof(jumpForce), newJumpForce => jumpForce = (float)newJumpForce);
     }
 
     private void FixedUpdate()
     {
-        isGrounded = characterController.isGrounded; // Verifica se o personagem está tocando o chão
+        isGrounded = characterController.isGrounded;
 
-        DashLogica();            // Lida com lógica do dash, movimentação durante dash
-        RotationAndMovement();   // Rotaciona o personagem e atualiza movimento normal
+        if (isDashing)
+            HandleDash();
+        else
+            HandleMovementAndGravity();
 
-        characterController.Move(movementVector * Time.deltaTime);  // Aplica movimento ao personagem
+        characterController.Move(movementVector * Time.deltaTime);
     }
 
-    #region Input
-    // Recebe input de movimento (Eixo X e Y)
+    #region InputHandlers
+
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
     }
 
-    // Recebe input do dash (ativação)
     public void OnDash(InputAction.CallbackContext context)
     {
         if (context.started && canDash)
-        {
-            // Define a direção do dash baseado no vetor de movimento atual, ou frente se parado
-            if (movementVector.x != 0 || movementVector.z != 0)
-            {
-                dir = new Vector3(movementVector.x, 0, movementVector.z).normalized;
-            }
-            else
-            {
-                dir = transform.forward;
-            }
-
-            StartDash();    // Começa o dash (seta flags e timers)
-            DashSequence();// Animação visual do dash via DOTween
-            move_action.Disable(); // Desabilita movimento enquanto dasha
-        }
+            StartDash();
     }
 
-    // Recebe input do pulo
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.started)
-        {
-            JumpLogica();
-        }
+            Jump();
     }
+
     #endregion
 
     #region Dash
+
     private void StartDash()
     {
-        characterController.Move(Vector3.zero); // Para movimento atual
-        canDash = false;                        // Marca dash como indisponível até o cooldown
-        isDashing = true;                      // Marca personagem como dashing
+        dashDirection = moveInput != Vector2.zero
+            ? new Vector3(moveInput.x, 0, moveInput.y).normalized
+            : transform.forward;
 
-        // Calcula duração do dash baseado na distância fixa e velocidade
         dashDuration = dashDistance / dashSpeed;
 
-        movementVector.y = 0f; // Remove movimento vertical para dash totalmente horizontal
+        isDashing = true;
+        canDash = false;
+        movementVector.y = 0f;
 
-        Invoke(nameof(ResetDash), dashCooldown); // Agenda reativação do dash após cooldown
+        moveAction.Disable();
+        DashVisualSequence();
+
+        Invoke(nameof(ResetDash), dashCooldown);
     }
 
-    // Lógica executada durante o FixedUpdate para dash e gravidade
-    void DashLogica()
+    private void HandleDash()
     {
-        if (isDashing)
-        {
-            // Move o personagem na direção do dash na velocidade definida
-            characterController.Move(dashSpeed * Time.deltaTime * dir);
+        characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
 
-            // Reduz o tempo restante do dash
-            dashDuration -= Time.deltaTime;
-
-            // Quando acabar a duração, para o dash
-            if (dashDuration <= 0f)
-            {
-                isDashing = false;
-                dashDuration = 0f;
-            }
-        }
-        else
+        dashDuration -= Time.deltaTime;
+        if (dashDuration <= 0f)
         {
-            if (!move_action.enabled)
-            {
-                move_action.Enable();   // Reativa input de movimento após dash
-            }
-            ApplyGravity(); // Aplica gravidade se não estiver dashando
+            isDashing = false;
+            moveAction.Enable();
         }
     }
 
-    private void ResetDash()
-    {
-        canDash = true;         // Permite dash novamente após cooldown
-    }
+    private void ResetDash() => canDash = true;
+
     #endregion
 
-    #region Movimento Y (vertical)
-    private void ApplyGravity()
+    #region Movimento e Gravidade
+
+    private void HandleMovementAndGravity()
+    {
+        RotateAndMove();
+
+        ApplyGravityAndFriction();
+    }
+
+    private void RotateAndMove()
+    {
+        if (cinemachineCamera == null || moveInput == Vector2.zero) return;
+
+        Vector3 forward = cinemachineCamera.transform.forward;
+        Vector3 right = cinemachineCamera.transform.right;
+        forward.y = 0;
+        right.y = 0;
+        forward.Normalize();
+        right.Normalize();
+
+        Vector3 direction = forward * moveInput.y + right * moveInput.x;
+
+        // Rotação suave
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+
+        // Velocidade suavizada
+        float targetX = direction.x * speed;
+        float targetZ = direction.z * speed;
+
+        targetX = SmoothLerp(movementVector.x, targetX, acceleration);
+        targetZ = SmoothLerp(movementVector.z, targetZ, acceleration);
+
+        movementVector.x = targetX;
+        movementVector.z = targetZ;
+    }
+
+    private void ApplyGravityAndFriction()
     {
         if (isGrounded && movementVector.y < 0)
         {
-            movementVector.y = 0f;        // Reseta velocidade vertical se está no chão
-            currentJumpCount = 0;         // Reseta contador de pulos
-            if (moveInput == Vector2.zero)
-            {
-                // Aplica atrito para reduzir velocidade horizontal suavemente
-                movementVector.x = Interp(movementVector.x, 0, friction);
-                movementVector.z = Interp(movementVector.z, 0, friction);
-            }
+            movementVector.y = 0;
+            currentJumpCount = 0;
+            ApplyFriction(ref movementVector.x, friction);
+            ApplyFriction(ref movementVector.z, friction);
         }
         else
         {
-            if (moveInput == Vector2.zero)
-            {
-                // Aplica atrito no ar para reduzir velocidade horizontal suavemente
-                movementVector.x = Interp(movementVector.x, 0, airfriction);
-                movementVector.z = Interp(movementVector.z, 0, airfriction);
-            }
-            movementVector.y += gravity * Time.deltaTime;  // Aplica gravidade vertical
+            ApplyFriction(ref movementVector.x, airfriction);
+            ApplyFriction(ref movementVector.z, airfriction);
+            movementVector.y += gravity * Time.deltaTime;
         }
     }
 
-    private void JumpLogica()
+    private void ApplyFriction(ref float velocityComponent, float frictionValue)
     {
-        // Permite pular se estiver no chão ou ainda tiver pulos restantes
+        if (moveInput == Vector2.zero)
+            velocityComponent = SmoothLerp(velocityComponent, 0, frictionValue);
+    }
+
+    private void Jump()
+    {
         if (isGrounded || currentJumpCount < maxJumpCount)
         {
-            // Define um fator de redução com base na contagem de pulos
-            float jumpMultiplier = 1f - (0.3f * currentJumpCount); // Ex: 1.0, 0.7, 0.4...
-
-            // Garante que o multiplicador não fique negativo
-            jumpMultiplier = Mathf.Max(jumpMultiplier, 0.2f); // valor mínimo de força
-
-            // Aplica força do pulo com base na contagem
+            float jumpMultiplier = Mathf.Max(1f - 0.3f * currentJumpCount, 0.2f);
             movementVector.y = jumpForce * jumpMultiplier;
-
-            // Incrementa o contador de pulos usados
             currentJumpCount++;
         }
     }
-    #endregion
 
-    #region Movimentos horizontais e rotação
-    private void RotationAndMovement()
-    {
-        // Executa somente se existir a câmera e houver input de movimento
-        if (cinemachineCamera && moveInput != Vector2.zero)
-        {
-            // Pega direção da câmera para movimentação relativa à câmera
-            var cameraTransform = cinemachineCamera.transform;
-            Vector3 forward = cameraTransform.forward;
-            Vector3 right = cameraTransform.right;
-            forward.y = 0;
-            right.y = 0;
-            forward.Normalize();
-            right.Normalize();
-
-            // Calcula vetor direção baseado no input do jogador relativo à câmera
-            Vector3 direction = forward * moveInput.y + right * moveInput.x;
-
-            // Rotaciona suavemente o personagem para a direção do movimento
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-
-            // Calcula velocidade alvo nos eixos X e Z baseados na direção e velocidade
-            float targetX = direction.x * speed;
-            float targetZ = direction.z * speed;
-
-            // Aplica suavização na mudança de velocidade para evitar movimentos bruscos
-            targetX = Interp(movementVector.x, targetX, acceleration);
-            targetZ = Interp(movementVector.z, targetZ, acceleration);
-
-            // Atualiza vetor de movimento com as velocidades suavizadas
-            movementVector = new Vector3(targetX, movementVector.y, targetZ);
-        }
-    }
     #endregion
 
     #region Utilitários
-    // Função de interpolação suavizada para valores float
-    private float Interp(float from, float target, float smooth)
+
+    private float SmoothLerp(float start, float end, float smooth)
     {
-        return Mathf.Lerp(from, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
+        return Mathf.Lerp(start, end, 1f - Mathf.Exp(-smooth * Time.deltaTime));
     }
 
-    // Inicializa os atributos do componente para permitir modificações dinâmicas
-    private void StartAtributes()
+    private void InitializeAttributes()
     {
         SetAttribute(nameof(speed), speed);
         SetAttribute(nameof(jumpForce), jumpForce);
     }
+
     #endregion
 
-    #region DOTWEEN - animações visuais
-    void OnDestroy()
+    #region DOTween - Animações Visuais
+
+    private void DashVisualSequence()
     {
-        DOTween.KillAll();  // Mata todas as animações DOTween quando o objeto é destruído para evitar bugs
+        var dashSequence = DOTween.Sequence();
+        dashSequence.Append(transform.DOScaleY(0.65f, dashDuration * 0.6f));
+        dashSequence.Append(transform.DOScaleY(1f, dashDuration * 0.4f));
+        dashSequence.SetEase(Ease.InOutSine).SetUpdate(UpdateType.Fixed).Play();
     }
 
-    // Sequência visual para o dash (pequena animação de escala no eixo Y)
-    private void DashSequence()
+    private void OnDestroy()
     {
-        Sequence dashsequence = DOTween.Sequence();
-        dashsequence.Append(transform.DOScaleY(.65f, dashDuration * .60f));
-        dashsequence.Append(transform.DOScaleY(1, dashDuration * .40f));
-        dashsequence.SetEase(Ease.InOutSine).SetUpdate(UpdateType.Fixed);
-        dashsequence.Play();
+        DOTween.KillAll();
     }
+
     #endregion
 }
