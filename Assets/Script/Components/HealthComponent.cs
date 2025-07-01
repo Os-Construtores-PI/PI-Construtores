@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.InputSystem.Interactions;
 using UnityEngine.SceneManagement;
 
@@ -30,9 +31,12 @@ public class HealthComponent : ComponentBehaviour
     private BrainComponent brain;              // Referência ao "cérebro" da entidade
     private HealthHUDComponent healthHUD;      // HUD de vida (barra de HP na tela)
     private Coroutine exitcombatcoro;          // Controle da corrotina de combate
+    private UnityEvent eventodano;
 
     private void Start()
     {
+        eventodano ??= new();
+
         // === Inicialização dos atributos ===
         SetAttribute(HealthKey, max_Health);
         SetAttribute(MaxHealthKey, max_Health);
@@ -57,6 +61,7 @@ public class HealthComponent : ComponentBehaviour
                         healthHUD = hudhealth;
                     }
                 }
+                eventodano.AddListener(brain.EventoDano);
                 break;
         }
 
@@ -71,6 +76,10 @@ public class HealthComponent : ComponentBehaviour
         // Atualiza a vida atual e atualiza a HUD
         SubscribeToAttribute(HealthKey, (newHealth) =>
         {
+            if (health > (float) newHealth)
+            {
+                eventodano.Invoke();  
+            }
             health = (float)newHealth;
             if (healthHUD != null)
             {

@@ -29,6 +29,9 @@ public class BrainComponent : ComponentBehaviour
 
     // Propriedade pública de acesso ao inventário
     public InventoryComponent Inventory => inventory;
+    private HUDDirector huddirector;
+    private GameDirector director;
+
 
     // Dicionário com ações a serem executadas ao morrer, dependendo do tipo da entidade
     private static readonly Dictionary<EntityType, System.Action<GameObject>> onDeathActions =
@@ -38,9 +41,11 @@ public class BrainComponent : ComponentBehaviour
             // Quando o jogador morre, tenta desligar o mundo ou volta para o menu
             EntityType.PLAYER, static go =>
             {
-                var director = GameObject.FindWithTag("GameController")?.GetComponent<GameDirector>();
-                if (director != null)
-                    director.ShutdownWorld(); // Encerra o jogo de forma apropriada
+                GameObject directorgo = GameObject.FindWithTag("GameController");
+                if(directorgo != null & directorgo.TryGetComponent(out HUDDirector uDDirector))
+                {
+                    uDDirector.ShowGameOver();
+                }
                 else
                     SceneManager.LoadScene("MenuGame"); // Alternativa de fallback
             }
@@ -58,6 +63,14 @@ public class BrainComponent : ComponentBehaviour
     // Ao iniciar o componente, tenta obter o InventoryComponent e faz verificações de debug
     private void Awake()
     {
+        GameObject directorgo = GameObject.FindWithTag("GameController");
+
+        if (directorgo != null)
+        {
+            directorgo.TryGetComponent(out huddirector);
+            directorgo.TryGetComponent(out director);
+        };
+
         TryGetComponent(out inventory);
         DebugChecks();
     }
@@ -97,6 +110,15 @@ public class BrainComponent : ComponentBehaviour
             Inventory.AddItem(item, quantity);
         }
     }
+
+    public void EventoDano()
+    {
+        if (huddirector != null)
+        {
+            huddirector.ShakeCamera();
+        }
+    }
+
 
     // Verificações para garantir que a identidade da entidade esteja correta
     private void DebugChecks()
