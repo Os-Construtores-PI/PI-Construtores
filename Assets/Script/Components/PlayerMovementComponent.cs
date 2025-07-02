@@ -110,7 +110,7 @@ public class PlayerMovementComponent : ComponentBehaviour
 
     private void HandleDash()
     {
-        characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
+        characterController.Move(dashSpeed * Time.deltaTime * dashDirection);
 
         dashDuration -= Time.deltaTime;
         if (dashDuration <= 0f)

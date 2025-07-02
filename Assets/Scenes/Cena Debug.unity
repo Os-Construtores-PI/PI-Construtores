@@ -726,8 +726,6 @@ MonoBehaviour:
   healthBarObject: {fileID: 0}
   iconData: {fileID: 0}
   HUDType: 0
-  enemy_target: {fileID: 0}
-  id_health: 0
 --- !u!114 &351930196
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -883,7 +881,7 @@ Light:
   serializedVersion: 11
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -892,10 +890,10 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 1
+    m_Strength: 0.612
     m_Bias: 0.05
     m_NormalBias: 0.4
-    m_NearPlane: 0.2
+    m_NearPlane: 1
     m_CullingMatrixOverride:
       e00: 1
       e01: 0
@@ -926,7 +924,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 5000
+  m_ColorTemperature: 9191
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -945,13 +943,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.58533984, y: -0.20588365, z: 0.15684131, w: 0.76836836}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 74.6, y: -30, z: 0}
 --- !u!114 &410087042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2295,8 +2293,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37cebb291ed08ff4c97b5652eb598089, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HUD: {fileID: 4189101492617121523, guid: 33b73655432b611489a66d9969fcca4c, type: 3}
-  pai: {fileID: 1954656021}
+  hudPrefab: {fileID: 4189101492617121523, guid: 33b73655432b611489a66d9969fcca4c, type: 3}
+  hudParent: {fileID: 1954656021}
 --- !u!1 &1056790834
 GameObject:
   m_ObjectHideFlags: 0
@@ -2368,7 +2366,7 @@ GameObject:
   - component: {fileID: 1144318761}
   - component: {fileID: 1144318760}
   m_Layer: 6
-  m_Name: ENEMY
+  m_Name: Inimigo
   m_TagString: Creature
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2498,7 +2496,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 0
-  max_Health: 200
+  maxHealth: 100
   defense: 10
   enableRegen: 0
 --- !u!114 &1144318757
@@ -4014,7 +4012,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 0
-  max_Health: 100
+  maxHealth: 100
   defense: 35
   enableRegen: 1
 --- !u!114 &1639029997
@@ -5985,8 +5983,8 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 330585546}
   - {fileID: 1841246039}
+  - {fileID: 330585546}
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1639029991}
@@ -5994,8 +5992,8 @@ SceneRoots:
   - {fileID: 186516774}
   - {fileID: 2064302058}
   - {fileID: 1831193937}
+  - {fileID: 1954656021}
+  - {fileID: 1144318753}
+  - {fileID: 510297408}
   - {fileID: 1304503440}
   - {fileID: 1620903434}
-  - {fileID: 1144318753}
-  - {fileID: 1954656021}
-  - {fileID: 510297408}

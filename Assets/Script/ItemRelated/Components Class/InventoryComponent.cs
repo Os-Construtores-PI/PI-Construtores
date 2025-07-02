@@ -76,7 +76,7 @@ public class InventoryComponent : ComponentBehaviour
                             stat.stat,
                             stat.tier,
                             gameObject,
-                            StatComponent.StatTime.TEMPORARY,
+                            StatComponent.StatTime.Temporary,
                             consumable.duration,
                             consumable.cooldown
                         );
