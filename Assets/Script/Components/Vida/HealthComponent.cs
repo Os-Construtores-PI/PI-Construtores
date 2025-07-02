@@ -62,6 +62,7 @@ public class HealthComponent : ComponentBehaviour
             }
 
             _onDamage.AddListener(_brain.EventoDano);
+            _onDamage.AddListener(_healthHUD.DamageSlider);
             _onDeath.AddListener(_brain.MorteCerebral);
         }
 

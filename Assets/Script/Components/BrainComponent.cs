@@ -30,6 +30,21 @@ public class BrainComponent : ComponentBehaviour
     private GameDirector director;
 
 
+    [SerializeField, Min(10)] private float damagedCD;
+    private float damagedWalker = 0.0f;
+    [HideInInspector] public bool Damaged;
+    private void Update()
+    {
+        if (Damaged)
+        {
+            damagedWalker += Time.deltaTime;
+            if (damagedWalker >= damagedCD)
+            {
+                Damaged = false;
+            }
+        } 
+    }
+
     // Dicionário com ações a serem executadas ao morrer, dependendo do tipo da entidade
     private static readonly Dictionary<EntityType, System.Action<GameObject>> onDeathActions =
         new()

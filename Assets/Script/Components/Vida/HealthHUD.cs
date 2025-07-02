@@ -12,13 +12,13 @@ public class HealthHUDComponent : ComponentBehaviour
     public Transform EnemyTarget { get; set; }
     public int IdHealth { get; set; }
 
-    private Slider _slider;
+    private Slider slidercomp;
     private Camera _cachedCamera;
 
     private void Start()
     {
-        _slider = GetComponent<Slider>();
-        if (_slider == null)
+        slidercomp = GetComponent<Slider>();
+        if (slidercomp == null)
         {
             Debug.LogWarning($"Slider não encontrado em {gameObject.name}");
             return;
@@ -45,7 +45,7 @@ public class HealthHUDComponent : ComponentBehaviour
             {
                 if (health.TryGetAttribute("MAX_health", out float maxHealth) && health.TryGetAttribute("health", out float currentHealth))
                 {
-                    _slider.value = currentHealth / maxHealth;
+                    slidercomp.value = currentHealth / maxHealth;
                 }
                 break;
             }
@@ -71,7 +71,7 @@ public class HealthHUDComponent : ComponentBehaviour
         {
             if (health.TryGetAttribute("MAX_health", out float maxHealth) && health.TryGetAttribute("health", out float currentHealth))
             {
-                _slider.value = currentHealth / maxHealth;
+                slidercomp.value = currentHealth / maxHealth;
             }
         }
     }
@@ -150,7 +150,14 @@ public class HealthHUDComponent : ComponentBehaviour
     /// </summary>
     public void UpdateSlider(float value)
     {
-        if (_slider == null) return;
-        _slider.DOValue(value, 0.3f);
+        if (slidercomp == null) return;
+        slidercomp.DOValue(value, 0.3f);
+    }
+    public void DamageSlider()
+    {
+        if(slidercomp.TryGetComponent(out RectTransform rectt))
+        {
+            rectt.DOPunchAnchorPos(Vector2.up * 150f,.6f);
+        }
     }
 }

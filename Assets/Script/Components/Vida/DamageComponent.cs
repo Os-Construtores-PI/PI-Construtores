@@ -7,11 +7,12 @@ public class DamageComponent : ComponentBehaviour
 {
     [Header("Inimigos que irão ativar o dano")]
     [SerializeField] private EntityType[] enemies;  // Lista de tipos de entidades que podem ser danificadas
-    private HashSet<EntityType> hashenemies = new(); // Conjunto para busca rápida dos tipos permitidos
+    private readonly HashSet<EntityType> hashenemies = new(); // Conjunto para busca rápida dos tipos permitidos
 
     [Header("Parâmetros de Dano")]
     [SerializeField] private float damage;          // Quantidade de dano a ser aplicada
     [SerializeField] private float damageCooldown;  // Tempo mínimo entre danos consecutivos
+    private float cooldownwalker = 0.0f;
     [SerializeField] private float maxDamage;       // Dano máximo permitido (usado para controle interno)
 
     private bool can_damage = true;  // Flag para controlar se o dano pode ser aplicado (cooldown)
@@ -35,6 +36,19 @@ public class DamageComponent : ComponentBehaviour
             damage = (float)newDamage;
         });
     }
+    void Update()
+    {
+        if (!can_damage)
+        {
+            cooldownwalker += Time.deltaTime;
+            //print(cooldownwalker);
+            if (cooldownwalker >= damageCooldown)
+            {
+                cooldownwalker = 0.0f;
+                can_damage = true;
+            }
+        }
+    }
 
     // Evento chamado ao detectar colisão com outro collider
     void OnTriggerEnter(Collider other)
@@ -54,24 +68,15 @@ public class DamageComponent : ComponentBehaviour
         if (collider.TryGetComponent(out HealthComponent healthComponent) && collider.TryGetComponent(out BrainComponent brainComponent))
         {
             // Aplica dano apenas se o tipo da entidade estiver na lista permitida e se o cooldown permitir
-            if (hashenemies.Contains(brainComponent.identity.TipoEntidade) && can_damage)
+            if (hashenemies.Contains(brainComponent.identity.TipoEntidade) && (can_damage || !brainComponent.Damaged))
             {
                 // Subtrai a vida do alvo usando o valor do atributo damage
                 healthComponent.SubtractHealth(GetAttribute<float>(nameof(damage)));
 
                 // Desabilita dano temporariamente para respeitar o cooldown
                 can_damage = false;
-
-                // Inicia coroutine para reabilitar o dano após o cooldown
-                StartCoroutine(DamageCD(GetAttribute<float>(nameof(damageCooldown))));
+                brainComponent.Damaged = true;
             }
         }
-    }
-
-    // Coroutine para aguardar o cooldown entre aplicações de dano
-    IEnumerator DamageCD(float CD)
-    {
-        yield return new WaitForSeconds(CD);
-        can_damage = true;  // Reabilita o dano após o tempo definido
     }
 }
