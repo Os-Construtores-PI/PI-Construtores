@@ -21,9 +21,6 @@ public class BrainComponent : ComponentBehaviour
     // Comportamento da entidade (definido no enum acima)
     public Behavior comportamento;
 
-    // Lista de habilidades que a entidade pode usar
-    public List<SkillData> skills;
-
     // Referência ao componente de inventário
     private InventoryComponent inventory;
 
@@ -42,9 +39,9 @@ public class BrainComponent : ComponentBehaviour
             EntityType.PLAYER, static go =>
             {
                 GameObject directorgo = GameObject.FindWithTag("GameController");
-                if(directorgo != null & directorgo.TryGetComponent(out HUDDirector uDDirector))
+                if(directorgo != null & directorgo.TryGetComponent(out HUDDirector huddir))
                 {
-                    uDDirector.ShowGameOver();
+                    huddir.ShowGameOver();
                 }
                 else
                     SceneManager.LoadScene("MenuGame"); // Alternativa de fallback

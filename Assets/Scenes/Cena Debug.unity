@@ -990,7 +990,7 @@ GameObject:
   - component: {fileID: 462258513}
   m_Layer: 0
   m_Name: FreeLook Camera
-  m_TagString: Untagged
+  m_TagString: CinemachineCamera1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1060,7 +1060,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 462258505}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a076c17fe76165e4f8ed21498b877bf9, type: 3}
   m_Name: 
@@ -1229,9 +1229,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NoiseProfile: {fileID: 11400000, guid: d6249f9d1ce5ea44b84d5f8896259f1f, type: 2}
   PivotOffset: {x: 0, y: 0, z: 0}
-  AmplitudeGain: 1
+  AmplitudeGain: 0
   FrequencyGain: 1
-  m_NoiseOffsets: {x: 0, y: 0, z: 0}
+  m_NoiseOffsets: {x: 562.3038, y: -934.2932, z: 636.6332}
 --- !u!1001 &510297408
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2482,7 +2482,6 @@ MonoBehaviour:
     TipoEntidade: 2
     TipoInimigo: 1
   comportamento: 0
-  skills: []
 --- !u!114 &1144318756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2496,8 +2495,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 0
-  maxHealth: 100
-  defense: 10
+  maxHealth: 50
+  defense: 1
   enableRegen: 0
 --- !u!114 &1144318757
 MonoBehaviour:
@@ -4032,7 +4031,6 @@ MonoBehaviour:
     TipoEntidade: 0
     TipoInimigo: 0
   comportamento: 3
-  skills: []
 --- !u!114 &1639029998
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -61,10 +63,16 @@ public class HUDDirector : MonoBehaviour
 
     public void ShakeCamera()
     {
-        Camera camera = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
-        Vector3 campos = camera.transform.position;
-        camera.DOShakePosition(5f);
-        camera.transform.position = campos;
+        if (GameObject.FindWithTag("CinemachineCamera1").TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noisecomp))
+        {
+            noisecomp.AmplitudeGain = 1;
+            StartCoroutine(StopShaking(noisecomp));
+        }
+    }
+    IEnumerator StopShaking(CinemachineBasicMultiChannelPerlin noise)
+    {
+        yield return new WaitForSecondsRealtime(.25f);
+        noise.AmplitudeGain = 0;
     }
 
 }

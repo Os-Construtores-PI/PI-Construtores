@@ -40,7 +40,6 @@ public class HealthComponent : ComponentBehaviour
         // Inicializa atributos no sistema
         SetAttribute(HealthKey, maxHealth);
         SetAttribute(MaxHealthKey, maxHealth);
-        print(name+" : "+GetAttribute<float>(MaxHealthKey));
         SetAttribute(DefenseKey, defense);
         SetAttribute(MaxDefenseKey, MaxDefenseDefault);
 
@@ -180,5 +179,9 @@ public class HealthComponent : ComponentBehaviour
 
         _healthHUD = hud;
         _healthHUD.UpdateSlider(health / maxHealth);
+    }
+    private void OnDestroy()
+    {
+        CancelInvoke();
     }
 }
