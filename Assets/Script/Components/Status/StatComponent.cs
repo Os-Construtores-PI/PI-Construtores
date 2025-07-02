@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Project.Tools.DictionaryHelp;
+using Unity.VisualScripting;
 
 public class StatComponent : ComponentBehaviour
 {
@@ -70,6 +71,14 @@ public class StatComponent : ComponentBehaviour
 
         if (result == ErrorType.SUCCESS && statTime == StatTime.Temporary && isReversible)
         {
+            if (_statModifiers.ContainsKey(stat))
+            {
+                _statModifiers[stat] += GetMultiplier(tier);
+            }
+            else
+            {
+                _statModifiers[stat] = GetMultiplier(tier);
+            }
             _canApplyStat = false;
             StartCoroutine(HandleTemporaryStat(duration, cooldown, stat, target, tier));
         }
@@ -83,6 +92,7 @@ public class StatComponent : ComponentBehaviour
             return;
         }
         removeAction(target, tier);
+        _statModifiers.Remove(stat);
     }
 
     private IEnumerator HandleTemporaryStat(float duration, float cooldown, StatType stat, GameObject target, QualityTier tier)
@@ -127,7 +137,23 @@ public class StatComponent : ComponentBehaviour
             Debug.LogError($"Tipo '{typeof(TValue)}' do atributo '{attribute}' não suportado.");
             return ErrorType.TYPE_ERROR;
         }
-
+        if (hasMax)
+        {
+            // Clamp se tipo for int
+            if (typeof(TValue) == typeof(int))
+            {
+                int val = Convert.ToInt32(newValue);
+                int max = Convert.ToInt32(maxValue);
+                newValue = Mathf.Min(val, max);
+            }
+            // Clamp se tipo for float 
+            else if (typeof(TValue) == typeof(float))
+            {
+                float val = Convert.ToSingle(newValue);
+                float max = Convert.ToSingle(maxValue);
+                newValue = Mathf.Min(val, max);
+            }
+        }
         component.SetAttribute(attribute, newValue);
         return ErrorType.SUCCESS;
     }
