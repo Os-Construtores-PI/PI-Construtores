@@ -6,7 +6,7 @@ public class StatZone : StatComponent
 {
     [SerializeField] private StatType zoneStat;
     [SerializeField] private QualityTier zoneTier;
-    [SerializeField] StatTime statTime = StatTime.TEMPORARY;
+    [SerializeField] StatTime statTime = StatTime.Temporary;
     [Header("Só funciona se for status temporário")]
     [SerializeField] float statDuration;
     [SerializeField] float statCooldown;
