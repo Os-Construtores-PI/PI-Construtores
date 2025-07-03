@@ -31,7 +31,6 @@ public class PlayerMovementComponent : ComponentBehaviour
     private Vector3 movementVector = Vector3.zero;
     private Vector3 dashDirection;
     private Vector2 moveInput;
-    private Vector3 direction;
     private int currentJumpCount;
     private bool isGrounded;
     private bool canDash = true;
@@ -94,7 +93,7 @@ public class PlayerMovementComponent : ComponentBehaviour
     private void StartDash()
     {
         dashDirection = moveInput != Vector2.zero
-            ? direction
+            ? new Vector3(moveInput.x, 0, moveInput.y).normalized
             : transform.forward;
 
         dashDuration = dashDistance / dashSpeed;
@@ -145,8 +144,7 @@ public class PlayerMovementComponent : ComponentBehaviour
         forward.Normalize();
         right.Normalize();
 
-        
-        direction = forward * moveInput.y + right * moveInput.x;
+        Vector3 direction = forward * moveInput.y + right * moveInput.x;
 
         // Rotação suave
         Quaternion targetRotation = Quaternion.LookRotation(direction);

@@ -1,22 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class DataSystem : MonoBehaviour
 {
-    // Representa a referência de cada jogador no jogo
-    [System.Serializable]
-    public class PlayerReference
-    {
-        public string playerId;                            // ID único do jogador
-        public InventoryComponent inventory;               // Inventário do jogador
-        public EquipamentComponent equipment;              // Equipamento do jogador
-        public Transform transform;                        // Posição no mundo
-        public HealthComponent health;                     // Vida do jogador
-    }
-
-    public List<PlayerReference> players = new(); // Lista de jogadores ativos na cena (arrastados pelo editor)
+    public List<Player> players = new(); // Lista de jogadores ativos na cena (arrastados pelo editor)
     public List<SavedDroppedItem> droppedItems = new(); // Lista de itens dropados a serem salvos
 
     // Caminho do arquivo de save no sistema
@@ -26,22 +15,20 @@ public class DataSystem : MonoBehaviour
     public void Save()
     {
         var gameData = new SavedGameData(); // Cria o objeto de dados que será serializado em JSON
-        Scene scene = SceneManager.GetActiveScene();
-        var scene_data = new SavedSceneData();
-        scene_data.name = scene.name;
+
         // Salva os dados de cada jogador
-        foreach (var p in players)
+        foreach (Player p in players)
         {
-            var playerData = new SavedPlayerData
+            SavedPlayerData playerData = new()
             {
-                playerId = p.playerId,
+                playerId = p.ID,
                 position = p.transform.position,
-                health = p.health.GetAttribute<float>("health"),
-                equippedItemName = p.equipment.currentItem != null ? p.equipment.currentItem.itemName : null
+                health = p.Health,
+                equippedItemName = p.EquipClassRef.currentItem != null ? p.EquipClassRef.currentItem.itemName : null
             };
 
             // Salva o inventário
-            foreach (var item in p.inventory.GetItems())
+            foreach (var item in p.Inventario.GetItems())
             {
                 playerData.inventory.Add(new SavedItemEntry
                 {
@@ -50,7 +37,7 @@ public class DataSystem : MonoBehaviour
                 });
             }
 
-            scene_data.players.Add(playerData); // Adiciona o jogador ao save
+            gameData.players.Add(playerData); // Adiciona o jogador ao save
         }
 
         // Salva os itens dropados no mundo
@@ -76,13 +63,10 @@ public class DataSystem : MonoBehaviour
         }
 
         // Atribui ao objeto de save
-        scene_data.droppedItems = droppedItems;
+        gameData.droppedItems = droppedItems;
 
         // Serializa para JSON e salva no disco
-        gameData.savedScenes.Add(scene_data);
-        print(gameData.savedScenes.Count);
         var json = JsonUtility.ToJson(gameData, true);
-        print(json);
         File.WriteAllText(SavePath, json);
 
         Debug.Log("Jogo salvo com múltiplos jogadores e itens dropados.");
@@ -99,105 +83,83 @@ public class DataSystem : MonoBehaviour
 
         // Carrega e desserializa o arquivo JSON
         var json = File.ReadAllText(SavePath);
-        Scene scene = SceneManager.GetActiveScene();
         var gameData = JsonUtility.FromJson<SavedGameData>(json);
-        print(gameData.savedScenes.Count);
-        if (IsScene(gameData,scene.name,out SavedSceneData sceneData))
+
+        // Remove todos os itens dropados atuais da cena antes de recriar os salvos
+        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsSortMode.None))
         {
-            // Remove todos os itens dropados atuais da cena antes de recriar os salvos
-            foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsSortMode.None))
+            foreach (var saveDrop in gameData.droppedItems)
             {
-                foreach (var saveDrop in sceneData.droppedItems)
+                var subitemData = Resources.Load<ItemDataBase>("Items/" + saveDrop.itemName);
+                if (drop.itemData == subitemData && drop.transform.position == saveDrop.position)
                 {
-                    var subitemData = Resources.Load<ItemDataBase>("Items/" + saveDrop.itemName);
-                    if (drop.itemData == subitemData && drop.transform.position == saveDrop.position)
-                    {
-                        Destroy(drop.gameObject);
-                    }
+                    Destroy(drop.gameObject);
                 }
             }
+        }
 
-            // Recria todos os itens dropados salvos
-            foreach (var savedDrop in sceneData.droppedItems)
+        // Recria todos os itens dropados salvos
+        foreach (var savedDrop in gameData.droppedItems)
+        {
+            var itemData = Resources.Load<ItemDataBase>("Items/" + savedDrop.itemName);
+            if (itemData != null)
             {
-                var itemData = Resources.Load<ItemDataBase>("Items/" + savedDrop.itemName);
+                GameObject go = new("ItemDrop_" + savedDrop.itemName);
+                go.transform.position = savedDrop.position;
+
+                var dropZone = go.AddComponent<ItemDropZone>();
+                dropZone.itemData = itemData;
+                dropZone.quantity = savedDrop.quantity;
+                dropZone.allowedEntityTypes = savedDrop.allowedEntityTypes;
+                dropZone.Initialize(); // Cria colisor, rigidbody e visual
+            }
+        }
+
+        // Restaura os dados de cada jogador
+        foreach (var savedPlayer in gameData.players)
+        {
+            var refPlayer = players.Find(p => p.ID == savedPlayer.playerId);
+            if (refPlayer == null) continue;
+
+            // Limpa o inventário
+            refPlayer.Inventario.ClearItems();
+
+            // Recarrega os itens
+            foreach (var entry in savedPlayer.inventory)
+            {
+                var itemData = Resources.Load<ItemDataBase>("Items/" + entry.itemName);
                 if (itemData != null)
                 {
-                    GameObject go = new("ItemDrop_" + savedDrop.itemName);
-                    go.transform.position = savedDrop.position;
-
-                    var dropZone = go.AddComponent<ItemDropZone>();
-                    dropZone.itemData = itemData;
-                    dropZone.quantity = savedDrop.quantity;
-                    dropZone.allowedEntityTypes = savedDrop.allowedEntityTypes;
-                    dropZone.Initialize(); // Cria colisor, rigidbody e visual
+                    refPlayer.Inventario.AddItem(itemData, entry.quantity);
                 }
             }
 
-            // Restaura os dados de cada jogador
-            foreach (var savedPlayer in sceneData.players)
+            // Reequipa o item salvo
+            if (!string.IsNullOrEmpty(savedPlayer.equippedItemName))
             {
-                var refPlayer = players.Find(p => p.playerId == savedPlayer.playerId);
-                if (refPlayer == null) continue;
-
-                // Limpa o inventário
-                refPlayer.inventory.ClearItems();
-
-                // Recarrega os itens
-                foreach (var entry in savedPlayer.inventory)
+                var equipped = Resources.Load<EquipableItemData>("Items/" + savedPlayer.equippedItemName);
+                if (equipped != null)
                 {
-                    var itemData = Resources.Load<ItemDataBase>("Items/" + entry.itemName);
-                    if (itemData != null)
-                    {
-                        refPlayer.inventory.AddItem(itemData, entry.quantity);
-                    }
+                    refPlayer.EquipClassRef.Equip(equipped);
                 }
-
-                // Reequipa o item salvo
-                if (!string.IsNullOrEmpty(savedPlayer.equippedItemName))
-                {
-                    var equipped = Resources.Load<EquipableItemData>("Items/" + savedPlayer.equippedItemName);
-                    if (equipped != null)
-                    {
-                        refPlayer.equipment.Equip(equipped);
-                    }
-                }
-
-                // Move o jogador para a posição salva
-                if (refPlayer.transform.TryGetComponent(out CharacterController controller))
-                {
-                    controller.enabled = false;
-                    refPlayer.transform.position = savedPlayer.position;
-                    controller.enabled = true;
-                }
-                else
-                {
-                    refPlayer.transform.position = savedPlayer.position;
-                }
-
-                // Restaura a vida do jogador
-                refPlayer.health.SetAttribute("health", savedPlayer.health);
             }
 
-            Debug.Log("Jogo carregado com múltiplos jogadores.");
-        }
-        else
-        {
-            Debug.LogWarning("Jogo não carregado ou save inexistente;");
-        }
-    }
-    public bool IsScene(SavedGameData data, string name, out SavedSceneData savedScene)
-    {
-        foreach (SavedSceneData saved in data.savedScenes)
-        {
-            if (saved.name == name)
+            // Move o jogador para a posição salva
+            if (refPlayer.transform.TryGetComponent(out CharacterController controller))
             {
-                savedScene = saved;
-                return true;
+                controller.enabled = false;
+                refPlayer.transform.position = savedPlayer.position;
+                controller.enabled = true;
             }
-        }
-        savedScene = null;
-        return false;
+            else
+            {
+                refPlayer.transform.position = savedPlayer.position;
+            }
 
+            // Restaura a vida do jogador
+            refPlayer.Health = savedPlayer.health;
+        }
+
+        Debug.Log("Jogo carregado com múltiplos jogadores.");
     }
 }

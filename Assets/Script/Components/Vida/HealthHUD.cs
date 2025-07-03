@@ -6,19 +6,19 @@ public class HealthHUDComponent : ComponentBehaviour
 {
     [Header("Configurações HUD")]
     [SerializeField] private GameObject healthBarObject;
-    [SerializeField] private IconData iconData; // Não usado aqui, mas mantido para expansão futura
-    [SerializeField] public HealthHUDType HUDType;
+    public HealthHUDType HUDType;
 
     public Transform EnemyTarget { get; set; }
-    public int IdHealth { get; set; }
 
-    private Slider slidercomp;
+    public int IdHealth = 0;
+
+    private Slider _slider;
     private Camera _cachedCamera;
 
     private void Start()
     {
-        slidercomp = GetComponent<Slider>();
-        if (slidercomp == null)
+        _slider = GetComponent<Slider>();
+        if (_slider == null)
         {
             Debug.LogWarning($"Slider não encontrado em {gameObject.name}");
             return;
@@ -38,19 +38,16 @@ public class HealthHUDComponent : ComponentBehaviour
 
     private void InitializePlayerHUD()
     {
-        var players = GameObject.FindGameObjectsWithTag("Player");
-        foreach (var player in players)
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject player in players)
         {
-            if (TryGetBrainAndHealth(player, EntityType.PLAYER, out var brain, out var health) && brain.identity.ID == IdHealth)
+            if (player.TryGetComponent(out Player playerref) && playerref.ID == IdHealth)
             {
-                if (health.TryGetAttribute("MAX_health", out float maxHealth) && health.TryGetAttribute("health", out float currentHealth))
-                {
-                    slidercomp.value = currentHealth / maxHealth;
-                }
+                _slider.value = playerref.Health / playerref.MaxHealth;
                 break;
+                }
             }
         }
-    }
 
     private void InitializeEnemyHUD()
     {
@@ -67,12 +64,9 @@ public class HealthHUDComponent : ComponentBehaviour
             return;
         }
 
-        if (TryGetBrainAndHealth(enemyObject, EntityType.ENEMY, out var brain, out var health) && brain.identity.ID == IdHealth)
+        if (enemyObject.TryGetComponent(out CombatEntity combat) && combat.ID == IdHealth)
         {
-            if (health.TryGetAttribute("MAX_health", out float maxHealth) && health.TryGetAttribute("health", out float currentHealth))
-            {
-                slidercomp.value = currentHealth / maxHealth;
-            }
+            _slider.value = combat.Health / combat.MaxHealth;
         }
     }
 
@@ -126,38 +120,13 @@ public class HealthHUDComponent : ComponentBehaviour
 
         return closestCam;
     }
-
-    private bool TryGetBrainAndHealth(GameObject obj, EntityType expectedType, out BrainComponent brain, out HealthComponent health)
-    {
-        brain = null;
-        health = null;
-
-        if (!obj.TryGetComponent(out brain) || !obj.TryGetComponent(out health))
-            return false;
-
-        if (brain.identity.ID != IdHealth || brain.identity.TipoEntidade != expectedType)
-        {
-            brain = null;
-            health = null;
-            return false;
-        }
-
-        return true;
-    }
-
     /// <summary>
     /// Atualiza suavemente o valor do slider da barra de vida
     /// </summary>
     public void UpdateSlider(float value)
     {
-        if (slidercomp == null) return;
-        slidercomp.DOValue(value, 0.3f);
-    }
-    public void DamageSlider()
-    {
-        if(slidercomp.TryGetComponent(out RectTransform rectt))
-        {
-            rectt.DOPunchAnchorPos(Vector2.up * 150f,.6f);
-        }
+        if (_slider == null) return;
+        print("Funcionando");
+        _slider.DOValue(value, 0.5f);
     }
 }
