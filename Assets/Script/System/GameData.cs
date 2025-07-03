@@ -11,7 +11,7 @@ public class SavedGameData
 [System.Serializable]
 public class SavedPlayerData
 {
-    public string playerId;
+    public int playerId;
     public List<SavedItemEntry> inventory = new();
     public string equippedItemName;
     public Vector3 position;

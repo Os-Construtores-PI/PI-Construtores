@@ -174,10 +174,10 @@ public class ConsoleComponent : MonoBehaviour
 
     // Comando para definir o alvo atual do console, baseado no playerId cadastrado no DataSystem
     [ConsoleMethod("setTarget", "Define o jogador alvo pelos dados do DataSystem", "playerId")]
-    public static void SetTarget(string playerId)
+    public static void SetTarget(int playerId)
     {
         // Procura o jogador pelo ID na lista de players do DataSystem
-        var player = Data.players.Find(p => p.playerId == playerId);
+        var player = Data.players.Find(p => p.ID == playerId);
         if (player == null)
         {
             Debug.LogWarning($"Jogador com ID '{playerId}' não encontrado.");
@@ -191,10 +191,10 @@ public class ConsoleComponent : MonoBehaviour
 
     // Comando para dar um item ao inventário do jogador selecionado pelo playerId
     [ConsoleMethod("giveItem", "Adiciona um item ao inventário do jogador", "playerId itemName quantidade")]
-    public static void GiveItem(string playerId, string itemName, string quantidade)
+    public static void GiveItem(int playerId, string itemName, string quantidade)
     {
         // Encontra o jogador no DataSystem
-        var player = Data.players.Find(p => p.playerId == playerId);
+        var player = Data.players.Find(p => p.ID == playerId);
         if (player == null)
         {
             Debug.LogWarning($"Jogador '{playerId}' não encontrado.");
@@ -217,7 +217,7 @@ public class ConsoleComponent : MonoBehaviour
         }
 
         // Adiciona o item ao inventário do jogador
-        player.inventory.AddItem(item, qtd);
+        player.Inventario.AddItem(item, qtd);
         Debug.Log($"Item '{itemName}' x{qtd} adicionado ao jogador '{playerId}'.");
     }
 
@@ -236,7 +236,7 @@ public class ConsoleComponent : MonoBehaviour
         Debug.Log("Jogadores registrados:");
         foreach (var p in Data.players)
         {
-            Debug.Log($"- {p.playerId}");
+            Debug.Log($"- {p.ID}");
         }
     }
 }

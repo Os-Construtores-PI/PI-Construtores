@@ -1,9 +1,10 @@
+using System.Security.Cryptography;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
 public class Player : CombatEntity
 {
     #region Variáveis
@@ -38,6 +39,23 @@ public class Player : CombatEntity
     private bool isDashing = false;
     private InputAction moveAction;
     private float dashDuration;
+    private readonly Inventory _inventario = new();
+    public Inventory Inventario
+    {
+        get
+        {
+            return _inventario;
+        }
+     }
+    private readonly Equipament _equipament = new();
+    public Equipament EquipClassRef
+    {
+        get
+        {
+            return _equipament;
+        }
+    }
+
 
     #endregion
 
@@ -48,8 +66,9 @@ public class Player : CombatEntity
         moveAction = InputSystem.actions.FindAction("Move");
     }
 
-    private void Start()
+    public override void Start()
     {
+        base.Start();
         DOTween.Init();
         SetHUD();
     }
@@ -62,7 +81,6 @@ public class Player : CombatEntity
             HandleDash();
         else
             HandleMovementAndGravity();
-
         characterController.Move(movementVector * Time.deltaTime);
     }
 
@@ -221,18 +239,67 @@ public class Player : CombatEntity
 
     private void SetHUD()
     {
-        var huds = GameObject.FindGameObjectsWithTag("HealthHUD");
-        foreach (var hudObj in huds)
+        GameObject[] huds = GameObject.FindGameObjectsWithTag("HealthHUD");
+        foreach (GameObject hudObj in huds)
         {
-            if (hudObj.TryGetComponent<HealthHUDComponent>(out var hud) &&
+            if (hudObj.TryGetComponent(out HealthHUDComponent hud) &&
                 hud.IdHealth == ID &&
                 hud.HUDType == HealthHUDType.PLAYER)
             {
                 _healthHUD = hud;
+                _OnHealthChanged.AddListener(_healthHUD.UpdateSlider);
                 break;
             }
         }
+        ;
+        if (GameObject.FindWithTag("GameController").TryGetComponent(out HUDDirector HUDDir))
+        {
+            _OnDamage.AddListener(HUDDir.ShakeCamera);        
+        }
+        ;
+        
     }
     #endregion
+    public class Equipament
+    {
+        public EquipableItemData currentItem;
+        public GameObject equippedWeapon;
+        [SerializeField] private Transform handTransform;
 
+        public void Equip(EquipableItemData item)
+        {
+            // Remove o item atual, se houver
+            Unequip();
+
+            // Verifica se o prefab do item é válido
+            if (item.item != null)
+            {
+                // Instancia o prefab do item na mão do personagem
+                equippedWeapon = Instantiate(item.item, handTransform);
+                equippedWeapon.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+                // Salva o item atual como equipado
+                currentItem = item;
+            }
+        }
+
+        // Método para desequipar o item atual
+        public void Unequip()
+        {
+            // Se houver uma arma equipada, destrói o GameObject
+            if (equippedWeapon != null)
+            {
+                Destroy(equippedWeapon);
+                equippedWeapon = null;
+            }
+
+            // Se houver item equipado, remove seus efeitos de stat
+            if (currentItem != null)
+            {
+                // Limpa a referência ao item atual
+                currentItem = null;
+            }
+        }
+    
+    }
 }

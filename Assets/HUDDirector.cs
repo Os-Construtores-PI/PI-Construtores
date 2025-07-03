@@ -63,6 +63,7 @@ public class HUDDirector : MonoBehaviour
 
     public void ShakeCamera()
     {
+        print("dano");
         if (GameObject.FindWithTag("CinemachineCamera1").TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noisecomp))
         {
             noisecomp.AmplitudeGain = 1;

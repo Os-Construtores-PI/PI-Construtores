@@ -5,18 +5,7 @@ using UnityEngine;
 
 public class DataSystem : MonoBehaviour
 {
-    // Representa a referência de cada jogador no jogo
-    [System.Serializable]
-    public class PlayerReference
-    {
-        public string playerId;                            // ID único do jogador
-        public InventoryComponent inventory;               // Inventário do jogador
-        public EquipamentComponent equipment;              // Equipamento do jogador
-        public Transform transform;                        // Posição no mundo
-        public HealthComponent health;                     // Vida do jogador
-    }
-
-    public List<PlayerReference> players = new(); // Lista de jogadores ativos na cena (arrastados pelo editor)
+    public List<Player> players = new(); // Lista de jogadores ativos na cena (arrastados pelo editor)
     public List<SavedDroppedItem> droppedItems = new(); // Lista de itens dropados a serem salvos
 
     // Caminho do arquivo de save no sistema
@@ -28,18 +17,18 @@ public class DataSystem : MonoBehaviour
         var gameData = new SavedGameData(); // Cria o objeto de dados que será serializado em JSON
 
         // Salva os dados de cada jogador
-        foreach (var p in players)
+        foreach (Player p in players)
         {
-            var playerData = new SavedPlayerData
+            SavedPlayerData playerData = new()
             {
-                playerId = p.playerId,
+                playerId = p.ID,
                 position = p.transform.position,
-                health = p.health.GetAttribute<float>("health"),
-                equippedItemName = p.equipment.currentItem != null ? p.equipment.currentItem.itemName : null
+                health = p.Health,
+                equippedItemName = p.EquipClassRef.currentItem != null ? p.EquipClassRef.currentItem.itemName : null
             };
 
             // Salva o inventário
-            foreach (var item in p.inventory.GetItems())
+            foreach (var item in p.Inventario.GetItems())
             {
                 playerData.inventory.Add(new SavedItemEntry
                 {
@@ -129,11 +118,11 @@ public class DataSystem : MonoBehaviour
         // Restaura os dados de cada jogador
         foreach (var savedPlayer in gameData.players)
         {
-            var refPlayer = players.Find(p => p.playerId == savedPlayer.playerId);
+            var refPlayer = players.Find(p => p.ID == savedPlayer.playerId);
             if (refPlayer == null) continue;
 
             // Limpa o inventário
-            refPlayer.inventory.ClearItems();
+            refPlayer.Inventario.ClearItems();
 
             // Recarrega os itens
             foreach (var entry in savedPlayer.inventory)
@@ -141,7 +130,7 @@ public class DataSystem : MonoBehaviour
                 var itemData = Resources.Load<ItemDataBase>("Items/" + entry.itemName);
                 if (itemData != null)
                 {
-                    refPlayer.inventory.AddItem(itemData, entry.quantity);
+                    refPlayer.Inventario.AddItem(itemData, entry.quantity);
                 }
             }
 
@@ -151,7 +140,7 @@ public class DataSystem : MonoBehaviour
                 var equipped = Resources.Load<EquipableItemData>("Items/" + savedPlayer.equippedItemName);
                 if (equipped != null)
                 {
-                    refPlayer.equipment.Equip(equipped);
+                    refPlayer.EquipClassRef.Equip(equipped);
                 }
             }
 
@@ -168,7 +157,7 @@ public class DataSystem : MonoBehaviour
             }
 
             // Restaura a vida do jogador
-            refPlayer.health.SetAttribute("health", savedPlayer.health);
+            refPlayer.Health = savedPlayer.health;
         }
 
         Debug.Log("Jogo carregado com múltiplos jogadores.");

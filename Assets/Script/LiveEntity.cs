@@ -4,6 +4,12 @@ using UnityEngine.Events;
 
 public class LiveEntity : Entity
 {
+    public virtual void Start()
+    {
+        MaxHealth = _maxHealth;
+        Health = _maxHealth;
+    }
+
     protected float _health;
     [HideInInspector] public float Health
     {
@@ -13,13 +19,13 @@ public class LiveEntity : Entity
         }
         set
         {
-            float factor = Mathf.Clamp(Defense / _maxDefense, 0f, .80f);
-            if (value < _health)
+            float _inithealth = _health;
+            _health = Mathf.Clamp(value, 0f, MaxHealth);
+            if (_health < _inithealth)
             {
                 _OnDamage.Invoke();
             }
-            _health = value * (1 - factor);
-            _OnHealthChanged.Invoke();
+            _OnHealthChanged.Invoke(_health/MaxHealth);
         }
     }
     protected float _defense = 10f;
@@ -35,9 +41,21 @@ public class LiveEntity : Entity
         }
     }
     
+    [Header("Atributos de Vida")]
     [SerializeField] protected float _maxHealth;
-    [SerializeField] protected float _maxDefense;
-    protected readonly UnityEvent _OnHealthChanged = new();
+    [HideInInspector] public float MaxHealth
+    {
+        get
+        {
+            return _maxHealth;
+        }
+        set
+        {
+            _maxHealth = value;
+        }
+    } 
+    [HideInInspector] public readonly float MAXDEFENSE = 100;
+    protected readonly UnityEvent<float> _OnHealthChanged = new();
     protected readonly UnityEvent _OnDamage = new();
     protected readonly UnityEvent _OnDeath = new();
     

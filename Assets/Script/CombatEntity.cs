@@ -1,14 +1,18 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CombatEntity : LiveEntity
 {
+    [Header("Atributos de intervalo do estado de combate")]
+    [SerializeField, Min(5f)] private float CombatCD;
+    [Header("Atributos de intervalo de dano tomado")]
+    [SerializeField, Min(2f)] private float damagedCD;
+    [Header("Atributos de Regeneração")]
     [SerializeField] private bool enableRegen = true;
-    [SerializeField, Min(5)] private float CombatCD;
+    [SerializeField, Min(3)] private float RegerationInterval;
     private bool _inCombat;
     protected HealthHUDComponent _healthHUD;
     private float CombatWalker;
-    [SerializeField, Min(3)] private float RegerationInterval;
-    [SerializeField, Min(10)] private float damagedCD;
     private float damagedWalker = 0.0f;
     [HideInInspector] public bool Damaged;
 
@@ -17,7 +21,7 @@ public class CombatEntity : LiveEntity
         _OnDamage.AddListener(EnterCombat);
         if (enableRegen)
         {
-            InvokeRepeating(nameof(RegenerateHealth), 0, 3f);
+            InvokeRepeating(nameof(RegenerateHealth), 0, RegerationInterval);
         }
     }
     private void RegenerateHealth()
@@ -25,7 +29,7 @@ public class CombatEntity : LiveEntity
         if (!_inCombat)
         {
             // Regenera 6% da vida máxima
-            float regenAmount = _maxHealth * 0.06f;
+            float regenAmount = MaxHealth * 0.06f;
             Health += regenAmount;
         }
     }
@@ -47,7 +51,7 @@ public class CombatEntity : LiveEntity
             {
                 Damaged = false;
             }
-        }    
+        }
     }
     private void EnterCombat()
     {
@@ -59,5 +63,30 @@ public class CombatEntity : LiveEntity
 
         _healthHUD = hud;
         _healthHUD.UpdateSlider(Health / _maxHealth);
+    }
+    public class Inventory
+    {
+        // Lista de itens no inventário
+        [SerializeField]
+        private List<InventoryItem> items = new();
+        public List<InventoryItem> GetItems() => items;
+        public void ClearItems() => items.Clear();
+        public void AddItem(ItemDataBase data, int quantity = 1)
+        {
+            // Se o item não é único, tenta acumular com outro igual
+            if (!data.Isunique)
+            {
+                var existing = items.Find(i => i.data == data);
+                if (existing != null)
+                {
+                    existing.quantity += quantity;
+                    return;
+                }
+            }
+
+            // Caso contrário, adiciona um novo item à lista
+            items.Add(new InventoryItem(data, quantity));
+            Debug.Log($"Adicionado: {data.itemName} x{quantity}");
+        }
     }
 }
