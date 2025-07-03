@@ -8,6 +8,7 @@ public abstract class NavBasedEnemy : Enemies
     protected NavMeshAgent agent;
     public override void Awake()
     {
+        base.Awake();
         TryGetComponent(out agent);
     }
     public void FixedUpdate()

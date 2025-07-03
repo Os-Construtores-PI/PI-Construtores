@@ -28,7 +28,7 @@ public abstract class LiveEntities : Entities
             _OnHealthChanged.Invoke(_health/MaxHealth);
         }
     }
-    protected float _defense = 10f;
+    [SerializeField] protected float _defense = 10f;
     [HideInInspector] public float Defense
     {
         get
