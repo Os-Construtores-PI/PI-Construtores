@@ -9,7 +9,7 @@ public class ItemDropZone : ItemComponent
     private Rigidbody rb;                 // Rigidbody para física (kinemático)
 
     [Header("Tipos de Entidade que podem pegar o item")]
-    public EntityType[] allowedEntityTypes;  // Lista de entidades autorizadas
+    public CombatEntities[] allowedEntityTypes;  // Lista de entidades autorizadas
 
     public void Initialize()
     {
@@ -50,24 +50,24 @@ public class ItemDropZone : ItemComponent
     public void OnTriggerEnter(Collider other)
     {
         // Tenta pegar o componente de inventário da entidade que entrou
-        if (other.TryGetComponent(out InventoryComponent inventory))
-        {
-            // Tenta pegar o BrainComponent para identificar o tipo da entidade (se existir)
-            if (other.TryGetComponent(out BrainComponent brain))
-            {
-                // Verifica se o tipo da entidade está na lista permitida
-                if (allowedEntityTypes.Length > 0 && !System.Array.Exists(allowedEntityTypes, t => t == brain.identity.TipoEntidade))
-                {
-                    // Se o tipo não está na lista, não permite pegar
-                    return;
-                }
-            }
-            // Se passou na checagem ou não tem BrainComponent, adiciona o item ao inventário
-            if (itemData != null)
-            {
-                inventory.AddItem(itemData, quantity);
-                Destroy(gameObject); // Remove a zona de drop após o item ser pego
-            }
-        }
+        // if (other.TryGetComponent(out InventoryComponent inventory))
+        // {
+        //     // Tenta pegar o BrainComponent para identificar o tipo da entidade (se existir)
+        //     if (other.TryGetComponent(out BrainComponent brain))
+        //     {
+        //         // Verifica se o tipo da entidade está na lista permitida
+        //         if (allowedEntityTypes.Length > 0 && !System.Array.Exists(allowedEntityTypes, t => t == brain.identity.TipoEntidade))
+        //         {
+        //             // Se o tipo não está na lista, não permite pegar
+        //             return;
+        //         }
+        //     }
+        //     // Se passou na checagem ou não tem BrainComponent, adiciona o item ao inventário
+        //     if (itemData != null)
+        //     {
+        //         inventory.AddItem(itemData, quantity);
+        //         Destroy(gameObject); // Remove a zona de drop após o item ser pego
+        //     }
+        // }
     }
 }

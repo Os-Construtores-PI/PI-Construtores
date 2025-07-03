@@ -4,6 +4,6 @@ using UnityEngine;
 [System.Serializable]
 public struct StatEntry
 {
-    public StatType stat;
+    public string stat_name;
     public QualityTier tier;
 }

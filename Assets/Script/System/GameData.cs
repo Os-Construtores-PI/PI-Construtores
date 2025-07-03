@@ -31,7 +31,7 @@ public class SavedDroppedItem
     public string itemName;
     public Vector3 position;
     public int quantity;
-    public EntityType[] allowedEntityTypes; 
+    public CombatEntities[] allowedEntityTypes;
 }
 
 

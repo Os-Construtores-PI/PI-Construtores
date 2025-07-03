@@ -1,28 +1,38 @@
+using System;
 using System.Collections.Generic;
+
 using UnityEngine;
 
-public class CombatEntity : LiveEntity
+public abstract class CombatEntities : LiveEntities
 {
     [Header("Atributos de intervalo do estado de combate")]
     [SerializeField, Min(5f)] private float CombatCD;
     [Header("Atributos de intervalo de dano tomado")]
     [SerializeField, Min(2f)] private float damagedCD;
     [Header("Atributos de Regeneração")]
-    [SerializeField] private bool enableRegen = true;
+    [SerializeField] private bool Enableregen = true;
     [SerializeField, Min(3)] private float RegerationInterval;
     private bool _inCombat;
     protected HealthHUDComponent _healthHUD;
     private float CombatWalker;
     private float damagedWalker = 0.0f;
+    public Stats stats = new();
+    public Dictionary<string, Action<float>> numvariablesdictionary = new();
+    public Dictionary<string, Action<bool>> boolvariablesdictionary = new();
+
     [HideInInspector] public bool Damaged;
 
     public virtual void Awake()
     {
         _OnDamage.AddListener(EnterCombat);
-        if (enableRegen)
+        stats._boolModified.AddListener(BoolListener);
+        stats._numModified.AddListener(NumListener);
+        if (Enableregen)
         {
             InvokeRepeating(nameof(RegenerateHealth), 0, RegerationInterval);
         }
+        AddtoDictionaryStat();
+        AddtoStat();
     }
     private void RegenerateHealth()
     {
@@ -64,29 +74,26 @@ public class CombatEntity : LiveEntity
         _healthHUD = hud;
         _healthHUD.UpdateSlider(Health / _maxHealth);
     }
-    public class Inventory
+    public virtual void AddtoStat()
     {
-        // Lista de itens no inventário
-        [SerializeField]
-        private List<InventoryItem> items = new();
-        public List<InventoryItem> GetItems() => items;
-        public void ClearItems() => items.Clear();
-        public void AddItem(ItemDataBase data, int quantity = 1)
-        {
-            // Se o item não é único, tenta acumular com outro igual
-            if (!data.Isunique)
-            {
-                var existing = items.Find(i => i.data == data);
-                if (existing != null)
-                {
-                    existing.quantity += quantity;
-                    return;
-                }
-            }
-
-            // Caso contrário, adiciona um novo item à lista
-            items.Add(new InventoryItem(data, quantity));
-            Debug.Log($"Adicionado: {data.itemName} x{quantity}");
-        }
+        stats.AddStat(nameof(Health), Health);
+        stats.AddStat(nameof(Defense), Defense);
+        stats.AddStat(nameof(Enableregen), Enableregen);
+    }
+    public virtual void AddtoDictionaryStat()
+    {
+        numvariablesdictionary.Add(nameof(Health), (value) => Health = value);
+        numvariablesdictionary.Add(nameof(Defense), (value) => Defense = value);
+        boolvariablesdictionary.Add(nameof(Enableregen), (value) => Enableregen = value);
+    }
+    public virtual void BoolListener(string name, bool value)
+    {
+        if (!boolvariablesdictionary.ContainsKey(name)) return;
+        boolvariablesdictionary[name](value);
+    }
+    public virtual void NumListener(string name, float value)
+    {
+        if (!numvariablesdictionary.ContainsKey(name)) return;
+        numvariablesdictionary[name](value);
     }
 }

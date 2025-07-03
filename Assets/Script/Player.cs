@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
-public class Player : CombatEntity
+public class Player : CombatEntities
 {
     #region Configurações
 

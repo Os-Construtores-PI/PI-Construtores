@@ -26,8 +26,7 @@ public class EnemyHUDManager : MonoBehaviour
         var creatures = GameObject.FindGameObjectsWithTag("Creature");
 
         enemyObjects = creatures
-            .Where(creature => creature.TryGetComponent<BrainComponent>(out var brain) 
-                               && brain.identity.TipoEntidade == EntityType.ENEMY)
+            .Where(creature => creature.TryGetComponent<Enemies>(out var enemy))
             .ToList();
     }
 
@@ -62,27 +61,19 @@ public class EnemyHUDManager : MonoBehaviour
                 continue;
             }
 
-            if (!enemy.TryGetComponent<HealthComponent>(out var healthComponent) || 
-                !enemy.TryGetComponent<BrainComponent>(out var brainComponent))
+            if (!enemy.TryGetComponent(out Enemies enemyclass))
             {
-                Debug.LogWarning($"Inimigo '{enemy.name}' está faltando HealthComponent ou BrainComponent.");
                 Destroy(hudInstance);
                 continue;
             }
 
             // Configura o HUD para seguir o inimigo
             healthHUD.EnemyTarget = healthBarTarget;
-            healthHUD.IdHealth = brainComponent.identity.ID;
+            healthHUD.IdHealth = enemyclass.ID;
 
             // Associa o HUD ao componente de vida para atualizações
-            healthComponent.SetHealthHUD(healthHUD);
-
-            // Atualiza o slider inicial
-            if (healthComponent.TryGetAttribute("health", out float currentHealth) &&
-                healthComponent.TryGetAttribute("MAX_health", out float maxHealth))
-            {
-                healthHUD.UpdateSlider(currentHealth / maxHealth);
-            }
+            enemyclass.SetHealthHUD(healthHUD);
+            healthHUD.UpdateSlider(enemyclass.Health / enemyclass.MaxHealth);
         }
     }
 }

@@ -1,14 +1,14 @@
 using UnityEngine;
 
-public class Enemy : CombatEntity
+public abstract class Enemies : CombatEntities
 {
-    Transform target;
+    protected Transform target;
     private Collider[] result = new Collider[10];
     private Collider[] attackResult = new Collider[5];
     // ==== CONFIGURAÇÕES DE DETECÇÃO ====
     [Header("Configurações de Detecção")]
     [SerializeField] private LayerMask layer;        // Camada usada para detectar alvos (ex: jogadores)
-    [SerializeField] private float radius;           // Raio da detecção de visão
+    [SerializeField, Min(10)] private float radius;           // Raio da detecção de visão
     [SerializeField] private float attackRange = 2f; // Raio da detecção de ataque
 
     // ==== COMPORTAMENTO DE IA ====
@@ -19,6 +19,7 @@ public class Enemy : CombatEntity
 
     public override void Update()
     {
+        base.Update();
         if (can_AI)
         {
             visionIntervalwalker += Time.deltaTime;
@@ -42,7 +43,7 @@ public class Enemy : CombatEntity
             if (subtarget == transform || subtarget.IsChildOf(transform))
                 continue;
 
-            if (subtarget.TryGetComponent(out BrainComponent b) && b.identity.TipoEntidade == EntityType.PLAYER)
+            if (subtarget.TryGetComponent(out Player player))
             {
                 target = subtarget;
                 return;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Entity : MonoBehaviour
+public abstract class Entities : MonoBehaviour
 {
     [Header("ID da entidade")]
     public int ID;

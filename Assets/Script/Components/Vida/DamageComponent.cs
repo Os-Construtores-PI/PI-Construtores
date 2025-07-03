@@ -6,8 +6,8 @@ using UnityEngine;
 public class DamageComponent : ComponentBehaviour
 {
     [Header("Inimigos que irão ativar o dano")]
-    [SerializeField] private CombatEntity[] enemies;  // Lista de tipos de entidades que podem ser danificadas
-    private HashSet<CombatEntity> hashenemies = new(); // Conjunto para busca rápida dos tipos permitidos
+    [SerializeField] private CombatEntities[] enemies;  // Lista de tipos de entidades que podem ser danificadas
+    private HashSet<CombatEntities> hashenemies = new(); // Conjunto para busca rápida dos tipos permitidos
 
     [Header("Parâmetros de Dano")]
     private float damage;          // Quantidade de dano a ser aplicada
@@ -45,7 +45,7 @@ public class DamageComponent : ComponentBehaviour
     void Start()
     {
         // Inicializa o HashSet para otimizar as buscas por tipo de entidade
-        foreach (CombatEntity entity in enemies)
+        foreach (CombatEntities entity in enemies)
         {
             hashenemies.Add(entity);
         }
@@ -64,7 +64,7 @@ public class DamageComponent : ComponentBehaviour
     private void DamageLogic(Collider collider)
     {
         if (!collider.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
-        if (collider.TryGetComponent(out CombatEntity entity) && can_damage)
+        if (collider.TryGetComponent(out CombatEntities entity) && can_damage)
         {
             if (hashenemies.Contains(entity))
             {

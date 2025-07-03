@@ -64,7 +64,7 @@ public class HealthHUDComponent : ComponentBehaviour
             return;
         }
 
-        if (enemyObject.TryGetComponent(out CombatEntity combat) && combat.ID == IdHealth)
+        if (enemyObject.TryGetComponent(out CombatEntities combat) && combat.ID == IdHealth)
         {
             _slider.value = combat.Health / combat.MaxHealth;
         }
@@ -126,7 +126,6 @@ public class HealthHUDComponent : ComponentBehaviour
     public void UpdateSlider(float value)
     {
         if (_slider == null) return;
-        print("Funcionando");
         _slider.DOValue(value, 0.5f);
     }
 }

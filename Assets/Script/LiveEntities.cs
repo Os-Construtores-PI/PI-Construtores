@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-public class LiveEntity : Entity
+public abstract class LiveEntities : Entities
 {
     public virtual void Start()
     {
@@ -37,6 +37,7 @@ public class LiveEntity : Entity
         }
         set
         {
+            print("old: " + _defense + " // new: " + value);
             _defense = value;
         }
     }
