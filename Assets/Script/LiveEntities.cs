@@ -20,6 +20,7 @@ public abstract class LiveEntities : Entities
         set
         {
             float _inithealth = _health;
+            print(name + " // old : " + _inithealth + " // new: " + value);
             _health = Mathf.Clamp(value, 0f, MaxHealth);
             if (_health < _inithealth)
             {
@@ -37,7 +38,7 @@ public abstract class LiveEntities : Entities
         }
         set
         {
-            print("old: " + _defense + " // new: " + value);
+            print(name + " // old : " + _defense + " // new: " + value);
             _defense = value;
         }
     }

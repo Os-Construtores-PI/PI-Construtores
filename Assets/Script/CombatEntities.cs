@@ -72,6 +72,7 @@ public abstract class CombatEntities : LiveEntities
         if (hud == null) return;
 
         _healthHUD = hud;
+        _OnHealthChanged.AddListener(_healthHUD.UpdateSlider);
         _healthHUD.UpdateSlider(Health / _maxHealth);
     }
     public virtual void AddtoStat()

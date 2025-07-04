@@ -16,7 +16,6 @@ public abstract class Enemies : CombatEntities
     [SerializeField] private bool can_AI = true;         // Permite ativar/desativar IA
     [SerializeField] private float visionInterval = 0.5f; // Intervalo para verificar visão
     private float visionIntervalwalker;
-
     public override void Update()
     {
         base.Update();
