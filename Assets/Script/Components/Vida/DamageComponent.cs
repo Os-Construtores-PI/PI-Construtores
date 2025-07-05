@@ -68,7 +68,7 @@ public class DamageComponent : ComponentBehaviour
         {
             if (hashenemies.Contains(entity))
             {
-                float factor = Mathf.Clamp(entity.Defense / entity.MAXDEFENSE, 0f, .80f);
+                float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, .80f);
                 entity.Health -= Damage * (1 - factor);
                 can_damage = false;
                 entity.Damaged = true;

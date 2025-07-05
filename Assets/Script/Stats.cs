@@ -31,8 +31,8 @@ public class Stats
 
     // Tempo base para modificações temporárias (em segundos)
     private const float TEMPORARY_DURATION = 10f;
-    public UnityEvent<string,float > _numModified = new();
-    public UnityEvent<string,bool> _boolModified = new();
+    public UnityEvent<string, float> _numModified = new();
+    public UnityEvent<string, bool> _boolModified = new();
 
     public bool ModifyStatImmediate<Ttype>(string name, ModifyTYPE type, QualityTier tier) where Ttype : IComparable
     {
@@ -59,28 +59,28 @@ public class Stats
 
         return false;
     }
-    public IEnumerator ModifyStatCoroutine<Ttype>(string name, ModifyTYPE type, QualityTier tier, TimeTYPE timeType, float duration) where Ttype : IComparable
+    public IEnumerator ModifyStatCoroutine<Ttype>(string name, ModifyTYPE type, QualityTier tier, float duration) where Ttype : IComparable
     {
         float multiplier = evaluation[tier];
         float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
-
         if (typeof(Ttype) == typeof(float))
         {
             if (!stats._numstats.ContainsKey(name)) yield break;
             float original = stats._numstats[name];
             float change = original * (multiplier - 1f) * direction;
 
-            stats._numstats[name] += change;
+            SetStat(name,original + change);
             yield return new WaitForSeconds(duration);
-            stats._numstats[name] = original;
+            SetStat(name, original);
         }
         else if (typeof(Ttype) == typeof(bool))
         {
             if (!stats._boolstats.ContainsKey(name)) yield break;
             bool original = stats._boolstats[name];
-            stats._boolstats[name] = type == ModifyTYPE.POSITIVE;
+            SetStat(name, type == ModifyTYPE.POSITIVE);
             yield return new WaitForSeconds(duration);
-            stats._boolstats[name] = original;
+            SetStat(name, original);
+
         }
 
         yield break;
@@ -102,7 +102,6 @@ public class Stats
             stats._boolstats.Add(name, Convert.ToBoolean(value));
             return true;
         }
-
         return false;
     }
 
@@ -118,5 +117,21 @@ public class Stats
         }
 
         return false;
+    }
+    public void SetStat<Ttype>(string name, Ttype value) where Ttype : IComparable
+    {
+        if (typeof(Ttype) == typeof(float))
+        {
+            if (!stats._numstats.ContainsKey(name)) return;
+            stats._numstats[name] = Convert.ToSingle(value);
+            _numModified.Invoke(name, stats._numstats[name]);
+
+        }
+        else if (typeof(Ttype) == typeof(bool))
+        {
+            if (!stats._boolstats.ContainsKey(name)) return;
+            stats._boolstats[name] = Convert.ToBoolean(value);
+            _boolModified.Invoke(name, stats._boolstats[name]);
+        }
     }
 }

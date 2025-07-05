@@ -991,7 +991,7 @@ GameObject:
   - component: {fileID: 451995854}
   m_Layer: 6
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1009,12 +1009,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 0
-  _defense: 10
   _maxHealth: 200
-  CombatCD: 5
-  damagedCD: 10
-  Enableregen: 1
-  RegerationInterval: 0
+  _defense: 10
+  combatCooldown: 5
+  damagedCooldown: 2
+  _enableRegen: 1
+  regenerationInterval: 5
   Damaged: 0
   speed: 10
   acceleration: 5
@@ -2800,12 +2800,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 0
-  _defense: 35
   _maxHealth: 100
-  CombatCD: 5
-  damagedCD: 3
-  Enableregen: 1
-  RegerationInterval: 0
+  _defense: 35
+  combatCooldown: 5
+  damagedCooldown: 2
+  _enableRegen: 1
+  regenerationInterval: 5
   Damaged: 0
   layer:
     serializedVersion: 2
@@ -2986,7 +2986,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StatName: Defense
   zoneTier: 3
-  timeTYPE: 0
+  timeTYPE: 1
+  modifyType: 0
   statDuration: 10
   statCooldown: 11
 --- !u!1 &1250842088

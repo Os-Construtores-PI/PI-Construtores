@@ -8,6 +8,7 @@ public class StatZone : MonoBehaviour
     [SerializeField] private string StatName;
     [SerializeField] private QualityTier zoneTier;
     [SerializeField] private TimeTYPE timeTYPE;
+    [SerializeField] private ModifyTYPE modifyType;
 
     [Header("Só funciona se for status temporário")]
     [SerializeField] private float statDuration = 5f;
@@ -38,7 +39,7 @@ public class StatZone : MonoBehaviour
         if (timeTYPE == TimeTYPE.TEMPORARY)
         {
             print("Funcionando");
-            yield return stats.ModifyStatCoroutine<float>(StatName, ModifyTYPE.POSITIVE, zoneTier, TimeTYPE.TEMPORARY, statDuration);
+            yield return stats.ModifyStatCoroutine<float>(StatName, ModifyTYPE.POSITIVE, zoneTier, statDuration);
         }
         else
         {

@@ -1,72 +1,109 @@
-using System;
-using System.Collections.Generic;
-
+using System.Reflection;
 using UnityEngine;
+
+
 
 public abstract class CombatEntities : LiveEntities
 {
-    [Header("Atributos de intervalo do estado de combate")]
-    [SerializeField, Min(5f)] private float CombatCD;
-    [Header("Atributos de intervalo de dano tomado")]
-    [SerializeField, Min(2f)] private float damagedCD;
+    #region --- Configurações de Combate ---
+
+    [Header("Atributos de Combate")]
+    [SerializeField, Min(5f)] private float combatCooldown = 5f;
+    [SerializeField, Min(2f)] private float damagedCooldown = 2f;
+
     [Header("Atributos de Regeneração")]
-    [SerializeField] private bool Enableregen = true;
-    [SerializeField, Min(3)] private float RegerationInterval;
-    private bool _inCombat;
-    protected HealthHUDComponent _healthHUD;
-    private float CombatWalker;
-    private float damagedWalker = 0.0f;
-    public Stats stats = new();
-    public Dictionary<string, Action<float>> numvariablesdictionary = new();
-    public Dictionary<string, Action<bool>> boolvariablesdictionary = new();
+    [SerializeField] private bool _enableRegen = true;
+    [SerializeField, Min(3f)] private float regenerationInterval = 5f;
 
     [HideInInspector] public bool Damaged;
+
+    private bool _inCombat;
+    private float combatTimer;
+    private float damagedTimer;
+
+    #endregion
+
+    #region --- Componentes e HUD ---
+
+    protected HealthHUDComponent _healthHUD;
+
+    #endregion
+
+    #region --- Stats e Dicionários ---
+
+    [HideInInspector]
+    [Stat(nameof(EnableRegen))]
+    public bool EnableRegen
+    {
+        get => _enableRegen;
+        set => _enableRegen = value;
+    }
+
+    #endregion
+
+    #region --- Ciclo de Vida ---
 
     public virtual void Awake()
     {
         _OnDamage.AddListener(EnterCombat);
-        stats._boolModified.AddListener(BoolListener);
-        stats._numModified.AddListener(NumListener);
-        if (Enableregen)
-        {
-            InvokeRepeating(nameof(RegenerateHealth), 0, RegerationInterval);
-        }
-        AddtoDictionaryStat();
-        AddtoStat();
+
+        stats._numModified.AddListener(HandleNumericStatChange);
+        stats._boolModified.AddListener(HandleBoolStatChange);;
+        InitializeStats();
+
+        if (EnableRegen)
+            InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
     }
+
+    public virtual void Update()
+    {
+        HandleCombatTimer();
+        HandleDamagedCooldown();
+    }
+
+    #endregion
+
+    #region --- Combate e Regeneração ---
+
+    private void EnterCombat() => _inCombat = true;
+
+    private void HandleCombatTimer()
+    {
+        if (!_inCombat) return;
+
+        combatTimer += Time.deltaTime;
+        if (combatTimer >= combatCooldown)
+        {
+            _inCombat = false;
+            combatTimer = 0f;
+        }
+    }
+
+    private void HandleDamagedCooldown()
+    {
+        if (!Damaged) return;
+
+        damagedTimer += Time.deltaTime;
+        if (damagedTimer >= damagedCooldown)
+        {
+            Damaged = false;
+            damagedTimer = 0f;
+        }
+    }
+
     private void RegenerateHealth()
     {
         if (!_inCombat)
         {
-            // Regenera 6% da vida máxima
             float regenAmount = MaxHealth * 0.06f;
             Health += regenAmount;
         }
     }
-    public virtual void Update()
-    {
-        if (_inCombat)
-        {
-            CombatWalker += Time.deltaTime;
-            if (CombatWalker >= CombatCD)
-            {
-                CombatWalker = 0f;
-                _inCombat = false;
-            }
-        }
-        if (Damaged)
-        {
-            damagedWalker += Time.deltaTime;
-            if (damagedWalker >= damagedCD)
-            {
-                Damaged = false;
-            }
-        }
-    }
-    private void EnterCombat()
-    {
-        _inCombat = true;
-    }
+
+    #endregion
+
+    #region --- HUD ---
+
     public void SetHealthHUD(HealthHUDComponent hud)
     {
         if (hud == null) return;
@@ -75,26 +112,6 @@ public abstract class CombatEntities : LiveEntities
         _OnHealthChanged.AddListener(_healthHUD.UpdateSlider);
         _healthHUD.UpdateSlider(Health / _maxHealth);
     }
-    public virtual void AddtoStat()
-    {
-        stats.AddStat(nameof(Health), Health);
-        stats.AddStat(nameof(Defense), Defense);
-        stats.AddStat(nameof(Enableregen), Enableregen);
-    }
-    public virtual void AddtoDictionaryStat()
-    {
-        numvariablesdictionary.Add(nameof(Health), (value) => Health = value);
-        numvariablesdictionary.Add(nameof(Defense), (value) => Defense = value);
-        boolvariablesdictionary.Add(nameof(Enableregen), (value) => Enableregen = value);
-    }
-    public virtual void BoolListener(string name, bool value)
-    {
-        if (!boolvariablesdictionary.ContainsKey(name)) return;
-        boolvariablesdictionary[name](value);
-    }
-    public virtual void NumListener(string name, float value)
-    {
-        if (!numvariablesdictionary.ContainsKey(name)) return;
-        numvariablesdictionary[name](value);
-    }
+
+    #endregion
 }
