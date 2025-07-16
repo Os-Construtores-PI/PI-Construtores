@@ -64,11 +64,15 @@ public class Player : CombatEntities
 
     private readonly Inventory inventory = new();
     public Inventory Inventario => inventory;
-
-    private readonly Equipament equipament = new();
-    public Equipament EquipClassRef => equipament;
-
     #endregion
+
+
+    #region EnemyScan
+    [SerializeField, Min(10)] private float enemyScanRadius = 10;
+    [SerializeField, Min(1)] private float enemyScanCooldown = 2.0f;
+    private float enemyScanWalker = 0.0f;
+    #endregion
+
 
     #region --- Inicialização Unity ---
 
@@ -78,7 +82,6 @@ public class Player : CombatEntities
 
         characterController = GetComponent<CharacterController>();
         moveAction = InputSystem.actions.FindAction("Move");
-        equipament.Initialize(handTransform);
     }
 
     public override void Start()
@@ -86,6 +89,19 @@ public class Player : CombatEntities
         base.Start();
         DOTween.Init();
         SetupHUD();
+    }
+    public override void Update()
+    {
+        base.Update();
+        if (enemyScanWalker <= enemyScanCooldown)
+        {
+            enemyScanWalker += Time.deltaTime;
+        }
+        else
+        {
+            EnemyScan();
+            enemyScanWalker = 0;
+        }
     }
 
     private void FixedUpdate()
@@ -231,7 +247,7 @@ public class Player : CombatEntities
             }
         }
 
-        if (GameObject.FindWithTag("GameController")?.TryGetComponent(out HUDDirector hudDir) == true)
+        if (GameObject.FindWithTag("GameController").TryGetComponent(out HUDDirector hudDir) == true)
         {
             _OnDamage.AddListener(hudDir.ShakeCamera);
         }
@@ -239,46 +255,29 @@ public class Player : CombatEntities
 
     #endregion
 
+    #region Scan
+    private void EnemyScan()
+    {
+        int amount = EnemySpawner.enemySpawner.GetAmountPool();
+        for (int i = 0; i < amount; i++)
+        {
+            GameObject enemytmp = EnemySpawner.enemySpawner.GetDisabledObject();
+            if (enemytmp != null)
+            {
+                float distance = Vector3.Distance(enemytmp.transform.position, transform.position);
+                if (distance <= enemyScanRadius)
+                {
+                    enemytmp.SetActive(true);
+                }   
+            }
+        }
+    }
+    #endregion
+
     #region --- Utilitários ---
 
     private float SmoothLerp(float from, float to, float smoothing)
         => Mathf.Lerp(from, to, 1f - Mathf.Exp(-smoothing * Time.deltaTime));
-
-    #endregion
-
-    #region --- Equipamento ---
-
-    public class Equipament
-    {
-        public EquipableItemData currentItem;
-        public GameObject equippedWeapon;
-        private Transform handTransform;
-
-        public void Initialize(Transform hand) => handTransform = hand;
-
-        public void Equip(EquipableItemData item)
-        {
-            Unequip();
-
-            if (item?.item != null)
-            {
-                equippedWeapon = Object.Instantiate(item.item, handTransform);
-                equippedWeapon.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                currentItem = item;
-            }
-        }
-
-        public void Unequip()
-        {
-            if (equippedWeapon != null)
-            {
-                Object.Destroy(equippedWeapon);
-                equippedWeapon = null;
-            }
-
-            currentItem = null;
-        }
-    }
 
     #endregion
 }

@@ -24,7 +24,7 @@ public class DataSystem : MonoBehaviour
                 playerId = p.ID,
                 position = p.transform.position,
                 health = p.Health,
-                equippedItemName = p.EquipClassRef.currentItem != null ? p.EquipClassRef.currentItem.itemName : null
+                //equippedItemName = p.EquipClassRef.currentItem != null ? p.EquipClassRef.currentItem.itemName : null
             };
 
             // Salva o inventário
@@ -140,7 +140,7 @@ public class DataSystem : MonoBehaviour
                 var equipped = Resources.Load<EquipableItemData>("Items/" + savedPlayer.equippedItemName);
                 if (equipped != null)
                 {
-                    refPlayer.EquipClassRef.Equip(equipped);
+                    //refPlayer.EquipClassRef.Equip(equipped);
                 }
             }
 
