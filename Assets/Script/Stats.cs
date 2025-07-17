@@ -7,28 +7,12 @@ using UnityEngine.Events;
 
 public class Stats
 {
-    // Struct que agrupa os dois tipos de atributos
-    struct Typestats
-    {
-        public Dictionary<string, float> _numstats;
-        public Dictionary<string, bool> _boolstats;
-    }
-
+    private readonly List<StatModification> activeModifications = new();
     private Typestats stats = new()
     {
-        _numstats = new Dictionary<string, float>(),
-        _boolstats = new Dictionary<string, bool>()
+        _numstats = new(),
+        _boolstats = new()
     };
-
-    private readonly Dictionary<QualityTier, float> evaluation = new()
-    {
-        { QualityTier.COMMON, 1.0f },
-        { QualityTier.UNCOMMON, 1.15f },
-        { QualityTier.RARE, 1.30f },
-        { QualityTier.EPIC, 1.65f },
-        { QualityTier.LEGENDARY, 1.80f }
-    };
-
     // Tempo base para modificações temporárias (em segundos)
     private const float TEMPORARY_DURATION = 10f;
     public UnityEvent<string, float> _numModified = new();
@@ -36,7 +20,7 @@ public class Stats
 
     public bool ModifyStatImmediate<Ttype>(string name, ModifyTYPE type, QualityTier tier) where Ttype : IComparable
     {
-        float multiplier = evaluation[tier];
+        float multiplier = Tiers.GetMultiplier(tier);
         float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
 
         if (typeof(Ttype) == typeof(float))
@@ -46,45 +30,68 @@ public class Stats
             float change = original * (multiplier - 1f) * direction;
             stats._numstats[name] += change;
             _numModified.Invoke(name, stats._numstats[name]);
+            activeModifications.Add(new(name, tier, type, false));
             return true;
         }
-
         if (typeof(Ttype) == typeof(bool))
         {
             if (!stats._boolstats.ContainsKey(name)) return false;
             stats._boolstats[name] = type == ModifyTYPE.POSITIVE;
             _boolModified.Invoke(name, stats._boolstats[name]);
+            activeModifications.Add(new(name, tier, type, false));
             return true;
         }
-
+        Debug.Log("Tipo não suportado");
         return false;
     }
     public IEnumerator ModifyStatCoroutine<Ttype>(string name, ModifyTYPE type, QualityTier tier, float duration) where Ttype : IComparable
     {
-        float multiplier = evaluation[tier];
+        StatModification tempMod = new(name, tier, type, true, duration);
+        activeModifications.Add(tempMod);
+
+        float multiplier = Tiers.GetMultiplier(tier);
         float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
+
         if (typeof(Ttype) == typeof(float))
         {
             if (!stats._numstats.ContainsKey(name)) yield break;
             float original = stats._numstats[name];
             float change = original * (multiplier - 1f) * direction;
 
-            SetStat(name,original + change);
-            yield return new WaitForSeconds(duration);
+            SetStat(name, original + change);
+
+            float timer = duration;
+            while (timer > 0f)
+            {
+                timer -= Time.deltaTime;
+                UpdateTemporaryTime(name, timer);
+                yield return null;
+            }
+
             SetStat(name, original);
         }
         else if (typeof(Ttype) == typeof(bool))
         {
             if (!stats._boolstats.ContainsKey(name)) yield break;
             bool original = stats._boolstats[name];
-            SetStat(name, type == ModifyTYPE.POSITIVE);
-            yield return new WaitForSeconds(duration);
-            SetStat(name, original);
 
+            SetStat(name, type == ModifyTYPE.POSITIVE);
+
+            float timer = duration;
+            while (timer > 0f)
+            {
+                timer -= Time.deltaTime;
+                UpdateTemporaryTime(name, timer);
+                yield return null;
+            }
+
+            SetStat(name, original);
         }
 
-        yield break;
+        // Remove modificação temporária
+        activeModifications.RemoveAll(mod => mod.StatName == name && mod.IsTemporary);
     }
+
 
 
 
@@ -102,6 +109,7 @@ public class Stats
             stats._boolstats.Add(name, Convert.ToBoolean(value));
             return true;
         }
+        Debug.Log("Tipo não suportado AddStat");
         return false;
     }
 
@@ -115,9 +123,11 @@ public class Stats
         {
             return stats._boolstats.Remove(name);
         }
-
+        Debug.Log("Tipo não suportado RemoveStat");
         return false;
     }
+
+
     public void SetStat<Ttype>(string name, Ttype value) where Ttype : IComparable
     {
         if (typeof(Ttype) == typeof(float))
@@ -132,6 +142,29 @@ public class Stats
             if (!stats._boolstats.ContainsKey(name)) return;
             stats._boolstats[name] = Convert.ToBoolean(value);
             _boolModified.Invoke(name, stats._boolstats[name]);
+        }
+        else
+        {
+            Debug.Log("Tipo não suportado SetStat");
+        }
+    }
+
+    // UTILS
+    public IReadOnlyList<StatModification> GetActiveModifications()
+    {
+        return activeModifications.AsReadOnly();
+    }
+
+    private void UpdateTemporaryTime(string statName, float timeLeft)
+    {
+        for (int i = 0; i < activeModifications.Count; i++)
+        {
+            if (activeModifications[i].StatName == statName && activeModifications[i].IsTemporary)
+            {
+                var updated = activeModifications[i];
+                updated.RemainingTime = timeLeft;
+                activeModifications[i] = updated;
+            }
         }
     }
 }

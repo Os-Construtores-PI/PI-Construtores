@@ -1,9 +1,19 @@
 using UnityEngine;
 using IngameDebugConsole;
+using System;
+using System.Collections.Generic;
 
 // Componente que registra comandos para o Ingame Debug Console
 public class ConsoleComponent : MonoBehaviour
 {
+
+    private static readonly Dictionary<TypeCode, Action<LiveEntities, string, ModifyTYPE, QualityTier, float, TimeTYPE>> statModifiers =
+    new()
+    {
+        {TypeCode.Single,ModifyFloatStat},
+        {TypeCode.Boolean,ModifyBoolStat}
+    };
+
     // Referência pública para o alvo dos comandos (ex: o jogador selecionado)
     public GameObject target;
 
@@ -134,4 +144,47 @@ public class ConsoleComponent : MonoBehaviour
             Debug.Log($"- {p.ID}");
         }
     }
+
+
+    [ConsoleMethod("modifyStat", "Modifica os status do target", "TIME NOME_STATUS TIPO_STATUS POS_OU_NEG QUALITYTIER DURAÇÃO")]
+    public static void ModifyStat(TimeTYPE time, string statname, string type, ModifyTYPE modtype, QualityTier tier, float duration = 5.0f)
+    {
+        print(type);
+        if (Target == null || !Target.TryGetComponent(out LiveEntities live))
+        {
+            print("Sem Target ou sem LiveEntities");
+            return;
+        }
+        TypeCode typeCode = Type.GetTypeCode(StringtoTypes.TypeMap[type.ToLower()]);
+        if (statModifiers.TryGetValue(typeCode, out var action))
+        {
+            action.Invoke(live, statname, modtype, tier, duration, time);
+        }
+        else
+        {
+            Debug.LogWarning($"Tipo '{type}' não suportado.");
+        }
+    }
+
+
+
+
+
+
+    private static void ModifyFloatStat(LiveEntities live, string statName, ModifyTYPE modType, QualityTier tier, float duration, TimeTYPE timeType)
+    {
+        if (timeType == TimeTYPE.PERMANENT)
+            live.stats.ModifyStatImmediate<float>(statName, modType, tier);
+        else
+            live.StartCoroutine(live.stats.ModifyStatCoroutine<float>(statName, modType, tier, duration));
+    }
+
+    private static void ModifyBoolStat(LiveEntities live, string statName, ModifyTYPE modType, QualityTier tier, float duration, TimeTYPE timeType)
+    {
+        if (timeType == TimeTYPE.PERMANENT)
+            live.stats.ModifyStatImmediate<bool>(statName, modType, tier);
+        else
+            live.StartCoroutine(live.stats.ModifyStatCoroutine<bool>(statName, modType, tier, duration));
+    }
 }
+

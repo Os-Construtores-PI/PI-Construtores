@@ -45,6 +45,7 @@ public class StatZone : MonoBehaviour
         {
             // PERMANENTE: modificação direta sem tempo
             stats.ModifyStatImmediate<float>(StatName, ModifyTYPE.POSITIVE, zoneTier);
+            
         }
 
         yield return new WaitForSeconds(statCooldown);
