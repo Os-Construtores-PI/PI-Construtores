@@ -5,7 +5,6 @@ public class BasePool : MonoBehaviour
 {
     public static BasePool SharedInstance;
     [HideInInspector] public List<GameObject> disabledObject;
-    [SerializeField] protected GameObject objectToPool;
     protected int amount;
     [SerializeField] protected Transform parent;
 

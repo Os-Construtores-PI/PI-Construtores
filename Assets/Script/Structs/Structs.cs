@@ -13,5 +13,6 @@ public struct StatEntry
 public struct Spawner
 {
     public string spawner_tag;
+    public GameObject obj;
     [HideInInspector] public List<Transform> positions;
 }

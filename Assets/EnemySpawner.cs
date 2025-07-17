@@ -27,7 +27,7 @@ public class EnemySpawner : BasePool
             for (int i = 0; i < amount; i++)
             {
                 Transform tmpMarker = sp.positions[i];
-                tmp = Instantiate(objectToPool, tmpMarker.position, tmpMarker.rotation, parent);
+                tmp = Instantiate(sp.obj, tmpMarker.position, tmpMarker.rotation, parent);
                 if (tmp.TryGetComponent(out Enemies enemy))
                 {
                     enemy.ID = idCounter;

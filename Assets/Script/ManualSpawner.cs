@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class ManualSpawner : BasePool
 {
+    [SerializeField] protected GameObject objectToPool;
     void Start()
     {
         Instance();
