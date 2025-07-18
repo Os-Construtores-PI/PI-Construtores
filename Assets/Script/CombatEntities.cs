@@ -48,7 +48,7 @@ public abstract class CombatEntities : LiveEntities
         _OnDamage.AddListener(EnterCombat);
 
         stats._numModified.AddListener(HandleNumericStatChange);
-        stats._boolModified.AddListener(HandleBoolStatChange);;
+        stats._boolModified.AddListener(HandleBoolStatChange); ;
         InitializeStats();
 
         if (EnableRegen)
@@ -111,7 +111,28 @@ public abstract class CombatEntities : LiveEntities
         _healthHUD = hud;
         _OnHealthChanged.AddListener(_healthHUD.UpdateSlider);
         _healthHUD.UpdateSlider(Health / _maxHealth);
+        UpdateHUDVisibility(gameObject.activeInHierarchy);
     }
 
+    private void OnEnable()
+    {
+        UpdateHUDVisibility(true);
+    }
+
+
+    private void OnDisable()
+    {
+        UpdateHUDVisibility(false);
+    }
+
+
+    private void UpdateHUDVisibility(bool isActive)
+    {
+        if (_healthHUD != null)
+        {
+            _healthHUD.gameObject.SetActive(isActive);
+        }
+    }
+    
     #endregion
 }

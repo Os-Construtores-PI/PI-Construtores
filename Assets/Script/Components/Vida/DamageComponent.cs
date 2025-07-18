@@ -1,35 +1,33 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using System.Linq;
 using UnityEngine;
 
-// Componente que gerencia o dano causado a entidades específicas ao colidir
+// Componente que aplica dano a qualquer CombatEntities que entrar na área
 public class DamageComponent : ComponentBehaviour
 {
-    [Header("Inimigos que irão ativar o dano")]
-    [SerializeField] private CombatEntities[] enemies;  // Lista de tipos de entidades que podem ser danificadas
-    private HashSet<CombatEntities> hashenemies = new(); // Conjunto para busca rápida dos tipos permitidos
-
     [Header("Parâmetros de Dano")]
-    private float damage;          // Quantidade de dano a ser aplicada
+    [SerializeField] private float _maxDamage = 10f;       // Dano inicial
+    [SerializeField] private float damageCooldown = 1f;    // Tempo entre danos consecutivos
+    [SerializeField] protected String[] tags_to_damage;
+
+    private float damage;
+    private float damageCooldownWalker = 0.0f;
+    private bool can_damage = true;
+
+    // Propriedade pública de acesso ao dano
     [HideInInspector]
     public float Damage
     {
-        get
-        {
-            return damage;
-        }
-        set
-        {
-            damage = value;
-        }
+        get => damage;
+        set => damage = value;
     }
-    [SerializeField] private float _maxDamage;       // Dano máximo permitido (usado para controle interno)
 
-    [SerializeField] private float damageCooldown;  // Tempo mínimo entre danos consecutivos
-    private float damageCooldownWalker = 0.0f;
+    private void Start()
+    {
+        Damage = _maxDamage;
+    }
 
-    private bool can_damage = true;  // Flag para controlar se o dano pode ser aplicado (cooldown)
-    void Update()
+    private void Update()
     {
         if (!can_damage)
         {
@@ -42,37 +40,33 @@ public class DamageComponent : ComponentBehaviour
         }
     }
 
-    void Start()
+    private void OnTriggerEnter(Collider other)
     {
-        // Inicializa o HashSet para otimizar as buscas por tipo de entidade
-        foreach (CombatEntities entity in enemies)
-        {
-            hashenemies.Add(entity);
-        }
-        Damage = _maxDamage;
+        DamageLogic(other);
     }
 
-    // Evento chamado ao detectar colisão com outro collider
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         DamageLogic(other);
     }
-    void OnTriggerStay(Collider other)
-    {
-        DamageLogic(other);
-    }
+
     private void DamageLogic(Collider collider)
     {
+        // Verifica se o objeto está na camada "Entity"
         if (!collider.gameObject.layer.Equals(LayerMask.NameToLayer("Entity"))) return;
-        if (collider.TryGetComponent(out CombatEntities entity) && can_damage)
+
+        // Verifica se tem componente CombatEntities e se o dano está liberado
+        if (collider.TryGetComponent(out CombatEntities entity) && tags_to_damage.Contains(collider.tag) && can_damage)
         {
-            if (hashenemies.Contains(entity))
-            {
-                float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, .80f);
-                entity.Health -= Damage * (1 - factor);
-                can_damage = false;
-                entity.Damaged = true;
-            }
+            // Calcula fator de defesa (máx 80% de redução)
+            float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
+
+            // Aplica dano reduzido pela defesa
+            entity.Health -= Damage * (1 - factor);
+            entity.Damaged = true;
+
+            // Ativa cooldown
+            can_damage = false;
         }
     }
 }

@@ -151,6 +151,11 @@ public abstract class LiveEntities : Entities
         if (numericStatSetters.TryGetValue(name, out var setter))
             setter(value);
     }
+    public virtual void DeathHandler()
+    {
+
+    }
+
 
     #endregion
 
@@ -168,6 +173,9 @@ public abstract class LiveEntities : Entities
         // Conecta eventos do stats
         stats._numModified.AddListener(HandleNumericStatChange);
         stats._boolModified.AddListener(HandleBoolStatChange);
+
+        //Conecta a função de morte
+        _OnDeath.AddListener(DeathHandler);
     }
 
     #endregion
