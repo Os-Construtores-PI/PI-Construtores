@@ -10,7 +10,8 @@ public class EnemyHUDManager : MonoBehaviour
 
     private const string HealthBarTargetName = "HealthBarTarget";
 
-    private List<GameObject> enemyObjects = new();
+    // Lista de inimigos ativos ou inativos na cena
+    private List<Enemies> enemyObjects = new();
 
     private void Start()
     {
@@ -19,20 +20,18 @@ public class EnemyHUDManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Busca todos os GameObjects com tag "Creature" e filtra aqueles que são inimigos
+    /// Encontra todos os componentes Enemies na cena, mesmo que estejam inativos
     /// </summary>
     private void FindEnemies()
     {
-        var creatures = GameObject.FindGameObjectsWithTag("Creature");
-
-        enemyObjects = creatures
-            .Where(creature => creature.TryGetComponent<BrainComponent>(out var brain) 
-                               && brain.identity.TipoEntidade == EntityType.ENEMY)
-            .ToList();
+        enemyObjects = GameObject.FindObjectsByType<Enemies>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None
+        ).ToList();
     }
 
     /// <summary>
-    /// Instancia o HUD para cada inimigo encontrado e configura os componentes relacionados
+    /// Cria e configura HUDs para cada inimigo encontrado
     /// </summary>
     private void SpawnEnemyHUDs()
     {
@@ -42,9 +41,9 @@ public class EnemyHUDManager : MonoBehaviour
             return;
         }
 
-        foreach (var enemy in enemyObjects)
+        foreach (Enemies enemy in enemyObjects)
         {
-            // Busca o transform alvo para posicionar o HUD
+            // Encontra o transform filho usado como âncora do HUD
             Transform healthBarTarget = enemy.transform.Find(HealthBarTargetName);
             if (healthBarTarget == null)
             {
@@ -52,37 +51,23 @@ public class EnemyHUDManager : MonoBehaviour
                 continue;
             }
 
-            // Instancia o HUD como filho do hudParent, mantendo a posição do alvo
+            // Instancia o HUD na posição do alvo e como filho do hudParent
             GameObject hudInstance = Instantiate(hudPrefab, healthBarTarget.position, Quaternion.identity, hudParent);
 
-            if (!hudInstance.TryGetComponent<HealthHUDComponent>(out var healthHUD))
+            if (!hudInstance.TryGetComponent(out HealthHUDComponent healthHUD))
             {
-                Debug.LogWarning($"O prefab HUD não possui o componente HealthHUDComponent.");
+                Debug.LogWarning("O prefab HUD não possui o componente HealthHUDComponent.");
                 Destroy(hudInstance);
                 continue;
             }
 
-            if (!enemy.TryGetComponent<HealthComponent>(out var healthComponent) || 
-                !enemy.TryGetComponent<BrainComponent>(out var brainComponent))
-            {
-                Debug.LogWarning($"Inimigo '{enemy.name}' está faltando HealthComponent ou BrainComponent.");
-                Destroy(hudInstance);
-                continue;
-            }
-
-            // Configura o HUD para seguir o inimigo
+            // Configura o HUD
             healthHUD.EnemyTarget = healthBarTarget;
-            healthHUD.IdHealth = brainComponent.identity.ID;
+            healthHUD.IdHealth = enemy.ID;
 
-            // Associa o HUD ao componente de vida para atualizações
-            healthComponent.SetHealthHUD(healthHUD);
-
-            // Atualiza o slider inicial
-            if (healthComponent.TryGetAttribute("health", out float currentHealth) &&
-                healthComponent.TryGetAttribute("MAX_health", out float maxHealth))
-            {
-                healthHUD.UpdateSlider(currentHealth / maxHealth);
-            }
+            // Conecta o HUD com o sistema de vida do inimigo
+            enemy.SetHealthHUD(healthHUD);
+            healthHUD.UpdateSlider(enemy.Health / enemy.MaxHealth);
         }
     }
 }

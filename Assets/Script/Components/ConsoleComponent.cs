@@ -1,9 +1,19 @@
 using UnityEngine;
 using IngameDebugConsole;
+using System;
+using System.Collections.Generic;
 
 // Componente que registra comandos para o Ingame Debug Console
 public class ConsoleComponent : MonoBehaviour
 {
+
+    private static readonly Dictionary<TypeCode, Action<LiveEntities, string, ModifyTYPE, QualityTier, float, TimeTYPE>> statModifiers =
+    new()
+    {
+        {TypeCode.Single,ModifyFloatStat},
+        {TypeCode.Boolean,ModifyBoolStat}
+    };
+
     // Referência pública para o alvo dos comandos (ex: o jogador selecionado)
     public GameObject target;
 
@@ -12,111 +22,6 @@ public class ConsoleComponent : MonoBehaviour
 
     // Propriedade estática que retorna o GameObject alvo atual do console
     private static GameObject Target => FindAnyObjectByType<ConsoleComponent>().target;
-
-    // Comando para aplicar um modificador de status no alvo via console
-    // Parâmetros: tipo de status, qualidade, tipo de duração, duração e cooldown opcionais
-    [ConsoleMethod("increaseStat", "Aplica um status ao alvo", "STATTYPE TIER TIME [duration] [cooldown]")]
-    public static void IncreaseStat(string statType, string tier, string timeType, string duration = "0", string cooldown = "0")
-    {
-        // Checa se o alvo está definido
-        if (Target == null)
-        {
-            Debug.LogWarning("Alvo não definido.");
-            return;
-        }
-
-        // Verifica se o alvo tem o componente StatComponent para aplicar modificadores
-        if (!Target.TryGetComponent(out StatComponent statComp))
-        {
-            Debug.LogWarning("Alvo não possui StatComponent.");
-            return;
-        }
-
-        // Converte strings recebidas para enums correspondentes (StatType, QualityTier e StatTime)
-        if (!System.Enum.TryParse(statType.ToUpper(), out StatType stat) ||
-            !System.Enum.TryParse(tier.ToUpper(), out QualityTier qualityTier) ||
-            !System.Enum.TryParse(timeType.ToUpper(), out StatComponent.StatTime time))
-        {
-            Debug.LogError("Parâmetros inválidos. Uso: increaseStat ATTACK COMMON TEMPORARY 5 2");
-            return;
-        }
-
-        // Converte strings duration e cooldown para float; usa 0 caso falhe
-        float dur = float.TryParse(duration, out float d) ? d : 0f;
-        float cd = float.TryParse(cooldown, out float c) ? c : 0f;
-
-        // Aplica o modificador de status ao alvo, usando o método IncreaseStat do componente
-        statComp.IncreaseStat(stat, qualityTier, Target, time, dur, cd);
-        Debug.Log($"IncreaseStat: {stat} ({qualityTier}) como {time} aplicado.");
-    }
-
-    // Comando para remover um modificador de status do alvo
-    [ConsoleMethod("decreaseStat", "Remove ou reduz um status do alvo", "STATTYPE")]
-    public static void DecreaseStat(string statType)
-    {
-        // Verifica se alvo e componente estão disponíveis
-        if (Target == null || !Target.TryGetComponent(out StatComponent statComp))
-        {
-            Debug.LogWarning("Alvo ou StatComponent ausente.");
-            return;
-        }
-
-        // Se o parâmetro for "ALL", remove todos os tipos de status (loop por todos os StatType)
-        if (statType.ToUpper() == "ALL")
-        {
-            foreach (StatType stat in System.Enum.GetValues(typeof(StatType)))
-                statComp.DecreaseStat(stat, QualityTier.COMMON, Target); // Usa Tier comum para remover
-
-            Debug.Log("Todos os stats removidos.");
-            return;
-        }
-
-        // Tenta converter o parâmetro para enum StatType válido
-        if (!System.Enum.TryParse(statType.ToUpper(), out StatType statEnum))
-        {
-            Debug.LogError("StatType inválido.");
-            return;
-        }
-
-        // Remove o status específico do alvo
-        statComp.DecreaseStat(statEnum, QualityTier.COMMON, Target);
-        Debug.Log($"DecreaseStat: {statEnum} removido.");
-    }
-
-    // Comando para alterar o valor de um atributo específico de um componente do alvo
-    [ConsoleMethod("setAttribute", "Seta um atributo de um componente do alvo", "componente atributo valor")]
-    public static void SetAttribute(string componentName, string attributeName, string value)
-    {
-        if (Target == null)
-        {
-            Debug.LogWarning("Alvo não definido.");
-            return;
-        }
-
-        // Tenta pegar o componente (deve herdar ComponentBehaviour)
-        ComponentBehaviour comp = Target.GetComponent(componentName) as ComponentBehaviour;
-        if (comp == null)
-        {
-            Debug.LogWarning($"Componente {componentName} não encontrado no alvo.");
-            return;
-        }
-
-        // Pega o valor atual do atributo para identificar o tipo (int, float, bool ou outro)
-        var attr = comp.GetAttribute<object>(attributeName);
-
-        // Define o novo valor convertendo para o tipo correto
-        if (attr is int)
-            comp.SetAttribute(attributeName, int.Parse(value));
-        else if (attr is float)
-            comp.SetAttribute(attributeName, float.Parse(value));
-        else if (attr is bool)
-            comp.SetAttribute(attributeName, bool.Parse(value));
-        else
-            comp.SetAttribute(attributeName, value); // Se não reconhecido, define como string
-
-        Debug.Log($"Atributo '{attributeName}' de '{componentName}' setado para {value}");
-    }
-
     // Comando para teletransportar o alvo para uma posição específica no mundo
     [ConsoleMethod("teleportTo", "Teleporta o alvo para X Y Z", "x y z")]
     public static void TeleportTo(float x, float y, float z)
@@ -239,4 +144,47 @@ public class ConsoleComponent : MonoBehaviour
             Debug.Log($"- {p.ID}");
         }
     }
+
+
+    [ConsoleMethod("modifyStat", "Modifica os status do target", "TIME NOME_STATUS TIPO_STATUS POS_OU_NEG QUALITYTIER DURAÇÃO")]
+    public static void ModifyStat(TimeTYPE time, string statname, string type, ModifyTYPE modtype, QualityTier tier, float duration = 5.0f)
+    {
+        print(type);
+        if (Target == null || !Target.TryGetComponent(out LiveEntities live))
+        {
+            print("Sem Target ou sem LiveEntities");
+            return;
+        }
+        TypeCode typeCode = Type.GetTypeCode(StringtoTypes.TypeMap[type.ToLower()]);
+        if (statModifiers.TryGetValue(typeCode, out var action))
+        {
+            action.Invoke(live, statname, modtype, tier, duration, time);
+        }
+        else
+        {
+            Debug.LogWarning($"Tipo '{type}' não suportado.");
+        }
+    }
+
+
+
+
+
+
+    private static void ModifyFloatStat(LiveEntities live, string statName, ModifyTYPE modType, QualityTier tier, float duration, TimeTYPE timeType)
+    {
+        if (timeType == TimeTYPE.PERMANENT)
+            live.stats.ModifyStatImmediate<float>(statName, modType, tier);
+        else
+            live.StartCoroutine(live.stats.ModifyStatCoroutine<float>(statName, modType, tier, duration));
+    }
+
+    private static void ModifyBoolStat(LiveEntities live, string statName, ModifyTYPE modType, QualityTier tier, float duration, TimeTYPE timeType)
+    {
+        if (timeType == TimeTYPE.PERMANENT)
+            live.stats.ModifyStatImmediate<bool>(statName, modType, tier);
+        else
+            live.StartCoroutine(live.stats.ModifyStatCoroutine<bool>(statName, modType, tier, duration));
+    }
 }
+
