@@ -1051,6 +1051,83 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 1
+--- !u!1001 &411702079
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 25.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.66
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -20.31
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      propertyPath: m_Name
+      value: ColorButton
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 411702081}
+  m_SourcePrefab: {fileID: 100100000, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+--- !u!1 &411702080 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+  m_PrefabInstance: {fileID: 411702079}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &411702081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 411702080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77e65cebb26e3134fa356621d5bb93d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &422083386
 GameObject:
   m_ObjectHideFlags: 0
@@ -1348,10 +1425,6 @@ MonoBehaviour:
     m_ActionId: 852140f2-7766-474d-8707-702459ba45f3
     m_ActionName: 'Player/Interact[/Keyboard/e]'
   - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 27c5f898-bc57-4ee1-8800-db469aca5fe3
-    m_ActionName: 'Player/Crouch[/Keyboard/c]'
-  - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 451995847}
         m_TargetAssemblyTypeName: Player, Assembly-CSharp
@@ -1435,6 +1508,10 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: d8b279e1-f91a-406c-b7b8-caff32fbb9e6
+    m_ActionName: 'Player/Interaction[/Keyboard/f]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -4129,7 +4206,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1637740825}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Entidades
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4298,7 +4375,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1786869554}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Inimigos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6012,3 +6089,4 @@ SceneRoots:
   - {fileID: 510297408}
   - {fileID: 1637740825}
   - {fileID: 565489088}
+  - {fileID: 411702079}
