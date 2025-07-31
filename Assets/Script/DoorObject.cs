@@ -6,7 +6,8 @@ public class DoorObject : ObjectActivatable
     private bool opened = false;
     private void Start()
     {
-        TryGetComponent(out animator);
+        GameObject child = transform.Find("porta").gameObject;
+        child.TryGetComponent(out animator);
     }
     public override void ObjectAction()
     {
@@ -14,11 +15,11 @@ public class DoorObject : ObjectActivatable
         switch (opened)
         {
             case false:
-                animator.PlayInFixedTime("Pivo|OpenAction_001");
+                animator.SetTrigger("Open");
                 opened = true;
                 break;
             case true:
-                animator.Play("Pivo|CloseAction_001");
+                animator.SetTrigger("Close");
                 opened = false;
                 break;
         }
