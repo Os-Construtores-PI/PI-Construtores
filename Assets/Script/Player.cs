@@ -77,7 +77,7 @@ public class Player : CombatEntities
 
     #region Interação
     Camera selectedcamera = null;
-    private Interactable interactableRef;
+    private ObjectInteractable interactableRef;
     [SerializeField] private float interactionScanCooldown = 1.5f;
     private float interactionScanCooldownWalker = 0.0f;
     #endregion
@@ -310,7 +310,7 @@ public class Player : CombatEntities
         LayerMask layer = LayerMask.GetMask("Object");
         if (Physics.SphereCast(ray, 10f, out RaycastHit hit, 10, layer))
         {
-            if (hit.collider.TryGetComponent(out Interactable interactable))
+            if (hit.collider.TryGetComponent(out ObjectInteractable interactable))
             {
                 interactableRef = interactable;
                 return;

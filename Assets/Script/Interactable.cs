@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Interactable : MonoBehaviour
+public abstract class ObjectInteractable : MonoBehaviour
 {
     public virtual void Interaction()
     {

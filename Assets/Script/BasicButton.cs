@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
-public class BasicButton : Interactable
+public class BasicButton : ObjectInteractable
 {
     private readonly UnityEvent buttonPressed = new();
     [SerializeField] private ActivatableObject targetobject;
