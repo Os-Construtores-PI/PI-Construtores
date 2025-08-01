@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ObjectActivatable : MonoBehaviour
+public class ActivatableObject : MonoBehaviour
 {
     public virtual void ObjectAction()
     {

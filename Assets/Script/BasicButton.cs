@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class BasicButton : Interactable
 {
     private readonly UnityEvent buttonPressed = new();
-    [SerializeField] private ObjectActivatable targetobject;
+    [SerializeField] private ActivatableObject targetobject;
 
     public virtual void Start()
     {

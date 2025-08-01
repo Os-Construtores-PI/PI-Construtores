@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DoorObject : ObjectActivatable
+public class DoorObject : ActivatableObject
 {
     [SerializeField] Animator animator;
     private bool opened = false;
