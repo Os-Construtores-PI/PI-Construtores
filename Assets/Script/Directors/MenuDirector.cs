@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class MenuGamePandoraPI : MonoBehaviour
+public class MenuDirector : MonoBehaviour
 {
     [SerializeField] Transform[] _painelMenu; // transform que interage com os botões do menu
     
