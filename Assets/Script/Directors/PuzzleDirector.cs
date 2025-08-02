@@ -6,7 +6,7 @@ public class PuzzleDirector : MonoBehaviour
 {
     [SerializeField] private List<PuzzleLampObject> lamps;
     [SerializeField] private float durationDesired = 3f;
-
+    [SerializeField] float intensityLight = 20f;
     private List<Color> puzzleColors = new(4) { Color.yellow, Color.red, Color.blue, Color.green };
 
     public bool canFlash = true;
@@ -19,6 +19,7 @@ public class PuzzleDirector : MonoBehaviour
             return;
         }
         puzzleColors = StaticRandomizer.ListRandomizer(puzzleColors);
+        GameObject.FindFirstObjectByType<CodeCapturer>().SetupCode(puzzleColors);
         StartCoroutine(FlashLights());
 
     }
@@ -28,9 +29,8 @@ public class PuzzleDirector : MonoBehaviour
         {
             for (int i = 0; i < lamps.Count; i++)
             {
-                lamps[i].SetColor(puzzleColors[i]);
-                lamps[i].SetDuration(durationDesired);
-                lamps[i].ObjectAction();
+                lamps[i].SetupCorDurIntensity(puzzleColors[i], durationDesired, intensityLight);
+                lamps[i].ObjectAction(default);
                 yield return new WaitForSeconds(durationDesired);
             }
         }

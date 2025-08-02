@@ -4,10 +4,9 @@ using UnityEngine;
 public class PuzzleLampObject : ActivatableObject
 {
     [SerializeField] GameObject lightModel;
-    [SerializeField] Color colorLight = Color.white;
-    [SerializeField] float intensityLight = 10f;
     float durationLight;
-
+    float intensityLight;
+    Color colorLight = Color.white;
 
     MeshRenderer lightRenderer;
     Material lightMaterial;
@@ -25,7 +24,7 @@ public class PuzzleLampObject : ActivatableObject
     {
         TurnWalkerHolder();
     }
-    public override void ObjectAction()
+    public override void ObjectAction(object info = default)
     {
         if (!lightMaterial) return;
         TurnOn();
@@ -57,12 +56,11 @@ public class PuzzleLampObject : ActivatableObject
             }
         }
     }
-    public void SetColor(Color color)
+    public void SetupCorDurIntensity(Color color, float duration, float intensity)
     {
         colorLight = color;
-    }
-    public void SetDuration(float duration)
-    {
         durationLight = duration;
+        intensityLight = intensity;
     }
+
 }

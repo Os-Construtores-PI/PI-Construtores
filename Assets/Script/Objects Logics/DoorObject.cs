@@ -9,7 +9,7 @@ public class DoorObject : ActivatableObject
         GameObject child = transform.Find("porta").gameObject;
         child.TryGetComponent(out animator);
     }
-    public override void ObjectAction()
+    public override void ObjectAction(object info = default)
     {
         if (!animator) return;
         switch (opened)
