@@ -136,10 +136,8 @@ public class Player : CombatEntities
     }
     public void OnInteract(InputAction.CallbackContext context)
     {
-        print("Player interação1");
         if (interactableRef && context.started)
         {
-            print("Player interação2");
             interactableRef.Interaction();
         }
     }

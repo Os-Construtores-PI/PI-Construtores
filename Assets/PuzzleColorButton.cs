@@ -3,7 +3,8 @@ using UnityEngine.Events;
 
 public class PuzzleColorButton : InteractableObject
 {
-    [SerializeField] Color buttonColor = Color.white;
+    [SerializeField] ColorCODE buttonEnumColor = ColorCODE.RED;
+    private Color buttonColor = Color.red;
     [SerializeField] private CodeCapturer targetobject;
 
 
@@ -11,6 +12,7 @@ public class PuzzleColorButton : InteractableObject
 
     public virtual void Start()
     {
+        buttonColor = EnumtoColor.Colors[buttonEnumColor];
         Transform button = transform.Find("BOTAOHOLDER/BOTAOMOVEL");
         if (button)
         {
@@ -24,7 +26,6 @@ public class PuzzleColorButton : InteractableObject
     }
     public override void Interaction()
     {
-        print("Butão interação");
         buttonPressed.Invoke(buttonColor);
     }
 }

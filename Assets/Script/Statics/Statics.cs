@@ -19,7 +19,43 @@ public static class Tiers
         return EvaluationMap.TryGetValue(tier, out var value) ? value : 1.0f;
     }
 }
+public static class EnumtoColor
+{
+    public static readonly Dictionary<ColorCODE, Color> Colors = new()
+    {
+        {ColorCODE.BLUE,Color.blue},
+        {ColorCODE.GREEN,Color.green},
+        {ColorCODE.YELLOW,Color.yellow},
+        {ColorCODE.RED,Color.red}
+    };
+}
 
+public static class ListUtils
+{
+    public static bool ListIdenticalComparison<T>(List<T> list1, List<T> list2)
+    {
+        if (list1 == null || list2 == null) return default;
+        if (typeof(T) == typeof(Color))
+        {
+            for (int i = 0; i < list1.Count; i++)
+            {
+                if (!CompareColors((Color)(object)list1[i], (Color)(object)list2[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return list1.SequenceEqual(list2);
+    }
+    private static bool CompareColors(Color a, Color b, float tolerance = 0.01f)
+    {
+        return Mathf.Abs(a.r - b.r) < tolerance &&
+               Mathf.Abs(a.g - b.g) < tolerance &&
+               Mathf.Abs(a.b - b.b) < tolerance &&
+               Mathf.Abs(a.a - b.a) < tolerance;
+    }
+}
 
 public static class StringtoTypes
 {

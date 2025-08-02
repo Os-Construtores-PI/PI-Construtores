@@ -19,7 +19,7 @@ public class PuzzleDirector : MonoBehaviour
             return;
         }
         puzzleColors = StaticRandomizer.ListRandomizer(puzzleColors);
-        GameObject.FindFirstObjectByType<CodeCapturer>().SetupCode(puzzleColors);
+        FindFirstObjectByType<CodeCapturer>().SetupCode(puzzleColors);
         StartCoroutine(FlashLights());
 
     }
