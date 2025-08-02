@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public static class Tiers
 {
@@ -33,6 +34,23 @@ public static class StringtoTypes
     { "short", typeof(short) },
     { "byte", typeof(byte) },
     };
-    
+
 }
 
+public static class StaticRandomizer
+{
+    public static List<T> ListRandomizer<T>(List<T> oglist)
+    {
+        List<T> list = oglist;
+        System.Random rng = new();
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            (list[n], list[k]) = (list[k], list[n]);
+        }
+        return list;
+    }
+    
+}
