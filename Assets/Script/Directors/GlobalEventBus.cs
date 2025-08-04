@@ -4,7 +4,7 @@ using UnityEngine.Events;
 public class GlobalEventBus : MonoBehaviour
 {
     public static GlobalEventBus Instance { get; private set; }
-    public UnityEvent<bool,InteractableObject, int> ObjectWasSeen = new();
+    [HideInInspector] public UnityEvent<bool,InteractableObject, int> ObjectWasSeen = new();
     private void Awake()
     {
         if (Instance != null && Instance != this)

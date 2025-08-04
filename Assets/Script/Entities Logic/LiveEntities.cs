@@ -195,20 +195,5 @@ public class StatAttribute : Attribute
     }
 }
 
-/// <summary>
-/// Helper de reflexão para buscar propriedades pelo nome da stat.
-/// </summary>
-public static class ReflectionHelpers
-{
-    public static PropertyInfo GetPropertyByStatName(this Type type, string statName)
-    {
-        var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        foreach (var prop in properties)
-        {
-            var attr = prop.GetCustomAttribute<StatAttribute>();
-            if (attr != null && attr.Name == statName)
-                return prop;
-        }
-        return null;
-    }
-}
+
+

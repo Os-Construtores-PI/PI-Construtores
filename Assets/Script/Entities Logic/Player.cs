@@ -305,7 +305,7 @@ public class Player : CombatEntities
         if (!selectedcamera) return;
         Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
         LayerMask layer = LayerMask.GetMask("Object");
-        if (Physics.SphereCast(ray, 10f, out RaycastHit hit, 3, layer))
+        if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 17.5f, layer))
         {
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
