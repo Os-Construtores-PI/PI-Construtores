@@ -37,7 +37,11 @@ public enum TimeTYPE
     PERMANENT,
     TEMPORARY
 }
-public enum ColorCODE
+
+public enum ColorCode
 {
-    RED,GREEN,YELLOW,BLUE
+    YELLOW,
+    BLUE,
+    RED,
+    GREEN
 }

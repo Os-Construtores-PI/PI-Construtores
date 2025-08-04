@@ -4,8 +4,8 @@ using UnityEngine.Events;
 
 public class CodeCapturer : ActivatableObject
 {
-    private List<Color> codeDirector = new(4);
-    private List<Color> codePlayer = new(4);
+    private List<Code> codeDirector = new(4);
+    private List<Code> codePlayer = new(4);
     [SerializeField] private ActivatableObject objecttoactivate;
     private readonly UnityEvent<object> codeCorrect = new();
     private readonly UnityEvent<object> codeIncorrect = new();
@@ -15,39 +15,56 @@ public class CodeCapturer : ActivatableObject
         if (!objecttoactivate) return;
         codeCorrect.AddListener(objecttoactivate.ObjectAction);
     }
-    public void SetupCode(List<Color> puzzleCode)
+    public void SetupCode(List<Code> puzzleCode)
     {
         codeDirector = puzzleCode;
     }
     public override void ObjectAction(object info = null)
     {
-        if (info is Color color)
+        if (info is Code code)
         {
-            AddToPlayerCode(color);
+            AddToPlayerCode(code);
         }
     }
-    private void AddToPlayerCode(Color color)
+    private void AddToPlayerCode(Code code)
     {
-        codePlayer.Add(color);
-        print(color);
+        codePlayer.Add(code);
         if (codePlayer.Count == 4)
         {
-            CompareCodes();
+            if (CompareCodes())
+            {
+                print("Acertou");
+                codeCorrect.Invoke(default);
+            }
+            else
+            {
+                print("Errou");
+                codeIncorrect.Invoke(default);
+            }
             codePlayer.Clear();
         }
     }
-    private void CompareCodes()
+    private bool CompareCodes()
     {
-        if (ListUtils.ListIdenticalComparison(codePlayer,codeDirector))
+        print($"CODEDIRECTOR : \n{ListUtils.ToString(GetNumbers(codeDirector))}");
+        print($"CODEPLAYER : \n{ListUtils.ToString(GetNumbers(codePlayer))}");
+        for (int i = 0; i < codeDirector.Count; i++)
         {
-            codeCorrect.Invoke(default);
-            print("Acertou");
+            if (codeDirector[i].number != codePlayer[i].number)
+            {
+                return false;
+            }
         }
-        else
+        return true;
+    }
+    private List<int> GetNumbers(List<Code> codes)
+    {
+        List<int> numbers = new();
+        foreach (Code code in codes)
         {
-            codeIncorrect.Invoke(default);
-            print("Errou");
+            numbers.Add(code.number);
+        }
 
-        }
+        return numbers;
     }
 }

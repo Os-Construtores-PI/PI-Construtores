@@ -43,7 +43,6 @@ public class Player : CombatEntities
     [Header("Componentes")]
     [SerializeField] private CharacterController characterController;
     [SerializeField] private CinemachineCamera cinemachineCamera;
-    [SerializeField] private Transform handTransform;
 
     #endregion
 
@@ -78,7 +77,7 @@ public class Player : CombatEntities
     #region Interação
     Camera selectedcamera = null;
     private InteractableObject interactableRef;
-    [SerializeField] private float interactionScanCooldown = 1.5f;
+    [SerializeField] private float interactionScanCooldown = .1f;
     private float interactionScanCooldownWalker = 0.0f;
     #endregion
 
@@ -306,11 +305,12 @@ public class Player : CombatEntities
         if (!selectedcamera) return;
         Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
         LayerMask layer = LayerMask.GetMask("Object");
-        if (Physics.SphereCast(ray, 10f, out RaycastHit hit, 10, layer))
+        if (Physics.SphereCast(ray, 10f, out RaycastHit hit, 3, layer))
         {
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
                 interactableRef = interactable;
+                print(interactableRef.GetInstanceID());
                 return;
             }
         }

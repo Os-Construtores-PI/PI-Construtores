@@ -1,23 +1,24 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class PuzzleColorButton : InteractableObject
 {
-    [SerializeField] ColorCODE buttonEnumColor = ColorCODE.RED;
-    private Color buttonColor = Color.red;
+    [SerializeField]private ColorCode buttonColorEnum = ColorCode.RED;
     [SerializeField] private CodeCapturer targetobject;
 
 
+    private Code buttonCode;
     private readonly UnityEvent<object> buttonPressed = new();
 
     public virtual void Start()
     {
-        buttonColor = EnumtoColor.Colors[buttonEnumColor];
+        buttonCode = CodeBaseFour.Codes.Find(i => i.number == (int)buttonColorEnum);
         Transform button = transform.Find("BOTAOHOLDER/BOTAOMOVEL");
         if (button)
         {
             button.TryGetComponent(out MeshRenderer buttonMesh);
-            buttonMesh.material.color = buttonColor;
+            buttonMesh.material.color = buttonCode.color;
         }
         if (targetobject)
         {
@@ -26,6 +27,8 @@ public class PuzzleColorButton : InteractableObject
     }
     public override void Interaction()
     {
-        buttonPressed.Invoke(buttonColor);
+        if (buttonCode.Equals(null)) return;
+        print($"BUTTON COLOR : {buttonCode.color} // BUTTON NUMBER : {buttonCode.number} // BUTTON ID: {GetInstanceID()}");
+        buttonPressed.Invoke(buttonCode);
     }
 }
