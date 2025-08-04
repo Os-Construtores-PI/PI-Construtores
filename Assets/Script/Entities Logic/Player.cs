@@ -1,5 +1,6 @@
 using DG.Tweening;
 using Unity.Cinemachine;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -42,7 +43,6 @@ public class Player : CombatEntities
     [Header("Componentes")]
     [SerializeField] private CharacterController characterController;
     [SerializeField] private CinemachineCamera cinemachineCamera;
-    [SerializeField] private Transform handTransform;
 
     #endregion
 
@@ -74,11 +74,19 @@ public class Player : CombatEntities
     #endregion
 
 
+    #region Interação
+    Camera selectedcamera = null;
+    private InteractableObject interactableRef;
+    [SerializeField] private float interactionScanCooldown = .1f;
+    private float interactionScanCooldownWalker = 0.0f;
+    #endregion
+
     #region --- Inicialização Unity ---
 
     public override void Awake()
     {
         base.Awake();
+        SetupCamera();
 
         characterController = GetComponent<CharacterController>();
         moveAction = InputSystem.actions.FindAction("Move");
@@ -93,15 +101,8 @@ public class Player : CombatEntities
     public override void Update()
     {
         base.Update();
-        if (enemyScanWalker <= enemyScanCooldown)
-        {
-            enemyScanWalker += Time.deltaTime;
-        }
-        else
-        {
-            EnemyScan();
-            enemyScanWalker = 0;
-        }
+        EnemyScanLogicHolder();
+        ObjectScanLogicHolder();
     }
 
     private void FixedUpdate()
@@ -131,6 +132,13 @@ public class Player : CombatEntities
     {
         if (context.started)
             Jump();
+    }
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if (interactableRef && context.started)
+        {
+            interactableRef.Interaction();
+        }
     }
 
     #endregion
@@ -268,8 +276,56 @@ public class Player : CombatEntities
                 if (distance <= enemyScanRadius)
                 {
                     enemytmp.SetActive(true);
-                }   
+                }
             }
+        }
+    }
+    private void EnemyScanLogicHolder()
+    {
+        if (enemyScanWalker <= enemyScanCooldown)
+        {
+            enemyScanWalker += Time.deltaTime;
+        }
+        else
+        {
+            EnemyScan();
+            enemyScanWalker = 0;
+        }
+    }
+/*     void OnDrawGizmos()
+    {
+        if (!selectedcamera) return;
+        var p1 = selectedcamera.transform.position;
+        var p2 = selectedcamera.transform.forward * 10;
+        var thickness = 100;
+        Handles.DrawBezier(p1, p2, p1, p2, Color.black, null, thickness);
+    } */
+    private void ObjectScan()
+    {
+        if (!selectedcamera) return;
+        Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
+        LayerMask layer = LayerMask.GetMask("Object");
+        if (Physics.SphereCast(ray, 10f, out RaycastHit hit, 3, layer))
+        {
+            if (hit.collider.TryGetComponent(out InteractableObject interactable))
+            {
+                interactableRef = interactable;
+                print(interactableRef.GetInstanceID());
+                return;
+            }
+        }
+        interactableRef = null;
+    }
+    private void ObjectScanLogicHolder()
+    {
+        if (interactionScanCooldownWalker <= interactionScanCooldown)
+        {
+            interactionScanCooldownWalker += Time.deltaTime;
+        }
+        else
+        {
+            ObjectScan();
+            interactionScanCooldownWalker = 0;
         }
     }
     #endregion
@@ -278,6 +334,22 @@ public class Player : CombatEntities
 
     private float SmoothLerp(float from, float to, float smoothing)
         => Mathf.Lerp(from, to, 1f - Mathf.Exp(-smoothing * Time.deltaTime));
+
+    #endregion
+
+    #region --- Camera ---
+    private void SetupCamera()
+    {
+        Camera[] cameras = Camera.allCameras;
+        foreach (Camera camera in cameras)
+        {
+            camera.TryGetComponent(out CameraLogic cameraLogic);
+            if (cameraLogic && cameraLogic.ID == ID)
+            {
+                selectedcamera = camera;
+            }
+        }
+    }
 
     #endregion
 }

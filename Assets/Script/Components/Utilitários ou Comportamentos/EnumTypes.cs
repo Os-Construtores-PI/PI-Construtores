@@ -35,5 +35,13 @@ public enum ModifyTYPE
 public enum TimeTYPE
 {
     PERMANENT,
-    TEMPORARY 
+    TEMPORARY
+}
+
+public enum ColorCode
+{
+    YELLOW,
+    BLUE,
+    RED,
+    GREEN
 }

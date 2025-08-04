@@ -48,4 +48,14 @@ public struct Typestats
     public Dictionary<string, bool> _boolstats;
 }
 
+public struct Code
+{
+    public int number;
+    public Color color;
+    public Code(int num, Color col)
+    {
+        number = num;
+        color = col;
+    }
+}
 
