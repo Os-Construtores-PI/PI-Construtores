@@ -153,7 +153,7 @@ public abstract class LiveEntities : Entities
     }
     public virtual void DeathHandler()
     {
-
+        
     }
 
 

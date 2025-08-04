@@ -30,24 +30,30 @@ public class HUDDirector : MonoBehaviour
     private void Start()
     {
         DOTween.Init();
+        GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         // Esconde os elementos do painel GameOver
-        if (painelMap.TryGetValue("GameOver", out var gameOverPainel))
+        DisablePanel(ConstantNames.GameOver);
+        DisablePanel(ConstantNames.InteractionPopup);
+    }
+    private void DisablePanel(string panel_name)
+    {
+        if (painelMap.TryGetValue(panel_name, out var panel))
         {
-            int lenght = gameOverPainel.Count;
+            int lenght = panel.Count;
             for (int i = 0; i < lenght; i++)
             {
-                if (i == 0 && gameOverPainel[i].TryGetComponent(out Image image))
+                if (i == 0 && panel[i].TryGetComponent(out Image image))
                 {
                     image.DOFade(0f, 0f);
                 }
-                gameOverPainel[i].transform.localScale = Vector3.zero;
+                panel[i].transform.localScale = Vector3.zero;
             }
         }
     }
 
-    public void ShowGameOver()
+    public void ShowFade(string panel_name)
     {
-        if (painelMap.TryGetValue("GameOver", out var gameOverPainel))
+        if (painelMap.TryGetValue(panel_name, out var gameOverPainel))
         {
             int lenght = gameOverPainel.Count;
             for (int i = 0; i < lenght; i++)
@@ -74,6 +80,10 @@ public class HUDDirector : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(.25f);
         noise.AmplitudeGain = 0;
+    }
+    public void InteractionPopup(bool seeing, InteractableObject obj, int id)
+    {
+        print($"{seeing}, {obj}, {id}");
     }
 
 }

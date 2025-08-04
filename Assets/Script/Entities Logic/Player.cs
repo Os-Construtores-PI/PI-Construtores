@@ -2,6 +2,7 @@ using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
@@ -75,10 +76,10 @@ public class Player : CombatEntities
 
 
     #region Interação
-    Camera selectedcamera = null;
-    private InteractableObject interactableRef;
     [SerializeField] private float interactionScanCooldown = .1f;
+    private InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
+    private Camera selectedcamera = null;
     #endregion
 
     #region --- Inicialização Unity ---
@@ -87,7 +88,6 @@ public class Player : CombatEntities
     {
         base.Awake();
         SetupCamera();
-
         characterController = GetComponent<CharacterController>();
         moveAction = InputSystem.actions.FindAction("Move");
     }
@@ -292,14 +292,14 @@ public class Player : CombatEntities
             enemyScanWalker = 0;
         }
     }
-/*     void OnDrawGizmos()
-    {
-        if (!selectedcamera) return;
-        var p1 = selectedcamera.transform.position;
-        var p2 = selectedcamera.transform.forward * 10;
-        var thickness = 100;
-        Handles.DrawBezier(p1, p2, p1, p2, Color.black, null, thickness);
-    } */
+    /*     void OnDrawGizmos()
+        {
+            if (!selectedcamera) return;
+            var p1 = selectedcamera.transform.position;
+            var p2 = selectedcamera.transform.forward * 10;
+            var thickness = 100;
+            Handles.DrawBezier(p1, p2, p1, p2, Color.black, null, thickness);
+        } */
     private void ObjectScan()
     {
         if (!selectedcamera) return;
@@ -310,10 +310,11 @@ public class Player : CombatEntities
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
                 interactableRef = interactable;
-                print(interactableRef.GetInstanceID());
+                GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
                 return;
             }
         }
+        GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
         interactableRef = null;
     }
     private void ObjectScanLogicHolder()

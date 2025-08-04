@@ -65,6 +65,12 @@ public static class StringtoTypes
 
 }
 
+public static class ConstantNames
+{
+    public static readonly string GameOver = "GameOver";
+    public static readonly string InteractionPopup = "InteractionPopup";
+}
+
 public static class StaticRandomizer
 {
     public static List<T> ListRandomizer<T>(List<T> oglist)
@@ -80,5 +86,5 @@ public static class StaticRandomizer
         }
         return list;
     }
-    
+
 }
