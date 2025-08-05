@@ -10,6 +10,7 @@ public class MenuDirector : MonoBehaviour
     
     [SerializeField] Transform[] _painelConfig; // transform que chama e interage com o painel de config
     [SerializeField] Transform[] _parts;
+    [SerializeField] Transform[] _partsConfig;
 
     [SerializeField] Button[] _botoes; // Variavel que chama os botoes animados
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -49,9 +50,9 @@ public class MenuDirector : MonoBehaviour
     {
      
         // desativa todos os paineis de configuração com animação de escala para zero
-        for (int i = 0; i < _painelConfig.Length; i++)
+        for (int i = 0; i < _partsConfig.Length; i++)
         {
-            _painelConfig[i].DOScale(0, .25f);
+            _partsConfig[i].DOScale(0, .25f);
         }
     }
 
@@ -62,6 +63,16 @@ public class MenuDirector : MonoBehaviour
             _painelMenu[i].DOScale(0, .25f);
         }
     }
+
+    public void PainelMusicPartsCheck()
+    {
+        for (int i = 0; i < _partsConfig.Length; i++)
+        {
+            _painelConfig[i].DOScale(0, .25f);
+        }
+    }
+    
+    
 
     public void PainelStartCheck(bool CheckON)
     {   // ativa ou desativa do menu principal baseado no parametro
@@ -88,6 +99,18 @@ public class MenuDirector : MonoBehaviour
             PainelStartOff(); // se falso, desativa os paineis
         }
     }
+    public void PainelMusicCheck(bool CheckON)
+    {
+        if (CheckON == true)
+        {
+            StartCoroutine(TimeConfigSom());
+        }
+        else
+        {
+            PainelMusicPartsCheck();
+        }
+    }
+
 
     IEnumerator TimeStart()
     {
@@ -119,6 +142,15 @@ public class MenuDirector : MonoBehaviour
             _painelConfig[i].DOScale(1.5f, .25f);
             yield return new WaitForSeconds(0.25f);
             _painelConfig[i].DOScale(1, .25f);
+        }
+    }
+    IEnumerator TimeConfigSom()
+    {
+        for (int i = 0; i < _partsConfig.Length; i++)
+        {
+            _partsConfig[i].DOScale(1.5f, .25f);
+            yield return new WaitForSeconds(0.25f);
+            _partsConfig[i].DOScale(1, .25f);
         }
     }
 
