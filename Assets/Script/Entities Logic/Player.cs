@@ -62,8 +62,6 @@ public class Player : CombatEntities
 
     private InputAction moveAction;
 
-    private readonly Inventory inventory = new();
-    public Inventory Inventario => inventory;
     #endregion
 
 
@@ -79,6 +77,11 @@ public class Player : CombatEntities
     private InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
     private Camera selectedcamera = null;
+    #endregion
+
+    #region Inventário
+    private readonly Inventory inventory = new();
+    public Inventory Inventario => inventory;
     #endregion
 
     #region --- Inicialização Unity ---
@@ -345,27 +348,3 @@ public class Player : CombatEntities
     #endregion
 
 }
-#region --- INVENTÁRIO ---
-internal class Inventory
-{
-    private List<ItemDataBase> items;
-
-    public void AddItem()
-    {
-
-    }
-    public void ModifyItem()
-    {
-
-    }
-    public void RemoveItem()
-    {
-
-    }
-    public void UseItem()
-    {
-        
-    }
-
-}
-#endregion
