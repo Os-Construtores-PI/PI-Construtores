@@ -36,7 +36,7 @@ public struct StatModification
         RemainingTime = duration;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         string tempText = IsTemporary ? $" (temporário, {RemainingTime:0.0}s restantes)" : " (permanente)";
         return $"[{StatName}] {Tier} {ModifyType}{tempText}";
@@ -59,3 +59,9 @@ public struct Code
     }
 }
 
+[Serializable]
+public struct Painel
+{
+    public string nome;
+    public List<GameObject> painel;
+}

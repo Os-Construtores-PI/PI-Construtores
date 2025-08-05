@@ -199,7 +199,7 @@ GameObject:
   - component: {fileID: 39335538}
   - component: {fileID: 39335540}
   - component: {fileID: 39335539}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Vidro
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -459,7 +459,7 @@ GameObject:
   - component: {fileID: 55811137}
   - component: {fileID: 55811139}
   - component: {fileID: 55811138}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Vidro
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -578,7 +578,7 @@ GameObject:
   - component: {fileID: 87962082}
   - component: {fileID: 87962084}
   - component: {fileID: 87962083}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Luz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -890,7 +890,6 @@ GameObject:
   m_Component:
   - component: {fileID: 158197043}
   - component: {fileID: 158197045}
-  - component: {fileID: 158197044}
   m_Layer: 9
   m_Name: Puzzledoor
   m_TagString: Untagged
@@ -914,27 +913,6 @@ Transform:
   - {fileID: 1288129942}
   m_Father: {fileID: 2129302936}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!65 &158197044
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 158197042}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2, y: 12, z: 7}
-  m_Center: {x: 0, y: 0, z: -3}
 --- !u!114 &158197045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1815,7 +1793,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 414248102}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: lampada
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2083,7 +2061,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 441554394}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: lampada
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2163,7 +2141,6 @@ MonoBehaviour:
   dashCooldown: 5
   characterController: {fileID: 451995849}
   cinemachineCamera: {fileID: 462258510}
-  handTransform: {fileID: 0}
   enemyScanRadius: 20
   enemyScanCooldown: 1.5
   interactionScanCooldown: 0.1
@@ -2735,7 +2712,7 @@ GameObject:
   - component: {fileID: 463234492}
   - component: {fileID: 463234494}
   - component: {fileID: 463234493}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BaseLuz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2822,7 +2799,7 @@ GameObject:
   - component: {fileID: 486292253}
   - component: {fileID: 486292255}
   - component: {fileID: 486292254}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BaseLuz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3572,6 +3549,10 @@ MonoBehaviour:
     painel:
     - {fileID: 1948063486}
     - {fileID: 920776715}
+  - nome: InteractionPopup
+    painel:
+    - {fileID: 1795952244}
+    - {fileID: 1447125725}
 --- !u!1 &646211446
 GameObject:
   m_ObjectHideFlags: 0
@@ -4186,7 +4167,7 @@ GameObject:
   - component: {fileID: 1103273053}
   - component: {fileID: 1103273055}
   - component: {fileID: 1103273054}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4272,7 +4253,7 @@ GameObject:
   - component: {fileID: 1135821587}
   - component: {fileID: 1135821589}
   - component: {fileID: 1135821588}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Vidro
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4680,6 +4661,7 @@ GameObject:
   - component: {fileID: 1288129945}
   - component: {fileID: 1288129944}
   - component: {fileID: 1288129943}
+  - component: {fileID: 1288129946}
   m_Layer: 9
   m_Name: porta
   m_TagString: Untagged
@@ -4777,6 +4759,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1288129941}
   m_Mesh: {fileID: 7202019439985978107, guid: 4d326e918568906448c0245830851d3f, type: 3}
+--- !u!65 &1288129946
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1288129941}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.020505534, y: 0.059196454, z: 0.10889439}
+  m_Center: {x: -0.00033706203, y: 0.029193394, z: 0.006000684}
 --- !u!1 &1288278941
 GameObject:
   m_ObjectHideFlags: 0
@@ -4787,7 +4790,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1288278942}
   - component: {fileID: 1288278943}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Lampada (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4911,6 +4914,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1319066477}
+  - component: {fileID: 1319066478}
   m_Layer: 0
   m_Name: Directors
   m_TagString: Untagged
@@ -4937,6 +4941,21 @@ Transform:
   - {fileID: 1570515552}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1319066478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319066476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b3e11c859785a74c9e533085fc3691e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectWasSeen:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1338073286
 GameObject:
   m_ObjectHideFlags: 0
@@ -5397,6 +5416,142 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1435881794}
   m_CullTransparentMesh: 1
+--- !u!1 &1447125725
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1447125726}
+  - component: {fileID: 1447125728}
+  - component: {fileID: 1447125727}
+  m_Layer: 5
+  m_Name: InteractionLetter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1447125726
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447125725}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1795952245}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1447125727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447125725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: F
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
+  m_sharedMaterial: {fileID: -9140512969687513639, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 72
+  m_fontSizeBase: 36
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 1
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1447125728
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447125725}
+  m_CullTransparentMesh: 1
 --- !u!1 &1447524677
 GameObject:
   m_ObjectHideFlags: 0
@@ -5408,7 +5563,7 @@ GameObject:
   - component: {fileID: 1447524678}
   - component: {fileID: 1447524680}
   - component: {fileID: 1447524679}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Luz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5630,7 +5785,7 @@ GameObject:
   - component: {fileID: 1509546794}
   - component: {fileID: 1509546796}
   - component: {fileID: 1509546795}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5823,7 +5978,7 @@ GameObject:
   - component: {fileID: 1547570173}
   - component: {fileID: 1547570175}
   - component: {fileID: 1547570174}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Luz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6175,7 +6330,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1610880395}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: lampada
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6243,7 +6398,7 @@ GameObject:
   - component: {fileID: 1621671935}
   - component: {fileID: 1621671937}
   - component: {fileID: 1621671936}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BaseLuz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6636,6 +6791,82 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1637740825}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1795952244
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1795952245}
+  - component: {fileID: 1795952247}
+  - component: {fileID: 1795952246}
+  m_Layer: 5
+  m_Name: InteractionPopup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1795952245
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795952244}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1447125726}
+  m_Father: {fileID: 1831193937}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -350}
+  m_SizeDelta: {x: 150, y: 150}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1795952246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795952244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 1880952561, guid: ccecb26c98b650a4c9dab1dc05a91367, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1795952247
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795952244}
+  m_CullTransparentMesh: 1
 --- !u!1 &1812244190
 GameObject:
   m_ObjectHideFlags: 0
@@ -6678,7 +6909,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1819637612}
   - component: {fileID: 1819637613}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Lampada (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6897,6 +7128,7 @@ RectTransform:
   - {fileID: 351930194}
   - {fileID: 2132223435}
   - {fileID: 1948063487}
+  - {fileID: 1795952245}
   m_Father: {fileID: 1836942652}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -7392,7 +7624,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &1954656020
 Canvas:
   m_ObjectHideFlags: 0
@@ -7446,7 +7678,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1980088069}
   - component: {fileID: 1980088070}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: CodeCapturer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7491,7 +7723,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1999723144}
   - component: {fileID: 1999723145}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Lampada (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7924,7 +8156,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2129302936}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Objetos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8046,7 +8278,7 @@ GameObject:
   - component: {fileID: 2141861796}
   - component: {fileID: 2141861798}
   - component: {fileID: 2141861797}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8252,7 +8484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2219698671471546055}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: lampada
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8446,7 +8678,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6101029475210381243}
   - component: {fileID: 5876957179906853768}
-  - component: {fileID: 8784009388343770159}
   m_Layer: 9
   m_Name: Door
   m_TagString: Untagged
@@ -8526,7 +8757,7 @@ GameObject:
   - component: {fileID: 5408526486643841752}
   - component: {fileID: 6588345940761859129}
   - component: {fileID: 4805485632075959252}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Luz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8605,6 +8836,7 @@ GameObject:
   - component: {fileID: 831448493807995807}
   - component: {fileID: 3201235483298725717}
   - component: {fileID: 7557085073168140803}
+  - component: {fileID: 7557085073168140804}
   m_Layer: 9
   m_Name: porta
   m_TagString: Untagged
@@ -8948,7 +9180,7 @@ GameObject:
   - component: {fileID: 2171022086746352425}
   - component: {fileID: 6674102633450187625}
   - component: {fileID: 4689701269239112613}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9098,7 +9330,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8357537454279040726}
   - component: {fileID: 2225843996637330380}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Lampada
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9303,6 +9535,27 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!65 &7557085073168140804
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3994110979369262720}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.020505529, y: 0.05919644, z: 0.10889439}
+  m_Center: {x: -0.00033700233, y: 0.029193388, z: 0.006000684}
 --- !u!33 &7686899539705779921
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -9320,8 +9573,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7270071302085346809}
-  - component: {fileID: 7918408848937145119}
   - component: {fileID: 145296334496950254}
+  - component: {fileID: 7918408848937145119}
   m_Layer: 9
   m_Name: Botao
   m_TagString: Untagged
@@ -9395,7 +9648,7 @@ GameObject:
   - component: {fileID: 429737898193551923}
   - component: {fileID: 8536015490042338905}
   - component: {fileID: 8716702153893560519}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Vidro
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9546,7 +9799,7 @@ GameObject:
   - component: {fileID: 7423706381304819763}
   - component: {fileID: 2683414214135821746}
   - component: {fileID: 6943832028826610767}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BaseLuz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9627,27 +9880,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &8784009388343770159
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2706780381669186128}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2, y: 12, z: 7}
-  m_Center: {x: 0, y: 0, z: -3}
 --- !u!114 &8864989620109173009
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,7 +8,7 @@ public class PuzzleColorButton : InteractableObject
     [SerializeField] private CodeCapturer targetobject;
 
 
-    private Code buttonCode;
+    public Code buttonCode;
     private readonly UnityEvent<object> buttonPressed = new();
 
     public virtual void Start()

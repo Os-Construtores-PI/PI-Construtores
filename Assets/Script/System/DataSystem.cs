@@ -134,16 +134,6 @@ public class DataSystem : MonoBehaviour
                 }
             }
 
-            // Reequipa o item salvo
-            if (!string.IsNullOrEmpty(savedPlayer.equippedItemName))
-            {
-                var equipped = Resources.Load<EquipableItemData>("Items/" + savedPlayer.equippedItemName);
-                if (equipped != null)
-                {
-                    //refPlayer.EquipClassRef.Equip(equipped);
-                }
-            }
-
             // Move o jogador para a posição salva
             if (refPlayer.transform.TryGetComponent(out CharacterController controller))
             {

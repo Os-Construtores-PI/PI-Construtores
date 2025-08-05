@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using Unity.Cinemachine;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -62,8 +62,6 @@ public class Player : CombatEntities
 
     private InputAction moveAction;
 
-    private readonly Inventory inventory = new();
-    public Inventory Inventario => inventory;
     #endregion
 
 
@@ -75,10 +73,15 @@ public class Player : CombatEntities
 
 
     #region Interação
-    Camera selectedcamera = null;
-    private InteractableObject interactableRef;
     [SerializeField] private float interactionScanCooldown = .1f;
+    private InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
+    private Camera selectedcamera = null;
+    #endregion
+
+    #region Inventário
+    private readonly Inventory inventory = new();
+    public Inventory Inventario => inventory;
     #endregion
 
     #region --- Inicialização Unity ---
@@ -87,7 +90,6 @@ public class Player : CombatEntities
     {
         base.Awake();
         SetupCamera();
-
         characterController = GetComponent<CharacterController>();
         moveAction = InputSystem.actions.FindAction("Move");
     }
@@ -292,28 +294,21 @@ public class Player : CombatEntities
             enemyScanWalker = 0;
         }
     }
-/*     void OnDrawGizmos()
-    {
-        if (!selectedcamera) return;
-        var p1 = selectedcamera.transform.position;
-        var p2 = selectedcamera.transform.forward * 10;
-        var thickness = 100;
-        Handles.DrawBezier(p1, p2, p1, p2, Color.black, null, thickness);
-    } */
     private void ObjectScan()
     {
         if (!selectedcamera) return;
         Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
         LayerMask layer = LayerMask.GetMask("Object");
-        if (Physics.SphereCast(ray, 10f, out RaycastHit hit, 3, layer))
+        if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 17.5f, layer))
         {
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
                 interactableRef = interactable;
-                print(interactableRef.GetInstanceID());
+                GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
                 return;
             }
         }
+        GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
         interactableRef = null;
     }
     private void ObjectScanLogicHolder()
@@ -350,6 +345,6 @@ public class Player : CombatEntities
             }
         }
     }
-
     #endregion
+
 }

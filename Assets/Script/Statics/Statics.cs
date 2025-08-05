@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Reflection;
 
 public static class Tiers
 {
@@ -65,6 +66,14 @@ public static class StringtoTypes
 
 }
 
+
+public static class ConstantNames
+{
+    public static readonly string GameOver = "GameOver";
+    public static readonly string InteractionPopup = "InteractionPopup";
+    public static readonly string InteractionLetter = "InteractionLetter";
+}
+
 public static class StaticRandomizer
 {
     public static List<T> ListRandomizer<T>(List<T> oglist)
@@ -80,5 +89,20 @@ public static class StaticRandomizer
         }
         return list;
     }
-    
+
+}
+
+public static class ReflectionHelpers
+{
+    public static PropertyInfo GetPropertyByStatName(this Type type, string statName)
+    {
+        var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        foreach (var prop in properties)
+        {
+            var attr = prop.GetCustomAttribute<StatAttribute>();
+            if (attr != null && attr.Name == statName)
+                return prop;
+        }
+        return null;
+    }
 }

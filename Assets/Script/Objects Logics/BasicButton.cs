@@ -17,7 +17,6 @@ public class BasicButton : InteractableObject
     }
     public override void Interaction()
     {
-        print("Butão interação");
         buttonPressed.Invoke(default);
     }
 }
