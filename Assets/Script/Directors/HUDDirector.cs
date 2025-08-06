@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class HUDDirector : MonoBehaviour
@@ -12,7 +13,6 @@ public class HUDDirector : MonoBehaviour
     [SerializeField] private List<Painel> painelList = new();
     private Dictionary<string, List<GameObject>> painelMap;
     private TextMeshProUGUI interactionText;
-    private InteractionKeyMap intKeyMap = new();
 
     private void Awake()
     {
@@ -28,19 +28,17 @@ public class HUDDirector : MonoBehaviour
                 Debug.LogWarning($"Painel duplicado: {painel.nome}");
             }
         }
-        interactionText = painelMap[ConstantNames.InteractionPopup][0].transform.GetComponentInChildren<TextMeshProUGUI>();
+        interactionText = painelMap[Constants.PanelNames.InteractionPopup][0].transform.GetComponentInChildren<TextMeshProUGUI>();
     }
 
     private void Start()
     {
         DOTween.Init();
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
-        intKeyMap.BindKey("F", typeof(InteractableObject));
-
-
+        GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
         // Esconde os elementos do painel GameOver
-        DisablePanel(ConstantNames.GameOver,0);
-        DisablePanel(ConstantNames.InteractionPopup,0);
+        DisablePanel(Constants.PanelNames.GameOver, 0);
+        DisablePanel(Constants.PanelNames.InteractionPopup, 0);
     }
     private void DisablePanel(string panel_name, float duration)
     {
@@ -90,20 +88,23 @@ public class HUDDirector : MonoBehaviour
     public void InteractionPopup(bool seeing, InteractableObject obj, int id)
     {
         float durationexpected = .25f;
+        string interactionBind = InputSystem.actions.FindAction("Interaction").GetBindingDisplayString();
         if (seeing == false)
         {
-            DisablePanel(ConstantNames.InteractionPopup, durationexpected);
+            DisablePanel(Constants.PanelNames.InteractionPopup, durationexpected);
             interactionText.DOColor(Color.white, durationexpected);
             return;
         }
-        ;
-        intKeyMap.TryGetKey(typeof(InteractableObject), out string keySelected);
-        interactionText.text = keySelected;
+        interactionText.text = interactionBind;
         if (obj is PuzzleColorButton puzzleColorButton)
         {
-            interactionText.DOColor(puzzleColorButton.buttonCode.color,durationexpected);
+            interactionText.DOColor(puzzleColorButton.buttonCode.color, durationexpected);
         }
-        ShowFade(ConstantNames.InteractionPopup);
+        ShowFade(Constants.PanelNames.InteractionPopup);
+    }
+    private void TriggerCinematicBars(int playerID)
+    {
+        List<GameObject> huds = GameObject.FindGameObjectsWithTag("HUD").ToList();
     }
 
 }

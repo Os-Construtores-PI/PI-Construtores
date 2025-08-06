@@ -67,12 +67,25 @@ public static class StringtoTypes
 }
 
 
-public static class ConstantNames
+
+public static class Constants
 {
-    public static readonly string GameOver = "GameOver";
-    public static readonly string InteractionPopup = "InteractionPopup";
-    public static readonly string InteractionLetter = "InteractionLetter";
-}
+    public static class PanelNames
+    {
+        public static readonly string GameOver = "GameOver";
+        public static readonly string InteractionPopup = "InteractionPopup";
+        public static readonly string InteractionLetter = "InteractionLetter";
+    } 
+    public static readonly float GraplingHookCutsceneDuration = 3.5f;
+    public static class LowRangeObjects
+    {
+        public static HashSet<Type> types = new() {typeof(BasicButton),typeof(PuzzleColorButton)};
+    }
+    public static class HighRangeObjects
+    {
+        public static HashSet<Type> types = new() {typeof(GraplingHookTarget)};
+    }
+} 
 
 public static class StaticRandomizer
 {
