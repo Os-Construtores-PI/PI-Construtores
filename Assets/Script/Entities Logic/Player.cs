@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Unity.Cinemachine;
@@ -139,7 +140,7 @@ public class Player : CombatEntities
     {
         if (interactableRef && context.started)
         {
-            interactableRef.Interaction();
+            interactableRef.Interaction(gameObject);
         }
     }
 
@@ -161,7 +162,7 @@ public class Player : CombatEntities
         Vector3 right = cinemachineCamera.transform.right;
         forward.y = right.y = 0f;
 
-        direction = (forward.normalized * moveInput.y + right.normalized * moveInput.x);
+        direction = forward.normalized * moveInput.y + right.normalized * moveInput.x;
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 10f * Time.deltaTime);
 
         movementVector.x = SmoothLerp(movementVector.x, direction.x * speed, acceleration);
@@ -299,15 +300,29 @@ public class Player : CombatEntities
         if (!selectedcamera) return;
         Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
         LayerMask layer = LayerMask.GetMask("Object");
-        if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 17.5f, layer))
+        if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 40, layer))
         {
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
-                interactableRef = interactable;
-                GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
-                return;
+                Type interactabletype = interactable.GetType();
+                switch (hit.distance)
+                {
+                    case <= 20:
+                        if (!Constants.LowRangeObjects.types.Contains(interactabletype)) return;
+                        interactableRef = interactable;
+                        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
+                        break;
+                    default:
+                        if (!Constants.HighRangeObjects.types.Contains(interactabletype)) return;
+                        interactableRef = interactable;
+                        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
+                        break;
+
+                }
             }
+            return;
         }
+
         GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
         interactableRef = null;
     }

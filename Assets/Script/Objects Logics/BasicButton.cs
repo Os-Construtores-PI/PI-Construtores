@@ -15,7 +15,7 @@ public class BasicButton : InteractableObject
             buttonPressed.AddListener(targetobject.ObjectAction);
         }
     }
-    public override void Interaction()
+    public override void Interaction(object info)
     {
         buttonPressed.Invoke(default);
     }

@@ -5,6 +5,7 @@ public class GlobalEventBus : MonoBehaviour
 {
     public static GlobalEventBus Instance { get; private set; }
     [HideInInspector] public UnityEvent<bool,InteractableObject, int> ObjectWasSeen = new();
+    [HideInInspector] public UnityEvent<int> TriggeredCinematic = new();
     private void Awake()
     {
         if (Instance != null && Instance != this)
