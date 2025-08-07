@@ -13,6 +13,8 @@ public class MenuDirector : MonoBehaviour
     [SerializeField] Transform[] _partsConfig;
 
     [SerializeField] Button[] _botoes; // Variavel que chama os botoes animados
+
+    private bool _animadoMenu = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -30,7 +32,7 @@ public class MenuDirector : MonoBehaviour
         {
             _painelConfig[i].localScale = Vector3.zero;
         }
-        StartCoroutine(AnimaLogo()); //inicia animaçao da logo
+        
     }
 
 
@@ -71,8 +73,36 @@ public class MenuDirector : MonoBehaviour
             _painelConfig[i].DOScale(0, .25f);
         }
     }
+    public void AbrirOpcoes()
+    {
+        _painelMenu[0].DOScale(0, 0.25f);
+        for (int i = 0; i < _painelMenu.Length; i++)
+        {
+            _painelMenu[i].DOScale(0, 0.25f);
+        }
+        foreach (Button botao in _botoes)
+        {
+            botao.transform.DOScale(0, 0.25f);
+        }
+
+        StartCoroutine(TimeConfig());
+    }
     
-    
+    public void FecharOpcoes()
+    {
+        
+        for (int i = 0; i < _painelMenu.Length; i++)
+        {
+            _painelMenu[i].DOScale(1, 0.25f);
+        }
+        StartCoroutine(TimeStart());
+        foreach (Button botao in _botoes)
+        {
+            botao.transform.DOScale(1, 0.5f);
+        }
+    }
+
+   
 
     public void PainelStartCheck(bool CheckON)
     {   // ativa ou desativa do menu principal baseado no parametro
@@ -90,8 +120,9 @@ public class MenuDirector : MonoBehaviour
 
     public void PainelConfigCheck(bool CheckON)
     {   // ativa ou desativa os paineis de config baseado no parametro
-        if (CheckON == true)
+        if (CheckON)
         {
+            _painelMenu[0].DOScale(0, 0);
             StartCoroutine(TimeConfig()); // se verdadeiro, inicia dos paineis de config
         }
         else
@@ -99,6 +130,7 @@ public class MenuDirector : MonoBehaviour
             PainelStartOff(); // se falso, desativa os paineis
         }
     }
+    
     public void PainelMusicCheck(bool CheckON)
     {
         if (CheckON == true)
@@ -110,13 +142,17 @@ public class MenuDirector : MonoBehaviour
             PainelMusicPartsCheck();
         }
     }
+    
 
 
     IEnumerator TimeStart()
     {
+        if (_animadoMenu) yield break;
+        _animadoMenu = false;
         // animação de entrada dos paineis do menu principal
         for (int i = 0; i < _painelMenu.Length; i++)
         {
+            
             // _painelMenu[i].localScale = Vector3.zero;
             // anima cada painel para escala 1.5 e depois volta para 1
             _painelMenu[i].DOScale(1.5f, .25f);
@@ -128,12 +164,14 @@ public class MenuDirector : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
 
         AtivarAnimator(); // ativa animadores dos botões
+        _animadoMenu = true;
 
          
     }
 
     IEnumerator TimeConfig()
     {
+        _animadoMenu = true;
         // animação de entrada dos paineis de configuração 
         for (int i = 0; i < _painelConfig.Length; i++)
         {
@@ -143,29 +181,23 @@ public class MenuDirector : MonoBehaviour
             yield return new WaitForSeconds(0.25f);
             _painelConfig[i].DOScale(1, .25f);
         }
+        
     }
     IEnumerator TimeConfigSom()
     {
+        
+        _animadoMenu = true;
         for (int i = 0; i < _partsConfig.Length; i++)
         {
             _partsConfig[i].DOScale(1.5f, .25f);
             yield return new WaitForSeconds(0.25f);
             _partsConfig[i].DOScale(1, .25f);
         }
+        //_animadoMenu = true;
     }
 
-    IEnumerator AnimaLogo()
-    {
-        // animação da logo (partes pulando para posição central)
-        for (int i = 0; i < _parts.Length; i++)
-        {
-            _parts[i].DOLocalJump(new Vector3(0, 0, 0), 100, 5, 3f);
-            yield return new WaitForSeconds(3f);
-
-            Image img = _parts[i].GetComponent<Image>();
-            yield return new WaitForSeconds(1f);
-        }
-    }
+    
+    
 
     private void AtivarAnimator()
     {
