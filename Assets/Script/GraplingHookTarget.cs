@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,20 +12,23 @@ public class GraplingHookTarget : InteractableObject
     {
 
     }
-    public override void Interaction(object info)
+    public override void Interaction(InfoPlayerInteraction info)
     {
-        if (info is GameObject player)
-        {
-            StartCoroutine(Cutscene(player,Constants.GraplingHookCutsceneDuration));
-        }
+        StartCoroutine(Cutscene(info, Constants.GraplingHookCutsceneDuration));
     }
-    IEnumerator Cutscene(GameObject player,float duration)
+    IEnumerator Cutscene(InfoPlayerInteraction info, float duration)
     {
-        if(player.TryGetComponent(out Player playerscript))
+        GameObject player = info.obj;
+        Player playerscript = info.playerscript;
+        Vector3 position = transform.position;
         GlobalEventBus.Instance.TriggeredCinematic.Invoke(playerscript.ID);
-        SetActionState(player,false);
+        player.transform.DOMove(new(position.x,position.y-2,position.z),Constants.GraplingHookCutsceneDuration);
+        playerscript.Charactercontroller.enabled = false;
+        SetActionState(player, false);
         yield return new WaitForSeconds(duration);
-        SetActionState(player,true);
+        SetActionState(player, true);
+        playerscript.Charactercontroller.enabled = true;
+
     }
     private void SetActionState(GameObject player, bool set)
     {

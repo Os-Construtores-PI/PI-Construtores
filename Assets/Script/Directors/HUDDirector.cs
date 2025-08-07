@@ -13,6 +13,7 @@ public class HUDDirector : MonoBehaviour
     [SerializeField] private List<Painel> painelList = new();
     private Dictionary<string, List<GameObject>> painelMap;
     private TextMeshProUGUI interactionText;
+    private Image interactionImage;
 
     private void Awake()
     {
@@ -29,6 +30,7 @@ public class HUDDirector : MonoBehaviour
             }
         }
         interactionText = painelMap[Constants.PanelNames.InteractionPopup][0].transform.GetComponentInChildren<TextMeshProUGUI>();
+        interactionImage = painelMap[Constants.PanelNames.InteractionPopup][0].GetComponent<Image>();
     }
 
     private void Start()
@@ -95,10 +97,18 @@ public class HUDDirector : MonoBehaviour
             interactionText.DOColor(Color.white, durationexpected);
             return;
         }
-        interactionText.text = interactionBind;
         if (obj is PuzzleColorButton puzzleColorButton)
         {
             interactionText.DOColor(puzzleColorButton.buttonCode.color, durationexpected);
+            interactionText.text = interactionBind;
+        }
+        else if (obj is BasicButton)
+        {
+            interactionText.text = interactionBind;
+        }
+        else if (obj is GraplingHookTarget graplingHookTarget)
+        {
+            
         }
         ShowFade(Constants.PanelNames.InteractionPopup);
     }

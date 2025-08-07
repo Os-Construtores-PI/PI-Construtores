@@ -43,6 +43,7 @@ public class Player : CombatEntities
 
     [Header("Componentes")]
     [SerializeField] private CharacterController characterController;
+    public CharacterController Charactercontroller => characterController;
     [SerializeField] private CinemachineCamera cinemachineCamera;
 
     #endregion
@@ -110,6 +111,7 @@ public class Player : CombatEntities
 
     private void FixedUpdate()
     {
+        if (!characterController.enabled) return;
         isGrounded = characterController.isGrounded;
 
         if (isDashing) HandleDash();
@@ -140,7 +142,8 @@ public class Player : CombatEntities
     {
         if (interactableRef && context.started)
         {
-            interactableRef.Interaction(gameObject);
+            InfoPlayerInteraction info = new(gameObject,this);
+            interactableRef.Interaction(info);
         }
     }
 
