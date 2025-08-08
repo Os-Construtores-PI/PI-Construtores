@@ -10,33 +10,51 @@ using UnityEngine.UI;
 
 public class HUDDirector : MonoBehaviour
 {
-    [SerializeField] private List<Painel> painelList = new();
+    [SerializeField] private List<CustomCanvas> canvas = new();
     [SerializeField] private List<IconImage> icons = new();
-    private Dictionary<string, List<GameObject>> painelMap;
-    private TextMeshProUGUI interactionText;
-    private Image interactionImage;
-    private Sprite ogsprite;
 
+    private Dictionary<int, Dictionary<string, List<GameObject>>> canvasMap;
+    private Dictionary<int, TextMeshProUGUI> interactionTexts = new();
+    private Dictionary<int, Image> interactionImages = new();
+    private Dictionary<int, Sprite> ogSprites = new();
 
     private void Awake()
     {
-        painelMap = new Dictionary<string, List<GameObject>>();
-        foreach (var painel in painelList)
+        canvasMap = new();
+
+        foreach (CustomCanvas c in canvas)
         {
-            if (!painelMap.ContainsKey(painel.nome))
+            int id = c.playerID;
+
+            if (!canvasMap.ContainsKey(id))
+                canvasMap[id] = new();
+
+            foreach (CustomPanel panel in c.panels)
             {
-                painelMap[painel.nome] = painel.painel;
-            }
-            else
-            {
-                Debug.LogWarning($"Painel duplicado: {painel.nome}");
+                if (!canvasMap[id].ContainsKey(panel.nome))
+                    canvasMap[id][panel.nome] = new();
+
+                canvasMap[id][panel.nome].AddRange(panel.painel);
             }
         }
-        interactionText = painelMap[Constants.PanelNames.InteractionPopup][0].transform.GetComponentInChildren<TextMeshProUGUI>();
-        interactionImage = painelMap[Constants.PanelNames.InteractionPopup][0].GetComponent<Image>();
-        if (interactionImage)
+
+        // Inicializa textos e imagens de interação por player
+        foreach (var kvp in canvasMap)
         {
-            ogsprite = interactionImage.sprite;
+            int playerID = kvp.Key;
+
+            if (canvasMap[playerID].TryGetValue(Constants.PanelNames.InteractionPopup, out var panels) && panels.Count > 0)
+            {
+                var text = panels[0].GetComponentInChildren<TextMeshProUGUI>();
+                var image = panels[0].GetComponent<Image>();
+
+                if (text) interactionTexts[playerID] = text;
+                if (image)
+                {
+                    interactionImages[playerID] = image;
+                    ogSprites[playerID] = image.sprite;
+                }
+            }
         }
     }
 
@@ -45,60 +63,66 @@ public class HUDDirector : MonoBehaviour
         DOTween.Init();
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
-        // Esconde os elementos do painel GameOver
-        DisablePanelWithImage(Constants.PanelNames.GameOver, 0);
-        DisablePanel(Constants.PanelNames.InteractionPopup, 0);
-    }
-    private void DisablePanelWithImage(string panel_name, float duration)
-    {
-        if (painelMap.TryGetValue(panel_name, out var panel))
+
+        foreach (int playerID in canvasMap.Keys)
         {
-            int lenght = panel.Count;
-            for (int i = 0; i < lenght; i++)
+            DisablePanelWithImage(Constants.PanelNames.GameOver, 0, playerID);
+            DisablePanel(Constants.PanelNames.InteractionPopup, 0, playerID);
+        }
+    }
+
+    private void DisablePanelWithImage(string panel_name, float duration, int playerID)
+    {
+        if (canvasMap.TryGetValue(playerID, out var panelMap) &&
+            panelMap.TryGetValue(panel_name, out var panel))
+        {
+            foreach (var go in panel)
             {
-                if (i == 0 && panel[i].TryGetComponent(out Image image))
+                if (go.TryGetComponent(out Image image))
                 {
                     image.DOFade(0f, duration);
                 }
-                panel[i].transform.DOScale(Vector3.zero,0.25f);
+                go.transform.DOScale(Vector3.zero, 0.25f);
             }
         }
-    }
-    private void DisablePanel(string panel_name, float duration)
-    {
-        if (painelMap.TryGetValue(panel_name, out var panel))
-        {
-            int lenght = panel.Count;
-            for (int i = 0; i < lenght; i++)
-            {
-                panel[i].transform.DOScale(Vector3.zero,0.25f);
-            }
-        }      
     }
 
-    public void ShowFade(string panel_name)
+    private void DisablePanel(string panel_name, float duration, int playerID)
     {
-        if (painelMap.TryGetValue(panel_name, out var gameOverPainel))
+        if (canvasMap.TryGetValue(playerID, out var panelMap) &&
+            panelMap.TryGetValue(panel_name, out var panel))
         {
-            int lenght = gameOverPainel.Count;
-            for (int i = 0; i < lenght; i++)
+            foreach (var go in panel)
             {
-                if (i == 0 && gameOverPainel[i].TryGetComponent(out Image imagem))
-                {
-                    imagem.DOFade(.8f, .25f);
-                }
-                gameOverPainel[i].transform.DOScale(Vector3.one, 0.25f);
+                go.transform.DOScale(Vector3.zero, 0.25f);
             }
         }
     }
-    public void Show(string panel_name)
+
+    public void ShowFade(string panel_name, int playerID)
     {
-        if (painelMap.TryGetValue(panel_name, out var gameOverPainel))
+        if (canvasMap.TryGetValue(playerID, out var panelMap) &&
+            panelMap.TryGetValue(panel_name, out var panels))
         {
-            int lenght = gameOverPainel.Count;
-            for (int i = 0; i < lenght; i++)
+            foreach (var go in panels)
             {
-                gameOverPainel[i].transform.DOScale(Vector3.one, 0.25f);
+                if (go.TryGetComponent(out Image image))
+                {
+                    image.DOFade(.8f, .25f);
+                }
+                go.transform.DOScale(Vector3.one, 0.25f);
+            }
+        }
+    }
+
+    public void Show(string panel_name, int playerID)
+    {
+        if (canvasMap.TryGetValue(playerID, out var panelMap) &&
+            panelMap.TryGetValue(panel_name, out var panels))
+        {
+            foreach (var go in panels)
+            {
+                go.transform.DOScale(Vector3.one, 0.25f);
             }
         }
     }
@@ -111,49 +135,59 @@ public class HUDDirector : MonoBehaviour
             StartCoroutine(StopShaking(noisecomp));
         }
     }
+
     IEnumerator StopShaking(CinemachineBasicMultiChannelPerlin noise)
     {
         yield return new WaitForSecondsRealtime(.25f);
         noise.AmplitudeGain = 0;
     }
-    public void InteractionPopup(bool seeing, InteractableObject obj, int id)
+
+    public void InteractionPopup(bool seeing, InteractableObject obj, int playerID)
     {
         float durationexpected = .25f;
         string interactionBind = InputSystem.actions.FindAction("Interaction").GetBindingDisplayString();
-        if (seeing == false)
+
+        if (!interactionTexts.ContainsKey(playerID) || !interactionImages.ContainsKey(playerID))
+            return;
+
+        var text = interactionTexts[playerID];
+        var image = interactionImages[playerID];
+
+        if (!seeing)
         {
-            DisablePanel(Constants.PanelNames.InteractionPopup, durationexpected);
-            interactionText.DOColor(Color.white, durationexpected);
-            interactionText.text = "";
-            interactionImage.sprite = ogsprite;
+            DisablePanel(Constants.PanelNames.InteractionPopup, durationexpected, playerID);
+            text.DOColor(Color.white, durationexpected);
+            text.text = "";
+            image.sprite = ogSprites[playerID];
             return;
         }
 
         if (obj is PuzzleColorButton puzzleColorButton)
         {
-            interactionText.DOColor(puzzleColorButton.buttonCode.color, durationexpected);
-            interactionText.text = interactionBind;
+            text.DOColor(puzzleColorButton.buttonCode.color, durationexpected);
+            text.text = interactionBind;
         }
         else if (obj is BasicButton)
         {
-            interactionText.text = interactionBind;
+            text.text = interactionBind;
         }
         else if (obj is GraplingHookTarget)
         {
             IconImage? icon = GetIcon(icons, "GHOOK");
             if (icon is IconImage validicon)
             {
-                interactionImage.sprite = validicon.sprite;
+                image.sprite = validicon.sprite;
             }
         }
-        Show(Constants.PanelNames.InteractionPopup);
+
+        Show(Constants.PanelNames.InteractionPopup, playerID);
     }
+
     private void TriggerCinematicBars(int playerID)
     {
         _ = GameObject.FindGameObjectsWithTag("HUD").ToList();
+        // Pode ser expandido para HUD cinematográfico por jogador
     }
-
-
 
     private IconImage? GetIcon(List<IconImage> icons, string destiny)
     {
@@ -166,7 +200,4 @@ public class HUDDirector : MonoBehaviour
         }
         return null;
     }
-    
-
 }
-

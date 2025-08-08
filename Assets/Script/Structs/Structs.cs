@@ -60,10 +60,17 @@ public struct Code
 }
 
 [Serializable]
-public struct Painel
+public struct CustomPanel
 {
     public string nome;
     public List<GameObject> painel;
+}
+
+[Serializable]
+public struct CustomCanvas
+{
+    public int playerID;
+    public List<CustomPanel> panels;
 }
 
 
