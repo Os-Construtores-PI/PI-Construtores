@@ -46,10 +46,10 @@ public class HUDDirector : MonoBehaviour
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
         // Esconde os elementos do painel GameOver
-        DisablePanel(Constants.PanelNames.GameOver, 0);
+        DisablePanelWithImage(Constants.PanelNames.GameOver, 0);
         DisablePanel(Constants.PanelNames.InteractionPopup, 0);
     }
-    private void DisablePanel(string panel_name, float duration)
+    private void DisablePanelWithImage(string panel_name, float duration)
     {
         if (painelMap.TryGetValue(panel_name, out var panel))
         {
@@ -60,9 +60,20 @@ public class HUDDirector : MonoBehaviour
                 {
                     image.DOFade(0f, duration);
                 }
-                panel[i].transform.localScale = Vector3.zero;
+                panel[i].transform.DOScale(Vector3.zero,0.25f);
             }
         }
+    }
+    private void DisablePanel(string panel_name, float duration)
+    {
+        if (painelMap.TryGetValue(panel_name, out var panel))
+        {
+            int lenght = panel.Count;
+            for (int i = 0; i < lenght; i++)
+            {
+                panel[i].transform.DOScale(Vector3.zero,0.25f);
+            }
+        }      
     }
 
     public void ShowFade(string panel_name)
@@ -76,6 +87,17 @@ public class HUDDirector : MonoBehaviour
                 {
                     imagem.DOFade(.8f, .25f);
                 }
+                gameOverPainel[i].transform.DOScale(Vector3.one, 0.25f);
+            }
+        }
+    }
+    public void Show(string panel_name)
+    {
+        if (painelMap.TryGetValue(panel_name, out var gameOverPainel))
+        {
+            int lenght = gameOverPainel.Count;
+            for (int i = 0; i < lenght; i++)
+            {
                 gameOverPainel[i].transform.DOScale(Vector3.one, 0.25f);
             }
         }
@@ -106,6 +128,7 @@ public class HUDDirector : MonoBehaviour
             interactionImage.sprite = ogsprite;
             return;
         }
+
         if (obj is PuzzleColorButton puzzleColorButton)
         {
             interactionText.DOColor(puzzleColorButton.buttonCode.color, durationexpected);
@@ -115,7 +138,7 @@ public class HUDDirector : MonoBehaviour
         {
             interactionText.text = interactionBind;
         }
-        else if (obj is GraplingHookTarget graplingHookTarget)
+        else if (obj is GraplingHookTarget)
         {
             IconImage? icon = GetIcon(icons, "GHOOK");
             if (icon is IconImage validicon)
@@ -123,7 +146,7 @@ public class HUDDirector : MonoBehaviour
                 interactionImage.sprite = validicon.sprite;
             }
         }
-        ShowFade(Constants.PanelNames.InteractionPopup);
+        Show(Constants.PanelNames.InteractionPopup);
     }
     private void TriggerCinematicBars(int playerID)
     {
