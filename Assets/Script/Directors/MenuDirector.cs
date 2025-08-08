@@ -68,7 +68,7 @@ public class MenuDirector : MonoBehaviour
 
     public void PainelMusicPartsCheck()
     {
-        for (int i = 0; i < _partsConfig.Length; i++)
+        for (int i = 0; i < _painelConfig.Length; i++)
         {
             _painelConfig[i].DOScale(0, .25f);
         }
@@ -142,6 +142,9 @@ public class MenuDirector : MonoBehaviour
             PainelMusicPartsCheck();
         }
     }
+    
+    
+    
     
 
 
