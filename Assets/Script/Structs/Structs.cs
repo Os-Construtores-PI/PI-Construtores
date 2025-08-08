@@ -78,7 +78,9 @@ public struct InfoPlayerInteraction
     }
 }
 
+[Serializable]
 public struct IconImage
 {
-    Sprite sprite;
+    public string destiny;
+    public Sprite sprite;
 }
