@@ -25,10 +25,9 @@ public class PuzzleColorButton : InteractableObject
             buttonPressed.AddListener(targetobject.ObjectAction);
         }
     }
-    public override void Interaction(object info)
+    public override void Interaction(InfoPlayerInteraction info)
     {
         if (buttonCode.Equals(null)) return;
-        print($"BUTTON COLOR : {buttonCode.color} // BUTTON NUMBER : {buttonCode.number} // BUTTON ID: {GetInstanceID()}");
         buttonPressed.Invoke(buttonCode);
     }
 }

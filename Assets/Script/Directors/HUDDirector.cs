@@ -11,8 +11,12 @@ using UnityEngine.UI;
 public class HUDDirector : MonoBehaviour
 {
     [SerializeField] private List<Painel> painelList = new();
+    [SerializeField] private List<IconImage> icons = new();
     private Dictionary<string, List<GameObject>> painelMap;
     private TextMeshProUGUI interactionText;
+    private Image interactionImage;
+    private Sprite ogsprite;
+
 
     private void Awake()
     {
@@ -29,6 +33,11 @@ public class HUDDirector : MonoBehaviour
             }
         }
         interactionText = painelMap[Constants.PanelNames.InteractionPopup][0].transform.GetComponentInChildren<TextMeshProUGUI>();
+        interactionImage = painelMap[Constants.PanelNames.InteractionPopup][0].GetComponent<Image>();
+        if (interactionImage)
+        {
+            ogsprite = interactionImage.sprite;
+        }
     }
 
     private void Start()
@@ -37,10 +46,10 @@ public class HUDDirector : MonoBehaviour
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
         // Esconde os elementos do painel GameOver
-        DisablePanel(Constants.PanelNames.GameOver, 0);
+        DisablePanelWithImage(Constants.PanelNames.GameOver, 0);
         DisablePanel(Constants.PanelNames.InteractionPopup, 0);
     }
-    private void DisablePanel(string panel_name, float duration)
+    private void DisablePanelWithImage(string panel_name, float duration)
     {
         if (painelMap.TryGetValue(panel_name, out var panel))
         {
@@ -51,9 +60,20 @@ public class HUDDirector : MonoBehaviour
                 {
                     image.DOFade(0f, duration);
                 }
-                panel[i].transform.localScale = Vector3.zero;
+                panel[i].transform.DOScale(Vector3.zero,0.25f);
             }
         }
+    }
+    private void DisablePanel(string panel_name, float duration)
+    {
+        if (painelMap.TryGetValue(panel_name, out var panel))
+        {
+            int lenght = panel.Count;
+            for (int i = 0; i < lenght; i++)
+            {
+                panel[i].transform.DOScale(Vector3.zero,0.25f);
+            }
+        }      
     }
 
     public void ShowFade(string panel_name)
@@ -67,6 +87,17 @@ public class HUDDirector : MonoBehaviour
                 {
                     imagem.DOFade(.8f, .25f);
                 }
+                gameOverPainel[i].transform.DOScale(Vector3.one, 0.25f);
+            }
+        }
+    }
+    public void Show(string panel_name)
+    {
+        if (painelMap.TryGetValue(panel_name, out var gameOverPainel))
+        {
+            int lenght = gameOverPainel.Count;
+            for (int i = 0; i < lenght; i++)
+            {
                 gameOverPainel[i].transform.DOScale(Vector3.one, 0.25f);
             }
         }
@@ -93,19 +124,49 @@ public class HUDDirector : MonoBehaviour
         {
             DisablePanel(Constants.PanelNames.InteractionPopup, durationexpected);
             interactionText.DOColor(Color.white, durationexpected);
+            interactionText.text = "";
+            interactionImage.sprite = ogsprite;
             return;
         }
-        interactionText.text = interactionBind;
+
         if (obj is PuzzleColorButton puzzleColorButton)
         {
             interactionText.DOColor(puzzleColorButton.buttonCode.color, durationexpected);
+            interactionText.text = interactionBind;
         }
-        ShowFade(Constants.PanelNames.InteractionPopup);
+        else if (obj is BasicButton)
+        {
+            interactionText.text = interactionBind;
+        }
+        else if (obj is GraplingHookTarget)
+        {
+            IconImage? icon = GetIcon(icons, "GHOOK");
+            if (icon is IconImage validicon)
+            {
+                interactionImage.sprite = validicon.sprite;
+            }
+        }
+        Show(Constants.PanelNames.InteractionPopup);
     }
     private void TriggerCinematicBars(int playerID)
     {
-        List<GameObject> huds = GameObject.FindGameObjectsWithTag("HUD").ToList();
+        _ = GameObject.FindGameObjectsWithTag("HUD").ToList();
     }
+
+
+
+    private IconImage? GetIcon(List<IconImage> icons, string destiny)
+    {
+        foreach (IconImage icon in icons)
+        {
+            if (icon.destiny == destiny)
+            {
+                return icon;
+            }
+        }
+        return null;
+    }
+    
 
 }
 

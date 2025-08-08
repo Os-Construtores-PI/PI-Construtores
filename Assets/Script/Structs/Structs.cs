@@ -65,3 +65,22 @@ public struct Painel
     public string nome;
     public List<GameObject> painel;
 }
+
+
+public struct InfoPlayerInteraction
+{
+    public GameObject obj;
+    public Player playerscript;
+    public InfoPlayerInteraction(GameObject gameObject, Player script)
+    {
+        obj = gameObject;
+        playerscript = script;
+    }
+}
+
+[Serializable]
+public struct IconImage
+{
+    public string destiny;
+    public Sprite sprite;
+}
