@@ -335,7 +335,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 137170776}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 635}
+  m_LocalPosition: {x: 0, y: 0, z: 629}
   m_LocalScale: {x: 2.04, y: 2.01, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -343,7 +343,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -46, y: 91}
+  m_AnchoredPosition: {x: -53, y: 93}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &137170778
@@ -366,7 +366,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -686518759, guid: 1cfbceb06364de2428c8d81425e6bde3, type: 3}
+  m_Sprite: {fileID: -825833827, guid: 49c249049eea47f4f99e7a39dbcae626, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -962,7 +962,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 662782844}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: PainelMusicCheck
+        m_MethodName: PainelStartCheck
         m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -992,7 +992,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 837008036, guid: fb29b6c5c7fb13444abefda615465bcb, type: 3}
+  m_Sprite: {fileID: -96877428, guid: bb8d89dad24cae64987b777181bfaf17, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1351,7 +1351,8 @@ MonoBehaviour:
   _painelConfig:
   - {fileID: 1474015264}
   _parts: []
-  _partsConfig: []
+  _partsConfig:
+  - {fileID: 203050374}
   _botoes:
   - {fileID: 701426440}
   - {fileID: 530490189}
@@ -3200,18 +3201,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 662782844}
-        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: PainelConfigCheck
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
 --- !u!114 &2037944598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3353,19 +3342,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2095259011}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 662782844}
-        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: PainelMusicPartsCheck
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2095259011
 MonoBehaviour:
   m_ObjectHideFlags: 0

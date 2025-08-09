@@ -48,13 +48,13 @@ public class MenuDirector : MonoBehaviour
         SceneManager.LoadScene(Fase1); // inicia a cena fase1 como teste
     }
      
-    public void PainelStartOff()
-    {
+     public void PainelStartOff()
+      {
      
         // desativa todos os paineis de configuração com animação de escala para zero
-        for (int i = 0; i < _partsConfig.Length; i++)
-        {
-            _partsConfig[i].DOScale(0, .25f);
+         for (int i = 0; i < _partsConfig.Length; i++)
+       {
+           _partsConfig[i].DOScale(0, .25f);
         }
     }
 
@@ -114,7 +114,7 @@ public class MenuDirector : MonoBehaviour
         }
         else
         {
-            PainelStartOff(); // se false, desativa os paineis
+          //  PainelStartOff(); // se false, desativa os paineis
         }
     }
 
@@ -127,7 +127,7 @@ public class MenuDirector : MonoBehaviour
         }
         else
         {
-            PainelStartOff(); // se falso, desativa os paineis
+         //   PainelStartOff(); // se falso, desativa os paineis
         }
     }
     
