@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class MenuDirector : MonoBehaviour
 {
     [SerializeField] Transform[] _painelMenu; // transform que interage com os botões do menu
-    
+
     [SerializeField] Transform[] _painelConfig; // transform que chama e interage com o painel de config
     [SerializeField] Transform[] _parts;
     [SerializeField] Transform[] _partsConfig;
@@ -18,10 +18,10 @@ public class MenuDirector : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-       // _painelLayout.DOScale(1, 5);
+        // _painelLayout.DOScale(1, 5);
         StartCoroutine(TimeStart()); // inicia a animação dos painés do menu
         PainelStartOff(); // desativa os paineis de configuração
-        
+
         // inicializa todos os paineis do menu com escala zero
         for (int i = 0; i < _painelMenu.Length; i++)
         {
@@ -32,7 +32,7 @@ public class MenuDirector : MonoBehaviour
         {
             _painelConfig[i].localScale = Vector3.zero;
         }
-        
+
     }
 
 
@@ -47,18 +47,18 @@ public class MenuDirector : MonoBehaviour
     {
         SceneManager.LoadScene(Fase1); // inicia a cena fase1 como teste
     }
-     
-     public void PainelStartOff()
-      {
-     
+
+    public void PainelStartOff()
+    {
+
         // desativa todos os paineis de configuração com animação de escala para zero
-         for (int i = 0; i < _partsConfig.Length; i++)
-       {
-           _partsConfig[i].DOScale(0, .25f);
+        for (int i = 0; i < _partsConfig.Length; i++)
+        {
+            _partsConfig[i].DOScale(0, .25f);
         }
     }
 
-    public void PainelCheck() 
+    public void PainelCheck()
     {   // desativa todos os paineis do menu principal com animação de escala para zero
         for (int i = 0; i < _painelMenu.Length; i++)
         {
@@ -87,10 +87,10 @@ public class MenuDirector : MonoBehaviour
 
         StartCoroutine(TimeConfig());
     }
-    
+
     public void FecharOpcoes()
     {
-        
+
         for (int i = 0; i < _painelMenu.Length; i++)
         {
             _painelMenu[i].DOScale(1, 0.25f);
@@ -104,12 +104,12 @@ public class MenuDirector : MonoBehaviour
 
     public void AbrirPainelVolume()
     {
-       for (int i = 0; i < _painelConfig.Length; i++)
-       {
-          _painelConfig[i].DOScale(0, .25f);
+        for (int i = 0; i < _painelConfig.Length; i++)
+        {
+            _painelConfig[i].DOScale(0, .25f);
 
-       }
-       StartCoroutine(TimeConfigSom());
+        }
+        StartCoroutine(TimeConfigSom());
     }
     public void VoltarParaConfi()
     {
@@ -119,7 +119,7 @@ public class MenuDirector : MonoBehaviour
         }
     }
 
-   
+
 
     public void PainelStartCheck(bool CheckON)
     {   // ativa ou desativa do menu principal baseado no parametro
@@ -144,15 +144,15 @@ public class MenuDirector : MonoBehaviour
         }
         else
         {
-         //   PainelStartOff(); // se falso, desativa os paineis
+            //   PainelStartOff(); // se falso, desativa os paineis
         }
     }
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
 
     IEnumerator TimeStart()
@@ -162,7 +162,7 @@ public class MenuDirector : MonoBehaviour
         // animação de entrada dos paineis do menu principal
         for (int i = 0; i < _painelMenu.Length; i++)
         {
-            
+
             // _painelMenu[i].localScale = Vector3.zero;
             // anima cada painel para escala 1.5 e depois volta para 1
             _painelMenu[i].DOScale(1.5f, .25f);
@@ -176,7 +176,7 @@ public class MenuDirector : MonoBehaviour
         AtivarAnimator(); // ativa animadores dos botões
         _animadoMenu = true;
 
-         
+
     }
 
     IEnumerator TimeConfig()
@@ -191,11 +191,11 @@ public class MenuDirector : MonoBehaviour
             yield return new WaitForSeconds(0.25f);
             _painelConfig[i].DOScale(1, .25f);
         }
-        
+
     }
     IEnumerator TimeConfigSom()
     {
-        
+
         _animadoMenu = true;
         for (int i = 0; i < _partsConfig.Length; i++)
         {
@@ -206,8 +206,8 @@ public class MenuDirector : MonoBehaviour
         //_animadoMenu = true;
     }
 
-    
-    
+
+
 
     private void AtivarAnimator()
     {
@@ -217,5 +217,12 @@ public class MenuDirector : MonoBehaviour
             botao.gameObject.GetComponent<Animator>().enabled = true;
         }
     }
-    
+
+    public void FecharJogo()
+    {
+        Application.Quit();
+        Debug.Log("Fechando jogo");
+    }
+
 }
+

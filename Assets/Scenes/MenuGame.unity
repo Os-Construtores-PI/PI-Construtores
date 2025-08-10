@@ -564,7 +564,7 @@ RectTransform:
   m_GameObject: {fileID: 360067429}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1249940994}
@@ -675,7 +675,7 @@ RectTransform:
   m_GameObject: {fileID: 449607715}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1249940994}
@@ -962,15 +962,15 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 662782844}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: PainelStartCheck
-        m_Mode: 6
+        m_MethodName: AbrirPainelVolume
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 1
+          m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &531866465
 MonoBehaviour:
@@ -2083,11 +2083,11 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 662782844}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: PainelMusicPartsCheck
+        m_MethodName: VoltarParaConfi
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2095,19 +2095,7 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 662782844}
-        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: FecharOpcoes
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
 --- !u!114 &1096335761
 MonoBehaviour:
@@ -2174,7 +2162,7 @@ RectTransform:
   m_GameObject: {fileID: 1128114571}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1249940994}
@@ -3054,7 +3042,7 @@ RectTransform:
   m_GameObject: {fileID: 2029507088}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -13}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 701426439}
@@ -3191,7 +3179,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 662782844}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: FecharOpcoes
+        m_MethodName: FecharJogo
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
