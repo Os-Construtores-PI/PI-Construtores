@@ -102,6 +102,23 @@ public class MenuDirector : MonoBehaviour
         }
     }
 
+    public void AbrirPainelVolume()
+    {
+       for (int i = 0; i < _painelConfig.Length; i++)
+       {
+          _painelConfig[i].DOScale(0, .25f);
+
+       }
+       StartCoroutine(TimeConfigSom());
+    }
+    public void VoltarParaConfi()
+    {
+        for (int i = 0; i < _partsConfig.Length; i++)
+        {
+            _partsConfig[i].DOScale(0, .25f);
+        }
+    }
+
    
 
     public void PainelStartCheck(bool CheckON)
@@ -109,12 +126,12 @@ public class MenuDirector : MonoBehaviour
         if (CheckON == true)
         {
             StartCoroutine(TimeStart()); // se verdadeiro, inicia dos paineis de animação dos painéis
-            
+
 
         }
         else
         {
-          //  PainelStartOff(); // se false, desativa os paineis
+            //  PainelStartOff(); // se false, desativa os paineis
         }
     }
 
@@ -131,17 +148,7 @@ public class MenuDirector : MonoBehaviour
         }
     }
     
-    public void PainelMusicCheck(bool CheckON)
-    {
-        if (CheckON == true)
-        {
-            StartCoroutine(TimeConfigSom());
-        }
-        else
-        {
-            PainelMusicPartsCheck();
-        }
-    }
+    
     
     
     
