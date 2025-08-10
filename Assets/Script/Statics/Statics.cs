@@ -77,6 +77,7 @@ public static class Constants
         public static readonly string GameOver = "GameOver";
         public static readonly string InteractionPopup = "InteractionPopup";
         public static readonly string InteractionLetter = "InteractionLetter";
+        public static readonly string GraplingHookCutscene = "GraplingHookCutscene";
     }
     public static readonly float GraplingHookCutsceneDuration = 3.5f;
     public static class LowRangeObjects

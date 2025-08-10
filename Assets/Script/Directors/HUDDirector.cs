@@ -183,11 +183,48 @@ public class HUDDirector : MonoBehaviour
         Show(Constants.PanelNames.InteractionPopup, playerID);
     }
 
-    private void TriggerCinematicBars(int playerID)
+private void TriggerCinematicBars(int playerID)
+{
+    List<GameObject> cinematicPanels = GetPanel(playerID, Constants.PanelNames.GraplingHookCutscene);
+    cinematicPanels.RemoveAll(go => go.name!="Top" && go.name!="Bottom");
+    float halfDuration = Constants.GraplingHookCutsceneDuration / 2f;
+
+    // Altura desejada das barras
+    float barHeight = 250f; 
+
+    // Chama a sequência
+    AnimateCinematicBars(cinematicPanels, barHeight, halfDuration);
+}
+
+private void AnimateCinematicBars(List<GameObject> panels, float size, float duration)
+{
+    Sequence seq = DOTween.Sequence();
+
+    // Aumentar (entrada das barras)
+    seq.AppendCallback(() => ChangeRectSize(size, panels, duration));
+
+    // Espera com barras visíveis
+    seq.AppendInterval(duration);
+
+    // Diminuir (saída das barras)
+    seq.AppendCallback(() => ChangeRectSize(0f, panels, duration));
+}
+
+    private void ChangeRectSize(float size, List<GameObject> panels, float duration)
     {
-        _ = GameObject.FindGameObjectsWithTag("HUD").ToList();
-        // Pode ser expandido para HUD cinematográfico por jogador
+        foreach (GameObject panel in panels)
+        {
+            if (!panel.TryGetComponent(out RectTransform panelRect)) continue;
+            float width = panelRect.rect.width; // largura real do painel no Canvas
+            panelRect.DOSizeDelta(new Vector2(width, size), duration).SetEase(Ease.InOutCubic);
+        }
     }
+
+
+
+
+
+
 
     private IconImage? GetIcon(List<IconImage> icons, string destiny)
     {
@@ -197,6 +234,15 @@ public class HUDDirector : MonoBehaviour
             {
                 return icon;
             }
+        }
+        return null;
+    }
+    private List<GameObject> GetPanel(int playerID, string panel_name)
+    {
+        if (canvasMap.TryGetValue(playerID, out var dict) &&
+            dict.TryGetValue(panel_name, out var result))
+        {
+            return result;
         }
         return null;
     }
