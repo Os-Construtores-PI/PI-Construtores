@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 // Classe que representa uma zona onde um item pode ser pego (drop zone)
@@ -23,7 +22,7 @@ public class ItemDropZone : ItemComponent
         {
             // Rigidbody kinemático para interagir com física sem ser afetado por forças
             rb = gameObject.AddComponent<Rigidbody>();
-            rb.isKinematic = true;            
+            rb.isKinematic = true;
         }
 
 
@@ -40,34 +39,21 @@ public class ItemDropZone : ItemComponent
                 boxCollider.center = Vector3.zero;
             }
         }
-}
+    }
     private void Start()
     {
         Initialize();
     }
-
     // Método chamado quando outra colisão entra no trigger
     public void OnTriggerEnter(Collider other)
     {
-        // Tenta pegar o componente de inventário da entidade que entrou
-        // if (other.TryGetComponent(out InventoryComponent inventory))
-        // {
-        //     // Tenta pegar o BrainComponent para identificar o tipo da entidade (se existir)
-        //     if (other.TryGetComponent(out BrainComponent brain))
-        //     {
-        //         // Verifica se o tipo da entidade está na lista permitida
-        //         if (allowedEntityTypes.Length > 0 && !System.Array.Exists(allowedEntityTypes, t => t == brain.identity.TipoEntidade))
-        //         {
-        //             // Se o tipo não está na lista, não permite pegar
-        //             return;
-        //         }
-        //     }
-        //     // Se passou na checagem ou não tem BrainComponent, adiciona o item ao inventário
-        //     if (itemData != null)
-        //     {
-        //         inventory.AddItem(itemData, quantity);
-        //         Destroy(gameObject); // Remove a zona de drop após o item ser pego
-        //     }
-        // }
+        if (other.TryGetComponent(out Player player))
+        {
+            if (itemData != null)
+            {
+                player.Inventario.AddItem(itemData, quantity);
+                Destroy(gameObject); // Remove a zona de drop após o item ser pego
+            }
+        }
     }
 }
