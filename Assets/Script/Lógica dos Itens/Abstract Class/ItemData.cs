@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public abstract class ItemDataBase : ScriptableObject
+public abstract class ItemData : ScriptableObject
 {
     public string itemName;
     public string descricao;

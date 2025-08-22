@@ -8,7 +8,7 @@ public class Inventory
     private List<InventoryItem> items = new();
     public List<InventoryItem> GetItems() => items;
     public void ClearItems() => items.Clear();
-    public void AddItem(ItemDataBase data, int quantity = 1)
+    public void AddItem(ItemData data, int quantity = 1)
     {
         // Se o item não é único, tenta acumular com outro igual
         if (!data.Isunique)
@@ -25,7 +25,7 @@ public class Inventory
         items.Add(new InventoryItem(data, quantity));
         Debug.Log($"Adicionado: {data.itemName} x{quantity}");
     }
-    public void RemoveItem(ItemDataBase data, int quantity = 1)
+    public void RemoveItem(ItemData data, int quantity = 1)
     {
         var existing = items.Find(i => i.data == data);
         if (!data.Isunique)
@@ -48,7 +48,7 @@ public class Inventory
             items.Remove(existing);
         }
     }
-    public void UseItem(ItemDataBase itemData)
+    public void UseItem(ItemData itemData)
     {
         if (itemData.GetType() == typeof(PassiveItemData))
         {

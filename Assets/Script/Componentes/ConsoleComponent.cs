@@ -107,7 +107,7 @@ public class ConsoleComponent : MonoBehaviour
         }
 
         // Carrega o item da pasta Resources/Items
-        var item = Resources.Load<ItemDataBase>("Items/" + itemName);
+        var item = Resources.Load<ItemData>("Items/" + itemName);
         if (item == null)
         {
             Debug.LogWarning($"Item '{itemName}' não encontrado na pasta Resources/Items/");

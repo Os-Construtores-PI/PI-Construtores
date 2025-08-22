@@ -90,7 +90,7 @@ public class DataSystem : MonoBehaviour
         {
             foreach (var saveDrop in gameData.droppedItems)
             {
-                var subitemData = Resources.Load<ItemDataBase>("Items/" + saveDrop.itemName);
+                var subitemData = Resources.Load<ItemData>("Items/" + saveDrop.itemName);
                 if (drop.itemData == subitemData && drop.transform.position == saveDrop.position)
                 {
                     Destroy(drop.gameObject);
@@ -101,7 +101,7 @@ public class DataSystem : MonoBehaviour
         // Recria todos os itens dropados salvos
         foreach (var savedDrop in gameData.droppedItems)
         {
-            var itemData = Resources.Load<ItemDataBase>("Items/" + savedDrop.itemName);
+            var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
             if (itemData != null)
             {
                 GameObject go = new("ItemDrop_" + savedDrop.itemName);
@@ -127,7 +127,7 @@ public class DataSystem : MonoBehaviour
             // Recarrega os itens
             foreach (var entry in savedPlayer.inventory)
             {
-                var itemData = Resources.Load<ItemDataBase>("Items/" + entry.itemName);
+                var itemData = Resources.Load<ItemData>("Items/" + entry.itemName);
                 if (itemData != null)
                 {
                     refPlayer.Inventario.AddItem(itemData, entry.quantity);
