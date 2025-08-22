@@ -22,6 +22,7 @@ public class ItemDropZone : ItemComponent
         {
             // Rigidbody kinemático para interagir com física sem ser afetado por forças
             rb = gameObject.AddComponent<Rigidbody>();
+
             rb.isKinematic = true;
         }
 
