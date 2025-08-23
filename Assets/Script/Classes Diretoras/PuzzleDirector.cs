@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class PuzzleDirector : MonoBehaviour
 {
-    [SerializeField] private List<PuzzleLampObject> lamps;
-    [SerializeField] private float durationDesired = 3f;
+    [SerializeField] private List<ColorPuzzle> puzzles = new();
     [SerializeField] float intensityLight = 20f;
     private List<Code> puzzleCode = CodeBaseFour.Codes;
 
@@ -13,25 +12,28 @@ public class PuzzleDirector : MonoBehaviour
 
     private void Start()
     {
-        if (puzzleCode.Count != lamps.Count)
-        {
-            print("Número de Lâmpadas não bate com o número de cores setadas");
-            return;
-        }
-        puzzleCode = StaticRandomizer.ListRandomizer(puzzleCode);
-        FindFirstObjectByType<CodeCapturer>().SetupCode(puzzleCode);
-        StartCoroutine(FlashLights());
-
-    }
-    IEnumerator FlashLights()
-    {
-        while (canFlash)
-        {
-            for (int i = 0; i < lamps.Count; i++)
+        foreach (var puzzle in puzzles)
             {
-                lamps[i].SetupCorDurIntensity(puzzleCode[i].color, durationDesired, intensityLight);
-                lamps[i].ObjectAction(default);
-                yield return new WaitForSeconds(durationDesired);
+                puzzle.canFlash = true;
+                if (puzzleCode.Count != puzzle.lamps.Count)
+                {
+                    print("Número de Lâmpadas não bate com o número de cores setadas");
+                    continue;
+                }
+                    puzzleCode = StaticRandomizer.ListRandomizer(puzzleCode);
+                    StartCoroutine(FlashLights(puzzle));
+                    puzzle.codeCapturer.SetupCode(puzzleCode, puzzle);
+                }
+    }
+    IEnumerator FlashLights(ColorPuzzle puzzle)
+    {
+        while (puzzle.canFlash)
+        {
+            for (int i = 0; i < puzzle.lamps.Count; i++)
+            {
+                puzzle.lamps[i].SetupCorDurIntensity(puzzleCode[i].color, puzzle.durationDesired, intensityLight);
+                puzzle.lamps[i].ObjectAction(default);
+                yield return new WaitForSeconds(puzzle.durationDesired);
             }
         }
     }

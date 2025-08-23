@@ -67,7 +67,6 @@ public class DataSystem : MonoBehaviour
         // Serializa para JSON e salva no disco
         var json = JsonUtility.ToJson(gameData, true);
         File.WriteAllText(SavePath, json);
-
         Debug.Log("Jogo salvo com múltiplos jogadores e itens dropados.");
     }
 
@@ -110,7 +109,6 @@ public class DataSystem : MonoBehaviour
 
                 // Restaura o mesmo ID
                 dropZone.SetId(savedDrop.ID);
-
                 dropZone.Initialize();
             }
         }
@@ -153,4 +151,43 @@ public class DataSystem : MonoBehaviour
 
         Debug.Log("Jogo carregado com múltiplos jogadores.");
     }
+    public void Delete()
+    {
+        if (File.Exists(SavePath))
+        {
+            File.Delete(SavePath);
+            Debug.Log("Arquivo de save deletado com sucesso.");
+        }
+        else
+        {
+            Debug.LogWarning("Nenhum save encontrado para deletar.");
+        }
+
+        // Também limpa os dados atuais em memória
+        ResetGameData();
+    }
+
+    private void ResetGameData()
+    {
+        // Limpa todos os inventários dos jogadores
+        foreach (var p in players)
+        {
+            p.Inventario.ClearItems();
+            p.Health = p.MaxHealth; // volta para vida cheia, se fizer sentido
+            p.transform.position = Vector3.zero; // reposiciona, se desejar
+        }
+
+        // Remove os drops ativos na cena
+        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            Destroy(drop.gameObject);
+        }
+
+        // Limpa listas do DataSystem
+        droppedItems.Clear();
+
+        Debug.Log("Dados de jogo resetados.");
+    }
+
+
 }

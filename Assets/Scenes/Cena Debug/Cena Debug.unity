@@ -1346,7 +1346,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d711ca7425e81034f890f6eb6c3fbe61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  playermaster: {fileID: 451995847}
 --- !u!1 &351894214
 GameObject:
   m_ObjectHideFlags: 0
@@ -2158,7 +2158,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17cecb5eb3782b7498ff315a7360d81a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
   _maxHealth: 200
   _defense: 10
   combatCooldown: 5
@@ -4397,7 +4396,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b533cbb31ad3d74ca426def02cb3780, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
   itemData: {fileID: 0}
   quantity: 1
 --- !u!1 &1049491219
@@ -6479,12 +6477,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77058ade76548834eb055bc736e2c1b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lamps:
-  - {fileID: 2225843996637330380}
-  - {fileID: 1999723145}
-  - {fileID: 1819637613}
-  - {fileID: 1288278943}
-  durationDesired: 2
+  puzzles:
+  - id: Teste
+    canFlash: 1
+    codeCapturer: {fileID: 1980088070}
+    durationDesired: 2
+    lamps:
+    - {fileID: 2225843996637330380}
+    - {fileID: 1999723145}
+    - {fileID: 1819637613}
+    - {fileID: 1288278943}
   intensityLight: 40
   canFlash: 1
 --- !u!1 &1605276808
@@ -9926,7 +9928,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b533cbb31ad3d74ca426def02cb3780, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
   itemData: {fileID: 11400000, guid: a27ea3f8665066d4c8c15a6250744703, type: 2}
   quantity: 3
 --- !u!23 &9099402571842719346

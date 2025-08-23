@@ -7,6 +7,7 @@ public class CodeCapturer : ActivatableObject
     private List<Code> codeDirector = new(4);
     private List<Code> codePlayer = new(4);
     [SerializeField] private ActivatableObject objecttoactivate;
+    private ColorPuzzle puzzleSetted;
     private readonly UnityEvent<object> codeCorrect = new();
     private readonly UnityEvent<object> codeIncorrect = new();
 
@@ -15,9 +16,10 @@ public class CodeCapturer : ActivatableObject
         if (!objecttoactivate) return;
         codeCorrect.AddListener(objecttoactivate.ObjectAction);
     }
-    public void SetupCode(List<Code> puzzleCode)
+    public void SetupCode(List<Code> puzzleCode, ColorPuzzle puzzleRef)
     {
         codeDirector = puzzleCode;
+        puzzleSetted = puzzleRef;
     }
     public override void ObjectAction(object info = null)
     {
@@ -34,6 +36,7 @@ public class CodeCapturer : ActivatableObject
             if (CompareCodes())
             {
                 print("Acertou");
+                puzzleSetted.canFlash = false;
                 codeCorrect.Invoke(default);
             }
             else

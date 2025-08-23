@@ -305,6 +305,7 @@ public class Player : CombatEntities
         LayerMask layer = LayerMask.GetMask("Object");
         if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 40, layer))
         {
+            //sprint(hit.collider.name);
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
                 Type interactabletype = interactable.GetType();

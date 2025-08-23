@@ -6,7 +6,7 @@ public class GameDirector : MonoBehaviour
     private void Start()
     {
         if (!TryGetComponent(out dataSystem)) return;
-        dataSystem.Load();
+        //dataSystem.Load();
     }
 
     public void ShutdownWorld()

@@ -3,11 +3,11 @@ using UnityEngine;
 public abstract class Entities : MonoBehaviour
 {
     private static int _nextId = 0;
-    [SerializeField] private int id;
+    private int id;
 
-    public int ID => id;
+    [HideInInspector] public int ID => id;
 
-    protected virtual void Awake()
+    public virtual void Awake()
     {
         // Se ainda não tem ID, gera um novo
         if (id == 0)
