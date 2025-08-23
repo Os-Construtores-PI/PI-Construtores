@@ -28,6 +28,7 @@ public class SavedItemEntry
 [System.Serializable]
 public class SavedDroppedItem
 {
+    public int ID;
     public string itemName;
     public Vector3 position;
     public int quantity;

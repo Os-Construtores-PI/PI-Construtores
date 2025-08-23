@@ -23,8 +23,7 @@ public class DataSystem : MonoBehaviour
             {
                 playerId = p.ID,
                 position = p.transform.position,
-                health = p.Health,
-                //equippedItemName = p.EquipClassRef.currentItem != null ? p.EquipClassRef.currentItem.itemName : null
+                health = p.Health
             };
 
             // Salva o inventário
@@ -54,10 +53,10 @@ public class DataSystem : MonoBehaviour
             {
                 droppedItems.Add(new SavedDroppedItem
                 {
+                    ID = drop.ID,
                     itemName = drop.itemData.itemName,
                     position = drop.transform.position,
-                    quantity = drop.quantity,
-                    allowedEntityTypes = drop.allowedEntityTypes
+                    quantity = drop.quantity
                 });
             }
         }
@@ -85,18 +84,16 @@ public class DataSystem : MonoBehaviour
         var json = File.ReadAllText(SavePath);
         var gameData = JsonUtility.FromJson<SavedGameData>(json);
 
-        // Remove todos os itens dropados atuais da cena antes de recriar os salvos
-        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsSortMode.None))
+        // Coleta os IDs que existem no save
+        var savedIds = new HashSet<int>(gameData.droppedItems.ConvertAll(d => d.ID));
+        // Remove os drops atuais que não estão no save
+        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            foreach (var saveDrop in gameData.droppedItems)
-            {
-                var subitemData = Resources.Load<ItemData>("Items/" + saveDrop.itemName);
-                if (drop.itemData == subitemData && drop.transform.position == saveDrop.position)
-                {
-                    Destroy(drop.gameObject);
-                }
-            }
+            if (!savedIds.Contains(drop.ID))
+                Destroy(drop.gameObject);
         }
+
+
 
         // Recria todos os itens dropados salvos
         foreach (var savedDrop in gameData.droppedItems)
@@ -110,10 +107,14 @@ public class DataSystem : MonoBehaviour
                 var dropZone = go.AddComponent<ItemDropZone>();
                 dropZone.itemData = itemData;
                 dropZone.quantity = savedDrop.quantity;
-                dropZone.allowedEntityTypes = savedDrop.allowedEntityTypes;
-                dropZone.Initialize(); // Cria colisor, rigidbody e visual
+
+                // Restaura o mesmo ID
+                dropZone.SetId(savedDrop.ID);
+
+                dropZone.Initialize();
             }
         }
+
 
         // Restaura os dados de cada jogador
         foreach (var savedPlayer in gameData.players)

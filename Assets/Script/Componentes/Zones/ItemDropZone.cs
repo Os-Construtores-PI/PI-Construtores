@@ -1,14 +1,11 @@
 using UnityEngine;
 
 // Classe que representa uma zona onde um item pode ser pego (drop zone)
-public class ItemDropZone : ItemComponent
+public class ItemDropZone : Item
 {
     private GameObject visualInstance;    // Instância visual do item
     private BoxCollider boxCollider;      // Colisor para detectar entrada de entidades
     private Rigidbody rb;                 // Rigidbody para física (kinemático)
-
-    [Header("Tipos de Entidade que podem pegar o item")]
-    public CombatEntities[] allowedEntityTypes;  // Lista de entidades autorizadas
 
     public void Initialize()
     {

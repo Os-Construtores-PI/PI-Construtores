@@ -2,7 +2,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HealthHUDComponent : ComponentBehaviour
+public class HealthHUDComponent : MonoBehaviour
 {
     [Header("Configurações HUD")]
     [SerializeField] private GameObject healthBarObject;

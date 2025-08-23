@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 
 // Componente que aplica dano a qualquer CombatEntities que entrar na área
-public class DamageComponent : ComponentBehaviour
+public class DamageComponent : MonoBehaviour
 {
     [Header("Parâmetros de Dano")]
     [SerializeField] private float _maxDamage = 10f;       // Dano inicial

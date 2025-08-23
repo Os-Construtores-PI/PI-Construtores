@@ -5,7 +5,6 @@ public class EnemySpawner : BasePool
 {
     public static EnemySpawner enemySpawner;
     [SerializeField] protected List<Spawner> spawners;
-    private int idCounter = 0;
 
     public override void Awake()
     {
@@ -30,14 +29,11 @@ public class EnemySpawner : BasePool
                 tmp = Instantiate(sp.obj, tmpMarker.position, tmpMarker.rotation, parent);
                 if (tmp.TryGetComponent(out Enemies enemy))
                 {
-                    enemy.ID = idCounter;
                     enemy.spawnpos = tmpMarker.position;
-                    idCounter++;
                 }
                 tmp.SetActive(false);
                 disabledObject.Add(tmp);
             }
-            idCounter = 0;
         }
     }
     private void InitSpawner()
