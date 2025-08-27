@@ -4,21 +4,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class MenuGamePandoraPI : MonoBehaviour
+public class MenuDirector : MonoBehaviour
 {
     [SerializeField] Transform[] _painelMenu; // transform que interage com os botões do menu
-    
+
     [SerializeField] Transform[] _painelConfig; // transform que chama e interage com o painel de config
     [SerializeField] Transform[] _parts;
+    [SerializeField] Transform[] _partsConfig;
 
     [SerializeField] Button[] _botoes; // Variavel que chama os botoes animados
+
+    private bool _animadoMenu = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-       // _painelLayout.DOScale(1, 5);
+        // _painelLayout.DOScale(1, 5);
         StartCoroutine(TimeStart()); // inicia a animação dos painés do menu
         PainelStartOff(); // desativa os paineis de configuração
-        
+
         // inicializa todos os paineis do menu com escala zero
         for (int i = 0; i < _painelMenu.Length; i++)
         {
@@ -29,7 +32,7 @@ public class MenuGamePandoraPI : MonoBehaviour
         {
             _painelConfig[i].localScale = Vector3.zero;
         }
-        StartCoroutine(AnimaLogo()); //inicia animaçao da logo
+
     }
 
 
@@ -44,18 +47,18 @@ public class MenuGamePandoraPI : MonoBehaviour
     {
         SceneManager.LoadScene(Fase1); // inicia a cena fase1 como teste
     }
-     
+
     public void PainelStartOff()
     {
-     
+
         // desativa todos os paineis de configuração com animação de escala para zero
-        for (int i = 0; i < _painelConfig.Length; i++)
+        for (int i = 0; i < _partsConfig.Length; i++)
         {
-            _painelConfig[i].DOScale(0, .25f);
+            _partsConfig[i].DOScale(0, .25f);
         }
     }
 
-    public void PainelCheck() 
+    public void PainelCheck()
     {   // desativa todos os paineis do menu principal com animação de escala para zero
         for (int i = 0; i < _painelMenu.Length; i++)
         {
@@ -63,37 +66,103 @@ public class MenuGamePandoraPI : MonoBehaviour
         }
     }
 
+    public void PainelMusicPartsCheck()
+    {
+        for (int i = 0; i < _painelConfig.Length; i++)
+        {
+            _painelConfig[i].DOScale(0, .25f);
+        }
+    }
+    public void AbrirOpcoes()
+    {
+        _painelMenu[0].DOScale(0, 0.25f);
+        for (int i = 0; i < _painelMenu.Length; i++)
+        {
+            _painelMenu[i].DOScale(0, 0.25f);
+        }
+        foreach (Button botao in _botoes)
+        {
+            botao.transform.DOScale(0, 0.25f);
+        }
+
+        StartCoroutine(TimeConfig());
+    }
+
+    public void FecharOpcoes()
+    {
+
+        for (int i = 0; i < _painelMenu.Length; i++)
+        {
+            _painelMenu[i].DOScale(1, 0.25f);
+        }
+        StartCoroutine(TimeStart());
+        foreach (Button botao in _botoes)
+        {
+            botao.transform.DOScale(1, 0.5f);
+        }
+    }
+
+    public void AbrirPainelVolume()
+    {
+        for (int i = 0; i < _painelConfig.Length; i++)
+        {
+            _painelConfig[i].DOScale(0, .25f);
+
+        }
+        StartCoroutine(TimeConfigSom());
+    }
+    public void VoltarParaConfi()
+    {
+        for (int i = 0; i < _partsConfig.Length; i++)
+        {
+            _partsConfig[i].DOScale(0, .25f);
+        }
+    }
+
+
+
     public void PainelStartCheck(bool CheckON)
     {   // ativa ou desativa do menu principal baseado no parametro
         if (CheckON == true)
         {
             StartCoroutine(TimeStart()); // se verdadeiro, inicia dos paineis de animação dos painéis
-            
+
 
         }
         else
         {
-            PainelStartOff(); // se false, desativa os paineis
+            //  PainelStartOff(); // se false, desativa os paineis
         }
     }
 
     public void PainelConfigCheck(bool CheckON)
     {   // ativa ou desativa os paineis de config baseado no parametro
-        if (CheckON == true)
+        if (CheckON)
         {
+            _painelMenu[0].DOScale(0, 0);
             StartCoroutine(TimeConfig()); // se verdadeiro, inicia dos paineis de config
         }
         else
         {
-            PainelStartOff(); // se falso, desativa os paineis
+            //   PainelStartOff(); // se falso, desativa os paineis
         }
     }
 
+
+
+
+
+
+
+
     IEnumerator TimeStart()
     {
+        if (_animadoMenu) yield break;
+        _animadoMenu = false;
         // animação de entrada dos paineis do menu principal
         for (int i = 0; i < _painelMenu.Length; i++)
         {
+
             // _painelMenu[i].localScale = Vector3.zero;
             // anima cada painel para escala 1.5 e depois volta para 1
             _painelMenu[i].DOScale(1.5f, .25f);
@@ -105,12 +174,14 @@ public class MenuGamePandoraPI : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
 
         AtivarAnimator(); // ativa animadores dos botões
+        _animadoMenu = true;
 
-         
+
     }
 
     IEnumerator TimeConfig()
     {
+        _animadoMenu = true;
         // animação de entrada dos paineis de configuração 
         for (int i = 0; i < _painelConfig.Length; i++)
         {
@@ -120,20 +191,23 @@ public class MenuGamePandoraPI : MonoBehaviour
             yield return new WaitForSeconds(0.25f);
             _painelConfig[i].DOScale(1, .25f);
         }
-    }
 
-    IEnumerator AnimaLogo()
+    }
+    IEnumerator TimeConfigSom()
     {
-        // animação da logo (partes pulando para posição central)
-        for (int i = 0; i < _parts.Length; i++)
-        {
-            _parts[i].DOLocalJump(new Vector3(0, 0, 0), 100, 5, 3f);
-            yield return new WaitForSeconds(3f);
 
-            Image img = _parts[i].GetComponent<Image>();
-            yield return new WaitForSeconds(1f);
+        _animadoMenu = true;
+        for (int i = 0; i < _partsConfig.Length; i++)
+        {
+            _partsConfig[i].DOScale(1.5f, .25f);
+            yield return new WaitForSeconds(0.25f);
+            _partsConfig[i].DOScale(1, .25f);
         }
+        //_animadoMenu = true;
     }
+
+
+
 
     private void AtivarAnimator()
     {
@@ -143,5 +217,12 @@ public class MenuGamePandoraPI : MonoBehaviour
             botao.gameObject.GetComponent<Animator>().enabled = true;
         }
     }
-    
+
+    public void FecharJogo()
+    {
+        Application.Quit();
+        Debug.Log("Fechando jogo");
+    }
+
 }
+
