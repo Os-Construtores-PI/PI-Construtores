@@ -1,22 +1,38 @@
 using System.Collections.Generic;
 using System.IO;
-using Unity.VisualScripting;
+using NUnit.Framework;
 using UnityEngine;
 
 public class DataSystem : MonoBehaviour
 {
-    public List<Player> players = new(); // Lista de jogadores ativos na cena (arrastados pelo editor)
-    public List<SavedDroppedItem> droppedItems = new(); // Lista de itens dropados a serem salvos
+    [Header("Referências de Cena")]
+    [Tooltip("Lista de jogadores ativos na cena (arrastados pelo editor).")]
+    public List<Player> players = new();
 
-    // Caminho do arquivo de save no sistema
-    private string SavePath => Application.persistentDataPath + "/GAMEDATA.json";
+    private readonly int maxSlots = 3;
 
-    // Método de salvamento geral do jogo
-    public void Save()
+    // Caminho do arquivo de save
+    private string SavePath => Path.Combine(Application.persistentDataPath, "GAMEDATA.json");
+
+    #region SAVE
+
+    public void Save(int index)
     {
-        var gameData = new SavedGameData(); // Cria o objeto de dados que será serializado em JSON
+        if (!IsValidSlot(index)) return;
 
-        // Salva os dados de cada jogador
+        var gameData = new SavedGameData();
+
+        SavePlayers(gameData, index);
+        SaveDroppedItems(gameData, index);
+
+        var json = JsonUtility.ToJson(gameData, true);
+        File.WriteAllText(SavePath, json);
+
+        Debug.Log($"[DataSystem] Jogo salvo no slot {index} em {SavePath}.");
+    }
+
+    private void SavePlayers(SavedGameData gameData, int index)
+    {
         foreach (Player p in players)
         {
             SavedPlayerData playerData = new()
@@ -26,7 +42,6 @@ public class DataSystem : MonoBehaviour
                 health = p.Health
             };
 
-            // Salva o inventário
             foreach (var item in p.Inventario.GetItems())
             {
                 playerData.inventory.Add(new SavedItemEntry
@@ -36,94 +51,77 @@ public class DataSystem : MonoBehaviour
                 });
             }
 
-            gameData.players.Add(playerData); // Adiciona o jogador ao save
+            gameData.savedSlots[index].players.Add(playerData);
         }
-
-        // Salva os itens dropados no mundo
-        droppedItems.Clear();
-
-        // Procura todos os objetos com ItemDropZone na cena, incluindo inativos
-        var drops = FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (var drop in drops)
-        {
-            Debug.Log($" - {drop.name} at {drop.transform.position} with item: {(drop.itemData != null ? drop.itemData.itemName : null)}");
-
-            // Salva apenas os que têm itemData válido
-            if (drop.itemData != null)
-            {
-                droppedItems.Add(new SavedDroppedItem
-                {
-                    ID = drop.ID,
-                    itemName = drop.itemData.itemName,
-                    position = drop.transform.position,
-                    quantity = drop.quantity
-                });
-            }
-        }
-
-        // Atribui ao objeto de save
-        gameData.droppedItems = droppedItems;
-
-        // Serializa para JSON e salva no disco
-        var json = JsonUtility.ToJson(gameData, true);
-        File.WriteAllText(SavePath, json);
-        Debug.Log("Jogo salvo com múltiplos jogadores e itens dropados.");
     }
 
-    // Método de carregamento do jogo
-    public void Load()
+    private void SaveDroppedItems(SavedGameData gameData, int index)
     {
+        var drops = GetDroppedItemsInScene();
+        gameData.savedSlots[index].droppedItems = drops;
+    }
+
+    #endregion
+
+    #region LOAD
+
+    public void Load(int index)
+    {
+        if (!IsValidSlot(index)) return;
         if (!File.Exists(SavePath))
         {
-            Debug.LogWarning("Nenhum save encontrado.");
+            Debug.LogWarning("[DataSystem] Nenhum save encontrado.");
             return;
         }
 
-        // Carrega e desserializa o arquivo JSON
         var json = File.ReadAllText(SavePath);
         var gameData = JsonUtility.FromJson<SavedGameData>(json);
 
-        // Coleta os IDs que existem no save
-        var savedIds = new HashSet<int>(gameData.droppedItems.ConvertAll(d => d.ID));
-        // Remove os drops atuais que não estão no save
+        RestoreDroppedItems(gameData, index);
+        RestorePlayers(gameData, index);
+
+        Debug.Log($"[DataSystem] Jogo carregado do slot {index}.");
+    }
+
+    private void RestoreDroppedItems(SavedGameData gameData, int index)
+    {
+        var savedDrops = gameData.savedSlots[index].droppedItems;
+
+        var savedIds = new HashSet<int>(savedDrops.ConvertAll(d => d.ID));
+
+        // Remove drops que não existem mais
         foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!savedIds.Contains(drop.ID))
                 Destroy(drop.gameObject);
         }
 
-
-
-        // Recria todos os itens dropados salvos
-        foreach (var savedDrop in gameData.droppedItems)
+        // Recria os drops
+        foreach (var savedDrop in savedDrops)
         {
             var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
-            if (itemData != null)
-            {
-                GameObject go = new("ItemDrop_" + savedDrop.itemName);
-                go.transform.position = savedDrop.position;
+            if (itemData == null) continue;
 
-                var dropZone = go.AddComponent<ItemDropZone>();
-                dropZone.itemData = itemData;
-                dropZone.quantity = savedDrop.quantity;
+            GameObject go = new("ItemDrop_" + savedDrop.itemName);
+            go.transform.position = savedDrop.position;
 
-                // Restaura o mesmo ID
-                dropZone.SetId(savedDrop.ID);
-                dropZone.Initialize();
-            }
+            var dropZone = go.AddComponent<ItemDropZone>();
+            dropZone.itemData = itemData;
+            dropZone.quantity = savedDrop.quantity;
+            dropZone.SetId(savedDrop.ID);
+            dropZone.Initialize();
         }
+    }
 
-
-        // Restaura os dados de cada jogador
-        foreach (var savedPlayer in gameData.players)
+    private void RestorePlayers(SavedGameData gameData, int index)
+    {
+        foreach (var savedPlayer in gameData.savedSlots[index].players)
         {
             var refPlayer = players.Find(p => p.ID == savedPlayer.playerId);
             if (refPlayer == null) continue;
 
-            // Limpa o inventário
             refPlayer.Inventario.ClearItems();
 
-            // Recarrega os itens
             foreach (var entry in savedPlayer.inventory)
             {
                 var itemData = Resources.Load<ItemData>("Items/" + entry.itemName);
@@ -133,7 +131,6 @@ public class DataSystem : MonoBehaviour
                 }
             }
 
-            // Move o jogador para a posição salva
             if (refPlayer.transform.TryGetComponent(out CharacterController controller))
             {
                 controller.enabled = false;
@@ -145,49 +142,72 @@ public class DataSystem : MonoBehaviour
                 refPlayer.transform.position = savedPlayer.position;
             }
 
-            // Restaura a vida do jogador
             refPlayer.Health = savedPlayer.health;
         }
-
-        Debug.Log("Jogo carregado com múltiplos jogadores.");
     }
+
+    #endregion
+
+    #region DELETE & RESET
+
     public void Delete()
     {
         if (File.Exists(SavePath))
         {
             File.Delete(SavePath);
-            Debug.Log("Arquivo de save deletado com sucesso.");
+            Debug.Log("[DataSystem] Arquivo de save deletado com sucesso.");
         }
         else
         {
-            Debug.LogWarning("Nenhum save encontrado para deletar.");
+            Debug.LogWarning("[DataSystem] Nenhum save encontrado para deletar.");
         }
 
-        // Também limpa os dados atuais em memória
         ResetGameData();
     }
 
     private void ResetGameData()
     {
-        // Limpa todos os inventários dos jogadores
         foreach (var p in players)
         {
             p.Inventario.ClearItems();
-            p.Health = p.MaxHealth; // volta para vida cheia, se fizer sentido
-            p.transform.position = Vector3.zero; // reposiciona, se desejar
+            p.Health = p.MaxHealth;
+            p.transform.position = Vector3.zero;
         }
 
-        // Remove os drops ativos na cena
         foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             Destroy(drop.gameObject);
         }
 
-        // Limpa listas do DataSystem
-        droppedItems.Clear();
-
-        Debug.Log("Dados de jogo resetados.");
+        Debug.Log("[DataSystem] Dados de jogo resetados.");
     }
 
+    #endregion
 
+    #region UTIL
+
+    private bool IsValidSlot(int index) => index >= 0 && index < maxSlots;
+
+    private List<SavedDroppedItem> GetDroppedItemsInScene()
+    {
+        var result = new List<SavedDroppedItem>();
+
+        var drops = FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var drop in drops)
+        {
+            if (drop.itemData == null) continue;
+
+            result.Add(new SavedDroppedItem
+            {
+                ID = drop.ID,
+                itemName = drop.itemData.itemName,
+                position = drop.transform.position,
+                quantity = drop.quantity
+            });
+        }
+
+        return result;
+    }
+
+    #endregion
 }

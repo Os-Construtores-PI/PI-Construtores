@@ -50,8 +50,8 @@ public class ConsoleComponent : MonoBehaviour
     }
 
     // Comando para salvar o estado do jogo para todos os jogadores registrados no DataSystem
-    [ConsoleMethod("saveGame", "Salva o estado do jogo para todos os jogadores", "")]
-    public static void SaveGame()
+    [ConsoleMethod("saveGame", "Salva o estado do jogo para todos os jogadores", "slot")]
+    public static void SaveGame(int index)
     {
         var dataSystem = FindAnyObjectByType<DataSystem>();
         if (dataSystem == null)
@@ -60,12 +60,12 @@ public class ConsoleComponent : MonoBehaviour
             return;
         }
 
-        dataSystem.Save();
+        dataSystem.Save(index);
     }
 
     // Comando para carregar o estado salvo do jogo para todos os jogadores registrados no DataSystem
-    [ConsoleMethod("loadGame", "Carrega o estado do jogo para todos os jogadores", "")]
-    public static void LoadGame()
+    [ConsoleMethod("loadGame", "Carrega o estado do jogo para todos os jogadores", "slot")]
+    public static void LoadGame(int index)
     {
         var dataSystem = FindAnyObjectByType<DataSystem>();
         if (dataSystem == null)
@@ -74,7 +74,7 @@ public class ConsoleComponent : MonoBehaviour
             return;
         }
 
-        dataSystem.Load();
+        dataSystem.Load(index);
     }
 
     // Comando para definir o alvo atual do console, baseado no playerId cadastrado no DataSystem

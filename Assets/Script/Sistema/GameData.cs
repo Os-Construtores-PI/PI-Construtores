@@ -4,8 +4,14 @@ using UnityEngine;
 [System.Serializable]
 public class SavedGameData
 {
+    public List<SavedSlotData> savedSlots = new(3);
+}
+
+[System.Serializable]
+public class SavedSlotData
+{
     public List<SavedPlayerData> players = new();
-    public List<SavedDroppedItem> droppedItems = new();
+    public List<SavedDroppedItem> droppedItems = new();  
 }
 
 [System.Serializable]
