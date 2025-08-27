@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
-using NUnit.Framework;
 using UnityEngine;
 
+/// <summary>
+/// Sistema de salvamento e carregamento de dados do jogo.
+/// Gerencia múltiplos slots de save, jogadores, inventário e itens dropados.
+/// </summary>
 public class DataSystem : MonoBehaviour
 {
     [Header("Referências de Cena")]
@@ -10,8 +13,9 @@ public class DataSystem : MonoBehaviour
     public List<Player> players = new();
 
     private readonly int maxSlots = 3;
+    private readonly string cryptoKey = "MySecretKey123"; // chave simples para XOR
 
-    // Caminho do arquivo de save
+    // Caminho único do arquivo de save
     private string SavePath => Path.Combine(Application.persistentDataPath, "GAMEDATA.json");
 
     #region SAVE
@@ -26,7 +30,9 @@ public class DataSystem : MonoBehaviour
         SaveDroppedItems(gameData, index);
 
         var json = JsonUtility.ToJson(gameData, true);
-        File.WriteAllText(SavePath, json);
+        var encrypted = Encrypt(json);
+
+        File.WriteAllText(SavePath, encrypted);
 
         Debug.Log($"[DataSystem] Jogo salvo no slot {index} em {SavePath}.");
     }
@@ -39,7 +45,7 @@ public class DataSystem : MonoBehaviour
             {
                 playerId = p.ID,
                 position = p.transform.position,
-                health = p.Health
+                health = p.Health,
             };
 
             foreach (var item in p.Inventario.GetItems())
@@ -50,7 +56,7 @@ public class DataSystem : MonoBehaviour
                     quantity = item.quantity
                 });
             }
-
+            playerData.SaveStats(p.stats);
             gameData.savedSlots[index].players.Add(playerData);
         }
     }
@@ -74,7 +80,8 @@ public class DataSystem : MonoBehaviour
             return;
         }
 
-        var json = File.ReadAllText(SavePath);
+        var encrypted = File.ReadAllText(SavePath);
+        var json = Decrypt(encrypted);
         var gameData = JsonUtility.FromJson<SavedGameData>(json);
 
         RestoreDroppedItems(gameData, index);
@@ -86,10 +93,9 @@ public class DataSystem : MonoBehaviour
     private void RestoreDroppedItems(SavedGameData gameData, int index)
     {
         var savedDrops = gameData.savedSlots[index].droppedItems;
-
         var savedIds = new HashSet<int>(savedDrops.ConvertAll(d => d.ID));
 
-        // Remove drops que não existem mais
+        // Remove drops que não existem no save
         foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!savedIds.Contains(drop.ID))
@@ -120,8 +126,8 @@ public class DataSystem : MonoBehaviour
             var refPlayer = players.Find(p => p.ID == savedPlayer.playerId);
             if (refPlayer == null) continue;
 
+            // Restaurar inventário
             refPlayer.Inventario.ClearItems();
-
             foreach (var entry in savedPlayer.inventory)
             {
                 var itemData = Resources.Load<ItemData>("Items/" + entry.itemName);
@@ -131,6 +137,10 @@ public class DataSystem : MonoBehaviour
                 }
             }
 
+            // Restaurar stats
+            savedPlayer.LoadStats(refPlayer.stats);
+
+            // Restaurar posição
             if (refPlayer.transform.TryGetComponent(out CharacterController controller))
             {
                 controller.enabled = false;
@@ -142,6 +152,7 @@ public class DataSystem : MonoBehaviour
                 refPlayer.transform.position = savedPlayer.position;
             }
 
+            // Restaurar vida
             refPlayer.Health = savedPlayer.health;
         }
     }
@@ -150,20 +161,48 @@ public class DataSystem : MonoBehaviour
 
     #region DELETE & RESET
 
-    public void Delete()
+    public void Delete(int? slotIndex = null)
     {
-        if (File.Exists(SavePath))
-        {
-            File.Delete(SavePath);
-            Debug.Log("[DataSystem] Arquivo de save deletado com sucesso.");
-        }
-        else
+    if (!File.Exists(SavePath))
         {
             Debug.LogWarning("[DataSystem] Nenhum save encontrado para deletar.");
+            return;
         }
 
-        ResetGameData();
+    if (slotIndex.HasValue)
+    {
+        int index = slotIndex.Value;
+        if (!IsValidSlot(index))
+        {
+            Debug.LogWarning($"[DataSystem] Slot {index} inválido para deletar.");
+            return;
+        }
+
+        // Lê e desserializa
+        var encrypted = File.ReadAllText(SavePath);
+        var json = Decrypt(encrypted);
+        var gameData = JsonUtility.FromJson<SavedGameData>(json);
+
+        // Limpa apenas o slot específico
+        gameData.savedSlots[index] = new SavedSlotData();
+
+        // Reescreve o arquivo
+        var newJson = JsonUtility.ToJson(gameData, true);
+        var newEncrypted = Encrypt(newJson);
+        File.WriteAllText(SavePath, newEncrypted);
+
+        Debug.Log($"[DataSystem] Slot {index} deletado com sucesso.");
     }
+    else
+    {
+        // Deleta o arquivo todo
+        File.Delete(SavePath);
+        Debug.Log("[DataSystem] Arquivo de save deletado com sucesso.");
+    }
+
+    // Reseta os dados em memória (opcional, mantém comportamento antigo)
+    ResetGameData();
+}
 
     private void ResetGameData()
     {
@@ -207,6 +246,28 @@ public class DataSystem : MonoBehaviour
         }
 
         return result;
+    }
+
+    private string Encrypt(string data)
+    {
+        var dataBytes = System.Text.Encoding.UTF8.GetBytes(data);
+        var keyBytes = System.Text.Encoding.UTF8.GetBytes(cryptoKey);
+
+        for (int i = 0; i < dataBytes.Length; i++)
+            dataBytes[i] ^= keyBytes[i % keyBytes.Length];
+
+        return System.Convert.ToBase64String(dataBytes);
+    }
+
+    private string Decrypt(string encrypted)
+    {
+        var dataBytes = System.Convert.FromBase64String(encrypted);
+        var keyBytes = System.Text.Encoding.UTF8.GetBytes(cryptoKey);
+
+        for (int i = 0; i < dataBytes.Length; i++)
+            dataBytes[i] ^= keyBytes[i % keyBytes.Length];
+
+        return System.Text.Encoding.UTF8.GetString(dataBytes);
     }
 
     #endregion

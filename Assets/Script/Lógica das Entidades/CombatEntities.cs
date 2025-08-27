@@ -43,12 +43,13 @@ public abstract class CombatEntities : LiveEntities
 
     #region --- Ciclo de Vida ---
 
-    public virtual void Awake()
+    public override void Awake()
     {
+        base.Awake();
         _OnDamage.AddListener(EnterCombat);
 
-        stats._numModified.AddListener(HandleNumericStatChange);
-        stats._boolModified.AddListener(HandleBoolStatChange); ;
+        stats.OnNumModified.AddListener(HandleNumericStatChange);
+        stats.OnBoolModified.AddListener(HandleBoolStatChange); ;
         InitializeStats();
 
         if (EnableRegen)

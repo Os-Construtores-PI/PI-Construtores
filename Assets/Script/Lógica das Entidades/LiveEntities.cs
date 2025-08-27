@@ -171,8 +171,8 @@ public abstract class LiveEntities : Entities
         InitializeStats();
 
         // Conecta eventos do stats
-        stats._numModified.AddListener(HandleNumericStatChange);
-        stats._boolModified.AddListener(HandleBoolStatChange);
+        stats.OnNumModified.AddListener(HandleNumericStatChange);
+        stats.OnBoolModified.AddListener(HandleBoolStatChange);
 
         //Conecta a função de morte
         _OnDeath.AddListener(DeathHandler);
