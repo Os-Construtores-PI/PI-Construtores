@@ -3,7 +3,7 @@ using UnityEngine;
 public class AbyssEye : LiveEntities
 {
     [Header("Abyss Eye Settings")]
-    [SerializeField] private float damage = 5f;
+    [SerializeField] private float damage;
     private void OnTriggerEnter(Collider collision)
     {
         Player player = collision.gameObject.GetComponent<Player>();
@@ -15,6 +15,7 @@ public class AbyssEye : LiveEntities
 
     private void ApplyDamage(Player player)
     {
-        player.TakeDamage(damage);
+        player.Health -= damage; // ignora a defesa
+        Debug.Log($"{player.name} tomou {damage} de dano fixo do Abyss Eye!! vida restante: {player.Health}");
     }
 }

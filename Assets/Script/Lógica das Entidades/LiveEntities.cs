@@ -9,6 +9,8 @@ using UnityEngine.Events;
 /// </summary>
 public abstract class LiveEntities : Entities
 {
+    [Header("Debug - Vida Atual")]
+    [SerializeField] private float _currentHealthDebug;
     #region --- Atributos de Vida ---
 
     [Header("Atributos de Vida")]
@@ -180,8 +182,12 @@ public abstract class LiveEntities : Entities
 
     public virtual void TakeDamage(float amount)
     {
-        float finalDamage = Mathf.Max(0f, amount - Defense); // aplica a defesa basica
+        float finalDamage = amount - Defense;
+        finalDamage = Math.Max(0f, finalDamage); 
+
         Health -= finalDamage;
+
+        _currentHealthDebug = Health; // atualiza para mostrar a vida retirada ao inspector
 
         Debug.Log($"{name} tomou {finalDamage} de dano!! Vida restante: {Health}");
     }
