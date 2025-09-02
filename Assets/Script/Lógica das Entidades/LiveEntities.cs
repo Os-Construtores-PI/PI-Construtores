@@ -178,6 +178,14 @@ public abstract class LiveEntities : Entities
         _OnDeath.AddListener(DeathHandler);
     }
 
+    public virtual void TakeDamage(float amount)
+    {
+        float finalDamage = Mathf.Max(0f, amount - Defense); // aplica a defesa basica
+        Health -= finalDamage;
+
+        Debug.Log($"{name} tomou {finalDamage} de dano!! Vida restante: {Health}");
+    }
+
     #endregion
 }
 
