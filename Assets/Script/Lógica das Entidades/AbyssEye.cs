@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AbyssEye : LiveEntities
+public class AbyssEye : Enemies
 {
     [Header("Abyss Eye Settings")]
     [SerializeField] private float damage;
@@ -15,7 +15,10 @@ public class AbyssEye : LiveEntities
 
     private void ApplyDamage(Player player)
     {
+        if (player.Damaged) return;
+
         player.Health -= damage; // ignora a defesa
+        player.Damaged = true;
         Debug.Log($"{player.name} tomou {damage} de dano fixo do Abyss Eye!! vida restante: {player.Health}");
     }
 }
