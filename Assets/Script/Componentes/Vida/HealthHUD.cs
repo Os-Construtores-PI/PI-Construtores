@@ -2,10 +2,10 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Slider))]
 public class HealthHUDComponent : MonoBehaviour
 {
     [Header("Configurações HUD")]
-    [SerializeField] private GameObject healthBarObject;
     public HealthHUDType HUDType;
 
     public Transform EnemyTarget { get; set; }
@@ -17,6 +17,14 @@ public class HealthHUDComponent : MonoBehaviour
 
     private void Start()
     {
+        if (transform.parent.TryGetComponent(out PlayerHUD playerHUD))
+        {
+            IdHealth = playerHUD.ID;
+        }
+        else
+        {
+            print("Não está com um pai com PlayerHUD");
+        }
         _slider = GetComponent<Slider>();
         if (_slider == null)
         {
