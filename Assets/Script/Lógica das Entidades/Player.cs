@@ -58,6 +58,12 @@ public class Player : CombatEntities
     private int currentJumpCount;
     private bool isGrounded;
     private bool canDash = true;
+    [Stat(nameof(CanDash))]
+    public bool CanDash
+    {
+        get => canDash;
+        set => canDash = value;
+    }
     private bool isDashing = false;
 
     private float dashDuration;
@@ -121,7 +127,7 @@ public class Player : CombatEntities
         base.Update();
         EnemyScanLogicHolder();
         ObjectScanLogicHolder();
-
+        print(CanDash);
         
     }
 
