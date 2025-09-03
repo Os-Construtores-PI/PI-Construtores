@@ -3,7 +3,7 @@ using UnityEngine;
 public abstract class Entities : MonoBehaviour
 {
     private static int _nextId = 0;
-    private int id;
+    protected int id;
 
     [HideInInspector] public int ID => id;
 

@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
+[DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
     #region --- Configurações de Movimento ---
@@ -300,12 +300,16 @@ public class Player : CombatEntities
     }
     private void ObjectScan()
     {
-        if (!selectedcamera) return;
+        if (!selectedcamera)
+        {
+            SetupCamera();
+            return;
+        }
         Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
         LayerMask layer = LayerMask.GetMask("Object");
         if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 40, layer))
         {
-            //sprint(hit.collider.name);
+            print(hit.collider.name);
             if (hit.collider.TryGetComponent(out InteractableObject interactable))
             {
                 Type interactabletype = interactable.GetType();
