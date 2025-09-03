@@ -88,6 +88,20 @@ public class Player : CombatEntities
 
     #region --- Inicialização Unity ---
 
+    
+    // Abyss Eye Empurrão
+    private Vector3 knockbackVelocity;
+    private float knockbackDuration = 0.2f; // quanto tempo o empurrão dura
+    private float knockbackTimer;
+
+
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        knockbackVelocity = direction * force;
+        knockbackTimer = knockbackDuration;
+    }
+
+
     public override void Awake()
     {
         base.Awake();
@@ -107,6 +121,8 @@ public class Player : CombatEntities
         base.Update();
         EnemyScanLogicHolder();
         ObjectScanLogicHolder();
+
+        
     }
 
     private void FixedUpdate()
@@ -117,7 +133,20 @@ public class Player : CombatEntities
         if (isDashing) HandleDash();
         else HandleMovement();
 
-        characterController.Move(movementVector * Time.deltaTime);
+        //characterController.Move(movementVector * Time.deltaTime);
+
+        Vector3 finalMovement = movementVector;
+
+        if (knockbackTimer > 0)
+        {
+            knockbackTimer -= Time.deltaTime;
+            finalMovement += knockbackVelocity;
+
+            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, Time.deltaTime * 5f);
+
+        }
+
+        characterController.Move(finalMovement * Time.deltaTime);
     }
 
     private void OnDestroy() => DOTween.KillAll();
@@ -142,7 +171,7 @@ public class Player : CombatEntities
     {
         if (interactableRef && context.started)
         {
-            InfoPlayerInteraction info = new(gameObject,this);
+            InfoPlayerInteraction info = new(gameObject, this);
             interactableRef.Interaction(info);
         }
     }
