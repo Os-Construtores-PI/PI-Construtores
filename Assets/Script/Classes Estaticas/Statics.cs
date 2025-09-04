@@ -65,9 +65,21 @@ public static class StringtoTypes
     };
 }
 
+public static class StatTypeMap
+{
+    public static readonly Dictionary<Constants.StatsNames, Type> Map = new()
+    {
+        { Constants.StatsNames.CanDash, typeof(bool) },
+        { Constants.StatsNames.EnableRegen, typeof(bool) },
+        { Constants.StatsNames.Speed, typeof(float) },
+        { Constants.StatsNames.Health, typeof(float) },
+        { Constants.StatsNames.MaxHealth, typeof(float) },
+        { Constants.StatsNames.Defense, typeof(float) },
+        { Constants.StatsNames.JumpForce, typeof(float) }
+    };
 
-
-
+    public static Type GetType(Constants.StatsNames stat) => Map[stat];
+}
 
 
 public static class Constants
@@ -88,9 +100,9 @@ public static class Constants
     {
         public static HashSet<Type> types = new() { typeof(GraplingHookTarget) };
     }
-    public static class StatsNames
+    public enum StatsNames
     {
-        public static readonly string CanDash = "CanDash";
+        CanDash,Speed,Health,Defense,MaxHealth,JumpForce,EnableRegen
     }
 } 
 
