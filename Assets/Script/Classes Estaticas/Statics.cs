@@ -88,6 +88,10 @@ public static class Constants
     {
         public static HashSet<Type> types = new() { typeof(GraplingHookTarget) };
     }
+    public static class StatsNames
+    {
+        public static readonly string CanDash = "CanDash";
+    }
 } 
 
 public static class StaticRandomizer
