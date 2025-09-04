@@ -88,9 +88,9 @@ public static class Constants
     {
         public static HashSet<Type> types = new() { typeof(GraplingHookTarget) };
     }
-    public static class StatsNames
+    public enum StatsNames
     {
-        public static readonly string CanDash = "CanDash";
+        CanDash,Speed,Health,Defense,MaxHealth,JumpForce,EnableRegen
     }
 } 
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Project.Tools.DictionaryHelp;
@@ -5,10 +6,11 @@ using UnityEngine;
 
 public class StatZone : MonoBehaviour
 {
-    [SerializeField] private string StatName;
+    [SerializeField] private Constants.StatsNames StatName;
     [SerializeField] private QualityTier zoneTier;
     [SerializeField] private TimeTYPE timeTYPE;
     [SerializeField] private ModifyTYPE modifyType;
+    [SerializeField] private string statType;
 
     [Header("Só funciona se for status temporário")]
     [SerializeField] private float statDuration = 5f;
@@ -36,16 +38,53 @@ public class StatZone : MonoBehaviour
     {
         _onCooldown = true;
 
+        switch (statType)
+        {
+            case "bool":
+                if (timeTYPE == TimeTYPE.TEMPORARY)
+                {
+                    print($"Funcionando // {StatName}");
+                    yield return stats.ModifyStatCoroutine<bool>(
+                        StatName.ToString(), modifyType, zoneTier, statDuration
+                    );
+                }
+                else
+                {
+                    stats.ModifyStatImmediate<bool>(
+                        StatName.ToString(), modifyType, zoneTier
+                    );
+                }
+                break;
+
+            case "float":
+                if (timeTYPE == TimeTYPE.TEMPORARY)
+                {
+                    print($"Funcionando // {StatName}");
+                    yield return stats.ModifyStatCoroutine<float>(
+                        StatName.ToString(), modifyType, zoneTier, statDuration
+                    );
+                }
+                else
+                {
+                    stats.ModifyStatImmediate<float>(
+                        StatName.ToString(), modifyType, zoneTier
+                    );
+                }
+                break;
+
+            default:
+                yield break;
+        }
+
+
         if (timeTYPE == TimeTYPE.TEMPORARY)
         {
-            print("Funcionando");
-            yield return stats.ModifyStatCoroutine<float>(StatName, ModifyTYPE.POSITIVE, zoneTier, statDuration);
+            print($"Funcionando // {StatName.ToString()}");
+            yield return stats.ModifyStatCoroutine<bool>(StatName.ToString(), modifyType, zoneTier, statDuration);
         }
         else
         {
-            // PERMANENTE: modificação direta sem tempo
-            stats.ModifyStatImmediate<float>(StatName, ModifyTYPE.POSITIVE, zoneTier);
-            
+            stats.ModifyStatImmediate<float>(StatName.ToString(), modifyType, zoneTier);
         }
 
         yield return new WaitForSeconds(statCooldown);
