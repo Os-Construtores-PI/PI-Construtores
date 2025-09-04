@@ -10,7 +10,6 @@ public class StatZone : MonoBehaviour
     [SerializeField] private QualityTier zoneTier;
     [SerializeField] private TimeTYPE timeTYPE;
     [SerializeField] private ModifyTYPE modifyType;
-    [SerializeField] private string statType;
 
     [Header("Só funciona se for status temporário")]
     [SerializeField] private float statDuration = 5f;
@@ -37,44 +36,33 @@ public class StatZone : MonoBehaviour
     private IEnumerator ApplyStatZone(Stats stats)
     {
         _onCooldown = true;
+        Type statType = StatTypeMap.Map[StatName];
 
-        switch (statType)
+    if (timeTYPE == TimeTYPE.TEMPORARY)
+    {
+        print($"Funcionando // {StatName}");
+
+        var method = typeof(Stats)
+            .GetMethod(nameof(Stats.ModifyStatCoroutine))
+            .MakeGenericMethod(statType);
+
+        yield return (IEnumerator)method.Invoke(stats, new object[]
         {
-            case "bool":
-                if (timeTYPE == TimeTYPE.TEMPORARY)
-                {
-                    print($"Funcionando // {StatName}");
-                    yield return stats.ModifyStatCoroutine<bool>(
-                        StatName.ToString(), modifyType, zoneTier, statDuration
-                    );
-                }
-                else
-                {
-                    stats.ModifyStatImmediate<bool>(
-                        StatName.ToString(), modifyType, zoneTier
-                    );
-                }
-                break;
+            StatName.ToString(), modifyType, zoneTier, statDuration
+        });
+    }
+    else
+    {
+        var method = typeof(Stats)
+            .GetMethod(nameof(Stats.ModifyStatImmediate))
+            .MakeGenericMethod(statType);
 
-            case "float":
-                if (timeTYPE == TimeTYPE.TEMPORARY)
-                {
-                    print($"Funcionando // {StatName}");
-                    yield return stats.ModifyStatCoroutine<float>(
-                        StatName.ToString(), modifyType, zoneTier, statDuration
-                    );
-                }
-                else
-                {
-                    stats.ModifyStatImmediate<float>(
-                        StatName.ToString(), modifyType, zoneTier
-                    );
-                }
-                break;
+        method.Invoke(stats, new object[]
+        {
+            StatName.ToString(), modifyType, zoneTier
+        });
+    }
 
-            default:
-                yield break;
-        }
 
 
         if (timeTYPE == TimeTYPE.TEMPORARY)
