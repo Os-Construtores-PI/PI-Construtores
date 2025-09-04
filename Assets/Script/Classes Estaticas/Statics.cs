@@ -82,9 +82,6 @@ public static class StatTypeMap
 }
 
 
-
-
-
 public static class Constants
 {
     public static class PanelNames
