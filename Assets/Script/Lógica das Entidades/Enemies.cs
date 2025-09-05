@@ -28,7 +28,11 @@ public abstract class Enemies : CombatEntities
     // ==== Referência para o Scanner ==== //
     [HideInInspector] public Vector3 spawnpos;
 
-
+    [Header("Enemy Damage Logic")]
+    [SerializeField] private float _dashBlockDuration;
+    [SerializeField] private float _knockbackForce = 40f;
+    public float KnockBackForce => _knockbackForce;
+    public float DashBlockDuration => _dashBlockDuration;
 
 
 

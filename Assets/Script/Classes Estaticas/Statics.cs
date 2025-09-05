@@ -102,7 +102,11 @@ public static class Constants
     }
     public enum StatsNames
     {
-        CanDash,Speed,Health,Defense,MaxHealth,JumpForce,EnableRegen
+        CanDash, Speed, Health, Defense, MaxHealth, JumpForce, EnableRegen
+    }
+    public enum Tags
+    {
+        Player,Enemy
     }
 } 
 

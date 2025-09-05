@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -95,17 +96,6 @@ public class Player : CombatEntities
     #region --- Inicialização Unity ---
 
     
-    // Abyss Eye Empurrão
-    private Vector3 knockbackVelocity;
-    private float knockbackDuration = 0.2f; // quanto tempo o empurrão dura
-    private float knockbackTimer;
-
-
-    public void ApplyKnockback(Vector3 direction, float force)
-    {
-        knockbackVelocity = direction * force;
-        knockbackTimer = knockbackDuration;
-    }
 
 
     public override void Awake()
@@ -120,15 +110,14 @@ public class Player : CombatEntities
     {
         base.Start();
         DOTween.Init();
-        SetupHUD();
+        StartCoroutine(DelayedSetupHUD(.1f));
     }
     public override void Update()
     {
         base.Update();
         EnemyScanLogicHolder();
         ObjectScanLogicHolder();
-        print(CanDash);
-        
+        KnockbackLogicHolder();
     }
 
     private void FixedUpdate()
@@ -282,8 +271,76 @@ public class Player : CombatEntities
 
     #endregion
 
+#region --- KNOCKBACK ---
+private Vector3 knockbackVelocity;
+private readonly float knockbackDuration = 0.2f;
+private float knockbackTimer;
+private bool isKnockbackActive;
+private bool isDashBlocked;
+
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        // Aplica o empurrão apenas se não tiver knockback em andamento
+        if (isKnockbackActive) return;
+
+        knockbackVelocity = direction * force;
+        knockbackTimer = knockbackDuration;
+        isKnockbackActive = true;
+    }
+
+    private void KnockbackLogicHolder()
+    {
+        if (isKnockbackActive)
+        {
+            transform.position += knockbackVelocity * Time.deltaTime;
+
+            knockbackTimer -= Time.deltaTime;
+            if (knockbackTimer <= 0f)
+                isKnockbackActive = false;
+        }
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (!hit.gameObject.TryGetComponent(out Enemies enemy)) return;
+
+        Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
+        ApplyKnockback(knockbackDirection, enemy.KnockBackForce);
+        BlockPlayerDash(enemy.DashBlockDuration);
+    }
+
+    private void BlockPlayerDash(float duration)
+    {
+        if (isDashBlocked) return; // já está bloqueado, não chama de novo
+
+        StartCoroutine(BlockDashCoroutine(duration));
+    }
+
+    private IEnumerator BlockDashCoroutine(float duration)
+    {
+        isDashBlocked = true;
+
+        // Desativa dash
+        yield return stats.ModifyStatCoroutine<bool>(
+            Constants.StatsNames.CanDash.ToString(),
+            ModifyTYPE.NEGATIVE,
+            QualityTier.COMMON,
+            duration
+        );
+
+        // Depois que o ModifyStatCoroutine terminar, libera de novo
+        isDashBlocked = false;
+    }
+    #endregion
+
+
     #region --- HUD & Feedback ---
 
+    private IEnumerator DelayedSetupHUD(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        SetupHUD();
+    }
     private void SetupHUD()
     {
         foreach (var hudObj in GameObject.FindGameObjectsWithTag("HealthHUD"))
