@@ -1372,11 +1372,11 @@ Transform:
   m_GameObject: {fileID: 345197513}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.83999985, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 0.79365075}
+  m_LocalPosition: {x: 0, y: 0.88999987, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 854346272866527104}
+  m_Father: {fileID: 1011401981694636441}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &351894214
 GameObject:
@@ -2043,8 +2043,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxDamage: 200
   damageCooldown: 5
-  tags_to_damage:
-  - Enemy
+  tags_to_damage: 
 --- !u!65 &438363383
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2225,7 +2224,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 451995846}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
@@ -7514,8 +7513,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxDamage: 40
   damageCooldown: 5
-  tags_to_damage:
-  - Player
+  tags_to_damage: 
 --- !u!54 &1840152951
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -8491,8 +8489,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1.26}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 345197514}
+  m_Children: []
   m_Father: {fileID: 1011401981694636441}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1011401981694636441
@@ -8504,11 +8501,12 @@ Transform:
   m_GameObject: {fileID: 4285229016805082405}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 36.45, y: 7.26, z: 27}
+  m_LocalPosition: {x: 36.45, y: 2.51, z: 27}
   m_LocalScale: {x: 3.01, y: 3.13, z: 2.66}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 854346272866527104}
+  - {fileID: 345197514}
   m_Father: {fileID: 1786869554}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1494590232895779413
@@ -9004,7 +9002,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 0.6
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4285229016805082405
 GameObject:
@@ -9479,35 +9477,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 6515460578849206212}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87837a6aa3151334bab89e3d384c7c57, type: 3}
+  m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentHealthDebug: 0
-  _maxHealth: 100
-  _defense: 10
-  stats:
-    OnNumModified:
-      m_PersistentCalls:
-        m_Calls: []
-    OnBoolModified:
-      m_PersistentCalls:
-        m_Calls: []
-  combatCooldown: 5
-  damagedCooldown: 2
-  _enableRegen: 1
-  regenerationInterval: 5
-  Damaged: 0
-  layer:
-    serializedVersion: 2
-    m_Bits: 0
-  radius: 0
-  attackRange: 2
-  can_AI: 1
-  visionInterval: 0.5
-  attackInterval: 1
-  spawnpos: {x: 0, y: 0, z: 0}
-  damage: 35
-  _dashBlockDuration: 3
+  _maxDamage: 20
+  damageCooldown: 2
+  tags_to_damage: 00000000
 --- !u!1 &6575615017837692959
 GameObject:
   m_ObjectHideFlags: 0
@@ -10006,13 +9981,35 @@ MonoBehaviour:
   m_GameObject: {fileID: 4285229016805082405}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
+  m_Script: {fileID: 11500000, guid: 87837a6aa3151334bab89e3d384c7c57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxDamage: 10
-  damageCooldown: 2
-  tags_to_damage:
-  - Player
+  _currentHealthDebug: 0
+  _maxHealth: 100
+  _defense: 10
+  stats:
+    OnNumModified:
+      m_PersistentCalls:
+        m_Calls: []
+    OnBoolModified:
+      m_PersistentCalls:
+        m_Calls: []
+  combatCooldown: 5
+  damagedCooldown: 2
+  _enableRegen: 0
+  regenerationInterval: 5
+  Damaged: 0
+  layer:
+    serializedVersion: 2
+    m_Bits: 0
+  radius: 0
+  attackRange: 2
+  can_AI: 0
+  visionInterval: 0.5
+  attackInterval: 1
+  spawnpos: {x: 0, y: 0, z: 0}
+  _dashBlockDuration: 5
+  _knockbackForce: 40
 --- !u!114 &8383809514968619698
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -2,7 +2,6 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Slider))]
 public class HealthHUDComponent : MonoBehaviour
 {
     [Header("Configurações HUD")]
@@ -15,8 +14,14 @@ public class HealthHUDComponent : MonoBehaviour
     private Slider _slider;
     private Camera _cachedCamera;
 
+
+    private void Update()
+    {
+        if (_slider == null) return;
+    }
     private void Start()
     {
+        DOTween.Init();
         if (transform.parent.TryGetComponent(out PlayerHUD playerHUD))
         {
             IdHealth = playerHUD.ID;
@@ -26,11 +31,6 @@ public class HealthHUDComponent : MonoBehaviour
             print("Não está com um pai com PlayerHUD");
         }
         _slider = GetComponent<Slider>();
-        if (_slider == null)
-        {
-            Debug.LogWarning($"Slider não encontrado em {gameObject.name}");
-            return;
-        }
 
         switch (HUDType)
         {
@@ -51,7 +51,7 @@ public class HealthHUDComponent : MonoBehaviour
         {
             if (player.TryGetComponent(out Player playerref) && playerref.ID == IdHealth)
             {
-                _slider.value = playerref.Health / playerref.MaxHealth;
+                _slider.DOValue(playerref.Health / playerref.MaxHealth,.5f);
                 break;
                 }
             }

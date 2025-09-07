@@ -34,7 +34,7 @@ public abstract class LiveEntities : Entities
             if (_health < oldHealth)
             {
                 _OnDamage.Invoke();
-            }   
+            }
             _OnHealthChanged.Invoke(_health / MaxHealth);
 
             if (_health <= 0f)
