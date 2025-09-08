@@ -14,7 +14,7 @@ public class GraplingHookTarget : InteractableObject
     }
     public override void Interaction(InfoPlayerInteraction info)
     {
-        StartCoroutine(Cutscene(info, Constants.GraplingHookCutsceneDuration));
+        StartCoroutine(Cutscene(info, Constants.Values.GraplingHookCutsceneDuration));
     }
     IEnumerator Cutscene(InfoPlayerInteraction info, float duration)
     {
@@ -22,7 +22,7 @@ public class GraplingHookTarget : InteractableObject
         Player playerscript = info.playerscript;
         Vector3 position = transform.position;
         GlobalEventBus.Instance.TriggeredCinematic.Invoke(playerscript.ID);
-        player.transform.DOMove(new(position.x,position.y-2,position.z),Constants.GraplingHookCutsceneDuration);
+        player.transform.DOMove(new Vector3(position.x,position.y-2,position.z),Constants.Values.GraplingHookCutsceneDuration);
         playerscript.Charactercontroller.enabled = false;
         SetActionState(player, false);
         yield return new WaitForSeconds(duration);

@@ -84,6 +84,11 @@ public static class StatTypeMap
 
 public static class Constants
 {
+    public static class Values
+    {
+        public static readonly float GraplingHookCutsceneDuration = 3.5f;
+
+    }
     public static class PanelNames
     {
         public static readonly string GameOver = "GameOver";
@@ -91,7 +96,6 @@ public static class Constants
         public static readonly string InteractionLetter = "InteractionLetter";
         public static readonly string GraplingHookCutscene = "GraplingHookCutscene";
     }
-    public static readonly float GraplingHookCutsceneDuration = 3.5f;
     public static class PlayerCommonObjects
     {
         public static HashSet<Type> types = new() { typeof(BasicButton), typeof(PuzzleColorButton) };
