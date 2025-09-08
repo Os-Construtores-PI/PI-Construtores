@@ -83,7 +83,7 @@ public class Player : CombatEntities
 
     #region Interação
     [SerializeField] private float interactionScanCooldown = .1f;
-    private InteractableObject interactableRef;
+    protected InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
     private Camera selectedcamera = null;
     #endregion
@@ -390,7 +390,10 @@ private bool isDashBlocked;
             enemyScanWalker = 0;
         }
     }
-    private void ObjectScan()
+    protected RaycastHit playerRayHit;
+    protected InteractableObject interactionObject;
+    protected Type interactionObjectType;
+    protected virtual void ObjectScan()
     {
         if (!selectedcamera)
         {
@@ -399,32 +402,25 @@ private bool isDashBlocked;
         }
         Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
         LayerMask layer = LayerMask.GetMask("Object");
-        if (Physics.SphereCast(ray, 1.25f, out RaycastHit hit, 40, layer))
+        bool IsSeeing = Physics.SphereCast(ray, 1.25f, out playerRayHit, 40, layer);
+        if (!playerRayHit.collider.TryGetComponent<InteractableObject>(out interactionObject) || !IsSeeing)
         {
-            print(hit.collider.name);
-            if (hit.collider.TryGetComponent(out InteractableObject interactable))
-            {
-                Type interactabletype = interactable.GetType();
-                switch (hit.distance)
-                {
-                    case <= 20:
-                        if (!Constants.LowRangeObjects.types.Contains(interactabletype)) return;
-                        interactableRef = interactable;
-                        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
-                        break;
-                    default:
-                        if (!Constants.HighRangeObjects.types.Contains(interactabletype)) return;
-                        interactableRef = interactable;
-                        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactable, ID);
-                        break;
-
-                }
-            }
+            GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
+            interactableRef = null;
+        }
+        interactionObjectType = interactionObject.GetType();
+        if (playerRayHit.distance <= 20)
+        {
+            if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)) return;
+            interactableRef = interactionObject;
+            GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
             return;
         }
 
-        GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
-        interactableRef = null;
+
+
+
+
     }
     private void ObjectScanLogicHolder()
     {
