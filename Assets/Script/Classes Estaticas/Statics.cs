@@ -87,7 +87,6 @@ public static class Constants
     public static class Values
     {
         public static readonly float GraplingHookCutsceneDuration = 3.5f;
-
     }
     public static class PanelNames
     {
@@ -106,7 +105,7 @@ public static class Constants
     }
     public static class RuskaObjects
     {
-
+        public static HashSet<Type> types = new() {};
     }
     public enum StatsNames
     {
