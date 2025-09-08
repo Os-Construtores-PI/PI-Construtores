@@ -411,7 +411,7 @@ private bool isDashBlocked;
         interactionObjectType = interactionObject.GetType();
         if (playerRayHit.distance <= 20)
         {
-            if (!Constants.LowRangeObjects.types.Contains(interactionObjectType)) return;
+            if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)) return;
             interactableRef = interactionObject;
             GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
             return;

@@ -92,13 +92,17 @@ public static class Constants
         public static readonly string GraplingHookCutscene = "GraplingHookCutscene";
     }
     public static readonly float GraplingHookCutsceneDuration = 3.5f;
-    public static class LowRangeObjects
+    public static class PlayerCommonObjects
     {
         public static HashSet<Type> types = new() { typeof(BasicButton), typeof(PuzzleColorButton) };
     }
-    public static class HighRangeObjects
+    public static class PandoraObjects
     {
         public static HashSet<Type> types = new() { typeof(GraplingHookTarget) };
+    }
+    public static class RuskaObjects
+    {
+
     }
     public enum StatsNames
     {
