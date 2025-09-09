@@ -118,6 +118,7 @@ public class Player : CombatEntities
         EnemyScanLogicHolder();
         ObjectScanLogicHolder();
         KnockbackLogicHolder();
+        ChangeCharacterLogicHolder();
     }
 
     private void FixedUpdate()
@@ -168,6 +169,31 @@ public class Player : CombatEntities
         {
             InfoPlayerInteraction info = new(gameObject, this);
             interactableRef.Interaction(info);
+        }
+    }
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            Attack();
+        }
+    }
+    public void OnChangeCharacter(InputAction.CallbackContext context)
+    {
+        float charAxis = context.ReadValue<float>();
+    }
+    [SerializeField] private float ChangeCharacterCooldown;
+    private float ChangeCharacterCooldownWalker = 0.0f;
+    private bool CanChangeCharacter = true;
+    private void ChangeCharacterLogicHolder()
+    {
+        if (!CanChangeCharacter)
+        {
+            ChangeCharacterCooldownWalker += Time.deltaTime;
+            if (ChangeCharacterCooldownWalker >= ChangeCharacterCooldown)
+            {
+                CanChangeCharacter = true;
+            }
         }
     }
 
@@ -433,6 +459,12 @@ private bool isDashBlocked;
             ObjectScan();
             interactionScanCooldownWalker = 0;
         }
+    }
+    #endregion
+    #region  --- Ataque ---
+    protected virtual void Attack()
+    {
+
     }
     #endregion
 
