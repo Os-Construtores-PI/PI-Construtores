@@ -119,6 +119,7 @@ public class Player : CombatEntities
         ObjectScanLogicHolder();
         KnockbackLogicHolder();
         ChangeCharacterLogicHolder();
+        print(moveAction.actionMap);
     }
 
     private void FixedUpdate()
@@ -419,35 +420,59 @@ private bool isDashBlocked;
     protected RaycastHit playerRayHit;
     protected InteractableObject interactionObject;
     protected Type interactionObjectType;
-    protected virtual void ObjectScan()
+protected virtual void ObjectScan()
+{
+    if (!selectedcamera)
     {
-        if (!selectedcamera)
-        {
-            SetupCamera();
-            return;
-        }
-        Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
-        LayerMask layer = LayerMask.GetMask("Object");
-        bool IsSeeing = Physics.SphereCast(ray, 1.25f, out playerRayHit, 40, layer);
-        if (!playerRayHit.collider.TryGetComponent<InteractableObject>(out interactionObject) || !IsSeeing)
-        {
-            GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
-            interactableRef = null;
-        }
-        interactionObjectType = interactionObject.GetType();
-        if (playerRayHit.distance <= 20)
-        {
-            if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)) return;
-            interactableRef = interactionObject;
-            GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
-            return;
-        }
-
-
-
-
-
+        SetupCamera();
+        return;
     }
+
+    // --- Criação do Ray ---
+    var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
+    var layerMask = LayerMask.GetMask("Object");
+
+    // --- SphereCast ---
+    if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask))
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Verifica se tem componente de interação ---
+    if (!playerRayHit.collider.TryGetComponent(out interactionObject))
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Confirma tipo permitido ---
+    interactionObjectType = interactionObject.GetType();
+    if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType))
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Checa distância ---
+    if (playerRayHit.distance > 20f)
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Caso válido ---
+    interactableRef = interactionObject;
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
+}
+
+// --- Método auxiliar para limpar estado ---
+    private void ClearInteractable()
+    {
+        interactableRef = null;
+        GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
+    }
+
     private void ObjectScanLogicHolder()
     {
         if (interactionScanCooldownWalker <= interactionScanCooldown)
