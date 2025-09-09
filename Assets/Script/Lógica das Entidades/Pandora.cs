@@ -11,4 +11,8 @@ public class Pandora : Player
         GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
         return;
     }
+    protected override void Attack()
+    {
+        print("Pandora");
+    }
 }
