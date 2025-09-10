@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
+[RequireComponent(typeof(Animation))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
@@ -75,6 +76,7 @@ public class Player : CombatEntities
 
 
     #region EnemyScan
+    [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
     [SerializeField, Min(10)] private float enemyScanRadius = 10;
     [SerializeField, Min(1)] private float enemyScanCooldown = 2.0f;
     private float enemyScanWalker = 0.0f;
@@ -82,6 +84,7 @@ public class Player : CombatEntities
 
 
     #region Interação
+    [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
     [SerializeField] private float interactionScanCooldown = .1f;
     protected InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
@@ -115,10 +118,12 @@ public class Player : CombatEntities
     public override void Update()
     {
         base.Update();
-        EnemyScanLogicHolder();
-        ObjectScanLogicHolder();
-        KnockbackLogicHolder();
-        ChangeCharacterLogicHolder();
+        EnemyScanTimer();
+        ObjectScanTimer();
+        KnockbackTimer();
+        ChangeCharacterTimer();
+        AttackTimer();
+        print(canAttack);
     }
 
     private void FixedUpdate()
@@ -181,11 +186,13 @@ public class Player : CombatEntities
     public void OnChangeCharacter(InputAction.CallbackContext context)
     {
         float charAxis = context.ReadValue<float>();
+        print(charAxis +":"+ this.name);
     }
+    [Header("TROCA DE JOGADOR PARÂMETROS")]
     [SerializeField] private float ChangeCharacterCooldown;
     private float ChangeCharacterCooldownWalker = 0.0f;
     private bool CanChangeCharacter = true;
-    private void ChangeCharacterLogicHolder()
+    private void ChangeCharacterTimer()
     {
         if (!CanChangeCharacter)
         {
@@ -314,7 +321,7 @@ private bool isDashBlocked;
         isKnockbackActive = true;
     }
 
-    private void KnockbackLogicHolder()
+    private void KnockbackTimer()
     {
         if (isKnockbackActive)
         {
@@ -404,7 +411,7 @@ private bool isDashBlocked;
             }
         }
     }
-    private void EnemyScanLogicHolder()
+    private void EnemyScanTimer()
     {
         if (enemyScanWalker <= enemyScanCooldown)
         {
@@ -421,34 +428,58 @@ private bool isDashBlocked;
     protected Type interactionObjectType;
     protected virtual void ObjectScan()
     {
-        if (!selectedcamera)
-        {
-            SetupCamera();
-            return;
-        }
-        Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
-        LayerMask layer = LayerMask.GetMask("Object");
-        bool IsSeeing = Physics.SphereCast(ray, 1.25f, out playerRayHit, 40, layer);
-        if (!playerRayHit.collider.TryGetComponent<InteractableObject>(out interactionObject) || !IsSeeing)
-        {
-            GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
-            interactableRef = null;
-        }
-        interactionObjectType = interactionObject.GetType();
-        if (playerRayHit.distance <= 20)
-        {
-            if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)) return;
-            interactableRef = interactionObject;
-            GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
-            return;
-        }
-
-
-
-
-
+    if (!selectedcamera)
+    {
+        SetupCamera();
+        return;
     }
-    private void ObjectScanLogicHolder()
+
+    // --- Criação do Ray ---
+    var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
+    var layerMask = LayerMask.GetMask("Object");
+
+    // --- SphereCast ---
+    if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask))
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Verifica se tem componente de interação ---
+    if (!playerRayHit.collider.TryGetComponent(out interactionObject))
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Confirma tipo permitido ---
+    interactionObjectType = interactionObject.GetType();
+    if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType))
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Checa distância ---
+    if (playerRayHit.distance > 20f)
+    {
+        ClearInteractable();
+        return;
+    }
+
+    // --- Caso válido ---
+    interactableRef = interactionObject;
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
+}
+
+// --- Método auxiliar para limpar estado ---
+    private void ClearInteractable()
+    {
+        interactableRef = null;
+        GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
+    }
+
+    private void ObjectScanTimer()
     {
         if (interactionScanCooldownWalker <= interactionScanCooldown)
         {
@@ -461,12 +492,33 @@ private bool isDashBlocked;
         }
     }
     #endregion
+
+
     #region  --- Ataque ---
+    [Header("ATAQUE PARÂMETROS")]
+    [SerializeField] private float AttackCooldown;
+    private float AttackCooldownWalker = 0f;
+    private bool canAttack = true;
+
     protected virtual void Attack()
     {
-
+        if (!canAttack) return;
+        canAttack = false;
+    }
+    private void AttackTimer()
+    {
+        if (!canAttack)
+        {
+            AttackCooldownWalker += Time.deltaTime;
+            if (AttackCooldownWalker >= AttackCooldown)
+            {
+                canAttack = true;
+                AttackCooldownWalker = 0f;
+            }
+        }
     }
     #endregion
+
 
     #region --- Utilitários ---
 
