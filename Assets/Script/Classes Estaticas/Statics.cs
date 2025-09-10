@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.SearchService;
+using UnityEngine.SceneManagement;
 
 public static class Tiers
 {
@@ -84,6 +86,10 @@ public static class StatTypeMap
 
 public static class Constants
 {
+    public static class SceneNames
+    {
+        public static readonly string DebugScene = "CenaDebug";
+    }
     public static class Values
     {
         public static readonly float GraplingHookCutsceneDuration = 3.5f;
