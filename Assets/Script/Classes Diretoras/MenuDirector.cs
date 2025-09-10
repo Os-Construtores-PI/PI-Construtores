@@ -32,6 +32,9 @@ public class MenuDirector : MonoBehaviour
         {
             _painelConfig[i].localScale = Vector3.zero;
         }
+        // inicializa todos os paineis de save com escala zero
+        for (int i = 0; i < _saveMenuGame.Length; i++)
+            _saveMenuGame[i].localScale = Vector3.zero;
 
     }
 
@@ -149,9 +152,29 @@ public class MenuDirector : MonoBehaviour
     }
 
 
+    public void AbrirPainelSave()
+    {
+        // fecha o menu principal
+        for (int i = 0; i < _painelMenu.Length; i++)
+            _painelMenu[i].DOScale(0, .25f);
 
+        // abre os paineis de save
+        for (int i = 0; i < _saveMenuGame.Length; i++)
+        {
+            _saveMenuGame[i].DOScale(1, .25f);
+        }
+    }
 
+    public void FecharPainelSave()
+    {
+        for (int i = 0; i < _saveMenuGame.Length; i++)
+            _saveMenuGame[i].DOScale(0, .25f);
 
+        // Reabre o menu principal
+        for (int i = 0; i < _painelMenu.Length; i++)
+            _painelMenu[i].DOScale(1, .25f);
+
+    }
 
 
 
