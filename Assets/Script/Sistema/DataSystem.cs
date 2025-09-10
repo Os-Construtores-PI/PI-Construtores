@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Sistema de salvamento e carregamento de dados do jogo.
@@ -13,8 +15,8 @@ public class DataSystem : MonoBehaviour
     public List<Player> players = new();
 
     private readonly int maxSlots = 3;
-    private readonly string cryptoKey = "MySecretKey123"; // chave simples para XOR
-
+    private readonly string cryptoKey = "PÃOWINS"; // chave simples para XOR
+    private SceneManager scene;
     // Caminho único do arquivo de save
     private string SavePath => Path.Combine(Application.persistentDataPath, "GAMEDATA.json");
 
@@ -39,6 +41,21 @@ public class DataSystem : MonoBehaviour
 
     private void SavePlayers(SavedGameData gameData, int index)
     {
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Pega ou cria o SavedLevelData da cena atual
+        var slot = gameData.savedSlots[index];
+        var levelData = slot.savedLevelDatas.Find(l => l.levelName == sceneName);
+        if (levelData == null)
+        {
+            levelData = new SavedLevelData { levelName = sceneName };
+            slot.savedLevelDatas.Add(levelData);
+        }
+        else
+        {
+            levelData.players.Clear(); // sobrescreve dados antigos
+        }
+
         foreach (Player p in players)
         {
             SavedPlayerData playerData = new()
@@ -56,16 +73,28 @@ public class DataSystem : MonoBehaviour
                     quantity = item.quantity
                 });
             }
+
             playerData.SaveStats(p.stats);
-            gameData.savedSlots[index].players.Add(playerData);
+            levelData.players.Add(playerData);
         }
     }
 
     private void SaveDroppedItems(SavedGameData gameData, int index)
     {
-        var drops = GetDroppedItemsInScene();
-        gameData.savedSlots[index].droppedItems = drops;
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Pega ou cria o SavedLevelData da cena atual
+        var slot = gameData.savedSlots[index];
+        var levelData = slot.savedLevelDatas.Find(l => l.levelName == sceneName);
+        if (levelData == null)
+        {
+            levelData = new SavedLevelData { levelName = sceneName };
+            slot.savedLevelDatas.Add(levelData);
+        }
+
+        levelData.droppedItems = GetDroppedItemsInScene();
     }
+
 
     #endregion
 
@@ -84,49 +113,62 @@ public class DataSystem : MonoBehaviour
         var json = Decrypt(encrypted);
         var gameData = JsonUtility.FromJson<SavedGameData>(json);
 
-        RestoreDroppedItems(gameData, index);
-        RestorePlayers(gameData, index);
-
-        Debug.Log($"[DataSystem] Jogo carregado do slot {index}.");
-    }
-
-    private void RestoreDroppedItems(SavedGameData gameData, int index)
-    {
-        var savedDrops = gameData.savedSlots[index].droppedItems;
-        var savedIds = new HashSet<int>(savedDrops.ConvertAll(d => d.ID));
-
-        // Remove drops que não existem no save
-        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        var slot = gameData.savedSlots[index];
+        if (slot.savedLevelDatas.Count == 0)
         {
-            if (!savedIds.Contains(drop.ID))
-                Destroy(drop.gameObject);
+            Debug.LogWarning("[DataSystem] Nenhuma cena salva nesse slot.");
+            return;
         }
 
-        // Recria os drops
-        foreach (var savedDrop in savedDrops)
+        // pega a última cena salva (poderia ser a atual, ou escolher manualmente)
+        var lastLevel = slot.savedLevelDatas[^1];
+
+        // Carrega a cena e restaura quando terminar
+        SceneManager.sceneLoaded += (scene, mode) =>
         {
-            var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
-            if (itemData == null) continue;
+            RestoreDroppedItems(lastLevel);
+            RestorePlayers(lastLevel);
+        };
 
-            GameObject go = new("ItemDrop_" + savedDrop.itemName);
-            go.transform.position = savedDrop.position;
-
-            var dropZone = go.AddComponent<ItemDropZone>();
-            dropZone.itemData = itemData;
-            dropZone.quantity = savedDrop.quantity;
-            dropZone.SetId(savedDrop.ID);
-            dropZone.Initialize();
-        }
+        SceneManager.LoadScene(lastLevel.levelName,LoadSceneMode.Single);
     }
 
-    private void RestorePlayers(SavedGameData gameData, int index)
+
+
+private void RestoreDroppedItems(SavedLevelData levelData)
+{
+    var savedDrops = levelData.droppedItems;
+    var savedIds = new HashSet<int>(savedDrops.ConvertAll(d => d.ID));
+
+    foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
     {
-        foreach (var savedPlayer in gameData.savedSlots[index].players)
+        if (!savedIds.Contains(drop.ID))
+            Destroy(drop.gameObject);
+    }
+
+    foreach (var savedDrop in savedDrops)
+    {
+        var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
+        if (itemData == null) continue;
+
+        GameObject go = new("ItemDrop_" + savedDrop.itemName);
+        go.transform.position = savedDrop.position;
+
+        var dropZone = go.AddComponent<ItemDropZone>();
+        dropZone.itemData = itemData;
+        dropZone.quantity = savedDrop.quantity;
+        dropZone.SetId(savedDrop.ID);
+        dropZone.Initialize();
+    }
+}
+
+    private void RestorePlayers(SavedLevelData levelData)
+    {
+        foreach (var savedPlayer in levelData.players)
         {
             var refPlayer = players.Find(p => p.ID == savedPlayer.playerId);
             if (refPlayer == null) continue;
 
-            // Restaurar inventário
             refPlayer.Inventario.ClearItems();
             foreach (var entry in savedPlayer.inventory)
             {
@@ -137,10 +179,8 @@ public class DataSystem : MonoBehaviour
                 }
             }
 
-            // Restaurar stats
             savedPlayer.LoadStats(refPlayer.stats);
 
-            // Restaurar posição
             if (refPlayer.transform.TryGetComponent(out CharacterController controller))
             {
                 controller.enabled = false;
@@ -152,10 +192,12 @@ public class DataSystem : MonoBehaviour
                 refPlayer.transform.position = savedPlayer.position;
             }
 
-            // Restaurar vida
             refPlayer.Health = savedPlayer.health;
         }
     }
+
+
+
 
     #endregion
 
@@ -163,46 +205,46 @@ public class DataSystem : MonoBehaviour
 
     public void Delete(int? slotIndex = null)
     {
-    if (!File.Exists(SavePath))
+        if (!File.Exists(SavePath))
         {
             Debug.LogWarning("[DataSystem] Nenhum save encontrado para deletar.");
             return;
         }
 
-    if (slotIndex.HasValue)
-    {
-        int index = slotIndex.Value;
-        if (!IsValidSlot(index))
+        if (slotIndex.HasValue)
         {
-            Debug.LogWarning($"[DataSystem] Slot {index} inválido para deletar.");
-            return;
+            int index = slotIndex.Value;
+            if (!IsValidSlot(index))
+            {
+                Debug.LogWarning($"[DataSystem] Slot {index} inválido para deletar.");
+                return;
+            }
+
+            // Lê e desserializa
+            var encrypted = File.ReadAllText(SavePath);
+            var json = Decrypt(encrypted);
+            var gameData = JsonUtility.FromJson<SavedGameData>(json);
+
+            // Limpa apenas o slot específico
+            gameData.savedSlots[index] = new SavedSlotData();
+
+            // Reescreve o arquivo
+            var newJson = JsonUtility.ToJson(gameData, true);
+            var newEncrypted = Encrypt(newJson);
+            File.WriteAllText(SavePath, newEncrypted);
+
+            Debug.Log($"[DataSystem] Slot {index} deletado com sucesso.");
+        }
+        else
+        {
+            // Deleta o arquivo todo
+            File.Delete(SavePath);
+            Debug.Log("[DataSystem] Arquivo de save deletado com sucesso.");
         }
 
-        // Lê e desserializa
-        var encrypted = File.ReadAllText(SavePath);
-        var json = Decrypt(encrypted);
-        var gameData = JsonUtility.FromJson<SavedGameData>(json);
-
-        // Limpa apenas o slot específico
-        gameData.savedSlots[index] = new SavedSlotData();
-
-        // Reescreve o arquivo
-        var newJson = JsonUtility.ToJson(gameData, true);
-        var newEncrypted = Encrypt(newJson);
-        File.WriteAllText(SavePath, newEncrypted);
-
-        Debug.Log($"[DataSystem] Slot {index} deletado com sucesso.");
+        // Reseta os dados em memória (opcional, mantém comportamento antigo)
+        ResetGameData();
     }
-    else
-    {
-        // Deleta o arquivo todo
-        File.Delete(SavePath);
-        Debug.Log("[DataSystem] Arquivo de save deletado com sucesso.");
-    }
-
-    // Reseta os dados em memória (opcional, mantém comportamento antigo)
-    ResetGameData();
-}
 
     private void ResetGameData()
     {
