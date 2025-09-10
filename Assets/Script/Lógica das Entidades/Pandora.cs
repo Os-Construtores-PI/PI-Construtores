@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Pandora : Player
 {
+    #region --- OBJETOS ---
     bool HasGrapling = false;
     protected override void ObjectScan()
     {
@@ -11,8 +12,12 @@ public class Pandora : Player
         GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
         return;
     }
+    #endregion
+    #region --- ATAQUE ---
     protected override void Attack()
     {
-        print("Pandora");
+        base.Attack();
+        print("PANDORA ATAQUE");
     }
+    #endregion
 }

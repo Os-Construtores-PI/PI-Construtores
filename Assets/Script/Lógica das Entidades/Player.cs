@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
+[RequireComponent(typeof(Animation))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
@@ -75,6 +76,7 @@ public class Player : CombatEntities
 
 
     #region EnemyScan
+    [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
     [SerializeField, Min(10)] private float enemyScanRadius = 10;
     [SerializeField, Min(1)] private float enemyScanCooldown = 2.0f;
     private float enemyScanWalker = 0.0f;
@@ -82,6 +84,7 @@ public class Player : CombatEntities
 
 
     #region Interação
+    [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
     [SerializeField] private float interactionScanCooldown = .1f;
     protected InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
@@ -115,11 +118,12 @@ public class Player : CombatEntities
     public override void Update()
     {
         base.Update();
-        EnemyScanLogicHolder();
-        ObjectScanLogicHolder();
-        KnockbackLogicHolder();
-        ChangeCharacterLogicHolder();
-        print(moveAction.actionMap);
+        EnemyScanTimer();
+        ObjectScanTimer();
+        KnockbackTimer();
+        ChangeCharacterTimer();
+        AttackTimer();
+        print(canAttack);
     }
 
     private void FixedUpdate()
@@ -182,11 +186,13 @@ public class Player : CombatEntities
     public void OnChangeCharacter(InputAction.CallbackContext context)
     {
         float charAxis = context.ReadValue<float>();
+        print(charAxis +":"+ this.name);
     }
+    [Header("TROCA DE JOGADOR PARÂMETROS")]
     [SerializeField] private float ChangeCharacterCooldown;
     private float ChangeCharacterCooldownWalker = 0.0f;
     private bool CanChangeCharacter = true;
-    private void ChangeCharacterLogicHolder()
+    private void ChangeCharacterTimer()
     {
         if (!CanChangeCharacter)
         {
@@ -315,7 +321,7 @@ private bool isDashBlocked;
         isKnockbackActive = true;
     }
 
-    private void KnockbackLogicHolder()
+    private void KnockbackTimer()
     {
         if (isKnockbackActive)
         {
@@ -405,7 +411,7 @@ private bool isDashBlocked;
             }
         }
     }
-    private void EnemyScanLogicHolder()
+    private void EnemyScanTimer()
     {
         if (enemyScanWalker <= enemyScanCooldown)
         {
@@ -420,8 +426,8 @@ private bool isDashBlocked;
     protected RaycastHit playerRayHit;
     protected InteractableObject interactionObject;
     protected Type interactionObjectType;
-protected virtual void ObjectScan()
-{
+    protected virtual void ObjectScan()
+    {
     if (!selectedcamera)
     {
         SetupCamera();
@@ -473,7 +479,7 @@ protected virtual void ObjectScan()
         GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
     }
 
-    private void ObjectScanLogicHolder()
+    private void ObjectScanTimer()
     {
         if (interactionScanCooldownWalker <= interactionScanCooldown)
         {
@@ -486,12 +492,33 @@ protected virtual void ObjectScan()
         }
     }
     #endregion
+
+
     #region  --- Ataque ---
+    [Header("ATAQUE PARÂMETROS")]
+    [SerializeField] private float AttackCooldown;
+    private float AttackCooldownWalker = 0f;
+    private bool canAttack = true;
+
     protected virtual void Attack()
     {
-
+        if (!canAttack) return;
+        canAttack = false;
+    }
+    private void AttackTimer()
+    {
+        if (!canAttack)
+        {
+            AttackCooldownWalker += Time.deltaTime;
+            if (AttackCooldownWalker >= AttackCooldown)
+            {
+                canAttack = true;
+                AttackCooldownWalker = 0f;
+            }
+        }
     }
     #endregion
+
 
     #region --- Utilitários ---
 

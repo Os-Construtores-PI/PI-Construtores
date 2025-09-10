@@ -2199,6 +2199,7 @@ GameObject:
   - component: {fileID: 451995853}
   - component: {fileID: 451995854}
   - component: {fileID: 451995855}
+  - component: {fileID: 451995856}
   m_Layer: 6
   m_Name: Pandora
   m_TagString: Player
@@ -2574,7 +2575,24 @@ MonoBehaviour:
   enemyScanRadius: 10
   enemyScanCooldown: 2
   interactionScanCooldown: 0.1
-  ChangeCharacterCooldown: 0
+  ChangeCharacterCooldown: 5
+  AttackCooldown: 3
+--- !u!111 &451995856
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451995846}
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Animation: {fileID: 0}
+  m_Animations: []
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_UpdateMode: 0
+  m_CullingType: 0
 --- !u!1 &462258505
 GameObject:
   m_ObjectHideFlags: 0
@@ -4807,6 +4825,7 @@ GameObject:
   - component: {fileID: 1153155373}
   - component: {fileID: 1153155372}
   - component: {fileID: 1153155371}
+  - component: {fileID: 1153155378}
   m_Layer: 6
   m_Name: Ruska
   m_TagString: Player
@@ -4873,6 +4892,7 @@ MonoBehaviour:
   enemyScanCooldown: 2
   interactionScanCooldown: 0.1
   ChangeCharacterCooldown: 0
+  AttackCooldown: 0
 --- !u!54 &1153155372
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5183,6 +5203,22 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!111 &1153155378
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1153155369}
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Animation: {fileID: 0}
+  m_Animations: []
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_UpdateMode: 0
+  m_CullingType: 0
 --- !u!1 &1249424295
 GameObject:
   m_ObjectHideFlags: 0
