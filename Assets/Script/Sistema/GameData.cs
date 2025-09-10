@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.SearchService;
 using UnityEngine;
 
 
@@ -6,7 +7,6 @@ using UnityEngine;
 public class SavedGameData
 {
     public List<SavedSlotData> savedSlots = new();
-
     public SavedGameData(int maxSlots = 3)
     {
         for (int i = 0; i < maxSlots; i++)
@@ -19,6 +19,13 @@ public class SavedGameData
 [System.Serializable]
 public class SavedSlotData
 {
+    public List<SavedLevelData> savedLevelDatas = new();
+}
+
+[System.Serializable]
+public class SavedLevelData
+{
+    public string levelName;
     public List<SavedPlayerData> players = new();
     public List<SavedDroppedItem> droppedItems = new();  
 }

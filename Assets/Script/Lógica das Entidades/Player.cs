@@ -123,7 +123,6 @@ public class Player : CombatEntities
         KnockbackTimer();
         ChangeCharacterTimer();
         AttackTimer();
-        print(canAttack);
     }
 
     private void FixedUpdate()

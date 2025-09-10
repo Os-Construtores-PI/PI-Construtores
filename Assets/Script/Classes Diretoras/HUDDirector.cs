@@ -56,6 +56,7 @@ public class HUDDirector : MonoBehaviour
                 }
             }
         }
+        LoadHUDDirector();
     }
 
     private void Start()
@@ -63,12 +64,16 @@ public class HUDDirector : MonoBehaviour
         DOTween.Init();
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
+        LoadHUDDirector();
+    }
 
+    private void LoadHUDDirector()
+    {
         foreach (int playerID in canvasMap.Keys)
         {
             DisablePanelWithImage(Constants.PanelNames.GameOver, 0, playerID);
             DisablePanel(Constants.PanelNames.InteractionPopup, 0, playerID);
-        }
+        } 
     }
 
     private void DisablePanelWithImage(string panel_name, float duration, int playerID)
