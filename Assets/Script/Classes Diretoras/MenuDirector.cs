@@ -7,13 +7,13 @@ using UnityEngine.UI;
 public class MenuDirector : MonoBehaviour
 {
     [SerializeField] Transform[] _painelMenu; // transform que interage com os botões do menu
-
     [SerializeField] Transform[] _painelConfig; // transform que chama e interage com o painel de config
     [SerializeField] Transform[] _parts;
     [SerializeField] Transform[] _partsConfig;
+    [SerializeField] Transform[] _saveMenuGame; // transform que chama o painel do save
+
 
     [SerializeField] Button[] _botoes; // Variavel que chama os botoes animados
-
     private bool _animadoMenu = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
