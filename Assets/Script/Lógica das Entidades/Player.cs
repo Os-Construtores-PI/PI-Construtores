@@ -199,6 +199,7 @@ public class Player : CombatEntities
             if (ChangeCharacterCooldownWalker >= ChangeCharacterCooldown)
             {
                 CanChangeCharacter = true;
+                ChangeCharacterCooldownWalker = 0.0f;
             }
         }
     }
@@ -425,54 +426,56 @@ private bool isDashBlocked;
     protected RaycastHit playerRayHit;
     protected InteractableObject interactionObject;
     protected Type interactionObjectType;
-    protected virtual void ObjectScan()
+    protected virtual bool ObjectScan()
     {
-    if (!selectedcamera)
-    {
-        SetupCamera();
-        return;
+        if (!selectedcamera)
+        {
+            SetupCamera();
+            return false;
+        }
+
+        // --- Criação do Ray ---
+        var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
+        var layerMask = LayerMask.GetMask("Object");
+
+        // --- SphereCast ---
+        if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask))
+        {
+            ClearInteractable();
+            return false;
+        }
+
+        // --- Verifica se tem componente de interação ---
+        if (!playerRayHit.collider.TryGetComponent(out interactionObject))
+        {
+            ClearInteractable();
+            return false;
+        }
+
+        // --- Confirma tipo permitido ---
+        interactionObjectType = interactionObject.GetType();
+        if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType))
+        {
+            ClearInteractable();
+            return false;
+        }
+
+        // --- Checa distância ---
+        if (playerRayHit.distance > 20f)
+        {
+            ClearInteractable();
+            return false;
+        }
+
+        // --- Caso válido ---
+        interactableRef = interactionObject;
+        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
+        return true;
     }
 
-    // --- Criação do Ray ---
-    var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
-    var layerMask = LayerMask.GetMask("Object");
-
-    // --- SphereCast ---
-    if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask))
-    {
-        ClearInteractable();
-        return;
-    }
-
-    // --- Verifica se tem componente de interação ---
-    if (!playerRayHit.collider.TryGetComponent(out interactionObject))
-    {
-        ClearInteractable();
-        return;
-    }
-
-    // --- Confirma tipo permitido ---
-    interactionObjectType = interactionObject.GetType();
-    if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType))
-    {
-        ClearInteractable();
-        return;
-    }
-
-    // --- Checa distância ---
-    if (playerRayHit.distance > 20f)
-    {
-        ClearInteractable();
-        return;
-    }
-
-    // --- Caso válido ---
-    interactableRef = interactionObject;
-    GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
-}
 
 // --- Método auxiliar para limpar estado ---
-    private void ClearInteractable()
+    protected void ClearInteractable()
     {
         interactableRef = null;
         GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
@@ -499,10 +502,11 @@ private bool isDashBlocked;
     private float AttackCooldownWalker = 0f;
     private bool canAttack = true;
 
-    protected virtual void Attack()
+    protected virtual bool Attack()
     {
-        if (!canAttack) return;
+        if (!canAttack) return false;
         canAttack = false;
+        return true;
     }
     private void AttackTimer()
     {
