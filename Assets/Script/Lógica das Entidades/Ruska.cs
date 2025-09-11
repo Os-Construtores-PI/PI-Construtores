@@ -2,16 +2,28 @@ using UnityEngine;
 
 public class Ruska : Player
 {
-    protected override void ObjectScan()
+    protected override bool ObjectScan()
     {
-        base.ObjectScan();
-        if (!Constants.RuskaObjects.types.Contains(interactionObjectType)) return;
-        interactableRef = interactionObject;
-        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
-        return;
+        if (!base.ObjectScan()) return false; // se já falhou no pai, não continua
+
+        // --- Filtro extra específico da Pandora ---
+        if (!Constants.RuskaObjects.types.Contains(interactionObjectType))
+        {
+            ClearInteractable();
+            return false;
+        }
+
+        // Se passou em todas as checagens
+        return true;
     }
-    protected override void Attack()
+    
+    protected override bool Attack()
     {
-        print("Ruska");
+        if (base.Attack())
+        {
+            print("RUSKA ATAQUE");
+            return true;
+        }
+        return false;
     }
 }

@@ -3,21 +3,33 @@ using UnityEngine;
 public class Pandora : Player
 {
     #region --- OBJETOS ---
-    bool HasGrapling = false;
-    protected override void ObjectScan()
+    bool HasGrapling = true;
+    protected override bool ObjectScan()
     {
-        base.ObjectScan();
-        if (!Constants.PandoraObjects.types.Contains(interactionObjectType) || !HasGrapling) return;
-        interactableRef = interactionObject;
-        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
-        return;
+        if (!base.ObjectScan()) return false; // se já falhou no pai, não continua
+
+        // --- Filtro extra específico da Pandora ---
+        if (!Constants.PandoraObjects.types.Contains(interactionObjectType) && HasGrapling == false)
+        {
+            ClearInteractable();
+            return false;
+        }
+
+        // Se passou em todas as checagens
+        return true;
     }
+
+
     #endregion
     #region --- ATAQUE ---
-    protected override void Attack()
+    protected override bool Attack()
     {
-        base.Attack();
-        print("PANDORA ATAQUE");
+        if (base.Attack())
+        {
+            print("PANDORA ATAQUE");
+            return true;
+        }
+        return false;
     }
     #endregion
 }
