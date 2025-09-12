@@ -34,30 +34,24 @@ public class DataSystem : MonoBehaviour
     }
     #region SAVE
     // Salva checkpoint (players + dropped items da cena atual)
-    public void SaveCheckpoint(int index)
+    public void SaveCheckpoint(int index, Vector3? checkpointPos = null)
     {
         if (!IsValidSlot(index)) return;
 
-        // Carrega o arquivo existente ou cria novo
         SavedGameData gameData = GetGameData() ?? new SavedGameData(maxSlots);
         EnsureSlotsInitialized(gameData);
 
-        // pega posição de referência (primeiro player ativo)
-        Vector3 checkpointPos = players.Count > 0 ? players[0].transform.position : Vector3.zero;
+        Vector3 pos = checkpointPos ?? (players.Count > 0 ? players[0].transform.position : Vector3.zero);
 
-        // salva players (todos no mesmo checkpoint)
-        SavePlayersAtCheckpoint(gameData, index, checkpointPos);
-
-        // salva dropped items da cena
+        SavePlayersAtCheckpoint(gameData, index, pos);
         SaveDroppedItems(gameData, index);
 
-        // escreve no arquivo
         var json = JsonUtility.ToJson(gameData, true);
-        var encrypted = Encrypt(json);
-        File.WriteAllText(SavePath, encrypted);
+        File.WriteAllText(SavePath, Encrypt(json));
 
-        Debug.Log($"[DataSystem] Checkpoint (players + dropped items) salvo no slot {index} em {SavePath}.");
+        Debug.Log($"[DataSystem] Checkpoint salvo no slot {index} em {SavePath}.");
     }
+
 
     // Salva progresso global (coletáveis/moedas/desbloqueios) — por enquanto placeholder
     public void Save(int index)
@@ -286,7 +280,6 @@ public class DataSystem : MonoBehaviour
 
         return Encoding.UTF8.GetString(data);
     }
-
-
     #endregion
 }
+
