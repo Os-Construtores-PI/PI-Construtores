@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,16 +13,20 @@ public class DataSystem : MonoBehaviour
 {
     [Header("Referências de Cena")]
     [Tooltip("Lista de jogadores ativos na cena (arrastados pelo editor).")]
-    public List<Player> players = new();
+    private List<Player> players = new();
 
     private readonly int maxSlots = 3;
+    public int GetMaxSlots => maxSlots;
     private readonly string cryptoKey = "PÃOWINS"; // chave simples para XOR
-    private SceneManager scene;
     // Caminho único do arquivo de save
-    private string SavePath => Path.Combine(Application.persistentDataPath, "GAMEDATA.json");
+    private string SavePath => Constants.PersistentNames.DataPath;
+
+    private void Start()
+    {
+        players = GetPlayers();
+    }
 
     #region SAVE
-
     public void Save(int index)
     {
         if (!IsValidSlot(index)) return;
@@ -38,13 +43,12 @@ public class DataSystem : MonoBehaviour
 
         Debug.Log($"[DataSystem] Jogo salvo no slot {index} em {SavePath}.");
     }
-
     private void SavePlayers(SavedGameData gameData, int index)
     {
         string sceneName = SceneManager.GetActiveScene().name;
-
         // Pega ou cria o SavedLevelData da cena atual
         var slot = gameData.savedSlots[index];
+        slot.lastLevelName = sceneName;
         var levelData = slot.savedLevelDatas.Find(l => l.levelName == sceneName);
         if (levelData == null)
         {
@@ -130,37 +134,37 @@ public class DataSystem : MonoBehaviour
             RestorePlayers(lastLevel);
         };
 
-        SceneManager.LoadScene(lastLevel.levelName,LoadSceneMode.Single);
+        SceneManager.LoadScene(lastLevel.levelName, LoadSceneMode.Single);
     }
 
 
 
-private void RestoreDroppedItems(SavedLevelData levelData)
-{
-    var savedDrops = levelData.droppedItems;
-    var savedIds = new HashSet<int>(savedDrops.ConvertAll(d => d.ID));
-
-    foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+    private void RestoreDroppedItems(SavedLevelData levelData)
     {
-        if (!savedIds.Contains(drop.ID))
-            Destroy(drop.gameObject);
+        var savedDrops = levelData.droppedItems;
+        var savedIds = new HashSet<int>(savedDrops.ConvertAll(d => d.ID));
+
+        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!savedIds.Contains(drop.ID))
+                Destroy(drop.gameObject);
+        }
+
+        foreach (var savedDrop in savedDrops)
+        {
+            var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
+            if (itemData == null) continue;
+
+            GameObject go = new("ItemDrop_" + savedDrop.itemName);
+            go.transform.position = savedDrop.position;
+
+            var dropZone = go.AddComponent<ItemDropZone>();
+            dropZone.itemData = itemData;
+            dropZone.quantity = savedDrop.quantity;
+            dropZone.SetId(savedDrop.ID);
+            dropZone.Initialize();
+        }
     }
-
-    foreach (var savedDrop in savedDrops)
-    {
-        var itemData = Resources.Load<ItemData>("Items/" + savedDrop.itemName);
-        if (itemData == null) continue;
-
-        GameObject go = new("ItemDrop_" + savedDrop.itemName);
-        go.transform.position = savedDrop.position;
-
-        var dropZone = go.AddComponent<ItemDropZone>();
-        dropZone.itemData = itemData;
-        dropZone.quantity = savedDrop.quantity;
-        dropZone.SetId(savedDrop.ID);
-        dropZone.Initialize();
-    }
-}
 
     private void RestorePlayers(SavedLevelData levelData)
     {
@@ -310,6 +314,32 @@ private void RestoreDroppedItems(SavedLevelData levelData)
             dataBytes[i] ^= keyBytes[i % keyBytes.Length];
 
         return System.Text.Encoding.UTF8.GetString(dataBytes);
+    }
+    public List<Player> GetPlayers()
+    {
+        return FindObjectsByType<Player>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
+    }
+    public SavedGameData GetGameData()
+    {
+        if (!File.Exists(SavePath))
+        {
+            Debug.LogWarning("[DataSystem] Nenhum save encontrado.");
+            return null;
+        }
+        print(SavePath);
+        string encrypted = File.ReadAllText(SavePath);
+        string json = Decrypt(encrypted);
+        return JsonUtility.FromJson<SavedGameData>(json);
+    }
+    public SavedSlotData GetSlotData(int index)
+    {
+        if (!IsValidSlot(index)) return null;
+        SavedGameData gameData = GetGameData();
+        if (gameData != null)
+        {
+            return gameData.savedSlots[index];
+        }
+        return null;
     }
 
     #endregion

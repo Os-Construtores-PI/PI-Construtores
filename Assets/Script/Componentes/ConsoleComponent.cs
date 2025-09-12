@@ -81,8 +81,9 @@ public class ConsoleComponent : MonoBehaviour
     [ConsoleMethod("setTarget", "Define o jogador alvo pelos dados do DataSystem", "playerId")]
     public static void SetTarget(int playerId)
     {
+        List<Player> playersData = Data.GetPlayers();
         // Procura o jogador pelo ID na lista de players do DataSystem
-        var player = Data.players.Find(p => p.ID == playerId);
+        var player = playersData.Find(p => p.ID == playerId);
         if (player == null)
         {
             Debug.LogWarning($"Jogador com ID '{playerId}' não encontrado.");
@@ -98,8 +99,9 @@ public class ConsoleComponent : MonoBehaviour
     [ConsoleMethod("giveItem", "Adiciona um item ao inventário do jogador", "playerId itemName quantidade")]
     public static void GiveItem(int playerId, string itemName, string quantidade)
     {
+        List<Player> playersData = Data.GetPlayers();
         // Encontra o jogador no DataSystem
-        var player = Data.players.Find(p => p.ID == playerId);
+        var player = playersData.Find(p => p.ID == playerId);
         if (player == null)
         {
             Debug.LogWarning($"Jogador '{playerId}' não encontrado.");
@@ -130,8 +132,9 @@ public class ConsoleComponent : MonoBehaviour
     [ConsoleMethod("listPlayers", "Lista os IDs dos jogadores salvos no DataSystem", "")]
     public static void ListPlayers()
     {
+        List<Player> playersData = Data.GetPlayers();
         // Se não houver jogadores registrados, avisa no console
-        if (Data.players.Count == 0)
+        if (playersData.Count == 0)
         {
             Debug.Log("Nenhum jogador registrado no DataSystem.");
             return;
@@ -139,7 +142,7 @@ public class ConsoleComponent : MonoBehaviour
 
         // Lista todos os IDs dos jogadores
         Debug.Log("Jogadores registrados:");
-        foreach (var p in Data.players)
+        foreach (Player p in playersData)
         {
             Debug.Log($"- {p.ID}");
         }

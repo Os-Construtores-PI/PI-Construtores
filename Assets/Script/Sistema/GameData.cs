@@ -19,6 +19,7 @@ public class SavedGameData
 [System.Serializable]
 public class SavedSlotData
 {
+    public string lastLevelName;
     public List<SavedLevelData> savedLevelDatas = new();
 }
 

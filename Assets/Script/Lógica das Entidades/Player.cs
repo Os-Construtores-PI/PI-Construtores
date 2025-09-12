@@ -97,7 +97,9 @@ public class Player : CombatEntities
     #endregion
 
     #region --- Inicialização Unity ---
-
+    #region Coletáveis
+    protected int Amethysts = 0;
+    #endregion
     
 
 
