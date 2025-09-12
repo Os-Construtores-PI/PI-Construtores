@@ -93,11 +93,13 @@ public class Player : CombatEntities
 
     #region Inventário
     private readonly Inventory inventory = new();
-    public Inventory Inventario => inventory;
+    public Inventory Inventory => inventory;
     #endregion
 
     #region --- Inicialização Unity ---
-
+    #region Coletáveis
+    protected int Amethysts = 0;
+    #endregion
     
 
 

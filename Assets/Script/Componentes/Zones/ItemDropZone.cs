@@ -49,7 +49,7 @@ public class ItemDropZone : Item
         {
             if (itemData != null)
             {
-                player.Inventario.AddItem(itemData, quantity);
+                player.Inventory.AddItem(itemData, quantity);
                 Destroy(gameObject); // Remove a zona de drop após o item ser pego
             }
         }

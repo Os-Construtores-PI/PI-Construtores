@@ -86,9 +86,14 @@ public static class StatTypeMap
 
 public static class Constants
 {
+    public static class PersistentNames
+    {
+        public static readonly string DataPath = Application.persistentDataPath + "GAMEDATA.json";
+        public static readonly string CryptoKey = "Pão de Queijo";
+    }
     public static class SceneNames
     {
-        public static readonly string DebugScene = "CenaDebug";
+        public static readonly string DebugScene = "Cena Debug";
     }
     public static class Values
     {
