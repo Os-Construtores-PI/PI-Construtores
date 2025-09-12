@@ -124,7 +124,7 @@ public class ConsoleComponent : MonoBehaviour
         }
 
         // Adiciona o item ao inventário do jogador
-        player.Inventario.AddItem(item, qtd);
+        player.Inventory.AddItem(item, qtd);
         Debug.Log($"Item '{itemName}' x{qtd} adicionado ao jogador '{playerId}'.");
     }
 

@@ -27,8 +27,12 @@ public class SavedSlotData
 public class SavedLevelData
 {
     public string levelName;
-    public List<SavedPlayerData> players = new();
-    public List<SavedDroppedItem> droppedItems = new();  
+    public List<SavedPlayerData> savedPlayers = new();
+    public List<SavedDroppedItem> savedDroppedItems = new();
+    public SavedLevelData(string levelname)
+    {
+        levelName = levelname;
+    }
 }
 
 [System.Serializable]
@@ -92,8 +96,13 @@ public class SavedPlayerData
 [System.Serializable]
 public class SavedItemEntry
 {
-    public string itemName;
-    public int quantity;
+    public string savedItemName;
+    public int savedItemQuantity;
+    public SavedItemEntry(string name, int quantity)
+    {
+        savedItemName = name;
+        savedItemQuantity = quantity;
+    }
 }
 
 [System.Serializable]
