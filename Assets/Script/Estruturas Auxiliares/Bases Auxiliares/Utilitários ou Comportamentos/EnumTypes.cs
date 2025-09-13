@@ -45,3 +45,9 @@ public enum ColorCode
     RED,
     GREEN
 }
+
+public enum GameMode
+{
+    SINGLEPLAYER,
+    MULTIPLAYER
+}

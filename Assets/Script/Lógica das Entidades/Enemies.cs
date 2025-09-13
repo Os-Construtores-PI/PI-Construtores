@@ -14,6 +14,11 @@ public abstract class Enemies : CombatEntities
     [SerializeField, Min(10)] private float radius;           // Raio da detecção de visão
     [SerializeField] private float attackRange = 2f; // Raio da detecção de ataque
 
+
+    [SerializeField] private float memoryCooldown = 3f;
+    [SerializeField] private float memoryCooldownWalker = 0.0f;
+    private bool memoryTriggered = false;
+    private bool playerInArea = false;
     // ==== COMPORTAMENTO DE IA ====
     [Header("IA")]
     [SerializeField] private bool can_AI = true;         // Permite ativar/desativar IA
@@ -63,21 +68,53 @@ public abstract class Enemies : CombatEntities
         base.Update();
         if (can_AI)
         {
+            VisionTimer();
+            AttackTimer();
+            MemoryTimer();
+            print(memoryCooldownWalker);
+            print(target.name);
+        }
+
+    }
+    private void VisionTimer()
+    {
             visionIntervalwalker += Time.deltaTime;
             if (visionIntervalwalker >= visionInterval)
             {
                 UpdateTarget();
                 visionIntervalwalker = 0f;
             }
+    }
+    private void AttackTimer()
+    {
             attackIntervalwalker += Time.deltaTime;
             if (attackIntervalwalker >= attackInterval)
             {
                 UpdateAttackLogic();
                 attackIntervalwalker = 0f;
             }
-        }
-
     }
+    private void MemoryTimer()
+    {
+        if (!playerInArea && !memoryTriggered) // só executa se o player saiu e ainda não rodou
+        {
+            memoryCooldownWalker += Time.deltaTime;
+
+            if (memoryCooldownWalker >= memoryCooldown)
+            {
+                target = transform;
+                memoryCooldownWalker = 0.0f;
+                memoryTriggered = true; // marca que já rodou
+            }
+        }
+        else if (playerInArea)
+        {
+            // se o player voltar, reseta o estado
+            memoryCooldownWalker = 0.0f;
+            memoryTriggered = false;
+        }
+    }
+
 
     private void UpdateTarget()
     {
@@ -89,16 +126,17 @@ public abstract class Enemies : CombatEntities
 
             if (subtarget == transform || subtarget.IsChildOf(transform))
                 continue;
-
-            if (subtarget.TryGetComponent(out Player player))
+            if (subtarget.TryGetComponent(out Player _))
             {
+                playerInArea = true;
+                memoryCooldownWalker = .0f;
                 target = subtarget;
                 return;
             }
         }
 
         // Se não encontrar alvo, redefine o alvo para si mesmo
-        target = transform;
+        playerInArea = false;
     }
 
     // Verifica se há algum alvo próximo o suficiente para ataque
@@ -109,7 +147,6 @@ public abstract class Enemies : CombatEntities
         for (int i = 0; i < quantity; i++)
         {
             var nearby = attackResult[i].transform;
-
             if (nearby == transform || nearby.IsChildOf(transform))
                 continue;
         }

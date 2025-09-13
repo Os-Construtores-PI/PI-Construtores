@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ManualSpawner : BasePool
+public class ManualSingleSpawner : BasePool
 {
     [SerializeField] protected GameObject objectToPool;
+
     void Start()
     {
         Instance();
