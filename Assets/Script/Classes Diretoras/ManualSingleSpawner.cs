@@ -11,13 +11,13 @@ public class ManualSingleSpawner : BasePool
     }
     protected void Instance()
     {
-        disabledObject = new();
+        deactivatedObject = new();
         GameObject tmp;
         for (int i = 0; i < amount; i++)
         {
             tmp = Instantiate(objectToPool);
             tmp.SetActive(false);
-            disabledObject.Add(tmp);
+            deactivatedObject.Add(tmp);
         }
     }
 }

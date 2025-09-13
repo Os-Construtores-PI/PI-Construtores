@@ -70,9 +70,9 @@ public abstract class LiveEntities : Entities
 
     #region --- Eventos ---
 
-    protected readonly UnityEvent<float> _OnHealthChanged = new();
-    protected readonly UnityEvent _OnDamage = new();
-    protected readonly UnityEvent _OnDeath = new();
+    public readonly UnityEvent<float> _OnHealthChanged = new();
+    public readonly UnityEvent _OnDamage = new();
+    public readonly UnityEvent _OnDeath = new();
 
     #endregion
 

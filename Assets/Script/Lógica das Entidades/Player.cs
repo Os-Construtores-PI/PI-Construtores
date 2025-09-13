@@ -47,11 +47,14 @@ public class Player : CombatEntities
     [SerializeField] private CharacterController characterController;
     public CharacterController Charactercontroller => characterController;
     [SerializeField] private CinemachineCamera cinemachineCamera;
+    public void SetCinemachineCamera(CinemachineCamera cam)
+    {
+        cinemachineCamera = cam;
+    }
 
     #endregion
 
     #region --- Estados Internos ---
-
     private Vector3 movementVector;
     private Vector3 direction;
     private Vector3 dashDirection;
@@ -60,6 +63,13 @@ public class Player : CombatEntities
     private int currentJumpCount;
     private bool isGrounded;
     private bool canDash = true;
+    private bool canMove = true;
+    [Stat(nameof(CanMove))]
+    public bool CanMove
+    {
+        get => canMove;
+        set => canMove = value;
+    } // nova flag para controle de movimento
     [Stat(nameof(CanDash))]
     public bool CanDash
     {
@@ -67,11 +77,7 @@ public class Player : CombatEntities
         set => canDash = value;
     }
     private bool isDashing = false;
-
     private float dashDuration;
-
-    private InputAction moveAction;
-
     #endregion
 
 
@@ -108,7 +114,6 @@ public class Player : CombatEntities
         base.Awake();
         SetupCamera();
         characterController = GetComponent<CharacterController>();
-        moveAction = InputSystem.actions.FindAction("Move");
     }
 
     public override void Start()
@@ -212,6 +217,7 @@ public class Player : CombatEntities
 
     private void HandleMovement()
     {
+        if (!CanMove) return;
         ApplyRotationAndDirection();
         ApplyGravityAndFriction();
     }
@@ -276,7 +282,7 @@ public class Player : CombatEntities
         canDash = false;
         movementVector.y = 0f;
 
-        moveAction.Disable();
+        canMove = false;
         PlayDashVisual();
         Invoke(nameof(ResetDash), dashCooldown);
     }
@@ -289,7 +295,7 @@ public class Player : CombatEntities
         if (dashDuration <= 0f)
         {
             isDashing = false;
-            moveAction.Enable();
+            canMove = true;
         }
     }
 

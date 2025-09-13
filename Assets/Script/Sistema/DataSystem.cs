@@ -16,7 +16,7 @@ public class DataSystem : MonoBehaviour
     private List<Player> players = new();
     private List<ItemDropZone> droppedItems = new();
     [Header("Configuração")]
-    [SerializeField] private int maxSlots = 3;
+    private readonly int maxSlots = 3;
 
     private string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
 

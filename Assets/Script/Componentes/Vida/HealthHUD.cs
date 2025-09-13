@@ -19,9 +19,13 @@ public class HealthHUDComponent : MonoBehaviour
     {
         if (_slider == null) return;
     }
-    private void Start()
+    private void Awake()
     {
         DOTween.Init();
+        _slider = GetComponent<Slider>();
+    }
+    private void Start()
+    {
         if (transform.parent.TryGetComponent(out PlayerHUD playerHUD))
         {
             IdHealth = playerHUD.ID;
@@ -30,7 +34,6 @@ public class HealthHUDComponent : MonoBehaviour
         {
             print("Não está com um pai com PlayerHUD");
         }
-        _slider = GetComponent<Slider>();
 
         switch (HUDType)
         {
@@ -42,6 +45,16 @@ public class HealthHUDComponent : MonoBehaviour
                 InitializeEnemyHUD();
                 break;
         }
+    }
+    public void BindToPlayer(Player player)
+    {
+        if (player == null) return;
+        IdHealth = player.ID;
+        // Atualiza o slider imediatamente
+        _slider.value = player.Health / player.MaxHealth;
+
+        // Registrar para updates futuros
+        player._OnHealthChanged.AddListener(UpdateSlider); // Supondo que você tenha esse evento
     }
 
     private void InitializePlayerHUD()

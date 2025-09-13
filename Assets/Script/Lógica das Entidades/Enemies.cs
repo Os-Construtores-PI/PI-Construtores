@@ -71,8 +71,6 @@ public abstract class Enemies : CombatEntities
             VisionTimer();
             AttackTimer();
             MemoryTimer();
-            print(memoryCooldownWalker);
-            print(target.name);
         }
 
     }

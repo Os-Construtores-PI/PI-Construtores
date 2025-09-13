@@ -101,7 +101,7 @@ public static class Constants
     }
     public static class PanelNames
     {
-        public static readonly string GameOver = "GameOver";
+        public static readonly string GameOver = "PainelGameOver";
         public static readonly string InteractionPopup = "InteractionPopup";
         public static readonly string InteractionLetter = "InteractionLetter";
         public static readonly string GraplingHookCutscene = "GraplingHookCutscene";

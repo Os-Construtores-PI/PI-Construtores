@@ -4,7 +4,7 @@ using UnityEngine;
 public class BasePool : MonoBehaviour
 {
     public static BasePool SharedInstance;
-    [HideInInspector] public List<GameObject> disabledObject;
+    [HideInInspector] public List<GameObject> deactivatedObject;
     protected int amount;
     [SerializeField] protected Transform parent;
 
@@ -17,17 +17,15 @@ public class BasePool : MonoBehaviour
     {
         for (int i = 0; i < amount; i++)
         {
-            if (!disabledObject[i].activeInHierarchy)
+            if (!deactivatedObject[i].activeInHierarchy)
             {
-                return disabledObject[i];
+                return deactivatedObject[i];
             }
         }
         return null;
     }
 
-    public int GetAmountPool()
-    {
-        return amount;
-    }
+    public int GetAmountPool() => amount;
+    public Transform GetParentTransform() => parent;
 }
 
