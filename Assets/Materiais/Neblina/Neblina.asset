@@ -1,0 +1,471 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b113f958e0564f309164e29c24b042d, type: 3}
+  m_Name: Neblina
+  m_EditorClassIdentifier: 
+  serializedNodes: []
+  nodes:
+  - rid: 0
+  - rid: 1
+  - rid: 2
+  - rid: 3
+  edges:
+  - GUID: a036f0bd-ea59-43a6-849e-214a768ed5a4
+    owner: {fileID: 11400000}
+    inputNodeGUID: 0f096cfa-9d5f-4086-9aaa-b326aaf6027b
+    outputNodeGUID: 3fd32b5b-8edd-4948-a1ef-e34f4d5d42dc
+    inputFieldName: a
+    outputFieldName: sinTime
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: 0d196eb0-5c4c-4c50-a338-e78cebc405c4
+    owner: {fileID: 11400000}
+    inputNodeGUID: 691aa737-9a89-40dd-b56d-201a248e396d
+    outputNodeGUID: 45b55e43-50ed-49df-b940-105b197c4bb0
+    inputFieldName: outputTextureSettings
+    outputFieldName: output
+    inputPortIdentifier: Main Texture
+    outputPortIdentifier: output
+  - GUID: 75c9deda-3134-4d77-b47e-ceee33446c98
+    owner: {fileID: 11400000}
+    inputNodeGUID: 45b55e43-50ed-49df-b940-105b197c4bb0
+    outputNodeGUID: 0f096cfa-9d5f-4086-9aaa-b326aaf6027b
+    inputFieldName: materialInputs
+    outputFieldName: o
+    inputPortIdentifier: _Persistance
+    outputPortIdentifier: 
+  groups: []
+  stackNodes: []
+  pinnedElements:
+  - position:
+      serializedVersion: 2
+      x: 0
+      y: 99
+      width: 244
+      height: 461
+    opened: 0
+    editorType:
+      serializedType: Mixture.MixtureParameterView, Unity.ShaderGraph.GraphicsTests,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  exposedParameters: []
+  serializedParameterList: []
+  stickyNotes: []
+  nodeInspectorReference: {fileID: 0}
+  position: {x: 891, y: 399, z: 0}
+  scale: {x: 1.15, y: 1.15, z: 1}
+  version: 1
+  type: 1
+  realtimePreview: 1
+  isRealtime: 0
+  isParameterViewOpen: 0
+  embedInBuild: 0
+  defaultNodeInheritanceMode: -2
+  objectReferences: []
+  variants: []
+  _mainOutputTexture: {fileID: 7160543822759371156}
+  _outputTextures:
+  - {fileID: 7160543822759371156}
+  - {fileID: 7160543822759371156}
+  settings:
+    widthScale: 1
+    heightScale: 1
+    depthScale: 1
+    width: 256
+    height: 256
+    depth: 256
+    potSize: 256
+    sizeMode: 1
+    dimension: 2
+    outputChannels: 1
+    outputPrecision: 3
+    editFlags: 128
+    doubleBuffered: 0
+    wrapMode: 0
+    filterMode: 0
+    refreshMode: 2
+    period: 17
+  references:
+    version: 2
+    RefIds:
+    - rid: 0
+      type: {class: OutputNode, ns: Mixture, asm: Mixture.Runtime}
+      data:
+        nodeCustomName: 
+        GUID: 691aa737-9a89-40dd-b56d-201a248e396d
+        computeOrder: 3
+        position:
+          serializedVersion: 2
+          x: -42.26087
+          y: -44.000004
+          width: 350
+          height: 500
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        settings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 512
+          height: 512
+          depth: 1
+          potSize: 512
+          sizeMode: -2
+          dimension: -2
+          outputChannels: -2
+          outputPrecision: -2
+          editFlags: 471
+          doubleBuffered: 0
+          wrapMode: -2
+          filterMode: -2
+          refreshMode: 0
+          period: 0
+        rtSettings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 0
+          height: 0
+          depth: 0
+          potSize: 0
+          sizeMode: 0
+          dimension: 0
+          outputChannels: 0
+          outputPrecision: 0
+          editFlags: 0
+          doubleBuffered: 0
+          wrapMode: 0
+          filterMode: 0
+          refreshMode: 0
+          period: 0
+        isPreviewCollapsed: 0
+        previewMode: 7
+        previewSRGB: 0
+        previewMip: 0
+        previewVisible: 1
+        previewEV100: 0
+        previewSlice: 0
+        isPinned: 0
+        outputTextureSettings:
+        - inputTexture: {fileID: 0}
+          name: Main Texture
+          enableCompression: 1
+          compressionFormat: 12
+          compressionQuality: 100
+          hasMipMaps: 0
+          isMain: 1
+          enableConversion: 0
+          conversionFormat: 0
+          sRGB: 1
+          finalCopyMaterial: {fileID: 0}
+        _selectedPreviewIndex: 0
+    - rid: 1
+      type: {class: RidgedPerlinNoise, ns: Mixture, asm: Mixture.Runtime}
+      data:
+        nodeCustomName: 
+        GUID: 45b55e43-50ed-49df-b940-105b197c4bb0
+        computeOrder: 2
+        position:
+          serializedVersion: 2
+          x: -312
+          y: -44
+          width: 250
+          height: 585
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        settings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 512
+          height: 512
+          depth: 1
+          potSize: 0
+          sizeMode: -2
+          dimension: -2
+          outputChannels: -2
+          outputPrecision: -2
+          editFlags: 255
+          doubleBuffered: 0
+          wrapMode: -2
+          filterMode: -2
+          refreshMode: 0
+          period: 0
+        rtSettings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 0
+          height: 0
+          depth: 0
+          potSize: 0
+          sizeMode: 0
+          dimension: 0
+          outputChannels: 0
+          outputPrecision: 0
+          editFlags: 0
+          doubleBuffered: 0
+          wrapMode: 0
+          filterMode: 0
+          refreshMode: 0
+          period: 0
+        isPreviewCollapsed: 0
+        previewMode: 7
+        previewSRGB: 0
+        previewMip: 0
+        previewVisible: 1
+        previewEV100: 0
+        previewSlice: 0
+        isPinned: 0
+        output: {fileID: 0}
+        shader: {fileID: 4800000, guid: 49eed0c8b6dca3949a7864570e424043, type: 3}
+        material: {fileID: 0}
+        exposedProperties:
+        - displayName: UVs
+          referenceName: _UV_2D
+          tooltip: 
+          type:
+            serializedType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+        - displayName: Tiling Mode
+          referenceName: _TilingMode
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: UV Mode
+          referenceName: _UVMode
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: Output Range
+          referenceName: _OutputRange
+          tooltip: 
+          type:
+            serializedType: UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+        - displayName: Lacunarity
+          referenceName: _Lacunarity
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: Frequency
+          referenceName: _Frequency
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: Persistance
+          referenceName: _Persistance
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: Octaves
+          referenceName: _Octaves
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: Seed
+          referenceName: _Seed
+          tooltip: 
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        - displayName: Channels
+          referenceName: _Channels
+          tooltip: Select how many noise to genereate and on which channel. The more
+            different channel you use the more expensive it is (max 4 noise evaluation).
+          type:
+            serializedType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+              PublicKeyToken=b77a5c561934e089
+        shaderGUID: 49eed0c8b6dca3949a7864570e424043
+    - rid: 2
+      type: {class: TimeNode, ns: Mixture, asm: Mixture.Runtime}
+      data:
+        nodeCustomName: 
+        GUID: 3fd32b5b-8edd-4948-a1ef-e34f4d5d42dc
+        computeOrder: 0
+        position:
+          serializedVersion: 2
+          x: -742.00006
+          y: -44.000004
+          width: 120
+          height: 176
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        settings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 512
+          height: 512
+          depth: 1
+          potSize: 0
+          sizeMode: -2
+          dimension: 2
+          outputChannels: 1
+          outputPrecision: 3
+          editFlags: 0
+          doubleBuffered: 0
+          wrapMode: 0
+          filterMode: 1
+          refreshMode: 0
+          period: 0
+        rtSettings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 0
+          height: 0
+          depth: 0
+          potSize: 0
+          sizeMode: 0
+          dimension: 0
+          outputChannels: 0
+          outputPrecision: 0
+          editFlags: 0
+          doubleBuffered: 0
+          wrapMode: 0
+          filterMode: 0
+          refreshMode: 0
+          period: 0
+        isPreviewCollapsed: 0
+        previewMode: 15
+        previewSRGB: 0
+        previewMip: 0
+        previewVisible: 1
+        previewEV100: 0
+        previewSlice: 0
+        isPinned: 0
+    - rid: 3
+      type: {class: VectorRemapNode, ns: Mixture, asm: Mixture.Runtime}
+      data:
+        nodeCustomName: 
+        GUID: 0f096cfa-9d5f-4086-9aaa-b326aaf6027b
+        computeOrder: 1
+        position:
+          serializedVersion: 2
+          x: -594.8696
+          y: -43.82608
+          width: 250
+          height: 164
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        settings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 512
+          height: 512
+          depth: 1
+          potSize: 0
+          sizeMode: -2
+          dimension: 2
+          outputChannels: 1
+          outputPrecision: 3
+          editFlags: 0
+          doubleBuffered: 0
+          wrapMode: 0
+          filterMode: 1
+          refreshMode: 0
+          period: 0
+        rtSettings:
+          widthScale: 1
+          heightScale: 1
+          depthScale: 1
+          width: 0
+          height: 0
+          depth: 0
+          potSize: 0
+          sizeMode: 0
+          dimension: 0
+          outputChannels: 0
+          outputPrecision: 0
+          editFlags: 0
+          doubleBuffered: 0
+          wrapMode: 0
+          filterMode: 0
+          refreshMode: 0
+          period: 0
+        isPreviewCollapsed: 0
+        previewMode: 15
+        previewSRGB: 0
+        previewMip: 0
+        previewVisible: 1
+        previewEV100: 0
+        previewSlice: 0
+        isPinned: 0
+        a: {x: -0.9429023, y: -0.9429023, z: -0.9429023, w: -0.9429023}
+        o: {x: 0.019984186, y: 0.019984186, z: 0.019984186, w: 0.019984186}
+        inputMin: -1
+        inputMax: 1
+        outputMin: 0
+        outputMax: 0.7
+--- !u!86 &7160543822759371156
+CustomRenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Neblina
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 256
+  m_Height: 256
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 0
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
+  m_Material: {fileID: 0}
+  m_InitSource: 0
+  m_InitMaterial: {fileID: 0}
+  m_InitColor: {r: 1, g: 1, b: 1, a: 1}
+  m_InitTexture: {fileID: 0}
+  m_UpdateMode: 1
+  m_InitializationMode: 2
+  m_UpdateZoneSpace: 0
+  m_CurrentUpdateZoneSpace: 0
+  m_UpdateZones: []
+  m_UpdatePeriod: 0
+  m_ShaderPass: 0
+  m_CubemapFaceMask: 4294967295
+  m_DoubleBuffered: 0
+  m_WrapUpdateZones: 0
