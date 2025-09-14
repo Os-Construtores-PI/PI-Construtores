@@ -144,180 +144,39 @@ float3 hsv2rgb(float3 c) {
 	float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
 	return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
-static const float p_o233919085553172_amount1 = 1.000000000;
-static const float p_o216843671319033_default_in1 = 0.000000000;
-static const float p_o214378225872773_sx = 3.000000000;
-static const float p_o214378225872773_sy = 4.000000000;
-static const float p_o214378225872773_angle = 32.590000000;
-static const float p_o214378225872773_round = 0.000000000;
-static const float p_o214378292981029_g_pos[2] = {  0.368630052, 1.000000000  };
-static const float4 p_o214378292981029_g_col[2] = {  tofloat4(0.514718056, 0.166625977, 0.656250000, 1.000000000), tofloat4(0.078125000, 0.078125000, 0.078125000, 1.000000000)  };
-static const float p_o214378276200572_s = 1.000000000;
-static const float seed_o214378259426410 = 0.747882366;
-static const float p_o214378259426410_scale_x = 1.000000000;
-static const float p_o214378259426410_scale_y = 0.600000000;
-static const float p_o214378259426410_scale_z = 1.000000000;
-static const float p_o214378259426410_iterations = 7.000000000;
-static const float p_o214378259426410_persistence = 1.000000000;
-static const float p_o233687274762401_gradient_pos[2] = {  0.000000000, 1.000000000  };
-static const float4 p_o233687274762401_gradient_col[2] = {  tofloat4(0.000000000, 0.000000000, 0.000000000, 1.000000000), tofloat4(0.000000000, 0.000000000, 0.000000000, 1.000000000)  };
-// #globals: blend
-float3 blend_normal(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*c1 + (1.0-opacity)*c2;
-}
-float3 blend_dissolve(float2 uv, float3 c1, float3 c2, float opacity) {
-	if (rand(uv) < opacity) {
-		return c1;
-	} else {
-		return c2;
-	}
-}
-float3 blend_multiply(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*c1*c2 + (1.0-opacity)*c2;
-}
-float3 blend_screen(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*(1.0-(1.0-c1)*(1.0-c2)) + (1.0-opacity)*c2;
-}
-float blend_overlay_f(float c1, float c2) {
-	return (c1 < 0.5) ? (2.0*c1*c2) : (1.0-2.0*(1.0-c1)*(1.0-c2));
-}
-float3 blend_overlay(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_overlay_f(c1.x, c2.x), blend_overlay_f(c1.y, c2.y), blend_overlay_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float3 blend_hard_light(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*0.5*(c1*c2+blend_overlay(uv, c1, c2, 1.0)) + (1.0-opacity)*c2;
-}
-float blend_soft_light_f(float c1, float c2) {
-	return (c2 < 0.5) ? (2.0*c1*c2+c1*c1*(1.0-2.0*c2)) : 2.0*c1*(1.0-c2)+sqrt(c1)*(2.0*c2-1.0);
-}
-float3 blend_soft_light(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_soft_light_f(c1.x, c2.x), blend_soft_light_f(c1.y, c2.y), blend_soft_light_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float blend_burn_f(float c1, float c2) {
-	return (c1==0.0)?c1:max((1.0-((1.0-c2)/c1)),0.0);
-}
-float3 blend_burn(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_burn_f(c1.x, c2.x), blend_burn_f(c1.y, c2.y), blend_burn_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float blend_dodge_f(float c1, float c2) {
-	return (c1==1.0)?c1:min(c2/(1.0-c1),1.0);
-}
-float3 blend_dodge(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_dodge_f(c1.x, c2.x), blend_dodge_f(c1.y, c2.y), blend_dodge_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float3 blend_lighten(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*max(c1, c2) + (1.0-opacity)*c2;
-}
-float3 blend_darken(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*min(c1, c2) + (1.0-opacity)*c2;
-}
-float3 blend_difference(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*clamp(c2-c1, tofloat3(0.0), tofloat3(1.0)) + (1.0-opacity)*c2;
-}
-float3 blend_additive(float2 uv, float3 c1, float3 c2, float oppacity) {
-	return c2 + c1 * oppacity;
-}
-float3 blend_addsub(float2 uv, float3 c1, float3 c2, float oppacity) {
-	return c2 + (c1 - .5) * 2.0 * oppacity;
-}
-// #globals: adjust_hsv
-float3 rgb_to_hsv(float3 c) {
-	float4 K = tofloat4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-	float4 p = c.g < c.b ? tofloat4(c.bg, K.wz) : tofloat4(c.gb, K.xy);
-	float4 q = c.r < p.x ? tofloat4(p.xyw, c.r) : tofloat4(c.r, p.yzx);
-	float d = q.x - min(q.w, q.y);
-	float e = 1.0e-10;
-	return tofloat3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-}
-float3 hsv_to_rgb(float3 c) {
-	float4 K = tofloat4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-	float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
-	return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-// #globals: blend2 (o233919085553172)
-float blend_linear_light_f(float c1, float c2) {
-	return (c1 + 2.0 * c2) - 1.0;
-}
-float3 blend_linear_light(float2 uv, float3 c1, float3 c2, float opacity) {
-return opacity*tofloat3(blend_linear_light_f(c1.x, c2.x), blend_linear_light_f(c1.y, c2.y), blend_linear_light_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float blend_vivid_light_f(float c1, float c2) {
-	return (c1 < 0.5) ? 1.0 - (1.0 - c2) / (2.0 * c1) : c2 / (2.0 * (1.0 - c1));
-}
-float3 blend_vivid_light(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_vivid_light_f(c1.x, c2.x), blend_vivid_light_f(c1.y, c2.y), blend_vivid_light_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float blend_pin_light_f( float c1, float c2) {
-	return (2.0 * c1 - 1.0 > c2) ? 2.0 * c1 - 1.0 : ((c1 < 0.5 * c2) ? 2.0 * c1 : c2);
-}
-float3 blend_pin_light(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_pin_light_f(c1.x, c2.x), blend_pin_light_f(c1.y, c2.y), blend_pin_light_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float blend_hard_lerp_f(float c1, float c2) {
-	return floor(c1 + c2);
-}
-float3 blend_hard_lerp(float2 uv, float3 c1, float3 c2, float opacity) {
-		return opacity*tofloat3(blend_hard_lerp_f(c1.x, c2.x), blend_hard_lerp_f(c1.y, c2.y), blend_hard_lerp_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float blend_exclusion_f(float c1, float c2) {
-	return c1 + c2 - 2.0 * c1 * c2;
-}
-float3 blend_exclusion(float2 uv, float3 c1, float3 c2, float opacity) {
-	return opacity*tofloat3(blend_exclusion_f(c1.x, c2.x), blend_exclusion_f(c1.y, c2.y), blend_exclusion_f(c1.z, c2.z)) + (1.0-opacity)*c2;
-}
-float3 blend_hue(float2 uv, float3 c1, float3 c2, float opacity) {
-	float3 outcol = c2;
-	float3 hsv, hsv2, tmp;
-	hsv2 = rgb_to_hsv(c1);
-	if (hsv2.y != 0.0) {
-		hsv = rgb_to_hsv(outcol);
-		hsv.x = hsv2.x;
-		tmp = hsv_to_rgb(hsv);
-		outcol = lerp(outcol, tmp, opacity);
-	}
-	return outcol;
-}
-float3 blend_saturation(float2 uv, float3 c1, float3 c2, float opacity) {
-	float facm = 1.0 - opacity;
-	float3 outcol = c2;
-	float3 hsv, hsv2;
-	hsv = rgb_to_hsv(outcol);
-	if (hsv.y != 0.0) {
-		hsv2 = rgb_to_hsv(c1);
-		hsv.y = facm * hsv.y + opacity * hsv2.y;
-		outcol = hsv_to_rgb(hsv);
-	}
-	return outcol;
-}
-float3 blend_color(float2 uv, float3 c1, float3 c2, float opacity) {
-	float facm = 1.0 - opacity;
-	float3 outcol = c2;
-	float3 hsv, hsv2, tmp;
-	hsv2 = rgb_to_hsv(c1);
-	if (hsv2.y != 0.0) {
-		hsv = rgb_to_hsv(outcol);
-		hsv.x = hsv2.x;
-		hsv.y = hsv2.y;
-		tmp = hsv_to_rgb(hsv);
-		outcol = lerp(outcol, tmp, opacity);
-	}
-	return outcol;
-}
-float3 blend_value(float2 uv, float3 c1, float3 c2, float opacity) {
-	float facm = 1.0 - opacity;
-	float3 hsv, hsv2;
-	hsv = rgb_to_hsv(c2);
-	hsv2 = rgb_to_hsv(c1);
-	hsv.z = facm * hsv.z + opacity * hsv2.z;
-	return hsv_to_rgb(hsv);
-}
-// #globals: tex3d_apply (o214378242650635)
-// #globals: math (o216843671319033)
+static const float p_o934373501988_gradient_pos[2] = {  0.000000000, 1.000000000  };
+static const float4 p_o934373501988_gradient_col[2] = {  tofloat4(0.000000000, 0.000000000, 0.000000000, 1.000000000), tofloat4(0.000000000, 0.000000000, 0.000000000, 1.000000000)  };
+static const float p_o11085579038739_amount = 0.355000000;
+static const float p_o11085579038739_eps = 0.030000000;
+static const float p_o12657620953688_default_in1 = 50.000000000;
+static const float p_o934356724770_default_in1 = 0.000000000;
+static const float p_o933836631062_sx = 3.000000000;
+static const float p_o933836631062_sy = 4.000000000;
+static const float p_o933836631062_angle = 33.950000000;
+static const float p_o933836631062_round = 0.000000000;
+static const float p_o9886662406134_Distort = 0.580000000;
+static const float seed_o10489098678253 = 0.000000000;
+static const float p_o10489098678253_scale_x = 7.000000000;
+static const float p_o10489098678253_scale_y = 8.000000000;
+static const float p_o10489098678253_scale_z = 1.000000000;
+static const float p_o10489098678253_iterations = 1.000000000;
+static const float p_o10489098678253_persistence = 0.250000000;
+static const float p_o933903739930_g_pos[2] = {  0.368630052, 1.000000000  };
+static const float4 p_o933903739930_g_col[2] = {  tofloat4(0.514718056, 0.166625977, 0.656250000, 1.000000000), tofloat4(0.078125000, 0.078125000, 0.078125000, 1.000000000)  };
+static const float p_o933886962713_s = 1.000000000;
+static const float seed_o933870185496 = 0.747882366;
+static const float p_o933870185496_scale_x = 1.000000000;
+static const float p_o933870185496_scale_y = 0.600000000;
+static const float p_o933870185496_scale_z = 1.000000000;
+static const float p_o933870185496_iterations = 7.000000000;
+static const float p_o933870185496_persistence = 1.000000000;
+// #globals: tex3d_apply (o5014609209764)
+// #globals: math_2 (o12657620953688)
 float pingpong(float a, float b)
 {
   return (b != 0.0) ? abs(frac((a - b) / (b * 2.0)) * b * 2.0 - b) : 0.0;
 }
-// #globals: cairo (o214378225872773)
+// #globals: cairo (o933836631062)
 float cairo_round(float2 uv, float angle, float k) {
 	float2 cell = floor(uv);
 	float ca = cos(angle);
@@ -390,7 +249,7 @@ float4 cairo_bbox(float2 uv, float angle) {
 	float d4 = lerp(0.5-uv.x, 0.5-uv.y, step(side, 0.0));
 	return tofloat4(cell.x+l, cell.y+b, r-l, t-b);
 }
-// #globals: tex3d_fbm_4 (o214378259426410)
+// #globals: tex3d_fbm_2 (o10489098678253)
 float rand31(float3 p) {
 	return frac(sin(dot(p,tofloat3(127.1,311.7, 74.7)))*43758.5453123);
 }
@@ -574,21 +433,33 @@ float fbm3d_cellular_nowrap(float3 coord, float3 size, int octaves, float persis
 	}
 	return value / normalize_factor;
 }
-float4 o214378292981029_g_gradient_fct(float x) {
-  if (x < p_o214378292981029_g_pos[0]) {
-    return p_o214378292981029_g_col[0];
-  } else if (x < p_o214378292981029_g_pos[1]) {
-    return lerp(p_o214378292981029_g_col[0], p_o214378292981029_g_col[1], ((x-p_o214378292981029_g_pos[0])/(p_o214378292981029_g_pos[1]-p_o214378292981029_g_pos[0])));
+float4 o934373501988_gradient_gradient_fct(float x) {
+  if (x < p_o934373501988_gradient_pos[0]) {
+    return p_o934373501988_gradient_col[0];
+  } else if (x < p_o934373501988_gradient_pos[1]) {
+    return lerp(p_o934373501988_gradient_col[0], p_o934373501988_gradient_col[1], ((x-p_o934373501988_gradient_pos[0])/(p_o934373501988_gradient_pos[1]-p_o934373501988_gradient_pos[0])));
   }
-  return p_o214378292981029_g_col[1];
+  return p_o934373501988_gradient_col[1];
 }
-float4 o233687274762401_gradient_gradient_fct(float x) {
-  if (x < p_o233687274762401_gradient_pos[0]) {
-    return p_o233687274762401_gradient_col[0];
-  } else if (x < p_o233687274762401_gradient_pos[1]) {
-    return lerp(p_o233687274762401_gradient_col[0], p_o233687274762401_gradient_col[1], ((x-p_o233687274762401_gradient_pos[0])/(p_o233687274762401_gradient_pos[1]-p_o233687274762401_gradient_pos[0])));
+float o11085579038739_input_d(float2 uv, float _seed_variation_) {
+// #code: math_2 (o12657620953688)
+float o12657620953688_0_clamp_false = p_o12657620953688_default_in1*(sin(_Time.y));
+float o12657620953688_0_clamp_true = clamp(o12657620953688_0_clamp_false, 0.0, 1.0);
+// #output0: math_2 (o12657620953688)
+float o12657620953688_0_1_f = o12657620953688_0_clamp_false;
+return o12657620953688_0_1_f;
+}
+// #instance: warp (o11085579038739)
+float2 o11085579038739_slope(float2 uv, float epsilon, float _seed_variation_) {
+	return tofloat2(o11085579038739_input_d((frac(uv+tofloat2(epsilon, 0.0))), _seed_variation_)-o11085579038739_input_d((frac(uv-tofloat2(epsilon, 0.0))), _seed_variation_), o11085579038739_input_d((frac(uv+tofloat2(0.0, epsilon))), _seed_variation_)-o11085579038739_input_d((frac(uv-tofloat2(0.0, epsilon))), _seed_variation_));
+}
+float4 o933903739930_g_gradient_fct(float x) {
+  if (x < p_o933903739930_g_pos[0]) {
+    return p_o933903739930_g_col[0];
+  } else if (x < p_o933903739930_g_pos[1]) {
+    return lerp(p_o933903739930_g_col[0], p_o933903739930_g_col[1], ((x-p_o933903739930_g_pos[0])/(p_o933903739930_g_pos[1]-p_o933903739930_g_pos[0])));
   }
-  return p_o233687274762401_gradient_col[1];
+  return p_o933903739930_g_col[1];
 }
 		
 			v2f vert (appdata v) {
@@ -602,43 +473,44 @@ float4 o233687274762401_gradient_gradient_fct(float x) {
 				float _seed_variation_ = 0.0;
 				float2 uv = i.uv;
 
-// #output0: cairo (o214378225872773)
-float o214378225872773_0_1_f = cairo_round((uv)*tofloat2(p_o214378225872773_sx, p_o214378225872773_sy), p_o214378225872773_angle*0.01745329251, 200.0-190.0*p_o214378225872773_round);
+// #output0: colorize_2 (o934373501988)
+float4 o934373501988_0_1_rgba = o934373501988_gradient_gradient_fct((uv).x);
 
-// #code: math (o216843671319033)
-float o216843671319033_0_clamp_false = o214378225872773_0_1_f+(_Time.y * .1);
-float o216843671319033_0_clamp_true = clamp(o216843671319033_0_clamp_false, 0.0, 1.0);
-// #output0: math (o216843671319033)
-float o216843671319033_0_1_f = o216843671319033_0_clamp_false;
+// #code: warp (o11085579038739)
+float2 o11085579038739_0_slope = o11085579038739_slope((uv), p_o11085579038739_eps, _seed_variation_);
+float2 o11085579038739_0_warp = o11085579038739_0_slope*(1.0-o11085579038739_input_d((uv), _seed_variation_));
+// #output0: cairo (o933836631062)
+float o933836631062_0_1_f = cairo_round(((uv)+p_o11085579038739_amount*o11085579038739_0_warp)*tofloat2(p_o933836631062_sx, p_o933836631062_sy), p_o933836631062_angle*0.01745329251, 200.0-190.0*p_o933836631062_round);
 
-// #output0: tex3d_fbm_4 (o214378259426410)
-float o214378259426410_0_1_tex3d_gs = fbm3d_value((tofloat4((tofloat4((uv)-tofloat2(0.5), o216843671319033_0_1_f, 0.0)).xyz/max(p_o214378276200572_s, 0.00001), (tofloat4((uv)-tofloat2(0.5), o216843671319033_0_1_f, 0.0)).w)).xyz, tofloat3(p_o214378259426410_scale_x, p_o214378259426410_scale_y, p_o214378259426410_scale_z), int(p_o214378259426410_iterations), p_o214378259426410_persistence, float((seed_o214378259426410+frac(_seed_variation_))));
+// #code: math (o934356724770)
+float o934356724770_0_clamp_false = o933836631062_0_1_f+(_Time.y * .03);
+float o934356724770_0_clamp_true = clamp(o934356724770_0_clamp_false, 0.0, 1.0);
+// #output0: math (o934356724770)
+float o934356724770_0_1_f = o934356724770_0_clamp_false;
 
-// #output0: tex3d_scale (o214378276200572)
-float3 o214378276200572_0_1_tex3d = tofloat3(o214378259426410_0_1_tex3d_gs);
+// #output0: warp (o11085579038739)
+float4 o11085579038739_0_1_rgba = tofloat4(tofloat3(o934356724770_0_1_f), 1.0);
 
-// #output0: tex3d_colorize_3 (o214378292981029)
-float3 o214378292981029_0_1_tex3d = o214378292981029_g_gradient_fct(dot(o214378276200572_0_1_tex3d, tofloat3(1.0))/3.0).rgb;
+// #output0: tex3d_fbm_2 (o10489098678253)
+float o10489098678253_0_1_tex3d_gs = fbm3d_cellular((tofloat4((uv)-tofloat2(0.5), (dot((o11085579038739_0_1_rgba).rgb, tofloat3(1.0))/3.0), (dot((o934373501988_0_1_rgba).rgb, tofloat3(1.0))/3.0))).xyz, tofloat3(p_o10489098678253_scale_x, p_o10489098678253_scale_y, p_o10489098678253_scale_z), int(p_o10489098678253_iterations), p_o10489098678253_persistence, float((seed_o10489098678253+frac(_seed_variation_))));
 
-// #output0: tex3d_apply (o214378242650635)
-float3 o214378242650635_0_1_rgb = o214378292981029_0_1_tex3d;
+// #output0: tex3d_fbm_4 (o933870185496)
+float o933870185496_0_1_tex3d_gs = fbm3d_value((tofloat4((tofloat4((tofloat4((uv)-tofloat2(0.5), (dot((o11085579038739_0_1_rgba).rgb, tofloat3(1.0))/3.0), (dot((o934373501988_0_1_rgba).rgb, tofloat3(1.0))/3.0))).xyz+(tofloat3(o10489098678253_0_1_tex3d_gs)*p_o9886662406134_Distort*0.5-0.5), 0.0)).xyz/max(p_o933886962713_s, 0.00001), (tofloat4((tofloat4((uv)-tofloat2(0.5), (dot((o11085579038739_0_1_rgba).rgb, tofloat3(1.0))/3.0), (dot((o934373501988_0_1_rgba).rgb, tofloat3(1.0))/3.0))).xyz+(tofloat3(o10489098678253_0_1_tex3d_gs)*p_o9886662406134_Distort*0.5-0.5), 0.0)).w)).xyz, tofloat3(p_o933870185496_scale_x, p_o933870185496_scale_y, p_o933870185496_scale_z), int(p_o933870185496_iterations), p_o933870185496_persistence, float((seed_o933870185496+frac(_seed_variation_))));
 
-// #output0: colorize_2 (o233687274762401)
-float4 o233687274762401_0_1_rgba = o233687274762401_gradient_gradient_fct((uv).x);
+// #output0: tex3d_scale (o933886962713)
+float3 o933886962713_0_1_tex3d = tofloat3(o933870185496_0_1_tex3d_gs);
 
-// #code: blend2 (o233919085553172)
-float4 o233919085553172_0_b = o233687274762401_0_1_rgba;
-float4 o233919085553172_0_l;
-float o233919085553172_0_a;
+// #output0: tex3d_colorize_3 (o933903739930)
+float3 o933903739930_0_1_tex3d = o933903739930_g_gradient_fct(dot(o933886962713_0_1_tex3d, tofloat3(1.0))/3.0).rgb;
 
-o233919085553172_0_l = tofloat4(o214378242650635_0_1_rgb, 1.0);
-o233919085553172_0_a = p_o233919085553172_amount1*1.0;
-o233919085553172_0_b = tofloat4(blend_normal((uv), o233919085553172_0_l.rgb, o233919085553172_0_b.rgb, o233919085553172_0_a*o233919085553172_0_l.a), min(1.0, o233919085553172_0_b.a+o233919085553172_0_a*o233919085553172_0_l.a));
-// #output0: blend2 (o233919085553172)
-float4 o233919085553172_0_1_rgba = o233919085553172_0_b;
+// #output0: tex3d_distort_2 (o9886662406134)
+float3 o9886662406134_0_1_tex3d = o933903739930_0_1_tex3d;
+
+// #output0: tex3d_apply (o5014609209764)
+float3 o5014609209764_0_1_rgb = o9886662406134_0_1_tex3d;
 
 				// sample the generated texture
-				fixed4 col = o233919085553172_0_1_rgba;
+				fixed4 col = tofloat4(o5014609209764_0_1_rgb, 1.0);
 				// apply fog
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
