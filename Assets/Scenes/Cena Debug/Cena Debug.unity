@@ -6245,7 +6245,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: 0.83
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!4 &429737898193551923
@@ -6323,6 +6323,7 @@ MonoBehaviour:
   _patrolRadius: 5
   _chaseSpeed: 4
   _patrolSpeed: 2
+  _chaseMemoryTime: 3
 --- !u!33 &831448493807995807
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -6917,7 +6918,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f3a84cdaaa73c3541a670d587bf0572e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7472,29 +7473,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9054189886460838585}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &5837606822100495148
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8216020118591315081}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &5876957179906853768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8111,7 +8089,6 @@ GameObject:
   - component: {fileID: 1753957939029787260}
   - component: {fileID: 6727378006888555760}
   - component: {fileID: 3808959315351973813}
-  - component: {fileID: 5837606822100495148}
   m_Layer: 0
   m_Name: WolfModel
   m_TagString: Wolf
@@ -8432,7 +8409,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _visionRange: 10
-  _visionAngle: 90
+  _visionAngle: 250
   _targetMask:
     serializedVersion: 2
     m_Bits: 64
@@ -8523,7 +8500,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0

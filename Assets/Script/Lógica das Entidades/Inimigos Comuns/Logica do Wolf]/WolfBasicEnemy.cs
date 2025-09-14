@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using Unity.VisualScripting;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,6 +14,10 @@ public class WolfBasicEnemy : MonoBehaviour
     public float _patrolRadius = 5f;
     public float _chaseSpeed = 4f;
     public float _patrolSpeed = 2f;
+
+    [Header("Memoria da Perseguição")]
+    public float _chaseMemoryTime = 3f; // segundos que continua perseguindo
+    private float _memoryTimer = 0f;
 
     private Vector3 _startPosition;
 
@@ -41,28 +47,53 @@ public class WolfBasicEnemy : MonoBehaviour
                 if (_vision._encontrouPlayer && _vision._playerDetectado != null)
                 {
                     _currentState = WolfState.Chase;
+                    _memoryTimer = _chaseMemoryTime;
                 }
                 else if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
                 {
                     Patrol();
                 }
                 break;
+
+
             case WolfState.Chase:
                 if (_vision._encontrouPlayer && _vision._playerDetectado != null)
                 {
+                    _memoryTimer = _chaseMemoryTime;
                     Chase(_vision._playerDetectado);
                 }
                 else
                 {
-                    _currentState = WolfState.Patrol;
-                    Patrol();
-                }
-                break;
+                    // Se perdeu o player, usa a memória
+                    if (_memoryTimer > 0)
+                    {
+                        _memoryTimer -= Time.deltaTime;
+                        if (_vision != null && _vision._playerDetectado != null)
+                        {
+                            Chase(_vision._playerDetectado);
+                        }
+                    }
+
+                    else
+
+                    {
+
+
+                        _currentState = WolfState.Patrol;
+                        Patrol();
+                    }
+                    
+
+
+                }   break;
         }
+
+        }
+
+        
 
 
               
-    }
 
     
 

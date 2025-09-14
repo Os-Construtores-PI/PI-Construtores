@@ -41,21 +41,18 @@ public class EyeWolf : MonoBehaviour
 
         foreach (var col in targetsInArea)
         {
-            if (CanSeeTarget(col.transform))
+            Transform t = col.transform;
+            if (_playerDetectado != null && Vector3.Distance(transform.position, t.position) <= _visionRange)
             {
-                // Se usa Entities -> confere se é Player
-                if (col.TryGetComponent<Player>(out Player _player))
-                {
-                    _encontrouPlayer = true;
-                    _playerDetectado = col.transform;
-                    Debug.Log("Wolf encontrou o Pandora!!!");
-                    break;
-                }
-
-                // Se usa o Layer exclusiva Player -> já basta
-                // encontrouPlayer = true;
-                // player detectado = target.position;
-                // break;
+                _encontrouPlayer = true;
+                _playerDetectado = t;
+                return;
+            }
+            if (CanSeeTarget(t))
+            {
+                _encontrouPlayer = true;
+                _playerDetectado = t;
+                return;
             }
         }
     }
