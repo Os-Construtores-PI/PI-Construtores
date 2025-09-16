@@ -10,9 +10,9 @@ public class HurtboxComponent : MonoBehaviour
     private void Start()
     {
         SetEntity();
-        if (entity == null || !TryGetComponent(out Collider collider))
+        if (entity == null || !TryGetComponent(out Collider collider) || !collider.isTrigger)
         {
-            print("PARENTE NÃO PODE RECEBER DANO OU ESTE GAMEOBJ FILHO ESTÁ SEM COLISÃO");
+            print("PARENTE NÃO PODE RECEBER DANO OU ESTE GAMEOBJ FILHO ESTÁ SEM COLISÃO OU ESTÁ NO MODO NÃO TRIGGER");
             this.enabled = false;
         }
     }
