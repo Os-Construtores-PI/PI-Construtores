@@ -49,7 +49,7 @@ public class HUDDirector : MonoBehaviour
 
         // Instancia o HUD como filho do canvas
         GameObject hudInstance = Instantiate(hudPrefab, hudParent);
-        hudInstance.name = $"HUD_Player{playerID}";
+        hudInstance.name = $"HUD_Player_ID_{playerID}";
 
         // Força atualização do layout antes de mexer nos scales
         Canvas.ForceUpdateCanvases();

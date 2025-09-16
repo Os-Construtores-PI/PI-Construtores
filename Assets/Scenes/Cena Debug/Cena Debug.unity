@@ -1530,8 +1530,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxDamage: 200
-  damageCooldown: 5
-  tags_to_damage: 
 --- !u!65 &438363383
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5039,7 +5037,7 @@ Transform:
   m_GameObject: {fileID: 1800122575}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.72, y: 2.85, z: 0}
+  m_LocalPosition: {x: 0, y: 2.27, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5388,8 +5386,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxDamage: 40
-  damageCooldown: 5
-  tags_to_damage: 
 --- !u!54 &1840152951
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6128,6 +6124,73 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2141861795}
   m_Mesh: {fileID: 3909233067320746374, guid: 408c542652b793e4e919996c0a0856f2, type: 3}
+--- !u!1 &2142977127
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2142977128}
+  - component: {fileID: 2142977129}
+  - component: {fileID: 2142977130}
+  m_Layer: 10
+  m_Name: HurtBoxEnemy
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2142977128
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142977127}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1011401981694636441}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2142977129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142977127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5e8c06c11e343a449daeaae46d3ab92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagedCooldown: 2
+--- !u!135 &2142977130
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142977127}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.7
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &57705121259474465
 GameObject:
   m_ObjectHideFlags: 0
@@ -6362,6 +6425,7 @@ Transform:
   m_Children:
   - {fileID: 854346272866527104}
   - {fileID: 345197514}
+  - {fileID: 2142977128}
   m_Father: {fileID: 1786869554}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1494590232895779413
@@ -7062,7 +7126,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.6
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4285229016805082405
 GameObject:
@@ -7637,7 +7701,7 @@ GameObject:
   - component: {fileID: 854346272866527104}
   - component: {fileID: 4205570663031488602}
   - component: {fileID: 6515460578849206213}
-  m_Layer: 6
+  m_Layer: 10
   m_Name: HitBoxEnemy
   m_TagString: Hitbox
   m_Icon: {fileID: 0}
@@ -7656,9 +7720,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxDamage: 20
-  damageCooldown: 2
-  tags_to_damage: 00000000
+  _maxDamage: 10
 --- !u!1 &6575615017837692959
 GameObject:
   m_ObjectHideFlags: 0

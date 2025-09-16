@@ -25,10 +25,14 @@ public class ManualPlayersSpawner : BasePool
         GameObject obj = deactivatedObject[index];
         obj.SetActive(true);
         if (spawnPosition != null)
+        {
             obj.transform.position = spawnPosition.position;
+            Physics.SyncTransforms();
+        }
         return obj;
     }
 
     public Transform GetSpawnPosition() => spawnPosition;
 }
+
 
