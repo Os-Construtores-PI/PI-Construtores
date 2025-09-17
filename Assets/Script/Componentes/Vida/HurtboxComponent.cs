@@ -13,7 +13,7 @@ public class HurtboxComponent : MonoBehaviour
         if (entity == null || !TryGetComponent(out Collider collider) || !collider.isTrigger)
         {
             print("PARENTE NÃO PODE RECEBER DANO OU ESTE GAMEOBJ FILHO ESTÁ SEM COLISÃO OU ESTÁ NO MODO NÃO TRIGGER");
-            this.enabled = false;
+            
         }
     }
     private void Update()
@@ -41,7 +41,7 @@ public class HurtboxComponent : MonoBehaviour
     private void DamageLogic(Collider collider)
     {
         // Verifica se o objeto está na camada "Entity".
-        if (!collider.gameObject.layer.Equals(LayerMask.NameToLayer("Hit")) || !collider.TryGetComponent(out HitboxComponent hitbox) || !can_take_damage) return;
+        if (!collider.TryGetComponent(out HitboxComponent hitbox) || !can_take_damage) return;
 
         // Verifica se tem componente CombatEntities e se o dano está liberado.
         // Calcula fator de defesa (máx 80% de redução)
