@@ -48,6 +48,14 @@ public abstract class Enemies : CombatEntities
         AddItems();
     }
 
+    public void ApplyKnockBack(Transform player)
+    {
+        if (player.TryGetComponent<Rigidbody>(out var rb))
+        {
+            Vector3 direction = (player.position - transform.position).normalized;
+            rb.AddForce(direction * _knockbackForce, ForceMode.Impulse);
+        }
+    }
 
     public override void DeathHandler()
     {

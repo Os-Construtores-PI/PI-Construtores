@@ -152,15 +152,15 @@ public class WolfBasicEnemy : Enemies
             _timer += Time.deltaTime;
             yield return null;
         }
-
+        var playerEntity = target.GetComponent<CombatEntities>();
         // 3. Checagem de colisão com o Player
-        if (target.TryGetComponent(out Player player))
+        if (playerEntity != null)
         {
             //ApplyDamage(player);
 
             // knockback no Player
-            Vector3 knockDir = (player.transform.position - transform.position).normalized;
-            player.ApplyKnockback(knockDir, KnockBackForce);
+            playerEntity.ReceiveDamage(_attackDamage, transform); // aplica o dano
+            ApplyKnockBack(playerEntity.transform);
 
         }
 
@@ -168,8 +168,11 @@ public class WolfBasicEnemy : Enemies
         _isAttacking = false;
 
 
+        
     }
-            
+
+    
+
 }
 
             

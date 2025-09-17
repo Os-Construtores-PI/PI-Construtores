@@ -134,6 +134,18 @@ public abstract class CombatEntities : LiveEntities
             _healthHUD.gameObject.SetActive(isActive);
         }
     }
+
+    public virtual void ReceiveDamage(float amount, Transform attacker = null)
+    {
+        Health -= amount;
+        Damaged = true;
+        _OnDamage?.Invoke();
+
+        if(Health <= 0)
+        {
+            DeathHandler();
+        }
+    }
     
     #endregion
 }
