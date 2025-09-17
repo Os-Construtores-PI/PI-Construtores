@@ -1,10 +1,12 @@
+using System.Collections;
 using System.Diagnostics;
 using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering;
 
-public class WolfBasicEnemy : MonoBehaviour
+public class WolfBasicEnemy : Enemies
 {
     private NavMeshAgent _agent; // controla o movimento do inimigo via NavMesh
     private Transform _player; // Referência ao Player (Pandora)
@@ -20,19 +22,35 @@ public class WolfBasicEnemy : MonoBehaviour
     private float _memoryTimer = 0f; // Contador interno dessa memória 
 
     private Vector3 _startPosition; // Posição inicial do inimigo, usada como centro da patrulha
-    
+
     // Estados possíveis do Lobo: patrulhando ou perseguindo
-    private enum WolfState  {Patrol, Chase}
+    private enum WolfState { Patrol, Chase }
     private WolfState _currentState = WolfState.Patrol;
 
+    [Header("Confings de Ataque")]
+    [SerializeField] private float _prepTime = 0.5f; // tempo de preparação antes do avanço
+    [SerializeField] private float _lungeSpeed = 12f; // velocidade do avanço
+    [SerializeField] private float _lungeDuration = 0.3f; // tempo que dura o avanço
+    [SerializeField] private int _attackDamage = 15;
 
-    private void Awake()
+    private bool _isAttacking = false;
+
+
+
+    private void TryAttack()
     {
+
+    }
+
+
+    protected new void Awake()
+    {
+
         _agent = GetComponent<NavMeshAgent>(); // Pega o NavMeshAgent do Lobo
         _vision = GetComponentInChildren<EyeWolf>(); // Procura o Script EyeWolf em filhos (ex: "cabeça/olhos)
         _startPosition = transform.position; // Salva a posição inicial do inimigo
     }
-    void Start()
+    protected new void Start()
     {
         _player = GameObject.FindGameObjectWithTag("Player")?.transform; // Localiza o Player pela tag
         Patrol(); // Inicia patrulhando
@@ -40,7 +58,7 @@ public class WolfBasicEnemy : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    protected new void Update()
     {
         switch (_currentState)
         {
@@ -83,20 +101,21 @@ public class WolfBasicEnemy : MonoBehaviour
                         _currentState = WolfState.Patrol;
                         Patrol();
                     }
-                    
 
 
-                }   break;
+
+                }
+                break;
         }
 
-        }
-
-        
+    }
 
 
-              
 
-    
+
+
+
+
 
 
 
@@ -115,4 +134,43 @@ public class WolfBasicEnemy : MonoBehaviour
         _agent.SetDestination(target.position);
     }
 
+    private IEnumerator AttackRoutine()
+    {
+        _isAttacking = true;
+        _agent.isStopped = true;
+
+        // 1. Preparação (como se fosse carregar o ataque)
+        yield return new WaitForSeconds(_prepTime);
+
+        // 2. avanço em direção ao Player 
+        float _timer = 0f;
+        Vector3 dir = (target.position - transform.position).normalized;
+
+        while (_timer < _lungeDuration)
+        {
+            _agent.Move(dir * _lungeSpeed * Time.deltaTime);
+            _timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // 3. Checagem de colisão com o Player
+        if (target.TryGetComponent(out Player player))
+        {
+            //ApplyDamage(player);
+
+            // knockback no Player
+            Vector3 knockDir = (player.transform.position - transform.position).normalized;
+            player.ApplyKnockback(knockDir, KnockBackForce);
+
+        }
+
+        _agent.isStopped = false;
+        _isAttacking = false;
+
+
+    }
+            
 }
+
+            
+
