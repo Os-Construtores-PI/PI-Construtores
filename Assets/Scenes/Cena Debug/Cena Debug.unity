@@ -2491,6 +2491,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c755d9598d9cc7e46bcb93e2242d5c27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &561886157
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 561886158}
+  m_Layer: 6
+  m_Name: HealthBarTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &561886158
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561886157}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.31, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3502905897059295336}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &565489087
 GameObject:
   m_ObjectHideFlags: 0
@@ -6383,10 +6414,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dbb5ceab54ab5b42a9ba81ae06bb6fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentHealthDebug: 0
+  _maxHealth: 100
+  _defense: 10
+  stats:
+    OnNumModified:
+      m_PersistentCalls:
+        m_Calls: []
+    OnBoolModified:
+      m_PersistentCalls:
+        m_Calls: []
+  combatCooldown: 5
+  damagedCooldown: 2
+  _enableRegen: 1
+  regenerationInterval: 5
+  Damaged: 0
+  layer:
+    serializedVersion: 2
+    m_Bits: 0
+  radius: 0
+  attackRange: 2
+  memoryCooldown: 3
+  memoryCooldownWalker: 0
+  can_AI: 1
+  visionInterval: 0.5
+  attackInterval: 1
+  spawnpos: {x: 0, y: 0, z: 0}
+  _dashBlockDuration: 0
+  _knockbackForce: 40
   _patrolRadius: 5
   _chaseSpeed: 4
   _patrolSpeed: 2
   _chaseMemoryTime: 3
+  _prepTime: 0.5
+  _lungeSpeed: 12
+  _lungeDuration: 0.3
+  _attackDamage: 15
 --- !u!33 &831448493807995807
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -6905,6 +6968,7 @@ Transform:
   - {fileID: 1753957939029787260}
   - {fileID: 474580201492977913}
   - {fileID: 1790283585964458364}
+  - {fileID: 561886158}
   m_Father: {fileID: 1786869554}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3514054638378023091
@@ -6982,7 +7046,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f3a84cdaaa73c3541a670d587bf0572e, type: 2}
+  - {fileID: 2100000, guid: 1a3ac30bd15a5cf4d9eb570089cdd9ca, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8477,7 +8541,7 @@ MonoBehaviour:
     m_Bits: 64
   _obstacleMask:
     serializedVersion: 2
-    m_Bits: 320
+    m_Bits: 832
   _encontrouPlayer: 0
   _playerDetectado: {fileID: 0}
 --- !u!23 &8716702153893560519
