@@ -1,0 +1,64 @@
+using UnityEngine;
+using System.Collections;
+
+[RequireComponent(typeof(Rigidbody))]
+public class FallingPlatform : MonoBehaviour
+{
+    private Rigidbody rb;
+    private Vector3 startPos;
+    private Quaternion startRotation;
+
+    [Header("Timings")]
+    [SerializeField] private float fallDelay = 3f;
+    [SerializeField] private float resetDelay = 5f;
+    [SerializeField] private float cooldown = 10f;
+
+    private bool canFall = true;
+    private Coroutine fallRoutine;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        startPos = transform.position;
+        startRotation = transform.rotation;
+        rb.isKinematic = true;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (!canFall) return;
+
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("Entity"))
+        {
+            if (fallRoutine == null)
+                fallRoutine = StartCoroutine(FallSequence());
+        }
+    }
+
+    private IEnumerator FallSequence()
+    {
+        // Aguarda antes de cair
+        yield return new WaitForSeconds(fallDelay);
+
+        rb.isKinematic = false;
+
+        // Aguarda antes de resetar
+        yield return new WaitForSeconds(resetDelay);
+
+        PlatformReset();
+
+        // Espera cooldown antes de poder cair de novo
+        canFall = false;
+        yield return new WaitForSeconds(cooldown);
+        canFall = true;
+
+        fallRoutine = null;
+    }
+
+    private void PlatformReset()
+    {
+        rb.isKinematic = true;
+        transform.SetPositionAndRotation(startPos, startRotation);
+        Physics.SyncTransforms();
+    }
+}
