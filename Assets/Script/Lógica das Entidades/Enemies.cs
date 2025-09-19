@@ -79,6 +79,7 @@ public abstract class Enemies : CombatEntities
             VisionTimer();
             AttackTimer();
             MemoryTimer();
+            UpdateAttackLogic();
         }
 
     }
@@ -155,6 +156,16 @@ public abstract class Enemies : CombatEntities
             var nearby = attackResult[i].transform;
             if (nearby == transform || nearby.IsChildOf(transform))
                 continue;
+           
+            if (nearby.TryGetComponent(out Player _))
+            {
+                if (this is WolfBasicEnemy wolf && !wolf._isAttacking)
+                {
+                    wolf.TryAttack();
+                }
+            }
         }
+
+        
     }
 }

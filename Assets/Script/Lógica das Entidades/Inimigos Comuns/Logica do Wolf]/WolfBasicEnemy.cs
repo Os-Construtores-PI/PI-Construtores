@@ -33,19 +33,23 @@ public class WolfBasicEnemy : Enemies
     [SerializeField] private float _lungeDuration = 0.3f; // tempo que dura o avanço
     [SerializeField] private int _attackDamage = 15;
 
-    private bool _isAttacking = false;
+    public bool _isAttacking;
+    public bool IsAttacking => _isAttacking;
 
 
 
-    private void TryAttack()
+    public void TryAttack()
     {
-
+        if (! _isAttacking && target != null)
+        {
+            StartCoroutine(AttackRoutine());
+        }
     }
 
 
     protected new void Awake()
     {
-
+        base.Awake();
         _agent = GetComponent<NavMeshAgent>(); // Pega o NavMeshAgent do Lobo
         _vision = GetComponentInChildren<EyeWolf>(); // Procura o Script EyeWolf em filhos (ex: "cabeça/olhos)
         _startPosition = transform.position; // Salva a posição inicial do inimigo
@@ -148,7 +152,7 @@ public class WolfBasicEnemy : Enemies
 
         while (_timer < _lungeDuration)
         {
-            _agent.Move(dir * _lungeSpeed * Time.deltaTime);
+            transform.position += dir * _lungeSpeed * Time.deltaTime;
             _timer += Time.deltaTime;
             yield return null;
         }
