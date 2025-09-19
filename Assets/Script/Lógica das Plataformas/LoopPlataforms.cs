@@ -4,7 +4,7 @@ using DG.Tweening;  // Biblioteca DOTween para animações de movimento
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class PlataformaLoopComp : MonoBehaviour
+public class LoopPlataforms : MonoBehaviour
 {
     private List<Vector3> targetList = new();  // Lista dinâmica para armazenar posições dos pontos de destino
     private Vector3[] targets;                  // Array fixo de posições usado para a animação do caminho

@@ -24,14 +24,13 @@ public class FallingPlatform : MonoBehaviour
         rb.isKinematic = true;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider collider)
     {
         if (!canFall) return;
 
-        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("Entity"))
+        if (collider.gameObject.layer == LayerMask.NameToLayer("Entity"))
         {
-            if (fallRoutine == null)
-                fallRoutine = StartCoroutine(FallSequence());
+            fallRoutine ??= StartCoroutine(FallSequence());
         }
     }
 
