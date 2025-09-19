@@ -79,7 +79,7 @@ public abstract class Enemies : CombatEntities
             VisionTimer();
             AttackTimer();
             MemoryTimer();
-            UpdateAttackLogic();
+            
         }
 
     }
