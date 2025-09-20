@@ -30,6 +30,8 @@ public class WolfBasicEnemy : Enemies
     [Header("Confings de Ataque")]
     [SerializeField] private float _prepTime = 0.5f; // tempo de preparação antes do avanço
     [SerializeField] private float _lungeSpeed = 12f; // velocidade do avanço
+    [SerializeField] private float _lungeDistance = 6f; // distancia que o inimigo/ lobo tenta avançar
+    [SerializeField] private float _hitRadius = 1.2f; // raio para detectar acerto no Player
     [SerializeField] private float _lungeDuration = 0.3f; // tempo que dura o avanço
     [SerializeField] private int _attackDamage = 15;
 
@@ -141,6 +143,15 @@ public class WolfBasicEnemy : Enemies
     private IEnumerator AttackRoutine()
     {
         _isAttacking = true;
+
+        bool oldAutoBraking = _agent.autoBraking;
+        float originalSpeed = _agent.speed;
+        float originalAccel = _agent.acceleration;
+        float originalAngular = _agent.angularSpeed;
+        
+        
+        
+        
         _agent.isStopped = true;
 
         // 1. Preparação (como se fosse carregar o ataque)
@@ -156,8 +167,8 @@ public class WolfBasicEnemy : Enemies
             _timer += Time.deltaTime;
             yield return null;
         }
-        var playerEntity = target.GetComponent<CombatEntities>();
         // 3. Checagem de colisão com o Player
+        var playerEntity = target.GetComponent<CombatEntities>();
         if (playerEntity != null)
         {
             //ApplyDamage(player);
