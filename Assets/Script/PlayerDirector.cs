@@ -69,6 +69,8 @@ public class PlayerDirector : MonoBehaviour
 
         // Notifica sistema de eventos
         SpawnCamera(playerComp, new Rect(0f, 0f, 1f, 1f));
+
+    
     }
 
     private void SetupMultiplayer()
@@ -111,7 +113,7 @@ public class PlayerDirector : MonoBehaviour
         }
 
         camLogic.SetTarget(targetPlayer, freeLook);
-        targetPlayer.SetCinemachineCamera(freeLookObj.GetComponent<CinemachineCamera>());
+        targetPlayer.SetCinemachineCamera(freeLook);
     }
 }
 
