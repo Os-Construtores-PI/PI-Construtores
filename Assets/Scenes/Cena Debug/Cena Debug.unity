@@ -6455,15 +6455,19 @@ MonoBehaviour:
   spawnpos: {x: 0, y: 0, z: 0}
   _dashBlockDuration: 0
   _knockbackForce: 40
+  _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
   _patrolSpeed: 2
   _chaseMemoryTime: 3
-  _prepTime: 0.5
-  _lungeSpeed: 12
-  _lungeDuration: 0.3
-  _attackDamage: 15
   _isAttacking: 0
+  _prepTime: 0.9
+  _rushDistance: 3
+  _rushDuration: 0.35
+  _rushEase: 6
+  _hitRadiusDuringRush: 1.2
+  _attackDamage: 20
+  _dashCooldown: 1.2
 --- !u!33 &831448493807995807
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -6587,7 +6591,7 @@ Transform:
   m_GameObject: {fileID: 8216020118591315081}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.07, z: 0.11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6950,7 +6954,7 @@ Transform:
   m_GameObject: {fileID: 5462761041116016006}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 39.975826, y: 3.99, z: -96.87}
+  m_LocalPosition: {x: 39.975826, y: 3.76, z: -96.17}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8455,14 +8459,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68e241e5fe60a514e8e4d293ae98c6e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo_path: 0
-  modo_path: 1
-  tipo_animacao: 1
-  tipo_loop: 1
-  resolution_path: 10
-  cor_gizmo: {r: 1, g: 1, b: 1, a: 1}
-  duration: 6
-  num_of_loops: -1
 --- !u!114 &8383809516105507335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8475,14 +8471,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68e241e5fe60a514e8e4d293ae98c6e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo_path: 0
-  modo_path: 1
-  tipo_animacao: 1
-  tipo_loop: 1
-  resolution_path: 10
-  cor_gizmo: {r: 1, g: 1, b: 1, a: 1}
-  duration: 3
-  num_of_loops: -1
 --- !u!4 &8386860472601266079
 Transform:
   m_ObjectHideFlags: 0
@@ -8794,14 +8782,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68e241e5fe60a514e8e4d293ae98c6e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo_path: 0
-  modo_path: 1
-  tipo_animacao: 1
-  tipo_loop: 1
-  resolution_path: 10
-  cor_gizmo: {r: 1, g: 0.13482335, b: 0, a: 1}
-  duration: 10
-  num_of_loops: -1
 --- !u!4 &8879865262123695164
 Transform:
   m_ObjectHideFlags: 0
