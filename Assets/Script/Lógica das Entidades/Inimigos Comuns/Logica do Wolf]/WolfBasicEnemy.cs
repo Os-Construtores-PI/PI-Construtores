@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Reflection;
 using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -35,18 +36,13 @@ public class WolfBasicEnemy : Enemies
     [SerializeField] private float _lungeDuration = 0.3f; // tempo que dura o avanço
     [SerializeField] private int _attackDamage = 15;
 
+
     public bool _isAttacking;
     public bool IsAttacking => _isAttacking;
 
 
 
-    public void TryAttack()
-    {
-        if (! _isAttacking && target != null)
-        {
-            StartCoroutine(AttackRoutine());
-        }
-    }
+    
 
 
     protected new void Awake()
@@ -140,55 +136,16 @@ public class WolfBasicEnemy : Enemies
         _agent.SetDestination(target.position);
     }
 
-    private IEnumerator AttackRoutine()
-    {
-        _isAttacking = true;
-
-        bool oldAutoBraking = _agent.autoBraking;
-        float originalSpeed = _agent.speed;
-        float originalAccel = _agent.acceleration;
-        float originalAngular = _agent.angularSpeed;
-        
-        
-        
-        
-        _agent.isStopped = true;
-
-        // 1. Preparação (como se fosse carregar o ataque)
-        yield return new WaitForSeconds(_prepTime);
-
-        // 2. avanço em direção ao Player 
-        float _timer = 0f;
-        Vector3 dir = (target.position - transform.position).normalized;
-
-        while (_timer < _lungeDuration)
-        {
-            transform.position += dir * _lungeSpeed * Time.deltaTime;
-            _timer += Time.deltaTime;
-            yield return null;
-        }
-        // 3. Checagem de colisão com o Player
-        var playerEntity = target.GetComponent<CombatEntities>();
-        if (playerEntity != null)
-        {
-            //ApplyDamage(player);
-
-            // knockback no Player
-            playerEntity.ReceiveDamage(_attackDamage, transform); // aplica o dano
-            ApplyKnockBack(playerEntity.transform);
-
-        }
-
-        _agent.isStopped = false;
-        _isAttacking = false;
-
-
-        
-    }
-
     
 
 }
+
+    
+
+
+    
+
+
 
             
 

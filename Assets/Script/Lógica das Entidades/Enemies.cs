@@ -157,13 +157,7 @@ public abstract class Enemies : CombatEntities
             if (nearby == transform || nearby.IsChildOf(transform))
                 continue;
            
-            if (nearby.TryGetComponent(out Player _))
-            {
-                if (this is WolfBasicEnemy wolf && !wolf._isAttacking)
-                {
-                    wolf.TryAttack();
-                }
-            }
+            
         }
 
         
