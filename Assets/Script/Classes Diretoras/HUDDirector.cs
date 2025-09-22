@@ -22,6 +22,7 @@ public class HUDDirector : MonoBehaviour
     {
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
+        GlobalEventBus.Instance.AmethystsAmountChanged.AddListener(UpdateAmethysts);
     }
 
     private void OnDisable()
@@ -212,6 +213,10 @@ public class HUDDirector : MonoBehaviour
         }
 
         Show(Constants.PanelNames.InteractionPopup, playerID);
+    }
+    private void UpdateAmethysts(int newAmount)
+    {
+
     }
 
     // --- Cinematic bars ---

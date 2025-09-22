@@ -104,9 +104,21 @@ public class Player : CombatEntities
 
     #region --- Inicialização Unity ---
     #region Coletáveis
-    protected int Amethysts = 0;
+
+
+    // === AMETISTAS ===
+    private int amethysts = 0;
+    public int Amethysts
+    {
+        get => amethysts;
+        set
+        {
+            amethysts = value;
+            GlobalEventBus.Instance.AmethystsAmountChanged.Invoke(amethysts);
+        }
+    }
     #endregion
-    
+
 
 
     public override void Awake()

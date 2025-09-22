@@ -29,7 +29,7 @@ public class GlobalEventBus : MonoBehaviour
     // --- Eventos ---
     [HideInInspector] public UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
     [HideInInspector] public UnityEvent<int> TriggeredCinematic = new();
-
+    [HideInInspector] public UnityEvent<int> AmethystsAmountChanged = new();
     private bool _initialized = false;
 
     private void Awake()
