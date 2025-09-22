@@ -10,6 +10,8 @@ using UnityEngine.SceneManagement;
 /// Sistema de salvamento e carregamento de dados do jogo.
 /// Gerencia múltiplos slots de save, jogadores, inventário e itens dropados.
 /// </summary>
+
+[DefaultExecutionOrder(2)]
 public class DataSystem : MonoBehaviour
 {
     [Header("Referências de Cena")]
@@ -155,9 +157,9 @@ public class DataSystem : MonoBehaviour
         }
 
         // ---- APLICAR POSIÇÃO E VIDA ----
-        print("AAAA: "+player.transform.position);
+        print("AAAA: " + player.transform.position);
         player.transform.position = pdata.position;
-        print("AAAA"+player.transform.position);
+        print("AAAA" + player.transform.position);
         player.Health = pdata.health;
 
         // ---- RESTAURAR INVENTÁRIO ----

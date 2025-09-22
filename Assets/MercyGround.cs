@@ -9,7 +9,9 @@ public class MercyGround : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.TryGetComponent(out Player player) || dataSystem == null) return;
-        dataSystem.RespawnPlayer(player,GameContext.currentSlot);
+        if (other.TryGetComponent(out Player player))
+        {
+            dataSystem.RespawnPlayer(player,GameContext.currentSlot);
+        }
     }
 }
