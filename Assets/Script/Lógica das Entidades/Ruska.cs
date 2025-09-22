@@ -4,16 +4,18 @@ public class Ruska : Player
 {
     protected override bool ObjectScan()
     {
-        if (!base.ObjectScan()) return false; // se já falhou no pai, não continua
+        if (!base.ObjectScan()) return false;
 
-        // --- Filtro extra específico da Pandora ---
-        if (!Constants.RuskaObjects.types.Contains(interactionObjectType))
+        // Agora faz o filtro final
+        if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)
+            && (!Constants.PandoraObjects.types.Contains(interactionObjectType)))
         {
             ClearInteractable();
             return false;
         }
 
-        // Se passou em todas as checagens
+        interactableRef = interactionObject;
+        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
         return true;
     }
     

@@ -4,6 +4,7 @@ using UnityEngine.Events;
 public class GlobalEventBus : MonoBehaviour
 {
     private static GlobalEventBus _instance;
+    private bool _initialized;
 
     public static GlobalEventBus Instance
     {
@@ -11,13 +12,8 @@ public class GlobalEventBus : MonoBehaviour
         {
             if (_instance == null)
             {
-                // Tenta encontrar na cena antes de criar
-                _instance = FindAnyObjectByType<GlobalEventBus>();
-                if (_instance == null)
-                {
-                    var obj = new GameObject("GlobalEventBus");
-                    _instance = obj.AddComponent<GlobalEventBus>();
-                }
+                _instance = FindAnyObjectByType<GlobalEventBus>() ?? 
+                            new GameObject("GlobalEventBus").AddComponent<GlobalEventBus>();
                 _instance.Initialize();
             }
             return _instance;
@@ -26,34 +22,37 @@ public class GlobalEventBus : MonoBehaviour
 
     public static bool HasInstance => _instance != null;
 
-    // --- Eventos ---
-    [HideInInspector] public UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
-    [HideInInspector] public UnityEvent<int> TriggeredCinematic = new();
-    [HideInInspector] public UnityEvent<int> AmethystsAmountChanged = new();
-    private bool _initialized = false;
+    #region Events
+    public readonly UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
+    public readonly UnityEvent<int, float> TriggeredCinematic = new();
+    public readonly UnityEvent<int> AmethystsAmountChanged = new();
+    #endregion
 
+    #region Unity Lifecycle
     private void Awake()
     {
         if (_instance != null && _instance != this)
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             DestroyImmediate(gameObject);
-            #else
+#else
             Destroy(gameObject);
-            #endif
+#endif
             return;
         }
 
         _instance = this;
         Initialize();
     }
+    #endregion
+
+    #region Private
     private void Initialize()
     {
         if (_initialized) return;
         _initialized = true;
 
-        // Persistente entre cenas
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject); // persistente entre cenas
     }
+    #endregion
 }
-

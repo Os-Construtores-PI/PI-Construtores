@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2295582805435330425}
   - component: {fileID: 8715867242386096895}
   - component: {fileID: 5230939047417836884}
+  - component: {fileID: 1261544610205373193}
   m_Layer: 0
   m_Name: FreeLook Camera
   m_TagString: CinemachineCamera1
@@ -126,7 +127,7 @@ MonoBehaviour:
   VerticalAxis:
     Value: 9
     Center: 17.5
-    Range: {x: -10, y: 45}
+    Range: {x: -45, y: 45}
     Wrap: 0
     Recentering:
       Enabled: 0
@@ -264,3 +265,33 @@ MonoBehaviour:
   AmplitudeGain: 0
   FrequencyGain: 1
   m_NoiseOffsets: {x: 0, y: 0, z: 0}
+--- !u!114 &1261544610205373193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658166362939553594}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca7de3aefa901374ba29464584a3109a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CameraRadius: 0.4
+  Decollision:
+    Enabled: 1
+    ObstacleLayers:
+      serializedVersion: 2
+      m_Bits: 1
+    UseFollowTarget:
+      Enabled: 0
+      YOffset: 0
+    Damping: 0.5
+    SmoothingTime: 0
+  TerrainResolution:
+    Enabled: 1
+    TerrainLayers:
+      serializedVersion: 2
+      m_Bits: 1
+    MaximumRaycast: 10
+    Damping: 0.5

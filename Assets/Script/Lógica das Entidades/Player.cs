@@ -107,15 +107,22 @@ public class Player : CombatEntities
 
 
     // === AMETISTAS ===
-    private int amethysts = 0;
-    public int Amethysts
+    private int amethysts;
+    public int Amethysts => amethysts;
+    public void SetAmethysts(int value)
     {
-        get => amethysts;
-        set
-        {
-            amethysts = value;
-            GlobalEventBus.Instance.AmethystsAmountChanged.Invoke(amethysts);
-        }
+        if (amethysts == value) return;
+        int oldValue = amethysts;
+
+        amethysts = Mathf.Max(0, value); // evita negativo
+        GlobalEventBus.Instance.AmethystsAmountChanged.Invoke(amethysts);
+    }
+    public void AddAmethysts(int amount) => SetAmethysts(amethysts + amount);
+    public bool SpendAmethysts(int amount)
+    {
+        if (amount <= 0 || amethysts < amount) return false;
+        SetAmethysts(amethysts - amount);
+        return true;
     }
     #endregion
 
@@ -446,6 +453,7 @@ private bool isDashBlocked;
     protected RaycastHit playerRayHit;
     protected InteractableObject interactionObject;
     protected Type interactionObjectType;
+    // Base
     protected virtual bool ObjectScan()
     {
         if (!selectedcamera)
@@ -454,47 +462,27 @@ private bool isDashBlocked;
             return false;
         }
 
-        // --- Criação do Ray ---
         var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
         var layerMask = LayerMask.GetMask("Object");
 
-        // --- SphereCast ---
         if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask))
         {
             ClearInteractable();
             return false;
         }
 
-        // --- Verifica se tem componente de interação ---
         if (!playerRayHit.collider.TryGetComponent(out interactionObject))
         {
             ClearInteractable();
             return false;
         }
 
-        // --- Confirma tipo permitido ---
+        // Não filtra tipo aqui
         interactionObjectType = interactionObject.GetType();
-        if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType))
-        {
-            ClearInteractable();
-            return false;
-        }
-
-        // --- Checa distância ---
-        if (playerRayHit.distance > 20f)
-        {
-            ClearInteractable();
-            return false;
-        }
-
-        // --- Caso válido ---
         interactableRef = interactionObject;
-        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
         return true;
     }
-
-
-// --- Método auxiliar para limpar estado ---
+    // --- Método auxiliar para limpar estado ---
     protected void ClearInteractable()
     {
         interactableRef = null;

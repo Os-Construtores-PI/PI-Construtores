@@ -97,7 +97,7 @@ public static class Constants
     }
     public static class Values
     {
-        public static readonly float GraplingHookCutsceneDuration = 3.5f;
+        public static readonly float GraplingHookSpeed = 10f;
     }
     public static class PanelNames
     {
