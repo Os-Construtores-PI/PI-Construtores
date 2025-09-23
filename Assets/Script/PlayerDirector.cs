@@ -13,107 +13,126 @@ public class PlayerDirector : MonoBehaviour
     [Header("Prefabs de HUD e Câmera")]
     [SerializeField] private GameObject hudPrefab;
     [SerializeField] private string hudCanvasParent = "Canvas";
-    [SerializeField] private GameObject mainCameraPrefab;   // Camera + Brain + CameraLogic
-    [SerializeField] private GameObject freeLookPrefab;     // FreeLook virtual camera
+    [SerializeField] private GameObject mainCameraPrefab;
+    [SerializeField] private GameObject freeLookPrefab;
 
     [Header("Referências de cena")]
-    [SerializeField] private HUDDirector hudDirector;       // Arraste na cena
+    [SerializeField] private HUDDirector hudDirector;
 
     private ManualPlayersSpawner playersSpawner;
     private Transform hudParent;
+
+    private List<Player> allPlayers = new List<Player>();
+
+    // Referências instanciadas
+    private Dictionary<int, GameObject> playerHUDInstances = new();
+    private Dictionary<int, GameObject> playerCameras = new();
+
+    [HideInInspector] public GameObject startPanelInstance;
 
     private void Awake()
     {
         playersSpawner = GetComponent<ManualPlayersSpawner>();
         playersSpawner.SetObjects(new() { firstPlayerPrefab, fallbackPlayerPrefab, secondPlayerPrefab });
 
-        // Encontra o Canvas da cena onde o HUD será filho
         GameObject canvasObj = GameObject.FindWithTag(hudCanvasParent);
         if (canvasObj != null)
             hudParent = canvasObj.transform;
         else
             Debug.LogError($"Canvas '{hudCanvasParent}' não encontrado na cena!");
+
+        CacheAllPlayers();
+        InitializeStartPanel();
     }
 
-    private void Start()
+    private void CacheAllPlayers()
     {
-        if (playersSpawner == null) return;
-        if (hudParent == null) return;
-
-        InitiatePlayers();
+        allPlayers.Clear();
+        for (int i = 0; i < playersSpawner.DeactivatedObjectsCount; i++)
+        {
+            Player playerComp = playersSpawner.GetDeactivatedObject(i).GetComponent<Player>();
+            allPlayers.Add(playerComp);
+        }
     }
 
-    private void InitiatePlayers()
+    private void InitializeStartPanel()
     {
+        if (allPlayers.Count == 0) return;
+
+        startPanelInstance = Instantiate(hudPrefab, hudParent);
+        HUDDirector tempHUD = startPanelInstance.GetComponent<HUDDirector>();
+        if (tempHUD != null)
+            tempHUD.SetupStartOnly(); // mostra apenas painel de Start
+    }
+
+    public void ActivatePlayers()
+    {
+        // Destrói painel Start
+        if (startPanelInstance != null)
+        {
+            Destroy(startPanelInstance);
+            startPanelInstance = null;
+        }
+
         switch (GameContext.gameMode)
         {
             case GameMode.SINGLEPLAYER:
-                SetupSinglePlayer();
+                ActivateSinglePlayer();
                 break;
             case GameMode.MULTIPLAYER:
-                SetupMultiplayer();
+                ActivateMultiplayer();
                 break;
         }
     }
 
-    private void SetupSinglePlayer()
+    private void ActivateSinglePlayer()
     {
-        GameObject fp = playersSpawner.Spawn(0); // primeiro player
-        GameObject fb = playersSpawner.deactivatedObject[1]; // fallback
-        fb.SetActive(false);                      // fallback inativo
+        Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
+        Player fb = allPlayers[1];
+        fb.gameObject.SetActive(false);
 
-        Player playerComp = fp.GetComponent<Player>();
-
-        // Instancia HUD
-        hudDirector.InitializeHUD(playerComp, hudParent, hudPrefab);
-
-        // Notifica sistema de eventos
-        SpawnCamera(playerComp, new Rect(0f, 0f, 1f, 1f));
-
-    
+        SetupPlayerHUDAndCamera(fp, new Rect(0f, 0f, 1f, 1f));
     }
 
-    private void SetupMultiplayer()
+    private void ActivateMultiplayer()
     {
-        GameObject fp = playersSpawner.Spawn(0); // player 1
-        GameObject sp = playersSpawner.Spawn(2); // player 2
+        Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
+        Player sp = playersSpawner.Spawn(2).GetComponent<Player>();
 
-        Player player1 = fp.GetComponent<Player>();
-        Player player2 = sp.GetComponent<Player>();
-
-        // Instancia HUDs
-        hudDirector.InitializeHUD(player1, hudParent, hudPrefab);
-        hudDirector.InitializeHUD(player2, hudParent, hudPrefab);
-
-        SpawnCamera(player1, new Rect(0f, 0f, 0.5f, 1f));
-        SpawnCamera(player2, new Rect(0.5f, 0f, 0.5f, 1f));
+        SetupPlayerHUDAndCamera(fp, new Rect(0f, 0f, 0.5f, 1f));
+        SetupPlayerHUDAndCamera(sp, new Rect(0.5f, 0f, 0.5f, 1f));
     }
 
-    private void SpawnCamera(Player targetPlayer, Rect viewport)
+    private void SetupPlayerHUDAndCamera(Player player, Rect viewport)
     {
-        if (mainCameraPrefab == null || freeLookPrefab == null || targetPlayer == null) return;
+        int playerID = player.ID;
 
-        GameObject camObj = Instantiate(mainCameraPrefab);
-        Camera unityCam = camObj.GetComponent<Camera>();
-        CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
-
-        if (unityCam == null || camLogic == null)
+        // Instancia HUD apenas uma vez
+        if (!playerHUDInstances.ContainsKey(playerID))
         {
-            Debug.LogError("MainCameraPrefab precisa de Camera + CameraLogic!");
-            return;
+            GameObject hudInstance = Instantiate(hudPrefab, hudParent);
+            playerHUDInstances[playerID] = hudInstance;
+            hudDirector.InitializeHUD(player, hudParent, hudPrefab);
         }
 
-        unityCam.rect = viewport;
-
-        GameObject freeLookObj = Instantiate(freeLookPrefab);
-        if (!freeLookObj.TryGetComponent<CinemachineCamera>(out var freeLook))
+        // Instancia câmera apenas uma vez
+        if (!playerCameras.ContainsKey(playerID))
         {
-            Debug.LogError("FreeLookPrefab não possui CinemachineCamera!");
-            return;
+            GameObject camObj = Instantiate(mainCameraPrefab);
+            Camera unityCam = camObj.GetComponent<Camera>();
+            CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
+            unityCam.rect = viewport;
+
+            GameObject freeLookObj = Instantiate(freeLookPrefab);
+            if (freeLookObj.TryGetComponent<CinemachineCamera>(out var freeLook))
+            {
+                camLogic.SetTarget(player, freeLook);
+                player.SetCinemachineCamera(freeLook);
+            }
+
+            playerCameras[playerID] = camObj;
         }
 
-        camLogic.SetTarget(targetPlayer, freeLook);
-        targetPlayer.SetCinemachineCamera(freeLook);
+        player.gameObject.SetActive(true);
     }
 }
-

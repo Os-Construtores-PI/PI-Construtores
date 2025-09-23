@@ -7,22 +7,22 @@ public class ManualPlayersSpawner : BasePool
 
     public void SetObjects(List<GameObject> gameObjects)
     {
-        deactivatedObject = new();
+        deactivatedObjects = new();
         amount = gameObjects.Count;
 
         for (int i = 0; i < gameObjects.Count; i++)
         {
             GameObject tmp = Instantiate(gameObjects[i], parent);
             tmp.SetActive(false);
-            deactivatedObject.Add(tmp);
+            deactivatedObjects.Add(tmp);
         }
     }
 
     public GameObject Spawn(int index)
     {
-        if (index < 0 || index >= deactivatedObject.Count) return null;
+        if (index < 0 || index >= deactivatedObjects.Count) return null;
 
-        GameObject obj = deactivatedObject[index];
+        GameObject obj = deactivatedObjects[index];
         obj.SetActive(true);
         if (spawnPosition != null)
         {
@@ -31,6 +31,14 @@ public class ManualPlayersSpawner : BasePool
         }
         return obj;
     }
+    public GameObject GetDeactivatedObject(int index)
+    {
+        if (index < 0 || index >= deactivatedObjects.Count) return null;
+        return deactivatedObjects[index];
+    }
+
+
+public int DeactivatedObjectsCount => deactivatedObjects.Count;
 
     public Transform GetSpawnPosition() => spawnPosition;
 }

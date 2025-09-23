@@ -230,6 +230,18 @@ public class HUDDirector : MonoBehaviour
         }
     }
     #endregion
+    public void SetupStartOnly()
+    {
+        // Percorre todos os painéis do prefab HUD
+        foreach (Transform child in transform)
+        {
+            // Mantém apenas o painel de Start (nomeie corretamente no prefab, ex: "StartPanel")
+            if (child.name != "StartPanel")
+                child.gameObject.SetActive(false);
+            else
+                child.gameObject.SetActive(true);
+        }
+    }
 
     #region Helpers
     private IconImage? GetIcon(string destiny) =>
