@@ -28,8 +28,6 @@ public class PlayerDirector : MonoBehaviour
     private Dictionary<int, GameObject> playerHUDInstances = new();
     private Dictionary<int, GameObject> playerCameras = new();
 
-    [HideInInspector] public GameObject startPanelInstance;
-
     private void Awake()
     {
         playersSpawner = GetComponent<ManualPlayersSpawner>();
@@ -42,7 +40,6 @@ public class PlayerDirector : MonoBehaviour
             Debug.LogError($"Canvas '{hudCanvasParent}' não encontrado na cena!");
 
         CacheAllPlayers();
-        InitializeStartPanel();
     }
 
     private void CacheAllPlayers()
@@ -55,25 +52,8 @@ public class PlayerDirector : MonoBehaviour
         }
     }
 
-    private void InitializeStartPanel()
-    {
-        if (allPlayers.Count == 0) return;
-
-        startPanelInstance = Instantiate(hudPrefab, hudParent);
-        HUDDirector tempHUD = startPanelInstance.GetComponent<HUDDirector>();
-        if (tempHUD != null)
-            tempHUD.SetupStartOnly(); // mostra apenas painel de Start
-    }
-
     public void ActivatePlayers()
     {
-        // Destrói painel Start
-        if (startPanelInstance != null)
-        {
-            Destroy(startPanelInstance);
-            startPanelInstance = null;
-        }
-
         switch (GameContext.gameMode)
         {
             case GameMode.SINGLEPLAYER:
