@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -24,18 +25,16 @@ public class DataSystem : MonoBehaviour
 
     private string SavePath => Constants.PersistentNames.DataPath;
 
-    private void Start()
+    public void AddReferences()
     {
         // encontra todos os players ativos
         players.Clear();
         players.AddRange(FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
-
-        // encontra todos os itens dropados ativos
         droppedItems.Clear();
         droppedItems.AddRange(FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
-
         Debug.Log($"[DataSystem] Encontrados {players.Count} players e {droppedItems.Count} itens dropados na cena.");
     }
+
 
     #region SAVE
 
@@ -122,29 +121,43 @@ public class DataSystem : MonoBehaviour
     /// <summary>
     /// Respawn seguro de um player específico usando savedPlayerData.
     /// </summary>
-    public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = null)
-    {
-        StartCoroutine(RespawnRoutine(player, slotIndex, pdata));
-    }
+public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = null)
+{
+    StartCoroutine(RespawnRoutine(player, slotIndex, pdata));
+}
 
     private IEnumerator RespawnRoutine(Player player, int slotIndex, SavedPlayerData pdata)
     {
         yield return null; // espera 1 frame
 
-        if (!IsValidSlot(slotIndex)) yield break;
+        if (!IsValidSlot(slotIndex))
+        {
+            yield break;
+        }
 
         var gameData = GetGameData();
-        if (gameData == null) yield break;
+        if (gameData == null)
+        {
+            yield break;
+        }
 
         var slot = gameData.savedSlots[slotIndex];
-        if (slot.savedLevelDatas.Count == 0) yield break;
+        if (slot.savedLevelDatas.Count == 0)
+        {
+            Debug.LogWarning($"[RespawnRoutine] Slot {slotIndex} não possui LevelData salvo.");
+            yield break;
+        }
 
         var levelData = slot.savedLevelDatas[^1];
 
         if (pdata == null)
         {
+            Debug.LogWarning($"Players na lista: {string.Join(", ", players.Select(p => p.name))}");
             int playerIndex = players.IndexOf(player);
-            if (playerIndex < 0 || playerIndex >= levelData.savedPlayers.Count) yield break;
+            if (playerIndex < 0 || playerIndex >= levelData.savedPlayers.Count)
+            {
+                yield break;
+            }
             pdata = levelData.savedPlayers[playerIndex];
         }
 
@@ -157,9 +170,7 @@ public class DataSystem : MonoBehaviour
         }
 
         // ---- APLICAR POSIÇÃO E VIDA ----
-        print("AAAA: " + player.transform.position);
         player.transform.position = pdata.position;
-        print("AAAA" + player.transform.position);
         player.Health = pdata.health;
 
         // ---- RESTAURAR INVENTÁRIO ----
@@ -178,6 +189,8 @@ public class DataSystem : MonoBehaviour
             if (script != this) script.enabled = true;
         }
     }
+
+
 
 
 

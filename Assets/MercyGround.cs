@@ -11,7 +11,7 @@ public class MercyGround : MonoBehaviour
     {
         if (other.TryGetComponent(out Player player))
         {
-            dataSystem.RespawnPlayer(player,GameContext.currentSlot);
+            dataSystem.RespawnPlayer(player, GameContext.currentSlot);
         }
     }
 }

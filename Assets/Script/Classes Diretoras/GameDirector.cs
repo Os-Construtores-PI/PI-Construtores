@@ -18,12 +18,15 @@ public class GameDirector : MonoBehaviour
     /// </summary>
     public void StartWorld()
     {
+        if (!dataSystem) { Debug.LogWarning("[GameDirector] Sem DATASYSTEM"); return; }
         // Apenas ativa os jogadores e HUDs completos
         playerDirector.ActivatePlayers();
+        dataSystem.AddReferences();
     }
 
     public void ShutdownWorld()
     {
         // Aqui você pode desativar players, limpar câmeras, salvar progresso etc.
     }
+
 }
