@@ -152,7 +152,6 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
 
         if (pdata == null)
         {
-            Debug.LogWarning($"Players na lista: {string.Join(", ", players.Select(p => p.name))}");
             int playerIndex = players.IndexOf(player);
             if (playerIndex < 0 || playerIndex >= levelData.savedPlayers.Count)
             {
