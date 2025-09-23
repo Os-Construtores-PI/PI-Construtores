@@ -44,33 +44,24 @@ public class HUDDirector : MonoBehaviour
     #endregion
 
     #region Initialization
-    /// <summary>
-    /// Inicializa o HUD para o player instanciado.
-    /// O hudPrefab será instanciado como filho de hudParent.
-    /// </summary>
     public GameObject InitializeHUD(Player player, Transform hudParent, GameObject hudPrefab)
     {
         if (player == null || hudPrefab == null || hudParent == null) return null;
         int playerID = player.ID;
 
-        // Instancia HUD
         GameObject hudInstance = Instantiate(hudPrefab, hudParent);
         hudInstance.name = $"HUD_Player_ID_{playerID}";
 
-        // Força atualização de layout
         Canvas.ForceUpdateCanvases();
 
-        // Descobre painéis automaticamente
         var panelMap = new Dictionary<string, List<GameObject>>();
         CollectPanelsRecursive(hudInstance.transform, panelMap);
         canvasMap[playerID] = panelMap;
 
-        // Inicia Barra de Vida
         HealthHUDComponent healthHUD = hudInstance.GetComponentInChildren<HealthHUDComponent>();
         if (healthHUD && healthHUD.HUDType == HealthHUDType.PLAYER)
             healthHUD.BindToPlayer(player);
 
-        // Inicializa interação
         if (panelMap.TryGetValue(Constants.PanelNames.InteractionPopup, out var panels) && panels.Count > 0)
         {
             var text = panels[0].GetComponentInChildren<TextMeshProUGUI>();
@@ -84,7 +75,6 @@ public class HUDDirector : MonoBehaviour
             }
         }
 
-        // Desativa painéis iniciais
         HidePanel(Constants.PanelNames.GameOver, playerID, fade: true, instant: true);
         HidePanel(Constants.PanelNames.InteractionPopup, playerID, instant: true);
 
@@ -194,11 +184,9 @@ public class HUDDirector : MonoBehaviour
     #region Cinematic Bars
     private void TriggerCinematicBars(int playerID, float duration)
     {
-        // pega o holder
         List<GameObject> holders = GetPanel(playerID, Constants.PanelNames.GraplingHookCutscene);
         List<GameObject> cinematicPanels = new();
 
-        // procura Top e Bottom dentro do holder
         foreach (var holder in holders)
         {
             var rects = holder.GetComponentsInChildren<RectTransform>(true);
@@ -214,7 +202,7 @@ public class HUDDirector : MonoBehaviour
         float halfDuration = duration / 2f;
         AnimateCinematicBars(cinematicPanels, 250f, halfDuration);
     }
-    
+
     private void AnimateCinematicBars(List<GameObject> panels, float size, float duration)
     {
         DOTween.Sequence()
@@ -232,18 +220,6 @@ public class HUDDirector : MonoBehaviour
         }
     }
     #endregion
-    public void SetupStartOnly()
-    {
-        // Percorre todos os painéis do prefab HUD
-        foreach (Transform child in transform)
-        {
-            // Mantém apenas o painel de Start (nomeie corretamente no prefab, ex: "StartPanel")
-            if (child.name != "StartPanel")
-                child.gameObject.SetActive(false);
-            else
-                child.gameObject.SetActive(true);
-        }
-    }
 
     #region Helpers
     private IconImage? GetIcon(string destiny) =>
@@ -255,3 +231,4 @@ public class HUDDirector : MonoBehaviour
             : new List<GameObject>();
     #endregion
 }
+

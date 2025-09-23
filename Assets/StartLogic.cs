@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(RectTransform))]
 public class StartLogic : MonoBehaviour
 {
-    GameDirector gameDirector;
+    private GameDirector gameDirector;
 
     private void Start()
     {
@@ -14,19 +14,40 @@ public class StartLogic : MonoBehaviour
 
     public void OnStartPressed()
     {
-        // 1. Ativa o mundo (players, HUD completo, câmeras)
+        // 1. Ativa o mundo
         gameDirector.StartWorld();
 
-        // 2. Faz a animação de sumir
-        RectTransform rect = GetComponent<RectTransform>();
-        rect.pivot = new Vector2(0, 0);
+        // 2. Remove a câmera inicial (tag MainCamera)
+        Camera startCam = Camera.main;
+        if (startCam != null)
+            Destroy(startCam.gameObject);
 
-        // Escala para 0 e destrói o GameObject ao final
-        rect.DOScale(Vector3.zero, 0.35f).SetEase(Ease.InOutCubic)
-            .OnComplete(() =>
+        // 3. Faz a animação só no painel de Start
+        if (transform.childCount > 0)
+        {
+            if (transform.GetChild(0).TryGetComponent<RectTransform>(out var startPanel))
             {
-                // Remove todo o painel temporário do HUD
-                Destroy(rect.gameObject);
-            });
+                startPanel.DOScale(Vector3.zero, 0.35f)
+                    .SetEase(Ease.InOutCubic)
+                    .OnComplete(() =>
+                    {
+                        // Mata tweens do painel
+                        DOTween.Kill(startPanel.gameObject);
+
+                        // Destroi o Canvas inteiro (onde está esse script)
+                        Destroy(gameObject);
+                    });
+            }
+            else
+            {
+                // fallback: se não achar painel, destrói direto
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            // se não tiver filhos, destrói direto
+            Destroy(gameObject);
+        }
     }
 }
