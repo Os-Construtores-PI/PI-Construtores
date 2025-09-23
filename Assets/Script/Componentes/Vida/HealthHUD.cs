@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,18 +12,22 @@ public class HealthHUDComponent : MonoBehaviour
 
     public int IdHealth = 0;
 
-    private Slider _slider;
+    public Slider _slider;
     private Camera _cachedCamera;
+    private int _lastHealth = -1; // não atualiza atoa
+
+    [Header("Imagens da Vida(Opcional)")]
+    public List<Image> _healthImages; // arraste as imagens aqui
 
 
-    private void Update()
-    {
-        if (_slider == null) return;
-    }
+    
     private void Awake()
     {
         DOTween.Init();
-        _slider = GetComponent<Slider>();
+
+        if (_slider != null)
+            _slider.value = 1f;
+       // _slider = GetComponent<Slider>();
     }
     private void Start()
     {
@@ -51,10 +56,15 @@ public class HealthHUDComponent : MonoBehaviour
         if (player == null) return;
         IdHealth = player.ID;
         // Atualiza o slider imediatamente
-        _slider.value = player.Health / player.MaxHealth;
+       // _slider.value = player.Health / player.MaxHealth;
+        UptadeHealthImagens(player.Health, player.MaxHealth);
 
         // Registrar para updates futuros
-        player._OnHealthChanged.AddListener(UpdateSlider); // Supondo que você tenha esse evento
+        player._OnHealthChanged.AddListener((value) =>
+        {
+            UptadeHealthImagens(value * player.MaxHealth, player.MaxHealth);
+        });
+
     }
 
     private void InitializePlayerHUD()
@@ -64,11 +74,15 @@ public class HealthHUDComponent : MonoBehaviour
         {
             if (player.TryGetComponent(out Player playerref) && playerref.ID == IdHealth)
             {
-                _slider.DOValue(playerref.Health / playerref.MaxHealth,.5f);
+                // _slider.DOValue(playerref.Health / playerref.MaxHealth,.5f);
+                float value = playerref.Health / playerref.MaxHealth;
+                _slider.DOValue(value, .5f);
+               // UptadeHealthImagens(value);
                 break;
-                }
+
             }
         }
+    }   
 
     private void InitializeEnemyHUD()
     {
@@ -148,5 +162,27 @@ public class HealthHUDComponent : MonoBehaviour
     {
         if (_slider == null) return;
         _slider.DOValue(value, 0.5f);
+    }
+
+    private void UptadeHealthImagens(float currentHealth, float maxHealth)
+    {
+        int vidaInt = Mathf.RoundToInt(currentHealth);
+
+        if (vidaInt == _lastHealth) return;
+        _lastHealth = vidaInt;
+
+        for (int i = 0; i < _healthImages.Count; i++)
+        {
+            if (i < vidaInt)
+            {
+                // vida ativa
+                _healthImages[i].DOFade(1f, 0.3f);
+            }
+            else
+            {
+                // vida perdida
+                _healthImages[i].DOFade(0f, 0.3f);
+            }
+        }
     }
 }

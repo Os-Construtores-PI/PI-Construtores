@@ -180,16 +180,17 @@ public abstract class LiveEntities : Entities
         _OnDeath.AddListener(DeathHandler);
     }
 
-    public virtual void TakeDamage(float amount)
+    public virtual void TakeDamage(float damage)
     {
-        float finalDamage = amount - Defense;
-        finalDamage = Math.Max(0f, finalDamage); 
+        Health = Mathf.Clamp(Health - damage, 0, MaxHealth);
 
-        Health -= finalDamage;
+        float normalizedHealth = Health / MaxHealth;
 
-        _currentHealthDebug = Health; // atualiza para mostrar a vida retirada ao inspector
+        _OnHealthChanged.Invoke(normalizedHealth);
 
-        Debug.Log($"{name} tomou {finalDamage} de dano!! Vida restante: {Health}");
+        _OnDamage?.Invoke();
+
+        Debug.Log($"[{name}] sofreu {damage} de dano. Vida Atual: {Health}");
     }
 
     #endregion
