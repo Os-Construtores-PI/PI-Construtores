@@ -48,9 +48,9 @@ public class HUDDirector : MonoBehaviour
     /// Inicializa o HUD para o player instanciado.
     /// O hudPrefab será instanciado como filho de hudParent.
     /// </summary>
-    public void InitializeHUD(Player player, Transform hudParent, GameObject hudPrefab)
+    public GameObject InitializeHUD(Player player, Transform hudParent, GameObject hudPrefab)
     {
-        if (player == null || hudPrefab == null || hudParent == null) return;
+        if (player == null || hudPrefab == null || hudParent == null) return null;
         int playerID = player.ID;
 
         // Instancia HUD
@@ -87,6 +87,8 @@ public class HUDDirector : MonoBehaviour
         // Desativa painéis iniciais
         HidePanel(Constants.PanelNames.GameOver, playerID, fade: true, instant: true);
         HidePanel(Constants.PanelNames.InteractionPopup, playerID, instant: true);
+
+        return hudInstance;
     }
 
     private void CollectPanelsRecursive(Transform parent, Dictionary<string, List<GameObject>> map)

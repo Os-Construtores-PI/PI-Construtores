@@ -87,15 +87,15 @@ public class PlayerDirector : MonoBehaviour
     {
         int playerID = player.ID;
 
-        // Instancia HUD apenas uma vez
+        // Cria HUD apenas uma vez
         if (!playerHUDInstances.ContainsKey(playerID))
         {
-            GameObject hudInstance = Instantiate(hudPrefab, hudParent);
+            // Agora o HUD é inicializado APENAS pelo HUDDirector
+            GameObject hudInstance = hudDirector.InitializeHUD(player, hudParent, hudPrefab);
             playerHUDInstances[playerID] = hudInstance;
-            hudDirector.InitializeHUD(player, hudParent, hudPrefab);
         }
 
-        // Instancia câmera apenas uma vez
+        // Cria câmera apenas uma vez
         if (!playerCameras.ContainsKey(playerID))
         {
             GameObject camObj = Instantiate(mainCameraPrefab);
@@ -115,4 +115,6 @@ public class PlayerDirector : MonoBehaviour
 
         player.gameObject.SetActive(true);
     }
+
+
 }
