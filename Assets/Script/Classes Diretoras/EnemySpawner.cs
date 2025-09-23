@@ -18,7 +18,7 @@ public class EnemySpawner : BasePool
     }
     protected void SetupInstance()
     {
-        deactivatedObject = new();
+        deactivatedObjects = new();
         GameObject tmp;
         foreach (Spawner sp in spawners)
         {
@@ -32,7 +32,7 @@ public class EnemySpawner : BasePool
                     enemy.spawnpos = tmpMarker.position;
                 }
                 tmp.SetActive(false);
-                deactivatedObject.Add(tmp);
+                deactivatedObjects.Add(tmp);
             }
         }
     }

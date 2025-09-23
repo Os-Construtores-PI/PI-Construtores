@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -9,16 +10,19 @@ using UnityEngine.SceneManagement;
 /// Sistema de salvamento e carregamento de dados do jogo.
 /// Gerencia múltiplos slots de save, jogadores, inventário e itens dropados.
 /// </summary>
+
+[DefaultExecutionOrder(2)]
 public class DataSystem : MonoBehaviour
 {
     [Header("Referências de Cena")]
-    [Tooltip("Lista de jogadores ativos na cena (arrastados pelo editor).")]
+    [Tooltip("Lista de jogadores ativos na cena.")]
     private List<Player> players = new();
     private List<ItemDropZone> droppedItems = new();
+
     [Header("Configuração")]
     private readonly int maxSlots = 3;
 
-    private string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
+    private string SavePath => Constants.PersistentNames.DataPath;
 
     private void Start()
     {
@@ -32,18 +36,17 @@ public class DataSystem : MonoBehaviour
 
         Debug.Log($"[DataSystem] Encontrados {players.Count} players e {droppedItems.Count} itens dropados na cena.");
     }
+
     #region SAVE
-    // Salva checkpoint (players + dropped items da cena atual)
-    public void SaveCheckpoint(int index, Vector3? checkpointPos = null)
+
+    public void SaveCheckpoint(int index)
     {
         if (!IsValidSlot(index)) return;
 
         SavedGameData gameData = GetGameData() ?? new SavedGameData(maxSlots);
         EnsureSlotsInitialized(gameData);
 
-        Vector3 pos = checkpointPos ?? (players.Count > 0 ? players[0].transform.position : Vector3.zero);
-
-        SavePlayersAtCheckpoint(gameData, index, pos);
+        SavePlayersAtCheckpoint(gameData, index);
         SaveDroppedItems(gameData, index);
 
         var json = JsonUtility.ToJson(gameData, true);
@@ -52,8 +55,6 @@ public class DataSystem : MonoBehaviour
         Debug.Log($"[DataSystem] Checkpoint salvo no slot {index} em {SavePath}.");
     }
 
-
-    // Salva progresso global (coletáveis/moedas/desbloqueios) — por enquanto placeholder
     public void Save(int index)
     {
         if (!IsValidSlot(index)) return;
@@ -64,9 +65,7 @@ public class DataSystem : MonoBehaviour
         // aqui vão os dados globais (moedas, coletáveis, upgrades etc.)
 
         var json = JsonUtility.ToJson(gameData, true);
-        var encrypted = Encrypt(json);
-
-        File.WriteAllText(SavePath, encrypted);
+        File.WriteAllText(SavePath, Encrypt(json));
 
         Debug.Log($"[DataSystem] Progresso global salvo no slot {index} em {SavePath}.");
     }
@@ -85,36 +84,17 @@ public class DataSystem : MonoBehaviour
         var slot = gameData.savedSlots[index];
         if (slot.savedLevelDatas.Count == 0) return;
 
-        // pega último checkpoint da cena
         var levelData = slot.savedLevelDatas[^1];
 
         // restaura players
         for (int i = 0; i < Mathf.Min(players.Count, levelData.savedPlayers.Count); i++)
         {
-            var p = players[i];
-            var pdata = levelData.savedPlayers[i];
-
-            p.transform.position = pdata.position;
-            p.Health = pdata.health;
-
-            p.Inventory.ClearItems(); // garante inventário limpo
-            foreach (SavedItemEntry savedItem in pdata.inventory)
-            {
-                ItemData data = Resources.Load<ItemData>($"Items/{savedItem.savedItemName}");
-                if (data != null)
-                {
-                    p.Inventory.AddItem(data, savedItem.savedItemQuantity);
-                }
-                else
-                {
-                    Debug.LogWarning($"[DataSystem] ItemData '{savedItem.savedItemName}' não encontrado em Resources/Items!");
-                }
-            }
+            RespawnPlayer(players[i], index, levelData.savedPlayers[i]);
         }
 
         // restaura dropped items
         foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-            Destroy(drop.gameObject); // limpa cena
+            Destroy(drop.gameObject);
 
         foreach (var ditemData in levelData.savedDroppedItems)
         {
@@ -139,16 +119,77 @@ public class DataSystem : MonoBehaviour
         Debug.Log($"[DataSystem] Checkpoint carregado do slot {index}.");
     }
 
+    /// <summary>
+    /// Respawn seguro de um player específico usando savedPlayerData.
+    /// </summary>
+    public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = null)
+    {
+        StartCoroutine(RespawnRoutine(player, slotIndex, pdata));
+    }
+
+    private IEnumerator RespawnRoutine(Player player, int slotIndex, SavedPlayerData pdata)
+    {
+        yield return null; // espera 1 frame
+
+        if (!IsValidSlot(slotIndex)) yield break;
+
+        var gameData = GetGameData();
+        if (gameData == null) yield break;
+
+        var slot = gameData.savedSlots[slotIndex];
+        if (slot.savedLevelDatas.Count == 0) yield break;
+
+        var levelData = slot.savedLevelDatas[^1];
+
+        if (pdata == null)
+        {
+            int playerIndex = players.IndexOf(player);
+            if (playerIndex < 0 || playerIndex >= levelData.savedPlayers.Count) yield break;
+            pdata = levelData.savedPlayers[playerIndex];
+        }
+
+        // ---- DESATIVAR COMPONENTES QUE PODEM SOBRESCREVER A POSIÇÃO ----
+        if (player.TryGetComponent<CharacterController>(out var controller)) controller.enabled = false;
+        var movementScripts = player.GetComponents<MonoBehaviour>();
+        foreach (var script in movementScripts)
+        {
+            if (script != this) script.enabled = false; // desativa todos os scripts de movimento do player
+        }
+
+        // ---- APLICAR POSIÇÃO E VIDA ----
+        print("AAAA: " + player.transform.position);
+        player.transform.position = pdata.position;
+        print("AAAA" + player.transform.position);
+        player.Health = pdata.health;
+
+        // ---- RESTAURAR INVENTÁRIO ----
+        player.Inventory.ClearItems();
+        foreach (var item in pdata.inventory)
+        {
+            var itemData = Resources.Load<ItemData>($"Items/{item.savedItemName}");
+            if (itemData != null)
+                player.Inventory.AddItem(itemData, item.savedItemQuantity);
+        }
+
+        // ---- REATIVAR COMPONENTES ----
+        if (controller != null) controller.enabled = true;
+        foreach (var script in movementScripts)
+        {
+            if (script != this) script.enabled = true;
+        }
+    }
+
+
+
     #endregion
 
     #region AUXILIARES
 
-    private void SavePlayersAtCheckpoint(SavedGameData gameData, int index, Vector3 checkpointPos)
+    private void SavePlayersAtCheckpoint(SavedGameData gameData, int index)
     {
         var slot = gameData.savedSlots[index];
         var sceneName = SceneManager.GetActiveScene().name;
 
-        // encontra ou cria LevelData para a cena
         var levelData = slot.savedLevelDatas.Find(l => l.levelName == sceneName);
         if (levelData == null)
         {
@@ -156,21 +197,18 @@ public class DataSystem : MonoBehaviour
             slot.savedLevelDatas.Add(levelData);
         }
 
-        // substitui lista de players
         levelData.savedPlayers.Clear();
 
         foreach (var p in players)
         {
             var pdata = new SavedPlayerData
             {
-                position = checkpointPos, // todos no mesmo ponto
+                position = p.transform.position, // posição real de cada player
                 health = p.Health
             };
 
             foreach (InventoryItem item in p.Inventory.GetItems())
-            {
                 pdata.inventory.Add(new SavedItemEntry(item.data.itemName, item.quantity));
-            }
 
             levelData.savedPlayers.Add(pdata);
         }
@@ -230,6 +268,7 @@ public class DataSystem : MonoBehaviour
             return null;
         }
     }
+
     public SavedSlotData GetSlotData(int index)
     {
         if (!IsValidSlot(index))
@@ -238,23 +277,15 @@ public class DataSystem : MonoBehaviour
             return null;
         }
 
-        // Carrega o jogo ou cria novo
         SavedGameData gameData = GetGameData() ?? new SavedGameData(maxSlots);
-
-        // Garante que a lista de slots está inicializada
-        gameData.savedSlots ??= new List<SavedSlotData>();
-
-        // Preenche slots até o índice desejado
-        while (gameData.savedSlots.Count <= index)
-            gameData.savedSlots.Add(new SavedSlotData());
-
-        // Salva o arquivo atualizado para manter consistência
-        File.WriteAllText(SavePath, Encrypt(JsonUtility.ToJson(gameData, true)));
+        EnsureSlotsInitialized(gameData);
 
         return gameData.savedSlots[index];
     }
+
     public List<Player> GetPlayers() => players;
     public int GetMaxSlots() => maxSlots;
+
     private string Encrypt(string input)
     {
         if (string.IsNullOrEmpty(input)) return string.Empty;
@@ -263,7 +294,7 @@ public class DataSystem : MonoBehaviour
         byte[] key = Encoding.UTF8.GetBytes(Constants.PersistentNames.CryptoKey);
 
         for (int i = 0; i < data.Length; i++)
-            data[i] ^= key[i % key.Length]; // XOR simples com a chave
+            data[i] ^= key[i % key.Length];
 
         return Convert.ToBase64String(data);
     }
@@ -276,10 +307,11 @@ public class DataSystem : MonoBehaviour
         byte[] key = Encoding.UTF8.GetBytes(Constants.PersistentNames.CryptoKey);
 
         for (int i = 0; i < data.Length; i++)
-            data[i] ^= key[i % key.Length]; // desfaz o XOR
+            data[i] ^= key[i % key.Length];
 
         return Encoding.UTF8.GetString(data);
     }
+
     #endregion
 }
 
