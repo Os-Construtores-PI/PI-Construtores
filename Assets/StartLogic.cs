@@ -6,6 +6,10 @@ public class StartLogic : MonoBehaviour
 {
     private GameDirector gameDirector;
 
+    [Header("Config de Debug")]
+    [SerializeField] private GameObject _playerPrefab;
+    [SerializeField] private Transform _spawnPoint;
+
     private void Start()
     {
         DOTween.Init();
@@ -16,6 +20,8 @@ public class StartLogic : MonoBehaviour
     {
         // 1. Ativa o mundo
         gameDirector.StartWorld();
+
+        SpawnPlayer();
 
         // 2. Remove a câmera inicial (tag MainCamera)
         Camera startCam = Camera.main;
@@ -49,5 +55,22 @@ public class StartLogic : MonoBehaviour
             // se não tiver filhos, destrói direto
             Destroy(gameObject);
         }
+    }
+
+    private void SpawnPlayer()
+    {
+        if (_playerPrefab != null)
+        {
+            Debug.LogError("PlayerPrefab não atribuido no inspector");
+            return;
+        }
+
+        Vector3 spawnPosition = _spawnPoint != null ? _spawnPoint.position : Vector3.zero;
+        Quaternion spawRotation = _spawnPoint != null ? _spawnPoint.rotation : Quaternion.identity;
+
+        GameObject player = Instantiate(_playerPrefab, spawnPosition, spawRotation);
+        player.name = "Player_Debug";
+
+        Debug.Log("Player Ativado na Cena Debug");
     }
 }

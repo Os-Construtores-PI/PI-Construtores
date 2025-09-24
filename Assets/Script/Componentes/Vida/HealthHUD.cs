@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI;
 
 public class HealthHUDComponent : MonoBehaviour
 {
@@ -29,41 +30,24 @@ public class HealthHUDComponent : MonoBehaviour
             _slider.value = 1f;
        // _slider = GetComponent<Slider>();
     }
-    private void Start()
-    {
-        if (transform.parent.TryGetComponent(out PlayerHUD playerHUD))
-        {
-            IdHealth = playerHUD.ID;
-        }
-        else
-        {
-            print("Não está com um pai com PlayerHUD");
-        }
-
-        switch (HUDType)
-        {
-            case HealthHUDType.PLAYER:
-                InitializePlayerHUD();
-                break;
-
-            case HealthHUDType.ENEMY:
-                InitializeEnemyHUD();
-                break;
-        }
-    }
+    
     public void BindToPlayer(Player player)
     {
         if (player == null) return;
         IdHealth = player.ID;
         // Atualiza o slider imediatamente
-       // _slider.value = player.Health / player.MaxHealth;
-        UptadeHealthImagens(player.Health, player.MaxHealth);
 
-        // Registrar para updates futuros
+
+        float percent = (float)player.Health / player.MaxHealth;
+        UptadeHealthImagens(percent);
+
         player._OnHealthChanged.AddListener((value) =>
         {
-            UptadeHealthImagens(value * player.MaxHealth, player.MaxHealth);
+            float hpPercent = (float)value / player.MaxHealth;
+            UptadeHealthImagens(value);
         });
+
+
 
     }
 
@@ -77,7 +61,7 @@ public class HealthHUDComponent : MonoBehaviour
                 // _slider.DOValue(playerref.Health / playerref.MaxHealth,.5f);
                 float value = playerref.Health / playerref.MaxHealth;
                 _slider.DOValue(value, .5f);
-               // UptadeHealthImagens(value);
+                 //UptadeHealthImagens(value);
                 break;
 
             }
@@ -101,7 +85,9 @@ public class HealthHUDComponent : MonoBehaviour
 
         if (enemyObject.TryGetComponent(out CombatEntities combat) && combat.ID == IdHealth)
         {
-            _slider.value = combat.Health / combat.MaxHealth;
+            float value = combat.Health / combat.MaxHealth;
+            _slider.value = value;
+           // UptadeHealthImagens(value);
         }
     }
 
@@ -158,15 +144,13 @@ public class HealthHUDComponent : MonoBehaviour
     /// <summary>
     /// Atualiza suavemente o valor do slider da barra de vida
     /// </summary>
-    public void UpdateSlider(float value)
-    {
-        if (_slider == null) return;
-        _slider.DOValue(value, 0.5f);
-    }
+    
 
-    private void UptadeHealthImagens(float currentHealth, float maxHealth)
+    public void UptadeHealthImagens(float healthPercent)
     {
-        int vidaInt = Mathf.RoundToInt(currentHealth);
+        if (_healthImages == null || _healthImages.Count == 0) return;
+        
+        int vidaInt = Mathf.CeilToInt(healthPercent * _healthImages.Count);
 
         if (vidaInt == _lastHealth) return;
         _lastHealth = vidaInt;
@@ -175,12 +159,10 @@ public class HealthHUDComponent : MonoBehaviour
         {
             if (i < vidaInt)
             {
-                // vida ativa
                 _healthImages[i].DOFade(1f, 0.3f);
             }
             else
             {
-                // vida perdida
                 _healthImages[i].DOFade(0f, 0.3f);
             }
         }

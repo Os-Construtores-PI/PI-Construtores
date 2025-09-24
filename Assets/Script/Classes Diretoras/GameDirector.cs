@@ -19,11 +19,43 @@ public class GameDirector : MonoBehaviour
     /// </summary>
     public void StartWorld()
     {
-        if (!dataSystem) { Debug.LogWarning("[GameDirector] Sem DATASYSTEM"); return; }
-        // Apenas ativa os jogadores e HUDs completos
-        playerDirector.ActivatePlayers();
-        backgroundMusic.Play();
+        // 🔹 Garante que o DataSystem exista
+        if (!dataSystem)
+        {
+            dataSystem = FindAnyObjectByType<DataSystem>();
+            if (!dataSystem)
+            {
+                Debug.LogWarning("[GameDirector] Nenhum DataSystem encontrado na cena!");
+                return; // sem DataSystem não dá para continuar
+            }
+        }
+
+        // 🔹 Garante que o PlayerDirector exista
+        if (!playerDirector)
+        {
+            playerDirector = FindAnyObjectByType<PlayerDirector>();
+            if (!playerDirector)
+            {
+                Debug.LogWarning("[GameDirector] Nenhum PlayerDirector encontrado. Cena Debug pode continuar sem jogadores.");
+            }
+        }
+
+        // 🔹 Garante que a música de fundo exista
+        if (!backgroundMusic)
+        {
+            backgroundMusic = FindAnyObjectByType<AudioSource>();
+            if (!backgroundMusic)
+            {
+                Debug.LogWarning("[GameDirector] Nenhuma música de fundo encontrada.");
+            }
+        }
+
+        // 🔹 Executa os sistemas que conseguir encontrar
+        playerDirector?.ActivatePlayers();
+        backgroundMusic?.Play();
         dataSystem.AddReferences();
+
+        Debug.Log("[GameDirector] StartWorld executado com sucesso (modo Debug).");
     }
 
     public void ShutdownWorld()
