@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
 
+
+[DefaultExecutionOrder(-100)]
 public class GlobalEventBus : MonoBehaviour
 {
     private static GlobalEventBus _instance;
@@ -12,7 +14,7 @@ public class GlobalEventBus : MonoBehaviour
         {
             if (_instance == null)
             {
-                _instance = FindAnyObjectByType<GlobalEventBus>() ?? 
+                _instance = FindAnyObjectByType<GlobalEventBus>() ??
                             new GameObject("GlobalEventBus").AddComponent<GlobalEventBus>();
                 _instance.Initialize();
             }
@@ -25,6 +27,7 @@ public class GlobalEventBus : MonoBehaviour
     #region Events
     public readonly UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
     public readonly UnityEvent<int, float> TriggeredCinematic = new();
+    public readonly UnityEvent<int> TriggeredTeleport = new();
     public readonly UnityEvent<int> AmethystsAmountChanged = new();
     #endregion
 
