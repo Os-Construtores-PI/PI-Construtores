@@ -4,6 +4,7 @@ public class GameDirector : MonoBehaviour
 {
     private DataSystem dataSystem;
 
+    [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private PlayerDirector playerDirector;
 
     private void Start()
@@ -21,6 +22,7 @@ public class GameDirector : MonoBehaviour
         if (!dataSystem) { Debug.LogWarning("[GameDirector] Sem DATASYSTEM"); return; }
         // Apenas ativa os jogadores e HUDs completos
         playerDirector.ActivatePlayers();
+        backgroundMusic.Play();
         dataSystem.AddReferences();
     }
 

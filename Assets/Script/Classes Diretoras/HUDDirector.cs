@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
@@ -9,7 +10,8 @@ using UnityEngine.UI;
 
 public class HUDDirector : MonoBehaviour
 {
-    private static readonly WaitForSecondsRealtime Wait025 = new(.25f);
+    private static readonly WaitForSecondsRealtime WAITTELEPORTFADE = new(1f);
+    private static readonly WaitForSecondsRealtime WAITSHAKECAM = new(.25f);
 
     [SerializeField] private List<IconImage> icons = new();
 
@@ -21,11 +23,12 @@ public class HUDDirector : MonoBehaviour
     #region Unity Events
     private void OnEnable()
     {
+        print(GlobalEventBus.HasInstance);
         if (!GlobalEventBus.HasInstance) return;
-
         GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
         GlobalEventBus.Instance.AmethystsAmountChanged.AddListener(UpdateAmethysts);
+        GlobalEventBus.Instance.TriggeredTeleport.AddListener(TeleportFade);
     }
 
     private void OnDisable()
@@ -35,6 +38,7 @@ public class HUDDirector : MonoBehaviour
         GlobalEventBus.Instance.ObjectWasSeen.RemoveListener(InteractionPopup);
         GlobalEventBus.Instance.TriggeredCinematic.RemoveListener(TriggerCinematicBars);
         GlobalEventBus.Instance.AmethystsAmountChanged.RemoveListener(UpdateAmethysts);
+        GlobalEventBus.Instance.TriggeredTeleport.RemoveListener(TeleportFade);
     }
 
     private void Start()
@@ -77,6 +81,7 @@ public class HUDDirector : MonoBehaviour
 
         HidePanel(Constants.PanelNames.GameOver, playerID, fade: true, instant: true);
         HidePanel(Constants.PanelNames.InteractionPopup, playerID, instant: true);
+        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID, false, false);
 
         return hudInstance;
     }
@@ -133,7 +138,7 @@ public class HUDDirector : MonoBehaviour
 
     private IEnumerator StopShaking(CinemachineBasicMultiChannelPerlin noise)
     {
-        yield return Wait025;
+        yield return WAITSHAKECAM;
         noise.AmplitudeGain = 0;
     }
     #endregion
@@ -220,6 +225,29 @@ public class HUDDirector : MonoBehaviour
         }
     }
     #endregion
+    #region Teleport
+    private void TeleportFade(int ID)
+    {
+        print("TELEPORTE FUNÇÃO FUNCIONANDO");
+        StartCoroutine(TeleportFadeRoutine(ID));
+    }
+    private IEnumerator TeleportFadeRoutine(int playerID)
+    {
+        // pega o painel preto do HUD do jogador
+        GameObject teleportPanel = GetPanel(playerID, Constants.PanelNames.TeleportFadePanel).FirstOrDefault();
+        if (!teleportPanel) { Debug.LogWarning("SEM TELEPORT PANEL"); yield break; }
+
+        // fade in
+        ShowPanel(Constants.PanelNames.TeleportFadePanel, playerID,false);
+        yield return WAITTELEPORTFADE;
+
+        // fade out
+        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,false,false);
+    }
+    #endregion
+
+
+
 
     #region Helpers
     private IconImage? GetIcon(string destiny) =>
