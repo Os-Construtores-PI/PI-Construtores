@@ -67,7 +67,7 @@ public class EnemyHUDManager : MonoBehaviour
 
             // Conecta o HUD com o sistema de vida do inimigo
             enemy.SetHealthHUD(healthHUD);
-            healthHUD.UpdateSlider(enemy.Health / enemy.MaxHealth);
+            healthHUD.UptadeHealthImagens(enemy.Health / enemy.MaxHealth);
         }
     }
 }
