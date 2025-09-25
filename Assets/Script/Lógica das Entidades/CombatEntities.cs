@@ -110,8 +110,8 @@ public abstract class CombatEntities : LiveEntities
         if (hud == null) return;
 
         _healthHUD = hud;
-        _OnHealthChanged.AddListener(_healthHUD.UpdateSlider);
-        _healthHUD.UpdateSlider(Health / _maxHealth);
+        _OnHealthChanged.AddListener(_healthHUD.UptadeHealthImagens);
+        _healthHUD.UptadeHealthImagens(Health / _maxHealth);
         UpdateHUDVisibility(gameObject.activeInHierarchy);
     }
 

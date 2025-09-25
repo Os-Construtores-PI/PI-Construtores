@@ -408,7 +408,7 @@ private bool isDashBlocked;
             if (hudObj.TryGetComponent(out HealthHUDComponent hud) && hud.IdHealth == ID && hud.HUDType == HealthHUDType.PLAYER)
             {
                 _healthHUD = hud;
-                _OnHealthChanged.AddListener(hud.UpdateSlider);
+                _OnHealthChanged.AddListener(hud.UptadeHealthImagens);
                 break;
             }
         }
