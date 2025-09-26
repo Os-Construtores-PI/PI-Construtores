@@ -490,7 +490,7 @@ private bool isDashBlocked;
                 BlockPlayerDash();
             }
 
-            gravity = -1.35f;
+            gravity = -3.35f;
         }
         else
         {
