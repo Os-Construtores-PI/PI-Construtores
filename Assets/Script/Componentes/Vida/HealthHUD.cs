@@ -1,5 +1,6 @@
 using DG.Tweening;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityEngine.Rendering.DebugUI;
@@ -150,9 +151,12 @@ public class HealthHUDComponent : MonoBehaviour
     {
         if (_healthImages == null || _healthImages.Count == 0) return;
         
-        int vidaInt = Mathf.CeilToInt(healthPercent * _healthImages.Count);
+        int vidaInt = Mathf.FloorToInt(healthPercent * _healthImages.Count);
 
         if (vidaInt == _lastHealth) return;
+
+
+        bool tomouDano = vidaInt < _lastHealth;
         _lastHealth = vidaInt;
 
         for (int i = 0; i < _healthImages.Count; i++)
@@ -166,5 +170,15 @@ public class HealthHUDComponent : MonoBehaviour
                 _healthImages[i].DOFade(0f, 0.3f);
             }
         }
+
+        if (tomouDano)
+        {
+            transform.DOKill();
+
+            transform.DOShakePosition(0.3f, strength: new Vector3(10f, 10f, 0f), vibrato: 15, randomness: 90, snapping: false, fadeOut: true)
+                .SetEase(Ease.OutQuad);
+        }
     }
+
+    
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using DG.Tweening;
-using Unity.Android.Gradle.Manifest;
+
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
