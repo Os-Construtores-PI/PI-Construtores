@@ -37,7 +37,7 @@ public class PauseDirector : MonoBehaviour
 
         // travar o cursor de novo no jogo
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        Cursor.visible = false; 
     }
 
     void Pause()
