@@ -61,6 +61,7 @@ public class Player : CombatEntities
     private Vector3 direction;
     private Vector3 dashDirection;
     private Vector2 moveInput;
+    private Vector3 lastWallNormal;
 
     private int currentJumpCount;
     private bool isGrounded;
@@ -136,8 +137,8 @@ public class Player : CombatEntities
     {
         base.Awake();
         initialGravity = gravity;
-        SetupCamera();
         characterController = GetComponent<CharacterController>();
+        SetupCamera();
     }
 
     public override void Start()
@@ -155,6 +156,7 @@ public class Player : CombatEntities
         ChangeCharacterTimer();
         AttackTimer();
         WallRunningTimer();
+        print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
     }
 
     private void FixedUpdate()
@@ -217,7 +219,7 @@ public class Player : CombatEntities
     public void OnChangeCharacter(InputAction.CallbackContext context)
     {
         float charAxis = context.ReadValue<float>();
-        print(charAxis +":"+ this.name);
+        print(charAxis +":"+ name);
     }
     [Header("TROCA DE JOGADOR PARÂMETROS")]
     [SerializeField] private float ChangeCharacterCooldown = 5f;
@@ -287,13 +289,26 @@ public class Player : CombatEntities
 
     private void Jump()
     {
-        if (isGrounded || currentJumpCount < maxJumpCount)
+        if (isGrounded || currentJumpCount < maxJumpCount || touchingWall)
         {
             float multiplier = Mathf.Max(1f - 0.3f * currentJumpCount, 0.2f);
-            movementVector.y = jumpForce * multiplier;
+
+            if (touchingWall) // se estiver na parede → usa vetor médio
+            {
+                Vector3 jumpDir = (Vector3.up + lastWallNormal).normalized;
+                movementVector = jumpForce * multiplier * jumpDir;
+                touchingWall = false; // evita repetir
+            }
+            else // pulo normal
+            {
+                movementVector.y = jumpForce * multiplier;
+            }
+
             currentJumpCount++;
         }
     }
+
+
 
     #endregion
 
@@ -369,7 +384,6 @@ private bool isDashBlocked;
     {
         if (isDashBlocked) return;
         isDashBlocked = true;
-
         stats.ModifyStatImmediate<bool>(
             Constants.StatsNames.CanDash.ToString(),
             ModifyTYPE.NEGATIVE,
@@ -382,12 +396,7 @@ private bool isDashBlocked;
     {
         if (!isDashBlocked) return;
         isDashBlocked = false;
-
-        stats.ModifyStatImmediate<bool>(
-            Constants.StatsNames.CanDash.ToString(),
-            ModifyTYPE.POSITIVE,
-            QualityTier.COMMON
-        );
+        stats.ModifyStatImmediate<bool>(Constants.StatsNames.CanDash.ToString(),ModifyTYPE.POSITIVE,QualityTier.COMMON);
     }
 
     private void BlockPlayerDashToRoutine(float duration)
@@ -413,44 +422,79 @@ private bool isDashBlocked;
         isDashBlocked = false;
     }
     #endregion
+    [Header("WALL EXIT")]
     #region === WALLRUNNING ===
+    [SerializeField] private float wallExitDuration = .5f; // duração do tempo fora da parede
+    private float wallExitTimer = -1f; // começa desativado
+
     private void WallRunningTimer()
     {
         if (!touchingWall && wallSpeedApplied)
         {
-            // saiu da parede → remove bônus
-            stats.ModifyStatImmediate<float>(
-                Constants.StatsNames.Speed.ToString(),
-                ModifyTYPE.NEGATIVE,
-                QualityTier.RARE
-            );
-            wallSpeedApplied = false;
-            UnBlockPlayerDash();
-            gravity = initialGravity;
+            if (wallExitTimer < 0f)
+            {
+                wallExitTimer = wallExitDuration;
+            }
         }
 
-        // reseta pro próximo frame
-        touchingWall = false;
+        if (wallExitTimer >= 0f)
+        {
+            wallExitTimer -= Time.deltaTime;
+
+            if (wallExitTimer <= 0f)
+            {
+                print("APLICADO: SAÍDA");
+                stats.ModifyStatImmediate<float>(
+                    Constants.StatsNames.Speed.ToString(),
+                    ModifyTYPE.NEGATIVE,
+                    QualityTier.UNCOMMON
+                );
+
+                wallSpeedApplied = false;
+                UnBlockPlayerDash();
+                gravity = initialGravity;
+
+                ResetWallExitTimer();
+            }
+        }
     }
+
+    private void ResetWallExitTimer()
+    {
+        wallExitTimer = -1;
+    }
+
+
     #endregion
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.gameObject.CompareTag(Constants.Tags.RunningWall.ToString()))
         {
             touchingWall = true;
+            currentJumpCount = 1;
+            lastWallNormal = hit.normal;
+
+            // só reseta se já estava fora da parede
+            if (wallExitTimer >= 0f)
+                ResetWallExitTimer();
 
             if (!wallSpeedApplied)
             {
+                print("APLICADO: ENTRADA");
                 stats.ModifyStatImmediate<float>(
                     Constants.StatsNames.Speed.ToString(),
                     ModifyTYPE.POSITIVE,
-                    QualityTier.RARE
+                    QualityTier.UNCOMMON
                 );
                 wallSpeedApplied = true;
                 BlockPlayerDash();
             }
 
-            gravity = -2f;
+            gravity = -3.35f;
+        }
+        else
+        {
+            touchingWall = false;
         }
 
         if (hit.gameObject.TryGetComponent(out Enemies enemy))
