@@ -396,7 +396,7 @@ private bool isDashBlocked;
     {
         if (!isDashBlocked) return;
         isDashBlocked = false;
-        stats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
+        stats.ModifyStatImmediate<bool>(Constants.StatsNames.CanDash.ToString(),ModifyTYPE.POSITIVE,QualityTier.COMMON);
     }
 
     private void BlockPlayerDashToRoutine(float duration)
