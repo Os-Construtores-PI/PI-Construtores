@@ -126,6 +126,25 @@ public class Stats
         activeModifications.RemoveAll(mod => mod.StatName == name && mod.IsTemporary);
     }
 
+    public void RemoveActiveModifications(string statName)
+    {
+        // Remove todas as mods daquele stat
+        activeModifications.RemoveAll(mod => mod.StatName == statName);
+
+        // Se for numérico, restaura pro valor inicial registrado
+        if (stats._numstats.ContainsKey(statName))
+        {
+            float baseValue = stats._numstats[statName];
+            SetStat(statName, baseValue);
+        }
+        // Se for booleano, volta para false (ou outro valor padrão que você definir)
+        else if (stats._boolstats.ContainsKey(statName))
+        {
+            SetStat(statName, false);
+        }
+    }
+
+
     // --- SET GENÉRICO ---
     public void SetStat<T>(string name, T value) where T : IComparable
     {
