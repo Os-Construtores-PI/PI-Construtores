@@ -125,7 +125,7 @@ public static class Constants
     }
     public enum Tags
     {
-        Player,Enemy
+        Player,Enemy,RunningWall
     }
 } 
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using DG.Tweening;
+using Unity.Android.Gradle.Manifest;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,6 +38,7 @@ public class Player : CombatEntities
     }
     [SerializeField] private int maxJumpCount = 2;
     [SerializeField] private float gravity = -9.81f;
+    private float initialGravity;
 
     [Header("Dash")]
     [SerializeField] private float dashSpeed = 30f;
@@ -62,6 +64,8 @@ public class Player : CombatEntities
 
     private int currentJumpCount;
     private bool isGrounded;
+    private bool wallSpeedApplied;
+    private bool touchingWall;
     private bool canDash = true;
     private bool canMove = true;
     [Stat(nameof(CanMove))]
@@ -131,6 +135,7 @@ public class Player : CombatEntities
     public override void Awake()
     {
         base.Awake();
+        initialGravity = gravity;
         SetupCamera();
         characterController = GetComponent<CharacterController>();
     }
@@ -149,6 +154,7 @@ public class Player : CombatEntities
         KnockbackTimer();
         ChangeCharacterTimer();
         AttackTimer();
+        WallRunningTimer();
     }
 
     private void FixedUpdate()
@@ -214,7 +220,7 @@ public class Player : CombatEntities
         print(charAxis +":"+ this.name);
     }
     [Header("TROCA DE JOGADOR PARÂMETROS")]
-    [SerializeField] private float ChangeCharacterCooldown;
+    [SerializeField] private float ChangeCharacterCooldown = 5f;
     private float ChangeCharacterCooldownWalker = 0.0f;
     private bool CanChangeCharacter = true;
     private void ChangeCharacterTimer()
@@ -359,17 +365,32 @@ private bool isDashBlocked;
                 isKnockbackActive = false;
         }
     }
-
-    private void OnControllerColliderHit(ControllerColliderHit hit)
+    private void BlockPlayerDash()
     {
-        if (!hit.gameObject.TryGetComponent(out Enemies enemy)) return;
+        if (isDashBlocked) return;
+        isDashBlocked = true;
 
-        Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
-        ApplyKnockback(knockbackDirection, enemy.KnockBackForce);
-        BlockPlayerDash(enemy.DashBlockDuration);
+        stats.ModifyStatImmediate<bool>(
+            Constants.StatsNames.CanDash.ToString(),
+            ModifyTYPE.NEGATIVE,
+            QualityTier.COMMON
+        );
     }
 
-    private void BlockPlayerDash(float duration)
+
+    private void UnBlockPlayerDash()
+    {
+        if (!isDashBlocked) return;
+        isDashBlocked = false;
+
+        stats.ModifyStatImmediate<bool>(
+            Constants.StatsNames.CanDash.ToString(),
+            ModifyTYPE.POSITIVE,
+            QualityTier.COMMON
+        );
+    }
+
+    private void BlockPlayerDashToRoutine(float duration)
     {
         if (isDashBlocked) return; // já está bloqueado, não chama de novo
 
@@ -392,7 +413,53 @@ private bool isDashBlocked;
         isDashBlocked = false;
     }
     #endregion
+    #region === WALLRUNNING ===
+    private void WallRunningTimer()
+    {
+        if (!touchingWall && wallSpeedApplied)
+        {
+            // saiu da parede → remove bônus
+            stats.ModifyStatImmediate<float>(
+                Constants.StatsNames.Speed.ToString(),
+                ModifyTYPE.NEGATIVE,
+                QualityTier.RARE
+            );
+            wallSpeedApplied = false;
+            UnBlockPlayerDash();
+            gravity = initialGravity;
+        }
 
+        // reseta pro próximo frame
+        touchingWall = false;
+    }
+    #endregion
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (hit.gameObject.CompareTag(Constants.Tags.RunningWall.ToString()))
+        {
+            touchingWall = true;
+
+            if (!wallSpeedApplied)
+            {
+                stats.ModifyStatImmediate<float>(
+                    Constants.StatsNames.Speed.ToString(),
+                    ModifyTYPE.POSITIVE,
+                    QualityTier.RARE
+                );
+                wallSpeedApplied = true;
+                BlockPlayerDash();
+            }
+
+            gravity = -2f;
+        }
+
+        if (hit.gameObject.TryGetComponent(out Enemies enemy))
+        {
+            Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
+            ApplyKnockback(knockbackDirection, enemy.KnockBackForce);
+            BlockPlayerDashToRoutine(enemy.DashBlockDuration);
+        }
+    }
 
     #region --- HUD & Feedback ---
 
