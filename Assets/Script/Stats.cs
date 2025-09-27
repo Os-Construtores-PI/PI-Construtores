@@ -7,13 +7,19 @@ using UnityEngine.Events;
 [Serializable]
 public class Stats
 {
+    // Listagem de modificações ativas
     private readonly List<StatModification> activeModifications = new();
 
+    // Valores atuais
     private Typestats stats = new()
     {
         _numstats = new(),
         _boolstats = new()
     };
+
+    // Valores base originais (para evitar acúmulo indesejado)
+    private Dictionary<string, float> numericBaseValues = new();
+    private Dictionary<string, bool> boolBaseValues = new();
 
     public UnityEvent<string, float> OnNumModified = new();
     public UnityEvent<string, bool> OnBoolModified = new();
@@ -24,13 +30,17 @@ public class Stats
         if (typeof(T) == typeof(float))
         {
             if (stats._numstats.ContainsKey(name)) return false;
-            stats._numstats[name] = Convert.ToSingle(value);
+            float val = Convert.ToSingle(value);
+            stats._numstats[name] = val;
+            numericBaseValues[name] = val;
             return true;
         }
         else if (typeof(T) == typeof(bool))
         {
             if (stats._boolstats.ContainsKey(name)) return false;
-            stats._boolstats[name] = Convert.ToBoolean(value);
+            bool val = Convert.ToBoolean(value);
+            stats._boolstats[name] = val;
+            boolBaseValues[name] = val;
             return true;
         }
 
@@ -40,8 +50,16 @@ public class Stats
 
     public bool RemoveStat<T>(string name) where T : IComparable
     {
-        if (typeof(T) == typeof(float)) return stats._numstats.Remove(name);
-        if (typeof(T) == typeof(bool)) return stats._boolstats.Remove(name);
+        if (typeof(T) == typeof(float))
+        {
+            numericBaseValues.Remove(name);
+            return stats._numstats.Remove(name);
+        }
+        if (typeof(T) == typeof(bool))
+        {
+            boolBaseValues.Remove(name);
+            return stats._boolstats.Remove(name);
+        }
 
         Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
         return false;
@@ -56,19 +74,24 @@ public class Stats
         if (typeof(T) == typeof(float))
         {
             if (!stats._numstats.ContainsKey(name)) return false;
-            float original = stats._numstats[name];
+
+            float original = numericBaseValues[name]; // pega valor base
             float change = original * (multiplier - 1f) * direction;
-            stats._numstats[name] += change;
+            stats._numstats[name] = original + change;
+
             OnNumModified.Invoke(name, stats._numstats[name]);
-            activeModifications.Add(new(name, tier, type, false));
+            activeModifications.Add(new StatModification(name, tier, type, false));
             return true;
         }
         else if (typeof(T) == typeof(bool))
         {
             if (!stats._boolstats.ContainsKey(name)) return false;
+
+            bool original = boolBaseValues[name]; // pega valor base
             stats._boolstats[name] = type == ModifyTYPE.POSITIVE;
+
             OnBoolModified.Invoke(name, stats._boolstats[name]);
-            activeModifications.Add(new(name, tier, type, false));
+            activeModifications.Add(new StatModification(name, tier, type, false));
             return true;
         }
 
@@ -88,10 +111,11 @@ public class Stats
         if (typeof(T) == typeof(float))
         {
             if (!stats._numstats.ContainsKey(name)) yield break;
-            float baseValue = stats._numstats[name];
-            float change = baseValue * (multiplier - 1f) * direction;
 
-            SetStat(name, baseValue + change);
+            float original = numericBaseValues[name];
+            float change = original * (multiplier - 1f) * direction;
+
+            SetStat(name, original + change);
 
             float timer = duration;
             while (timer > 0f)
@@ -101,15 +125,13 @@ public class Stats
                 yield return null;
             }
 
-            // ⚠️ Melhor: recalcular baseado no valor base em vez de restaurar "às cegas"
-            stats._numstats[name] = baseValue;
-            OnNumModified.Invoke(name, baseValue);
+            SetStat(name, original); // restaura valor base
         }
         else if (typeof(T) == typeof(bool))
         {
             if (!stats._boolstats.ContainsKey(name)) yield break;
-            bool original = stats._boolstats[name];
 
+            bool original = boolBaseValues[name];
             SetStat(name, type == ModifyTYPE.POSITIVE);
 
             float timer = duration;
@@ -126,24 +148,17 @@ public class Stats
         activeModifications.RemoveAll(mod => mod.StatName == name && mod.IsTemporary);
     }
 
+    // --- REMOVER MODIFICAÇÕES ---
     public void RemoveActiveModifications(string statName)
     {
-        // Remove todas as mods daquele stat
         activeModifications.RemoveAll(mod => mod.StatName == statName);
 
-        // Se for numérico, restaura pro valor inicial registrado
-        if (stats._numstats.ContainsKey(statName))
-        {
-            float baseValue = stats._numstats[statName];
-            SetStat(statName, baseValue);
-        }
-        // Se for booleano, volta para false (ou outro valor padrão que você definir)
-        else if (stats._boolstats.ContainsKey(statName))
-        {
-            SetStat(statName, false);
-        }
+        // restaura valor base
+        if (numericBaseValues.ContainsKey(statName))
+            SetStat(statName, numericBaseValues[statName]);
+        else if (boolBaseValues.ContainsKey(statName))
+            SetStat(statName, boolBaseValues[statName]);
     }
-
 
     // --- SET GENÉRICO ---
     public void SetStat<T>(string name, T value) where T : IComparable
@@ -184,5 +199,9 @@ public class Stats
     {
         stats._numstats = new(nums);
         stats._boolstats = new(bools);
+
+        // atualizar base values
+        numericBaseValues = new(nums);
+        boolBaseValues = new(bools);
     }
 }

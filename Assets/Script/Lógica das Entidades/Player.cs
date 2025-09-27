@@ -293,10 +293,11 @@ public class Player : CombatEntities
         {
             float multiplier = Mathf.Max(1f - 0.3f * currentJumpCount, 0.2f);
 
-            if (touchingWall) // se estiver na parede → usa vetor médio
+            if (touchingWall) // se estiver na parede → usa vetor mais horizontal
             {
-                Vector3 jumpDir = (Vector3.up + lastWallNormal).normalized;
-                movementVector = jumpForce * multiplier * jumpDir;
+                float horizontalBias = 3.5f; // quanto maior, mais horizontal
+                Vector3 jumpDir = (Vector3.up + lastWallNormal * horizontalBias).normalized;
+                movementVector = jumpForce * 3 * multiplier * jumpDir;
                 touchingWall = false; // evita repetir
             }
             else // pulo normal
@@ -397,6 +398,7 @@ private bool isDashBlocked;
         if (!isDashBlocked) return;
         isDashBlocked = false;
         stats.ModifyStatImmediate<bool>(Constants.StatsNames.CanDash.ToString(),ModifyTYPE.POSITIVE,QualityTier.COMMON);
+        stats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
     }
 
     private void BlockPlayerDashToRoutine(float duration)
@@ -424,7 +426,7 @@ private bool isDashBlocked;
     #endregion
     [Header("WALL EXIT")]
     #region === WALLRUNNING ===
-    [SerializeField] private float wallExitDuration = .5f; // duração do tempo fora da parede
+    [SerializeField] private float wallExitDuration = .2f; // duração do tempo fora da parede
     private float wallExitTimer = -1f; // começa desativado
 
     private void WallRunningTimer()
@@ -443,18 +445,11 @@ private bool isDashBlocked;
 
             if (wallExitTimer <= 0f)
             {
-                print("APLICADO: SAÍDA");
-                stats.ModifyStatImmediate<float>(
-                    Constants.StatsNames.Speed.ToString(),
-                    ModifyTYPE.NEGATIVE,
-                    QualityTier.UNCOMMON
-                );
-
+                stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // reseta pro base
                 wallSpeedApplied = false;
+                touchingWall = false;
                 UnBlockPlayerDash();
                 gravity = initialGravity;
-
-                ResetWallExitTimer();
             }
         }
     }
@@ -480,7 +475,7 @@ private bool isDashBlocked;
 
             if (!wallSpeedApplied)
             {
-                print("APLICADO: ENTRADA");
+                stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // garante que não acumule
                 stats.ModifyStatImmediate<float>(
                     Constants.StatsNames.Speed.ToString(),
                     ModifyTYPE.POSITIVE,
@@ -490,7 +485,7 @@ private bool isDashBlocked;
                 BlockPlayerDash();
             }
 
-            gravity = -3.35f;
+            gravity = -3.5f;
         }
         else
         {
