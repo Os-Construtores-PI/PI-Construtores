@@ -13,20 +13,24 @@ public class PlayerDirector : MonoBehaviour
     [Header("Prefabs de HUD e Câmera")]
     [SerializeField] private GameObject hudPrefab;
     [SerializeField] private string hudCanvasParent = "Canvas";
+    
     [SerializeField] private GameObject mainCameraPrefab;
     [SerializeField] private GameObject freeLookPrefab;
+    [SerializeField] private GameObject _pauseMenuPrefab;
 
     [Header("Referências de cena")]
     [SerializeField] private HUDDirector hudDirector;
 
     private ManualPlayersSpawner playersSpawner;
     private Transform hudParent;
+    
 
     private List<Player> allPlayers = new List<Player>();
 
     // Referências instanciadas
     private Dictionary<int, GameObject> playerHUDInstances = new();
     private Dictionary<int, GameObject> playerCameras = new();
+    private GameObject _pauseMenuInstance;
 
     private void Awake()
     {
@@ -39,7 +43,50 @@ public class PlayerDirector : MonoBehaviour
         else
             Debug.LogError($"Canvas '{hudCanvasParent}' não encontrado na cena!");
 
+        if (_pauseMenuPrefab)
+        {
+            try
+            {
+                if (hudParent != null)
+                {
+                    // false -> mantém a posição/escala local do prefab correta dentro do canvas
+                    _pauseMenuInstance = Instantiate(_pauseMenuPrefab, hudParent, false);
+                }
+                else
+                {
+                    // fallback sem parent 
+                    _pauseMenuInstance = Instantiate(_pauseMenuPrefab);
+                }
+
+                // garante que comece desativado
+                _pauseMenuInstance.SetActive(false);
+
+                Debug.Log("[PlayerDirector] PauseMenu instanciado com sucesso.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"PlayerDirector: falha ao instanciar PauseMenuPrefab: {ex.Message}");
+            }
+        }
+        else
+        {
+            Debug.Log("[PlayerDirector] pauseMenuPrefab não foi atribuido ao Inspector. Nenhum PauseMenu será instanciado");
+        }
+
+
+
+
         CacheAllPlayers();
+
+    }
+
+    private void Start()
+    {
+        if (_pauseMenuPrefab != null)
+        {
+            GameObject pauseInstance = Instantiate(_pauseMenuPrefab);
+            pauseInstance.tag = "PauseMenu"; // garante que o PauseDirector vai achar
+        }
     }
 
     private void CacheAllPlayers()
@@ -63,7 +110,21 @@ public class PlayerDirector : MonoBehaviour
                 ActivateMultiplayer();
                 break;
         }
+        // Garante que o PauseMenu só é instanciado uma vez
+
+        if (_pauseMenuInstance == null && _pauseMenuPrefab != null)
+        {
+            if (hudParent != null)
+                _pauseMenuInstance = Instantiate(_pauseMenuPrefab, hudParent, false);
+            else
+                _pauseMenuInstance = Instantiate(_pauseMenuPrefab);
+
+            _pauseMenuInstance.SetActive(false);
+            Debug.Log("[PlayerDirector] PauseMenu instanciado no ActivePlaers (fallback)");
+            
+        }
     }
+        
 
     private void ActivateSinglePlayer()
     {

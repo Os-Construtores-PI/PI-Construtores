@@ -3,7 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class PauseDirector : MonoBehaviour
 {
-    public GameObject pauseMenuUI; // painel do pause
+    [SerializeField] public GameObject pauseMenuUI; // painel do pause
+    [SerializeField] private string pauseMenuTag = "PauseMenu"; // Tag para identificar o painel
     public string _mainMenuSceneName = "MainMenu"; // nome da cena principal
 
 
@@ -14,8 +15,19 @@ public class PauseDirector : MonoBehaviour
 
     private void Start()
     {
-        if (pauseMenuUI != null)
+        GameObject foundPause = GameObject.FindGameObjectWithTag(pauseMenuTag);
+
+        if (foundPause != null)
+        {
+
+            pauseMenuUI = foundPause;
             pauseMenuUI.SetActive(false);
+        }
+            
+        else
+        {
+            Debug.LogWarning($"[PauseDirector] nenhum objeto com a TAG '{pauseMenuTag}' foi encontrado");
+        }
     }
     void Update()
     {
@@ -46,15 +58,15 @@ public class PauseDirector : MonoBehaviour
         Time.timeScale = 0f;
         _isPause=true;
 
-        // libera o cursor para clicar nos botões
+        // libera o cursor para clicar nos botï¿½es
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
     public void OpenOptions()
     {
-        Debug.Log("Abrir opções ... (implementar menu de opções aqui)");
-        // aqui você pode abrir outro painel ou cena de opções
+        Debug.Log("Abrir opï¿½ï¿½es ... (implementar menu de opï¿½ï¿½es aqui)");
+        // aqui vocï¿½ pode abrir outro painel ou cena de opï¿½ï¿½es
     }
 
     public void LoadMainMenu()

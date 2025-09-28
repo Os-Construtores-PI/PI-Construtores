@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2583986465391690477}
   m_Layer: 0
   m_Name: Panel-Pause
-  m_TagString: Untagged
+  m_TagString: PauseMenu
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -115,7 +115,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 16, y: 112}
-  m_SizeDelta: {x: 400, y: 400}
+  m_SizeDelta: {x: 400.84, y: 184}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3005361163780786230
 CanvasRenderer:
@@ -174,7 +174,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -184,10 +184,10 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
+    m_HighlightedSprite: {fileID: 2082295552, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_PressedSprite: {fileID: 2082295552, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_SelectedSprite: {fileID: 2082295552, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_DisabledSprite: {fileID: 2082295552, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
   m_AnimationTriggers:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
@@ -247,7 +247,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -71}
-  m_SizeDelta: {x: 400, y: 400}
+  m_SizeDelta: {x: 400, y: 169.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6372286296474640176
 CanvasRenderer:
@@ -306,7 +306,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -316,10 +316,10 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
+    m_HighlightedSprite: {fileID: 1364672342, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_PressedSprite: {fileID: 1364672342, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_SelectedSprite: {fileID: 1364672342, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_DisabledSprite: {fileID: 1364672342, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
   m_AnimationTriggers:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
@@ -430,7 +430,7 @@ GameObject:
   - component: {fileID: 3764635694579077365}
   m_Layer: 0
   m_Name: CanvasPause
-  m_TagString: Canvas
+  m_TagString: PauseMenu
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -444,7 +444,7 @@ Transform:
   m_GameObject: {fileID: 6743088158827448549}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 55.47141, y: 8.978519, z: 34.069717}
+  m_LocalPosition: {x: 55.47141, y: 42, z: 34.069717}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -464,6 +464,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pauseMenuUI: {fileID: 2659759034705305538}
+  pauseMenuTag: PauseMenu
   _mainMenuSceneName: MenuGame
   _isPause: 0
 --- !u!1 &7804723831201609578
@@ -502,7 +503,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -266}
-  m_SizeDelta: {x: 400, y: 400}
+  m_SizeDelta: {x: 400, y: 213.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6309819184728433121
 CanvasRenderer:
@@ -561,7 +562,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -571,10 +572,10 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
+    m_HighlightedSprite: {fileID: 1724474993, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_PressedSprite: {fileID: 1724474993, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_SelectedSprite: {fileID: 1724474993, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
+    m_DisabledSprite: {fileID: 1724474993, guid: 8334ee444c421544ebf7be06eebd6bad, type: 3}
   m_AnimationTriggers:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
@@ -612,7 +613,7 @@ GameObject:
   - component: {fileID: 4959086903077245658}
   m_Layer: 0
   m_Name: Canvas
-  m_TagString: Canvas
+  m_TagString: PauseMenu
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
