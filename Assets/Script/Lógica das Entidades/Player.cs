@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
-[RequireComponent(typeof(Animation))]
+[RequireComponent(typeof(Animator))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
@@ -36,6 +36,7 @@ public class Player : CombatEntities
         get => jumpForce;
         set => jumpForce = value;
     }
+    
     [SerializeField] private int maxJumpCount = 2;
     [SerializeField] private float gravity = -9.81f;
     private float initialGravity;
@@ -156,7 +157,7 @@ public class Player : CombatEntities
         ChangeCharacterTimer();
         AttackTimer();
         WallRunningTimer();
-        print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
+        //print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
     }
 
     private void FixedUpdate()
