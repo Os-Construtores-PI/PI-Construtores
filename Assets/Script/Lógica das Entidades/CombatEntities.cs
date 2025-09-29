@@ -112,7 +112,6 @@ public abstract class CombatEntities : LiveEntities
         _healthHUD = hud;
         _OnHealthChanged.AddListener(_healthHUD.UpdateDotSlider);
         _healthHUD.UpdateDotSlider(Health / MaxHealth);
-        print($"Health ({Health} /  MaxHealth ({MaxHealth} = {Health/MaxHealth}))");
         UpdateHUDVisibility(gameObject.activeInHierarchy);
     }
 
