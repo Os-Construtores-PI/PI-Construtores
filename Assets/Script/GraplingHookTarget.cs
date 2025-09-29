@@ -25,7 +25,7 @@ IEnumerator Cutscene(InfoPlayerInteraction info)
     float duration = distance / grapplingSpeed;
 
     // Evento de cutscene
-    GlobalEventBus.Instance.TriggeredCinematic.Invoke(playerscript.ID,duration);
+    GlobalEventBus.Instance.TRIGGEREDCINEMATIC.Invoke(playerscript.ID,duration);
 
     // Desativa o controle do player
     playerscript.Charactercontroller.enabled = false;
