@@ -30,7 +30,7 @@ public class LoadDirector : MonoBehaviour
         else
         {
             Debug.Log($"[LoadDirector] Slot {index} vazio. Iniciando primeira fase (DebugScene).");
-            SceneManager.LoadScene(Constants.SceneNames.DebugScene);
+            SceneManager.LoadScene(Constants.SceneNames.Fase0);
         }
     }
 }

@@ -48,9 +48,9 @@ public class HurtboxComponent : MonoBehaviour
         float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
 
         // Aplica dano reduzido pela defesa
-        print("VIDA: " + entity.Health);
+        print("VIDA (ANTES): " + entity.Health);
         entity.Health -= hitbox.Damage * (1 - factor);
-        print("VIDA: " + entity.Health);
+        print("VIDA (DEPOIS): " + entity.Health);
         entity.Damaged = true;
 
         // Ativa cooldown

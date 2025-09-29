@@ -30,7 +30,8 @@ public class Pandora : Player
     {
         if (base.Attack())
         {
-            print("PANDORA ATAQUE");
+            print("ATAQUE");
+            animatorComp.SetTrigger("Attack");
             return true;
         }
         return false;
