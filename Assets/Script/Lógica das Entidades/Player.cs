@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
-[RequireComponent(typeof(Animation))]
+[RequireComponent(typeof(Animator))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
@@ -46,13 +46,15 @@ public class Player : CombatEntities
     [SerializeField] private float dashCooldown = 5f;
 
     [Header("Componentes")]
-    [SerializeField] private CharacterController characterController;
+    [SerializeField] protected CharacterController characterController;
     public CharacterController Charactercontroller => characterController;
-    [SerializeField] private CinemachineCamera cinemachineCamera;
+    [SerializeField] protected CinemachineCamera cinemachineCamera;
     public void SetCinemachineCamera(CinemachineCamera cam)
     {
         cinemachineCamera = cam;
     }
+    [SerializeField] protected Animator animatorComp;
+    public Animator AnimatorComp => animatorComp;
 
     #endregion
 
@@ -138,6 +140,7 @@ public class Player : CombatEntities
         base.Awake();
         initialGravity = gravity;
         characterController = GetComponent<CharacterController>();
+        animatorComp = GetComponent<Animator>();
         SetupCamera();
     }
 

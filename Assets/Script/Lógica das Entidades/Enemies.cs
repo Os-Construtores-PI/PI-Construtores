@@ -40,8 +40,6 @@ public abstract class Enemies : CombatEntities
     public float DashBlockDuration => _dashBlockDuration;
 
 
-
-
     public override void Start()
     {
         base.Start();
