@@ -23,22 +23,21 @@ public class HUDDirector : MonoBehaviour
     #region Unity Events
     private void OnEnable()
     {
-        print(GlobalEventBus.HasInstance);
         if (!GlobalEventBus.HasInstance) return;
-        GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
-        GlobalEventBus.Instance.TriggeredCinematic.AddListener(TriggerCinematicBars);
-        GlobalEventBus.Instance.AmethystsAmountChanged.AddListener(UpdateAmethysts);
-        GlobalEventBus.Instance.TriggeredTeleport.AddListener(TeleportFade);
+        GlobalEventBus.Instance.OBJECTWASSEEN.AddListener(InteractionPopup);
+        GlobalEventBus.Instance.TRIGGEREDCINEMATIC.AddListener(TriggerCinematicBars);
+        GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateAmethysts);
+        GlobalEventBus.Instance.TRIGGEREDTELEPORT.AddListener(TeleportFade);
     }
 
     private void OnDisable()
     {
         if (!GlobalEventBus.HasInstance) return;
 
-        GlobalEventBus.Instance.ObjectWasSeen.RemoveListener(InteractionPopup);
-        GlobalEventBus.Instance.TriggeredCinematic.RemoveListener(TriggerCinematicBars);
-        GlobalEventBus.Instance.AmethystsAmountChanged.RemoveListener(UpdateAmethysts);
-        GlobalEventBus.Instance.TriggeredTeleport.RemoveListener(TeleportFade);
+        GlobalEventBus.Instance.OBJECTWASSEEN.RemoveListener(InteractionPopup);
+        GlobalEventBus.Instance.TRIGGEREDCINEMATIC.RemoveListener(TriggerCinematicBars);
+        GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateAmethysts);
+        GlobalEventBus.Instance.TRIGGEREDTELEPORT.RemoveListener(TeleportFade);
     }
 
     private void Start()
@@ -228,7 +227,6 @@ public class HUDDirector : MonoBehaviour
     #region Teleport
     private void TeleportFade(int ID)
     {
-        print("TELEPORTE FUNÇÃO FUNCIONANDO");
         StartCoroutine(TeleportFadeRoutine(ID));
     }
     private IEnumerator TeleportFadeRoutine(int playerID)

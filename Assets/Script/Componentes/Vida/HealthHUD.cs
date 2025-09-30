@@ -22,16 +22,19 @@ public class HealthHUDComponent : MonoBehaviour
     public List<Image> _healthImages; // arraste as imagens aqui
 
 
-    
+
     private void Awake()
     {
         DOTween.Init();
 
         if (_slider != null)
+        {
             _slider.value = 1f;
-       // _slider = GetComponent<Slider>();
+        }
+        _slider = GetComponent<Slider>();
     }
-    
+
+
     public void BindToPlayer(Player player)
     {
         if (player == null) return;
@@ -40,56 +43,16 @@ public class HealthHUDComponent : MonoBehaviour
 
 
         float percent = (float)player.Health / player.MaxHealth;
-        UptadeHealthImagens(percent);
+        UpdateHealthImagens(percent);
 
         player._OnHealthChanged.AddListener((value) =>
         {
             float hpPercent = (float)value / player.MaxHealth;
-            UptadeHealthImagens(value);
+            UpdateHealthImagens(value);
         });
 
 
 
-    }
-
-    private void InitializePlayerHUD()
-    {
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        foreach (GameObject player in players)
-        {
-            if (player.TryGetComponent(out Player playerref) && playerref.ID == IdHealth)
-            {
-                // _slider.DOValue(playerref.Health / playerref.MaxHealth,.5f);
-                float value = playerref.Health / playerref.MaxHealth;
-                _slider.DOValue(value, .5f);
-                 //UptadeHealthImagens(value);
-                break;
-
-            }
-        }
-    }   
-
-    private void InitializeEnemyHUD()
-    {
-        if (EnemyTarget == null)
-        {
-            Debug.LogWarning($"{gameObject.name}: EnemyTarget não definido.");
-            return;
-        }
-
-        GameObject enemyObject = EnemyTarget.parent ? EnemyTarget.parent.gameObject : null;
-        if (enemyObject == null)
-        {
-            Debug.LogWarning($"{gameObject.name}: EnemyTarget não tem pai.");
-            return;
-        }
-
-        if (enemyObject.TryGetComponent(out CombatEntities combat) && combat.ID == IdHealth)
-        {
-            float value = combat.Health / combat.MaxHealth;
-            _slider.value = value;
-           // UptadeHealthImagens(value);
-        }
     }
 
     private void LateUpdate()
@@ -145,12 +108,12 @@ public class HealthHUDComponent : MonoBehaviour
     /// <summary>
     /// Atualiza suavemente o valor do slider da barra de vida
     /// </summary>
-    
 
-    public void UptadeHealthImagens(float healthPercent)
+
+    public void UpdateHealthImagens(float healthPercent)
     {
         if (_healthImages == null || _healthImages.Count == 0) return;
-        
+
         int vidaInt = Mathf.FloorToInt(healthPercent * _healthImages.Count);
 
         if (vidaInt == _lastHealth) return;
@@ -179,6 +142,9 @@ public class HealthHUDComponent : MonoBehaviour
                 .SetEase(Ease.OutQuad);
         }
     }
-
+    public void UpdateDotSlider(float healthPercent)
+    {
+        _slider.DOValue(healthPercent,.35f);
+    }
     
 }

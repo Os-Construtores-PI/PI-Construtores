@@ -33,7 +33,7 @@ public class Portal : MonoBehaviour
         victim.transform.rotation = targetExit.rotation; // opcional, mantém orientação
         victim.Charactercontroller.enabled = true;
 
-        GlobalEventBus.Instance.TriggeredTeleport.Invoke(victim.ID);
+        GlobalEventBus.Instance.TRIGGEREDTELEPORT.Invoke(victim.ID);
     }
 
     public GameObject GetDestiny() => destiny.gameObject;

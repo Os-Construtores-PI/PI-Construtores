@@ -15,7 +15,7 @@ public class Ruska : Player
         }
 
         interactableRef = interactionObject;
-        GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, interactionObject, ID);
+        GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, interactionObject, ID);
         return true;
     }
     

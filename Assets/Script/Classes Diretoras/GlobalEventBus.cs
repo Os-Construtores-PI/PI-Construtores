@@ -25,10 +25,11 @@ public class GlobalEventBus : MonoBehaviour
     public static bool HasInstance => _instance != null;
 
     #region Events
-    public readonly UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
-    public readonly UnityEvent<int, float> TriggeredCinematic = new();
-    public readonly UnityEvent<int> TriggeredTeleport = new();
-    public readonly UnityEvent<int> AmethystsAmountChanged = new();
+    public readonly UnityEvent<bool, InteractableObject, int> OBJECTWASSEEN = new();
+    public readonly UnityEvent<int, float> TRIGGEREDCINEMATIC = new();
+    public readonly UnityEvent<int> TRIGGEREDTELEPORT = new();
+    public readonly UnityEvent<Player> PLAYERTRIGGEREDDEATH = new();
+    public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
     #endregion
 
     #region Unity Lifecycle
