@@ -517,7 +517,7 @@ public class Player : CombatEntities
             if (hudObj.TryGetComponent(out HealthHUDComponent hud) && hud.IdHealth == ID && hud.HUDType == HealthHUDType.PLAYER)
             {
                 _healthHUD = hud;
-                _OnHealthChanged.AddListener(hud.UpdateHealthImagens);
+                _OnHealthChanged.AddListener(hud.UpdateDotSlider);
                 break;
             }
         }

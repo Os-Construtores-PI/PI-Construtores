@@ -16,10 +16,9 @@ public class HealthHUDComponent : MonoBehaviour
 
     public Slider _slider;
     private Camera _cachedCamera;
-    private int _lastHealth = -1; // não atualiza atoa
+    
 
-    [Header("Imagens da Vida(Opcional)")]
-    public List<Image> _healthImages; // arraste as imagens aqui
+    
 
 
 
@@ -27,11 +26,15 @@ public class HealthHUDComponent : MonoBehaviour
     {
         DOTween.Init();
 
+        if (_slider == null)
+            _slider = GetComponent<Slider>();
+
         if (_slider != null)
         {
-            _slider.value = 1f;
+            _slider.minValue = 0f;
+            _slider.maxValue = 1f;
+            _slider.value = 1f; // vida cheia no inicio
         }
-        _slider = GetComponent<Slider>();
     }
 
 
@@ -41,19 +44,21 @@ public class HealthHUDComponent : MonoBehaviour
         IdHealth = player.ID;
         // Atualiza o slider imediatamente
 
-
+        // atualiza o slider imediatamente
         float percent = (float)player.Health / player.MaxHealth;
-        UpdateHealthImagens(percent);
+        UpdateDotSlider(percent);
 
+        // Sempre que a vida mudar -> atualiza o slider
         player._OnHealthChanged.AddListener((value) =>
         {
             float hpPercent = (float)value / player.MaxHealth;
-            UpdateHealthImagens(value);
+            UpdateDotSlider(hpPercent);
         });
-
-
-
+        
     }
+
+
+
 
     private void LateUpdate()
     {
@@ -110,41 +115,20 @@ public class HealthHUDComponent : MonoBehaviour
     /// </summary>
 
 
-    public void UpdateHealthImagens(float healthPercent)
-    {
-        if (_healthImages == null || _healthImages.Count == 0) return;
-
-        int vidaInt = Mathf.FloorToInt(healthPercent * _healthImages.Count);
-
-        if (vidaInt == _lastHealth) return;
-
-
-        bool tomouDano = vidaInt < _lastHealth;
-        _lastHealth = vidaInt;
-
-        for (int i = 0; i < _healthImages.Count; i++)
-        {
-            if (i < vidaInt)
-            {
-                _healthImages[i].DOFade(1f, 0.3f);
-            }
-            else
-            {
-                _healthImages[i].DOFade(0f, 0.3f);
-            }
-        }
-
-        if (tomouDano)
-        {
-            transform.DOKill();
-
-            transform.DOShakePosition(0.3f, strength: new Vector3(10f, 10f, 0f), vibrato: 15, randomness: 90, snapping: false, fadeOut: true)
-                .SetEase(Ease.OutQuad);
-        }
-    }
+    
     public void UpdateDotSlider(float healthPercent)
     {
-        _slider.DOValue(healthPercent,.35f);
+        if (_slider == null) return;
+        
+        // Tween suave do valor atual para o novo
+        _slider.DOValue(healthPercent, 0.35f).SetEase(Ease.OutQuad);
+
+        // Tremor da HUD se tomou dano
+        if(healthPercent < _slider.value)
+        {
+            transform.DOKill();
+            transform.DOShakePosition(0.3f, strength: new Vector3(10f, 10f, 0f), vibrato: 15, randomness: 90, snapping: false, fadeOut: true).SetEase(Ease.OutQuad);
+        }
     }
     
 }
