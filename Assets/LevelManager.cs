@@ -2,15 +2,15 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    DataSystem dataSystem;
+    private void Start()
     {
-        
+        dataSystem = FindAnyObjectByType<DataSystem>();
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(Respawn);
     }
-
-    // Update is called once per frame
-    void Update()
+    private void Respawn(Player player)
     {
-        
+        if (!dataSystem) return;
+        dataSystem.RespawnPlayer(player, GameContext.currentSlot);
     }
 }

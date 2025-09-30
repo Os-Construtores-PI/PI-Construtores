@@ -122,7 +122,7 @@ public class Player : CombatEntities
         int oldValue = amethysts;
 
         amethysts = Mathf.Max(0, value); // evita negativo
-        GlobalEventBus.Instance.AmethystsAmountChanged.Invoke(amethysts);
+        GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts);
     }
     public void AddAmethysts(int amount) => SetAmethysts(amethysts + amount);
     public bool SpendAmethysts(int amount)
@@ -159,7 +159,7 @@ public class Player : CombatEntities
         ChangeCharacterTimer();
         AttackTimer();
         WallRunningTimer();
-       // print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
+        // print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
     }
 
     private void FixedUpdate()
@@ -222,7 +222,7 @@ public class Player : CombatEntities
     public void OnChangeCharacter(InputAction.CallbackContext context)
     {
         float charAxis = context.ReadValue<float>();
-        print(charAxis +":"+ name);
+        print(charAxis + ":" + name);
     }
     [Header("TROCA DE JOGADOR PARÂMETROS")]
     [SerializeField] private float ChangeCharacterCooldown = 5f;
@@ -356,12 +356,12 @@ public class Player : CombatEntities
 
     #endregion
 
-#region --- KNOCKBACK ---
-private Vector3 knockbackVelocity;
-private readonly float knockbackDuration = 0.2f;
-private float knockbackTimer;
-private bool isKnockbackActive;
-private bool isDashBlocked;
+    #region --- KNOCKBACK ---
+    private Vector3 knockbackVelocity;
+    private readonly float knockbackDuration = 0.2f;
+    private float knockbackTimer;
+    private bool isKnockbackActive;
+    private bool isDashBlocked;
 
     public void ApplyKnockback(Vector3 direction, float force)
     {
@@ -400,7 +400,7 @@ private bool isDashBlocked;
     {
         if (!isDashBlocked) return;
         isDashBlocked = false;
-        stats.ModifyStatImmediate<bool>(Constants.StatsNames.CanDash.ToString(),ModifyTYPE.POSITIVE,QualityTier.COMMON);
+        stats.ModifyStatImmediate<bool>(Constants.StatsNames.CanDash.ToString(), ModifyTYPE.POSITIVE, QualityTier.COMMON);
         stats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
     }
 
@@ -517,7 +517,7 @@ private bool isDashBlocked;
             if (hudObj.TryGetComponent(out HealthHUDComponent hud) && hud.IdHealth == ID && hud.HUDType == HealthHUDType.PLAYER)
             {
                 _healthHUD = hud;
-                _OnHealthChanged.AddListener(hud.UptadeHealthImagens);
+                _OnHealthChanged.AddListener(hud.UpdateHealthImagens);
                 break;
             }
         }
@@ -528,7 +528,7 @@ private bool isDashBlocked;
         }
     }
 
-    
+
 
 
 
@@ -599,7 +599,7 @@ private bool isDashBlocked;
     protected void ClearInteractable()
     {
         interactableRef = null;
-        GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
+        GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
     }
 
     private void ObjectScanTimer()
@@ -665,5 +665,12 @@ private bool isDashBlocked;
         }
     }
     #endregion
+    #region === DEATH ===
+    public override void DeathHandler()
+    {
+        base.DeathHandler();
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke(this);
+    }
 
+    #endregion
 }

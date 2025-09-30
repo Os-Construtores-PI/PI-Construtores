@@ -32,7 +32,7 @@ public class DataSystem : MonoBehaviour
         players.AddRange(FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
         droppedItems.Clear();
         droppedItems.AddRange(FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
-        Debug.Log($"[DataSystem] Encontrados {players.Count} players e {droppedItems.Count} itens dropados na cena.");
+        Debug.LogWarning($"[DataSystem] Encontrados {players.Count} players e {droppedItems.Count} itens dropados na cena.");
     }
 
 
@@ -132,12 +132,14 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
 
         if (!IsValidSlot(slotIndex))
         {
+            Debug.LogWarning($"[RespawnRoutine] Slot {slotIndex} não é válido.");
             yield break;
         }
 
         var gameData = GetGameData();
         if (gameData == null)
         {
+            Debug.LogWarning($"[RespawnRoutine] Slot {slotIndex} não possui GameData salvo.");
             yield break;
         }
 
@@ -155,6 +157,7 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
             int playerIndex = players.IndexOf(player);
             if (playerIndex < 0 || playerIndex >= levelData.savedPlayers.Count)
             {
+                Debug.LogWarning($"[RespawnRoutine] Player não encontrado.");
                 yield break;
             }
             pdata = levelData.savedPlayers[playerIndex];
@@ -171,7 +174,6 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
         // ---- APLICAR POSIÇÃO E VIDA ----
         player.transform.position = pdata.position;
         player.Health = pdata.health;
-
         // ---- RESTAURAR INVENTÁRIO ----
         player.Inventory.ClearItems();
         foreach (var item in pdata.inventory)

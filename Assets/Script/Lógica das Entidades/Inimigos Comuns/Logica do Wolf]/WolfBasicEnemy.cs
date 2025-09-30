@@ -189,8 +189,7 @@ public class WolfBasicEnemy : Enemies
         toPlayer.y = 0;
         Vector3 disered = transform.position + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude + 0.5f);
 
-        NavMeshHit _hit;
-        if (NavMesh.SamplePosition(disered, out _hit, 1.0f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(disered, out NavMeshHit _hit, 1.0f, NavMesh.AllAreas))
             disered = _hit.position;
 
         disered.y = transform.position.y;
@@ -201,18 +200,12 @@ public class WolfBasicEnemy : Enemies
         _currentTweener = transform.DOMove(disered, _rushDuration).SetEase(_rushEase);
 
         float elapsed = 0f;
-        bool hitPlayer = false;
 
         while (elapsed < _rushDuration)
         {
             if (playerTransform == null) break;
 
             float d = Vector3.Distance(transform.position, playerTransform.position);
-            if (d <= _hitRadiusDuringRush)
-            {
-                hitPlayer = true;
-                break;
-            }
 
             elapsed += Time.deltaTime;
             yield return null;
@@ -220,13 +213,6 @@ public class WolfBasicEnemy : Enemies
 
         if (_currentTweener != null && _currentTweener.IsActive())
             _currentTweener.Kill(true);
-
-        if (hitPlayer && playerTransform != null)
-        {
-            CombatEntities playerEntities = playerTransform.GetComponent<CombatEntities>();
-            if (playerEntities != null)
-                playerEntities.ReceiveDamage(_attackDamage, transform);
-        }
 
         yield return new WaitForSeconds(0.05f);
 

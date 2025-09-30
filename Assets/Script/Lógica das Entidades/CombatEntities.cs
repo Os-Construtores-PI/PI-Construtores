@@ -110,8 +110,8 @@ public abstract class CombatEntities : LiveEntities
         if (hud == null) return;
 
         _healthHUD = hud;
-        _OnHealthChanged.AddListener(_healthHUD.UptadeHealthImagens);
-        _healthHUD.UptadeHealthImagens(Health / _maxHealth);
+        _OnHealthChanged.AddListener(_healthHUD.UpdateDotSlider);
+        _healthHUD.UpdateDotSlider(Health / MaxHealth);
         UpdateHUDVisibility(gameObject.activeInHierarchy);
     }
 
@@ -133,19 +133,6 @@ public abstract class CombatEntities : LiveEntities
         {
             _healthHUD.gameObject.SetActive(isActive);
         }
-    }
-
-    public virtual void ReceiveDamage(float amount, Transform attacker = null)
-    {
-        Health -= amount;
-        Damaged = true;
-        _OnDamage?.Invoke();
-
-        if(Health <= 0)
-        {
-            DeathHandler();
-        }
-    }
-    
+    }    
     #endregion
 }
