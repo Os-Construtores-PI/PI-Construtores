@@ -55,6 +55,17 @@ public class StartLogic : MonoBehaviour
             // se não tiver filhos, destrói direto
             Destroy(gameObject);
         }
+
+        var dialogue = FindAnyObjectByType<TutorialDIalogos>();
+        if(dialogue != null)
+        {
+            dialogue.StartDialogue();
+        }
+        else
+        {
+            Debug.LogWarning("[StartLogic] TutorialDialogue não encontrado na cena. Verifique se DialogueManager existe e está ativo.");
+
+        }
     }
 
     private void SpawnPlayer()
