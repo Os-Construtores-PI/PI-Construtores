@@ -12,6 +12,7 @@ public class Portal : MonoBehaviour
     private void Start()
     {
         SetupColors();
+        SetupParticles();
         // Pega o filho "Destiny" do portal atual
         exitPoint = transform.Find("Destiny");
         if (exitPoint == null)
@@ -21,14 +22,22 @@ public class Portal : MonoBehaviour
     private void SetupColors()
     {
         GameObject portal = transform.Find("Portal").gameObject;
-        MeshRenderer _meshRenderer = portal.GetComponent<MeshRenderer>();
-        Material _material = _meshRenderer.material;
-        if (!_material || !_meshRenderer)
+        MeshRenderer meshRenderer = portal.GetComponent<MeshRenderer>();
+        Material material = meshRenderer.material;
+        if (material && meshRenderer)
         {
-            _material.SetColor("_PortalColor", outerColor);
-            _material.SetColor("_PortalColor2",midColor);
-            _material.SetColor("_PortalColor3",centerColor);
-            print("RODANDO");
+            material.SetColor("_PortalColor", outerColor);
+            material.SetColor("_PortalColor2", midColor);
+            material.SetColor("_PortalColor3", centerColor);
+        }
+    }
+    private void SetupParticles()
+    {
+        ParticleSystem particles = GetComponentInChildren<ParticleSystem>();
+        if (particles)
+        {
+            var main = particles.main;
+            main.startColor = centerColor;
         }
     }
     private void OnTriggerEnter(Collider col)

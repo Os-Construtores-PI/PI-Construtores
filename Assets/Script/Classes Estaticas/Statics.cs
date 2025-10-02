@@ -95,6 +95,7 @@ public static class Constants
     {
         public static readonly string DebugScene = "Cena Debug";
         public static readonly string Fase0 = "Fase0";
+        public static readonly string MenuScene = "MainMenu";
     }
     public static class Values
     {
