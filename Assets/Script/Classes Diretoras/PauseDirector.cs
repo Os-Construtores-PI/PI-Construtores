@@ -32,8 +32,12 @@ public class PauseDirector : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Tab))
         {
-            SetPause(!isPaused);
+            TogglePause();
         }
+    }
+    private void TogglePause()
+    {
+        SetPause(!IsPaused);
     }
     public void SetPause(bool setPause)
     {
