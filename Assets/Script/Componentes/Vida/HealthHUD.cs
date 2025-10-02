@@ -16,9 +16,14 @@ public class HealthHUDComponent : MonoBehaviour
 
     public Slider _slider;
     private Camera _cachedCamera;
+
+    private float _lastPercent = -1; // guarda o último valor da vida
     
 
-    
+    //----------------
+
+
+    //---------------------
 
 
 
@@ -34,6 +39,7 @@ public class HealthHUDComponent : MonoBehaviour
             _slider.minValue = 0f;
             _slider.maxValue = 1f;
             _slider.value = 1f; // vida cheia no inicio
+            _lastPercent = 1f;
         }
     }
 
@@ -42,11 +48,11 @@ public class HealthHUDComponent : MonoBehaviour
     {
         if (player == null) return;
         IdHealth = player.ID;
-        // Atualiza o slider imediatamente
+        
 
-        // atualiza o slider imediatamente
-        float percent = (float)player.Health / player.MaxHealth;
-        UpdateDotSlider(percent);
+        if (_slider == null)
+            _slider = GetComponent<Slider>();
+       
 
         // Sempre que a vida mudar -> atualiza o slider
         player._OnHealthChanged.AddListener((value) =>
@@ -118,17 +124,43 @@ public class HealthHUDComponent : MonoBehaviour
     
     public void UpdateDotSlider(float healthPercent)
     {
+        
         if (_slider == null) return;
         
-        // Tween suave do valor atual para o novo
+        if(Mathf.Approximately(healthPercent, _lastPercent)) return;
+
+        bool tomouDano = healthPercent < _lastPercent;
+
+        _lastPercent = healthPercent;
+
+        // anima realmente quando muda 
         _slider.DOValue(healthPercent, 0.35f).SetEase(Ease.OutQuad);
 
         // Tremor da HUD se tomou dano
-        if(healthPercent < _slider.value)
+        if(tomouDano)
         {
             transform.DOKill();
-            transform.DOShakePosition(0.3f, strength: new Vector3(10f, 10f, 0f), vibrato: 15, randomness: 90, snapping: false, fadeOut: true).SetEase(Ease.OutQuad);
+            transform.DOShakePosition(0.4f, new Vector3(8f, 8f, 0f), 12, 90, false, true)
+                .SetEase(Ease.OutQuad);
         }
+
+ 
+    }
+
+    
+        
+
+        
+
+
+
+
+    public void ForceSetSlider(float healthPercent)
+    {
+        if (_slider == null) return;
+
+        _slider.value = healthPercent; // sem animação
+        _lastPercent = healthPercent; // atualiza cache
     }
     
 }

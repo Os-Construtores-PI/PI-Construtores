@@ -52,8 +52,10 @@ public abstract class CombatEntities : LiveEntities
         stats.OnBoolModified.AddListener(HandleBoolStatChange); ;
         InitializeStats();
 
-        if (EnableRegen)
-            InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
+       // if (EnableRegen)
+         //  InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
+
+        EnableRegen = false;
     }
 
     public virtual void Update()
