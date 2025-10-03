@@ -23,7 +23,7 @@ public class Inventory
 
         // Caso contrário, adiciona um novo item à lista
         items.Add(new InventoryItem(data, quantity));
-        Debug.Log($"Adicionado: {data.itemName} x{quantity}");
+        Debug.Log($"Adicionado: {data.item} x {quantity}");
     }
     public void RemoveItem(ItemData data, int quantity = 1)
     {

@@ -210,6 +210,10 @@ public abstract class Enemies : CombatEntities
     }
     public void TriggerFlash()
     {
+        if(!canFlash)
+        {
+          return;
+        }
         // se já tem uma animação rodando, mata ela
         if (flashSequence != null && flashSequence.IsActive())
             flashSequence.Kill();
