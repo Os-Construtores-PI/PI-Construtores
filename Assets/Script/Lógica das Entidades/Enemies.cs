@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -29,16 +31,38 @@ public abstract class Enemies : CombatEntities
 
     // ==== CONFIGURAÇÂO DE LOOTTABLE ==== //
     protected WeightedTable<string> lootTable = new();
-    protected SerializedDictionary<string, float> items = new() {{"item bom",10},{"item ruim",90}};
+    protected SerializedDictionary<string, float> items = new() { { "item bom", 10 }, { "item ruim", 90 } };
     // ==== Referência para o Scanner ==== //
     [HideInInspector] public Vector3 spawnpos;
 
-    [Header("Enemy Damage Logic")]
+    [Header("ENEMY KNOCKBACK PROPERTIES")]
     [SerializeField] private float _dashBlockDuration;
     [SerializeField] private float _knockbackForce = 40f;
     public float KnockBackForce => _knockbackForce;
     public float DashBlockDuration => _dashBlockDuration;
 
+
+
+    // === Flash Requisitos ===
+    private Renderer[] renderers;
+    private List<Color> originalColors = new List<Color>();
+    private List<Color> originalEmissionColors = new List<Color>();
+    private MaterialPropertyBlock block;
+
+    [Header("DAMAGE FLASH PROPERTIES")]
+    [SerializeField] private bool canFlash = true;
+    [SerializeField] private float flashDuration = 0.1f;
+    [SerializeField] private Color flashColor = Color.white;
+    [SerializeField] private Color flashEmission = Color.white; // mais intenso
+    private Sequence flashSequence;
+
+
+
+    public override void Awake()
+    {
+        base.Awake();
+        SetupOriginals();
+    }
 
     public override void Start()
     {
@@ -58,6 +82,8 @@ public abstract class Enemies : CombatEntities
     public override void DeathHandler()
     {
         print(lootTable.PickEntry());
+        print("MORREU");
+        gameObject.SetActive(false);
     }
     private void AddItems()
     {
@@ -77,27 +103,26 @@ public abstract class Enemies : CombatEntities
             VisionTimer();
             AttackTimer();
             MemoryTimer();
-            
         }
 
     }
     private void VisionTimer()
     {
-            visionIntervalwalker += Time.deltaTime;
-            if (visionIntervalwalker >= visionInterval)
-            {
-                UpdateTarget();
-                visionIntervalwalker = 0f;
-            }
+        visionIntervalwalker += Time.deltaTime;
+        if (visionIntervalwalker >= visionInterval)
+        {
+            UpdateTarget();
+            visionIntervalwalker = 0f;
+        }
     }
     private void AttackTimer()
     {
-            attackIntervalwalker += Time.deltaTime;
-            if (attackIntervalwalker >= attackInterval)
-            {
-                UpdateAttackLogic();
-                attackIntervalwalker = 0f;
-            }
+        attackIntervalwalker += Time.deltaTime;
+        if (attackIntervalwalker >= attackInterval)
+        {
+            UpdateAttackLogic();
+            attackIntervalwalker = 0f;
+        }
     }
     private void MemoryTimer()
     {
@@ -119,7 +144,6 @@ public abstract class Enemies : CombatEntities
             memoryTriggered = false;
         }
     }
-
 
     private void UpdateTarget()
     {
@@ -148,16 +172,85 @@ public abstract class Enemies : CombatEntities
     private void UpdateAttackLogic()
     {
         int quantity = Physics.OverlapSphereNonAlloc(transform.position, attackRange, attackResult, layer);
-
         for (int i = 0; i < quantity; i++)
         {
             var nearby = attackResult[i].transform;
             if (nearby == transform || nearby.IsChildOf(transform))
                 continue;
-           
-            
-        }
 
-        
+
+        }
+    }
+
+    public override void DamageHandler()
+    {
+        TriggerFlash();
+    }
+    private void SetupOriginals()
+    {
+        renderers = GetComponentsInChildren<Renderer>();
+        block = new();
+        foreach (Renderer r in renderers)
+        {
+            r.GetPropertyBlock(block);
+
+            // Cor base
+            Color baseColor = r.sharedMaterial.HasProperty("_BaseColor")
+                ? r.sharedMaterial.GetColor("_BaseColor")
+                : Color.white;
+
+            // Emission (se tiver)
+            Color emissionColor = r.sharedMaterial.HasProperty("_EmissionColor")
+                ? r.sharedMaterial.GetColor("_EmissionColor")
+                : Color.black;
+
+            originalColors.Add(baseColor);
+            originalEmissionColors.Add(emissionColor);
+        }
+    }
+    public void TriggerFlash()
+    {
+        // se já tem uma animação rodando, mata ela
+        if (flashSequence != null && flashSequence.IsActive())
+            flashSequence.Kill();
+
+        float intensity = 0f;
+
+        flashSequence = DOTween.Sequence();
+
+        // Sobe (0 -> 1) e desce (1 -> 0)
+        flashSequence.Append(DOTween.To(() => intensity, x =>
+        {
+            intensity = x;
+            ApplyFlash(intensity);
+        }, 1f, flashDuration * 0.5f));
+
+        flashSequence.Append(DOTween.To(() => intensity, x =>
+        {
+            intensity = x;
+            ApplyFlash(intensity);
+        }, 0f, flashDuration * 0.5f));
+    }
+
+    private void ApplyFlash(float intensity)
+    {
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            var r = renderers[i];
+            r.GetPropertyBlock(block);
+
+            Color baseColor = Color.Lerp(originalColors[i], flashColor, intensity);
+            Color emissionColor = Color.Lerp(originalEmissionColors[i], flashEmission, intensity);
+
+            block.SetColor("_BaseColor", baseColor);
+            block.SetColor("_EmissionColor", emissionColor);
+
+            if (emissionColor != Color.black)
+                r.material.EnableKeyword("_EMISSION");
+            else
+                r.material.DisableKeyword("_EMISSION");
+
+            r.SetPropertyBlock(block);
+        }
     }
 }

@@ -83,9 +83,12 @@ public abstract class LiveEntities : Entities
     public Dictionary<string, Action<float>> numericStatSetters = new();
     public Dictionary<string, Action<bool>> boolStatSetters = new();
 
-    /// <summary>
-    /// Registra automaticamente setters para propriedades marcadas com [Stat].
-    /// </summary>
+
+    public override void Awake()
+    {
+        base.Awake();
+        _OnDamage.AddListener(DamageHandler);
+    }
     public void AutoRegisterStats()
     {
         var properties = GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -157,6 +160,10 @@ public abstract class LiveEntities : Entities
     {
         
     }
+    public virtual void DamageHandler()
+    {
+
+    }
 
 
     #endregion
@@ -179,20 +186,6 @@ public abstract class LiveEntities : Entities
         //Conecta a função de morte
         _OnDeath.AddListener(DeathHandler);
     }
-
-    public virtual void TakeDamage(float damage)
-    {
-        Health = Mathf.Clamp(Health - damage, 0, MaxHealth);
-
-        float normalizedHealth = Health / MaxHealth;
-
-        _OnHealthChanged.Invoke(normalizedHealth);
-
-        _OnDamage?.Invoke();
-
-        Debug.Log($"[{name}] sofreu {damage} de dano. Vida Atual: {Health}");
-    }
-
     #endregion
 }
 

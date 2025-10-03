@@ -15,6 +15,7 @@ public class Player : CombatEntities
 
     [Header("Movimento")]
     [SerializeField] private float speed = 10f;
+    [SerializeField] private QualityTier wallSpeedMultiplier = QualityTier.RARE;
     [HideInInspector]
     [Stat(nameof(Speed))]
     public float Speed
@@ -28,7 +29,7 @@ public class Player : CombatEntities
 
     [Header("Pulo")]
     [SerializeField] private float jumpForce = 10f;
-
+    [SerializeField] private float wallJumpMultiplier = 5;
     [HideInInspector]
     [Stat(nameof(JumpForce))]
     public float JumpForce
@@ -88,7 +89,7 @@ public class Player : CombatEntities
     #endregion
 
 
-    #region EnemyScan
+    #region === EnemyScan ===
     [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
     [SerializeField, Min(10)] private float enemyScanRadius = 10;
     [SerializeField, Min(1)] private float enemyScanCooldown = 2.0f;
@@ -96,7 +97,7 @@ public class Player : CombatEntities
     #endregion
 
 
-    #region Interação
+    #region === Interação ===
     [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
     [SerializeField] private float interactionScanCooldown = .1f;
     protected InteractableObject interactableRef;
@@ -104,7 +105,7 @@ public class Player : CombatEntities
     private Camera selectedcamera = null;
     #endregion
 
-    #region Inventário
+    #region === Inventário ===
     private readonly Inventory inventory = new();
     public Inventory Inventory => inventory;
     #endregion
@@ -298,9 +299,9 @@ public class Player : CombatEntities
 
             if (touchingWall) // se estiver na parede → usa vetor mais horizontal
             {
-                float horizontalBias = 3.5f; // quanto maior, mais horizontal
+                float horizontalBias = 6.5f; // quanto maior, mais horizontal
                 Vector3 jumpDir = (Vector3.up + lastWallNormal * horizontalBias).normalized;
-                movementVector = jumpForce * 3 * multiplier * jumpDir;
+                movementVector = jumpForce * wallJumpMultiplier * jumpDir;
                 touchingWall = false; // evita repetir
             }
             else // pulo normal
@@ -482,13 +483,13 @@ public class Player : CombatEntities
                 stats.ModifyStatImmediate<float>(
                     Constants.StatsNames.Speed.ToString(),
                     ModifyTYPE.POSITIVE,
-                    QualityTier.UNCOMMON
+                    wallSpeedMultiplier
                 );
                 wallSpeedApplied = true;
                 BlockPlayerDash();
             }
 
-            gravity = -3.5f;
+            gravity = -2f;
         }
         else
         {
