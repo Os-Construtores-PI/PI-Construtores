@@ -70,7 +70,6 @@ public class Stats
     {
         float multiplier = Tiers.GetMultiplier(tier);
         float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
-
         if (typeof(T) == typeof(float))
         {
             if (!stats._numstats.ContainsKey(name)) return false;
