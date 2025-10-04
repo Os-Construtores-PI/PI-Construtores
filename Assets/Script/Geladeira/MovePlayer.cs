@@ -1,7 +1,8 @@
+#pragma warning disable
+
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 public class MovePlayer : MonoBehaviour
 {
     [SerializeField] Vector3 _movePlayer;
