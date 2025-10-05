@@ -111,10 +111,22 @@ public abstract class CombatEntities : LiveEntities
     {
         if (hud == null) return;
 
-        _healthHUD = hud;
-        _OnHealthChanged.AddListener(_healthHUD.UpdateDotSlider);
-        _healthHUD.UpdateDotSlider(Health / MaxHealth);
-        UpdateHUDVisibility(gameObject.activeInHierarchy);
+    _healthHUD = hud;
+
+    // Seta o slider do HUD para o valor atual da vida
+    float percent = (MaxHealth > 0f) ? Health / MaxHealth : 0f;
+    _healthHUD.ForceSetSlider(percent);
+
+    // Remove listeners antigos e adiciona o listener de animação
+    _OnHealthChanged.RemoveListener(_healthHUD.UpdateDotSlider);
+    _OnHealthChanged.AddListener(_healthHUD.UpdateDotSlider);
+
+    
+
+    UpdateHUDVisibility(gameObject.activeInHierarchy);
+
+
+        
     }
 
     private void OnEnable()

@@ -37,7 +37,6 @@ RectTransform:
   - {fileID: 7449443052043615023}
   - {fileID: 373801097701567737}
   - {fileID: 8926173238809681167}
-  - {fileID: 58585831527734031}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1053,7 +1052,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8926173238809681167}
   - component: {fileID: 5541106967709693134}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: HealthHUD
   m_TagString: HealthHUD
   m_Icon: {fileID: 0}
@@ -1072,7 +1071,8 @@ Transform:
   m_LocalPosition: {x: -179.84998, y: 129.06738, z: 47.43558}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 58585831527734031}
   m_Father: {fileID: 6171965404093291574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5541106967709693134
@@ -1088,7 +1088,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HUDType: 0
-  IdHealth: 50
+  IdHealth: 300
   _slider: {fileID: 3196520115941172560}
 --- !u!1 &8854493695141774857
 GameObject:
@@ -1102,7 +1102,7 @@ GameObject:
   - component: {fileID: 3196520115941172560}
   m_Layer: 5
   m_Name: Slider
-  m_TagString: Untagged
+  m_TagString: HealthHUD
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1114,19 +1114,19 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8854493695141774857}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -47.43558}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4064662513346502077}
   - {fileID: 5583832331405390636}
   - {fileID: 2480079473995966410}
-  m_Father: {fileID: 6171965404093291574}
+  m_Father: {fileID: 8926173238809681167}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 179.84995, y: -129.06738}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3196520115941172560

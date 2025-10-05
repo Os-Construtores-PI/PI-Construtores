@@ -1,5 +1,5 @@
 using DG.Tweening;
-using System.Collections.Generic;
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,7 +18,10 @@ public class HealthHUDComponent : MonoBehaviour
     private Camera _cachedCamera;
 
     private float _lastPercent = -1; // guarda o último valor da vida
-    
+
+    private Player _boundPlayer;
+    private bool _isBound = false;
+
 
     //----------------
 
@@ -32,7 +35,7 @@ public class HealthHUDComponent : MonoBehaviour
         DOTween.Init();
 
         if (_slider == null)
-            _slider = GetComponent<Slider>();
+            _slider = GetComponent<Slider>() ?? GetComponentInChildren<Slider>();
 
         if (_slider != null)
         {
@@ -47,21 +50,30 @@ public class HealthHUDComponent : MonoBehaviour
     public void BindToPlayer(Player player)
     {
         if (player == null) return;
-        IdHealth = player.ID;
-        
 
-        if (_slider == null)
-            _slider = GetComponent<Slider>();
-       
+        if (_boundPlayer == player) return;
 
-        // Sempre que a vida mudar -> atualiza o slider
-        player._OnHealthChanged.AddListener((value) =>
-        {
-            float hpPercent = (float)value / player.MaxHealth;
-            UpdateDotSlider(hpPercent);
-        });
-        
+        if (_boundPlayer != null)
+            _boundPlayer._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
+
+        _boundPlayer = player;
+
+        StartCoroutine(BindNextFrame(_boundPlayer));
+
+
     }
+
+    
+
+    private void OnPlayerHealthChanged(float value)
+    {
+        if (_boundPlayer == null || _boundPlayer.MaxHealth <= 0f) return;
+
+        float hpPercent = (float)value / _boundPlayer.MaxHealth;
+        UpdateDotSlider(hpPercent);
+    }
+
+
 
 
 
@@ -121,36 +133,36 @@ public class HealthHUDComponent : MonoBehaviour
     /// </summary>
 
 
-    
+
     public void UpdateDotSlider(float healthPercent)
     {
-        
+
         if (_slider == null) return;
-        
-        if(Mathf.Approximately(healthPercent, _lastPercent)) return;
+
+        if (!gameObject.activeInHierarchy)
+            gameObject.SetActive(true);
+
+        if (Mathf.Approximately(healthPercent, _lastPercent)) return;
 
         bool tomouDano = healthPercent < _lastPercent;
-
         _lastPercent = healthPercent;
 
-        // anima realmente quando muda 
         _slider.DOValue(healthPercent, 0.35f).SetEase(Ease.OutQuad);
 
-        // Tremor da HUD se tomou dano
-        if(tomouDano)
+        if (tomouDano)
         {
             transform.DOKill();
-            transform.DOShakePosition(0.4f, new Vector3(8f, 8f, 0f), 12, 90, false, true)
-                .SetEase(Ease.OutQuad);
+           // transform.DOShakePosition(0.4f, new Vector3(8f, 8f, 0f), 12f, 90, false, true);
         }
-
- 
     }
 
-    
-        
 
-        
+
+
+
+
+
+
 
 
 
@@ -162,5 +174,38 @@ public class HealthHUDComponent : MonoBehaviour
         _slider.value = healthPercent; // sem animação
         _lastPercent = healthPercent; // atualiza cache
     }
-    
+
+     private IEnumerator BindNextFrame(Player player)
+    {
+        yield return null; // espera 1 frame (garante que Player.Start já executou)
+
+        if (player == null) yield break;
+
+        if (gameObject.activeInHierarchy)
+            gameObject.SetActive(true);
+
+        float percent = player.MaxHealth > 0 ? (float)player.Health / player.MaxHealth : 1f;
+
+        player._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
+        player._OnHealthChanged.AddListener(OnPlayerHealthChanged);
+
+        ForceSetSlider(percent);
+        _isBound = true;
+
+        
+
+        Debug.Log($"[HealthHUD] Bound to player {player.name} initialPercent={percent}");
+    }
+
+
+    private void OnDestroy()
+    {
+        if (_boundPlayer != null)
+            _boundPlayer._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
+    }
+
+
+
+
 }
+

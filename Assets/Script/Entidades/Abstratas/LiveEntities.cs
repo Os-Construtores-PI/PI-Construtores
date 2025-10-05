@@ -158,7 +158,7 @@ public abstract class LiveEntities : Entities
     }
     public virtual void DeathHandler()
     {
-        
+
     }
     public virtual void DamageHandler()
     {
@@ -187,6 +187,8 @@ public abstract class LiveEntities : Entities
         _OnDeath.AddListener(DeathHandler);
     }
     #endregion
+
+    
 }
 
 /// <summary>
@@ -202,6 +204,8 @@ public class StatAttribute : Attribute
         Name = name;
     }
 }
+
+
 
 
 
