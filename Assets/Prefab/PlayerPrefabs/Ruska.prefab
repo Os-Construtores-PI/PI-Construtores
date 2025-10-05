@@ -375,14 +375,16 @@ MonoBehaviour:
         m_Calls: []
   combatCooldown: 5
   damagedCooldown: 2
-  _enableRegen: 1
+  _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
   speed: 10
+  wallSpeedMultiplier: 2
   acceleration: 5
   friction: 2
   airFriction: 2
   jumpForce: 10
+  wallJumpMultiplier: 5
   maxJumpCount: 2
   gravity: -9.81
   dashSpeed: 30
@@ -390,6 +392,7 @@ MonoBehaviour:
   dashCooldown: 5
   characterController: {fileID: 4898153852524502878}
   cinemachineCamera: {fileID: 0}
+  animatorComp: {fileID: 0}
   enemyScanRadius: 10
   enemyScanCooldown: 2
   interactionScanCooldown: 0.1

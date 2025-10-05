@@ -27,32 +27,21 @@ public class StartLogic : MonoBehaviour
             Destroy(startCam.gameObject);
 
         // 3. Faz a animação só no painel de Start
-        if (transform.childCount > 0)
+        if (transform.childCount == 0 || !transform.GetChild(0).TryGetComponent<RectTransform>(out var startPanel))
         {
-            if (transform.GetChild(0).TryGetComponent<RectTransform>(out var startPanel))
-            {
-                startPanel.DOScale(Vector3.zero, 0.35f)
-                    .SetEase(Ease.InOutCubic)
-                    .OnComplete(() =>
-                    {
-                        // Mata tweens do painel
-                        DOTween.Kill(startPanel.gameObject);
-
-                        // Destroi o Canvas inteiro (onde está esse script)
-                        Destroy(gameObject);
-                    });
-            }
-            else
-            {
-                // fallback: se não achar painel, destrói direto
-                Destroy(gameObject);
-            }
-        }
-        else
-        {
-            // se não tiver filhos, destrói direto
             Destroy(gameObject);
+            return;
         }
+        startPanel.DOScale(Vector3.zero, 0.35f)
+            .SetEase(Ease.InOutCubic)
+            .OnComplete(() =>
+            {
+                // Mata tweens do painel
+                DOTween.Kill(startPanel.gameObject);
+                // Destroi o Canvas inteiro (onde está esse script)
+                Destroy(gameObject);
+            });
+
 
         var dialogue = FindAnyObjectByType<TutorialDIalogos>();
         if(dialogue != null)

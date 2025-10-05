@@ -36,7 +36,14 @@ public abstract class CombatEntities : LiveEntities
     public bool EnableRegen
     {
         get => _enableRegen;
-        set => _enableRegen = value;
+        set
+        {
+            if (value == false)
+            {
+                CancelInvoke(nameof(RegenerateHealth));
+            }
+            _enableRegen = value;
+        }
     }
 
     #endregion
@@ -52,10 +59,10 @@ public abstract class CombatEntities : LiveEntities
         stats.OnBoolModified.AddListener(HandleBoolStatChange); ;
         InitializeStats();
 
-       // if (EnableRegen)
-         //  InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
-
-        EnableRegen = false;
+        if (EnableRegen)
+        {
+            InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
+        }
     }
 
     public virtual void Update()
@@ -115,11 +122,6 @@ public abstract class CombatEntities : LiveEntities
         _healthHUD.BindToEntity(this);
 
         UpdateHUDVisibility(gameObject.activeInHierarchy);
-
-    
-
-
-        
     }
 
     private void OnEnable()

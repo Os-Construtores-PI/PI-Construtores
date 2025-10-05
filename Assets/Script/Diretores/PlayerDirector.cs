@@ -13,7 +13,7 @@ public class PlayerDirector : MonoBehaviour
     [Header("Prefabs de HUD e Câmera")]
     [SerializeField] private GameObject hudPrefab;
     [SerializeField] private string hudCanvasParent = "Canvas";
-    
+
     [SerializeField] private GameObject mainCameraPrefab;
     [SerializeField] private GameObject freeLookPrefab;
     [SerializeField] private GameObject _pauseMenuPrefab;
@@ -23,7 +23,7 @@ public class PlayerDirector : MonoBehaviour
 
     private ManualPlayersSpawner playersSpawner;
     private Transform hudParent;
-    
+
 
     private List<Player> allPlayers = new List<Player>();
 
@@ -121,10 +121,10 @@ public class PlayerDirector : MonoBehaviour
 
             _pauseMenuInstance.SetActive(false);
             Debug.Log("[PlayerDirector] PauseMenu instanciado no ActivePlaers (fallback)");
-            
+
         }
     }
-        
+
 
     private void ActivateSinglePlayer()
     {
@@ -170,12 +170,22 @@ public class PlayerDirector : MonoBehaviour
                 camLogic.SetTarget(player, freeLook);
                 player.SetCinemachineCamera(freeLook);
             }
-
             playerCameras[playerID] = camObj;
+            LinkCanvasToCamera(unityCam, playerID);
+
         }
-
         player.gameObject.SetActive(true);
+        player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
     }
-
+    private void LinkCanvasToCamera(Camera camera, int playerID)
+    {
+        if (playerHUDInstances.TryGetValue(playerID, out var hudInstance))
+        {
+            if (hudInstance.TryGetComponent<Canvas>(out var canvas))
+            {
+                canvas.worldCamera = camera;
+            }
+        }
+    }
 
 }

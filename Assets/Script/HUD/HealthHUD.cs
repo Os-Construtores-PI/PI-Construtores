@@ -1,9 +1,6 @@
 using DG.Tweening;
-using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.Rendering.DebugUI;
 
 public class HealthHUDComponent : MonoBehaviour
 {
@@ -11,82 +8,94 @@ public class HealthHUDComponent : MonoBehaviour
     public HealthHUDType HUDType;
     public int IdHealth = 0;
 
-    public Slider _slider;
+    [Header("Sliders")]
+    public Slider _slider;          // ===> BARRA DE VIDA REAL
+    public Slider _damageSlider;    // ===> BARRA DE DANO / FADE
+
     public Transform EnemyTarget { get; set; }
     private CombatEntities _boundEntity;
-
+    private Player _boundPlayer;
 
     private Camera _cachedCamera;
-    private Player _boundPlayer;
-    private float _currentPercent = 1f;
-    private float _targetPercent = 1f;
-    private float _lerpSpeed = 2f;
-
-
-
-
-
-    //----------------
-
-
-    //---------------------
-
-
 
     private void Awake()
     {
         DOTween.Init();
-
-        if (_slider == null)
-            _slider = GetComponent<Slider>() ?? GetComponentInChildren<Slider>();
-
-        if (_slider != null)
-        {
-            _slider.minValue = 0f;
-            _slider.maxValue = 1f;
-            _slider.value = 1f;
-            _currentPercent = 1f;
-            _targetPercent = 1f;
-        }
     }
-
 
     public void BindToPlayer(Player player)
     {
         if (player == null) return;
 
         if (_boundPlayer != null)
-            _boundPlayer._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
+            _boundPlayer._OnHealthChanged.RemoveListener(UpdateSlider);
 
         _boundPlayer = player;
-        _boundPlayer._OnHealthChanged.AddListener(OnPlayerHealthChanged);
+        _boundPlayer._OnHealthChanged.AddListener(UpdateSlider);
 
-        // inicializa o slider no valor correto
-        float percent = player.MaxHealth > 0 ? player.Health / player.MaxHealth : 1f;
+        // Inicializa sliders imediatamente
+        float percent = _boundPlayer.MaxHealth > 0 ? _boundPlayer.Health / _boundPlayer.MaxHealth : 1f;
         _slider.value = percent;
-        _currentPercent = percent;
-        _targetPercent = percent;
-
-
+        if (_damageSlider != null)
+            _damageSlider.value = percent;
     }
 
-
-
-    private void OnPlayerHealthChanged(float value)
+    public void BindToEntity(CombatEntities entity)
     {
-        if (_boundPlayer == null || _boundPlayer.MaxHealth <= 0f) return;
+        if (entity == null) return;
 
-        float newPercent = value / _boundPlayer.MaxHealth;
+        if (_boundEntity != null)
+            _boundEntity._OnHealthChanged.RemoveListener(UpdateSlider);
 
-        // somente diminui proporcionalmente
-        if (newPercent < _targetPercent)
+        _boundEntity = entity;
+
+        // Inicializa sliders imediatamente
+        float percent = (_boundEntity.MaxHealth > 0f) ? _boundEntity.Health / _boundEntity.MaxHealth : 1f;
+        _slider.value = percent;
+        if (_damageSlider != null)
+            _damageSlider.value = percent;
+
+        _boundEntity._OnHealthChanged.AddListener(UpdateSlider);
+    }
+
+    private void UpdateSlider(float normalizedHealth)
+    {
+        if (_slider == null) return;
+
+        normalizedHealth = Mathf.Clamp01(normalizedHealth);
+
+        if (!gameObject.activeInHierarchy)
+            gameObject.SetActive(true);
+
+        // Atualiza barra principal (vida real)
+        _slider.DOValue(normalizedHealth, 0.35f).SetEase(Ease.OutQuad);
+
+        // Só aplica o efeito de dano se realmente perdeu vida
+        if (_damageSlider != null && _damageSlider.value > normalizedHealth)
         {
-            _targetPercent = newPercent;
+            _damageSlider.DOKill();
+
+            // Tween da barra de dano (vermelha) indo para o novo valor, mais lento
+            _damageSlider.DOValue(normalizedHealth, 0.7f).SetEase(Ease.OutQuad);
+
+            // Fade apenas quando toma dano
+            if (_damageSlider.fillRect != null)
+            {
+                Image fillImage = _damageSlider.fillRect.GetComponent<Image>();
+                if (fillImage != null)
+                {
+                    fillImage.DOKill();
+                    fillImage.color = new Color(fillImage.color.r, fillImage.color.g, fillImage.color.b, 1f); // reseta alpha
+                    fillImage.DOFade(0f, 0.5f).SetDelay(0.2f);
+                }
+            }
+        }
+        else if (_damageSlider != null)
+        {
+            // Se curou, apenas sincroniza o valor para não ficar travado
+            _damageSlider.value = normalizedHealth;
         }
     }
-
-
-
 
 
 
@@ -99,19 +108,13 @@ public class HealthHUDComponent : MonoBehaviour
         FaceCamera();
     }
 
-    /// <summary>
-    /// Faz o HUD virar para a câmera principal ou para a câmera mais próxima
-    /// </summary>
     private void FaceCamera()
     {
         if (_cachedCamera == null)
         {
             _cachedCamera = Camera.main;
             if (_cachedCamera == null)
-            {
-                // Fallback: busca a câmera mais próxima
                 _cachedCamera = FindClosestCamera();
-            }
         }
 
         if (_cachedCamera != null)
@@ -140,80 +143,12 @@ public class HealthHUDComponent : MonoBehaviour
 
         return closestCam;
     }
-    /// <summary>
-    /// Atualiza suavemente o valor do slider da barra de vida
-    /// </summary>
 
     private void OnDestroy()
     {
         if (_boundPlayer != null)
-            _boundPlayer._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
-    }
-
-    private void Update()
-    {
-        if (_slider == null) return;
-
-        if (_currentPercent != _targetPercent)
-        {
-            // Lerp manual para reduzir suavemente
-            _currentPercent = Mathf.MoveTowards(_currentPercent, _targetPercent, Time.deltaTime * _lerpSpeed);
-            _slider.value = _currentPercent;
-        }
-    }
-
-    public void BindToEntity(CombatEntities entity)
-    {
-        if (entity == null) return;
-
+            _boundPlayer._OnHealthChanged.RemoveListener(UpdateSlider);
         if (_boundEntity != null)
             _boundEntity._OnHealthChanged.RemoveListener(UpdateSlider);
-
-        _boundEntity = entity;
-
-        // Atualiza o slider imediatamente para a vida atual
-        float percent = (_boundEntity.MaxHealth > 0f) ? _boundEntity.Health / _boundEntity.MaxHealth : 1f;
-        _slider.value = percent;
-
-        // Adiciona listener para receber updates proporcionais ao dano
-        _boundEntity._OnHealthChanged.AddListener(UpdateSlider);
     }
-
-    private void UpdateSlider(float normalizedHealth)
-    {
-        if (_slider == null) return;
-
-        normalizedHealth = Mathf.Clamp01(normalizedHealth);
-
-        if (!gameObject.activeInHierarchy)
-            gameObject.SetActive(true);
-
-        // Tween suave
-        _slider.DOValue(normalizedHealth, 0.35f).SetEase(Ease.OutQuad);
-    }
-
-
-    
-
-
 }
-
-
-
-
-
-
-
-
-
-
-    
-
-     
-
-
-
-
-
-
-
