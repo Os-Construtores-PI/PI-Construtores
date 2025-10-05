@@ -518,10 +518,7 @@ public class Player : CombatEntities
             if (hudObj.TryGetComponent(out HealthHUDComponent hud) && hud.IdHealth == ID && hud.HUDType == HealthHUDType.PLAYER)
             {
                 _healthHUD = hud;
-                float percent = (float)Health / MaxHealth;
-             //   hud.ForceSetSlider(percent); // método sem animação
-
-                _OnHealthChanged.AddListener(hud.UpdateDotSlider);
+                _healthHUD.BindToPlayer(this);
                 break;
 
             }
@@ -532,7 +529,7 @@ public class Player : CombatEntities
             _OnDamage.AddListener(hudDir.ShakeCamera);
         }
     }
-
+   
 
 
 

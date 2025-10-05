@@ -9,18 +9,21 @@ public class HealthHUDComponent : MonoBehaviour
 {
     [Header("Configurações HUD")]
     public HealthHUDType HUDType;
-
-    public Transform EnemyTarget { get; set; }
-
     public int IdHealth = 0;
 
     public Slider _slider;
+    public Transform EnemyTarget { get; set; }
+    private CombatEntities _boundEntity;
+
+
     private Camera _cachedCamera;
-
-    private float _lastPercent = -1; // guarda o último valor da vida
-
     private Player _boundPlayer;
-    private bool _isBound = false;
+    private float _currentPercent = 1f;
+    private float _targetPercent = 1f;
+    private float _lerpSpeed = 2f;
+
+
+
 
 
     //----------------
@@ -41,8 +44,9 @@ public class HealthHUDComponent : MonoBehaviour
         {
             _slider.minValue = 0f;
             _slider.maxValue = 1f;
-            _slider.value = 1f; // vida cheia no inicio
-            _lastPercent = 1f;
+            _slider.value = 1f;
+            _currentPercent = 1f;
+            _targetPercent = 1f;
         }
     }
 
@@ -51,26 +55,34 @@ public class HealthHUDComponent : MonoBehaviour
     {
         if (player == null) return;
 
-        if (_boundPlayer == player) return;
-
         if (_boundPlayer != null)
             _boundPlayer._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
 
         _boundPlayer = player;
+        _boundPlayer._OnHealthChanged.AddListener(OnPlayerHealthChanged);
 
-        StartCoroutine(BindNextFrame(_boundPlayer));
+        // inicializa o slider no valor correto
+        float percent = player.MaxHealth > 0 ? player.Health / player.MaxHealth : 1f;
+        _slider.value = percent;
+        _currentPercent = percent;
+        _targetPercent = percent;
 
 
     }
 
-    
+
 
     private void OnPlayerHealthChanged(float value)
     {
         if (_boundPlayer == null || _boundPlayer.MaxHealth <= 0f) return;
 
-        float hpPercent = (float)value / _boundPlayer.MaxHealth;
-        UpdateDotSlider(hpPercent);
+        float newPercent = value / _boundPlayer.MaxHealth;
+
+        // somente diminui proporcionalmente
+        if (newPercent < _targetPercent)
+        {
+            _targetPercent = newPercent;
+        }
     }
 
 
@@ -132,80 +144,76 @@ public class HealthHUDComponent : MonoBehaviour
     /// Atualiza suavemente o valor do slider da barra de vida
     /// </summary>
 
-
-
-    public void UpdateDotSlider(float healthPercent)
-    {
-
-        if (_slider == null) return;
-
-        if (!gameObject.activeInHierarchy)
-            gameObject.SetActive(true);
-
-        if (Mathf.Approximately(healthPercent, _lastPercent)) return;
-
-        bool tomouDano = healthPercent < _lastPercent;
-        _lastPercent = healthPercent;
-
-        _slider.DOValue(healthPercent, 0.35f).SetEase(Ease.OutQuad);
-
-        if (tomouDano)
-        {
-            transform.DOKill();
-           // transform.DOShakePosition(0.4f, new Vector3(8f, 8f, 0f), 12f, 90, false, true);
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-    public void ForceSetSlider(float healthPercent)
-    {
-        if (_slider == null) return;
-
-        _slider.value = healthPercent; // sem animação
-        _lastPercent = healthPercent; // atualiza cache
-    }
-
-     private IEnumerator BindNextFrame(Player player)
-    {
-        yield return null; // espera 1 frame (garante que Player.Start já executou)
-
-        if (player == null) yield break;
-
-        if (gameObject.activeInHierarchy)
-            gameObject.SetActive(true);
-
-        float percent = player.MaxHealth > 0 ? (float)player.Health / player.MaxHealth : 1f;
-
-        player._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
-        player._OnHealthChanged.AddListener(OnPlayerHealthChanged);
-
-        ForceSetSlider(percent);
-        _isBound = true;
-
-        
-
-        Debug.Log($"[HealthHUD] Bound to player {player.name} initialPercent={percent}");
-    }
-
-
     private void OnDestroy()
     {
         if (_boundPlayer != null)
             _boundPlayer._OnHealthChanged.RemoveListener(OnPlayerHealthChanged);
     }
 
+    private void Update()
+    {
+        if (_slider == null) return;
 
+        if (_currentPercent != _targetPercent)
+        {
+            // Lerp manual para reduzir suavemente
+            _currentPercent = Mathf.MoveTowards(_currentPercent, _targetPercent, Time.deltaTime * _lerpSpeed);
+            _slider.value = _currentPercent;
+        }
+    }
+
+    public void BindToEntity(CombatEntities entity)
+    {
+        if (entity == null) return;
+
+        if (_boundEntity != null)
+            _boundEntity._OnHealthChanged.RemoveListener(UpdateSlider);
+
+        _boundEntity = entity;
+
+        // Atualiza o slider imediatamente para a vida atual
+        float percent = (_boundEntity.MaxHealth > 0f) ? _boundEntity.Health / _boundEntity.MaxHealth : 1f;
+        _slider.value = percent;
+
+        // Adiciona listener para receber updates proporcionais ao dano
+        _boundEntity._OnHealthChanged.AddListener(UpdateSlider);
+    }
+
+    private void UpdateSlider(float normalizedHealth)
+    {
+        if (_slider == null) return;
+
+        normalizedHealth = Mathf.Clamp01(normalizedHealth);
+
+        if (!gameObject.activeInHierarchy)
+            gameObject.SetActive(true);
+
+        // Tween suave
+        _slider.DOValue(normalizedHealth, 0.35f).SetEase(Ease.OutQuad);
+    }
+
+
+    
 
 
 }
+
+
+
+
+
+
+
+
+
+
+    
+
+     
+
+
+
+
+
+
 
