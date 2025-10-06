@@ -6,6 +6,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator))]
 [DefaultExecutionOrder(-100)]
@@ -26,6 +27,7 @@ public class Player : CombatEntities
     [SerializeField] private float acceleration = 5f;
     [SerializeField] private float friction = 2f;
     [SerializeField] private float airFriction = 2f;
+    [SerializeField] private ShiftDashScript _dashHUD; // adicionado para ter uma animação no Shift
 
     [Header("Pulo")]
     [SerializeField] private float jumpForce = 10f;
@@ -150,6 +152,13 @@ public class Player : CombatEntities
         base.Start();
         DOTween.Init();
         StartCoroutine(DelayedSetupHUD(.1f));
+
+        if(_dashHUD == null)
+        {
+            var go = GameObject.FindWithTag("DashHUDIcon");
+            if (go) _dashHUD = go.GetComponent<ShiftDashScript>();
+                Debug.LogWarning("[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag");
+        }
     }
     public override void Update()
     {
@@ -329,7 +338,19 @@ public class Player : CombatEntities
 
         canMove = false;
         PlayDashVisual();
+        Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
+        
+        _dashHUD?.OnDashUSed();
+        
         Invoke(nameof(ResetDash), dashCooldown);
+    }
+
+    private void ResetDashed()
+    {
+        canDash = true;
+
+        // avisa o HUD que o Dash está pronto novamente
+        _dashHUD.OnDashReady();
     }
 
     private void HandleDash()
