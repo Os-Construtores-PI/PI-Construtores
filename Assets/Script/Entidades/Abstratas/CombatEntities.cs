@@ -119,7 +119,7 @@ public abstract class CombatEntities : LiveEntities
         if (hud == null) return;
 
         _healthHUD = hud;
-        _healthHUD.BindToEntity(this);
+        
 
         UpdateHUDVisibility(gameObject.activeInHierarchy);
     }
