@@ -40,23 +40,7 @@ public class HealthHUDComponent : MonoBehaviour
             _damageSlider.value = percent;
     }
 
-    public void BindToEntity(CombatEntities entity)
-    {
-        if (entity == null) return;
-
-        if (_boundEntity != null)
-            _boundEntity._OnHealthChanged.RemoveListener(UpdateSlider);
-
-        _boundEntity = entity;
-
-        // Inicializa sliders imediatamente
-        float percent = (_boundEntity.MaxHealth > 0f) ? _boundEntity.Health / _boundEntity.MaxHealth : 1f;
-        _slider.value = percent;
-        if (_damageSlider != null)
-            _damageSlider.value = percent;
-
-        _boundEntity._OnHealthChanged.AddListener(UpdateSlider);
-    }
+    
 
     private void UpdateSlider(float normalizedHealth)
     {
