@@ -157,7 +157,7 @@ public class Player : CombatEntities
         {
             var go = GameObject.FindWithTag("DashHUDIcon");
             if (go) _dashHUD = go.GetComponent<ShiftDashScript>();
-                Debug.LogWarning("[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag");
+            Debug.LogWarning("[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag");
         }
     }
     public override void Update()
@@ -341,6 +341,7 @@ public class Player : CombatEntities
         Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
         
         _dashHUD?.OnDashUSed();
+        
         
         Invoke(nameof(ResetDash), dashCooldown);
     }
