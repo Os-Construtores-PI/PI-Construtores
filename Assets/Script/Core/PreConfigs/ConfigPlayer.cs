@@ -14,7 +14,6 @@ public class ConfigPlayer : ScriptableObject
 
     [Header("Movimento [PULO]")]
     [SerializeField] private float forcaPulo;
-    [SerializeField] private float multiplicadorForcaPuloParede;
     [SerializeField] private float pulosmaximos;
     [SerializeField] private float gravidade;
 
@@ -22,4 +21,22 @@ public class ConfigPlayer : ScriptableObject
     [SerializeField] private float velocidadeDash;
     [SerializeField] private float distanciaDash;
     [SerializeField] private float cooldownDash;
+
+    [Header("SCANNER [INIMIGOS]")]
+    [SerializeField] private float raioScanner;
+    [SerializeField] private float cooldownInimigoScanner;
+
+    [Header("SCANNER [OBJETOS]")]
+    [SerializeField] private float cooldownObjetoScanner;
+
+    [Header("MECÂNICA [TROCA DE JOGADOR]")]
+    [SerializeField] private float cooldownTrocaJogador;
+
+    [Header("MECÂNICA [CORRIDA NA PAREDE]")]
+    [SerializeField] private float multiplicadorForcaPuloParede;
+    [SerializeField] private float duracaoSaidaParede;
+
+    [Header("MECÂNICA [ATAQUE]")]
+    [SerializeField] private float cooldownAtaque;
+
 }
