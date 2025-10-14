@@ -943,7 +943,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentHealthDebug: 50
-  _maxHealth: 50
+  _maxHealth: 300
   _defense: 25
   stats:
     OnNumModified:
@@ -954,14 +954,17 @@ MonoBehaviour:
         m_Calls: []
   combatCooldown: 5
   damagedCooldown: 2
-  _enableRegen: 1
+  _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
   speed: 7
+  wallSpeedMultiplier: 2
   acceleration: 5
   friction: 2
   airFriction: 2
+  _dashHUD: {fileID: 0}
   jumpForce: 10
+  wallJumpMultiplier: 3
   maxJumpCount: 2
   gravity: -19.62
   dashSpeed: 15
