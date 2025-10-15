@@ -2,38 +2,45 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using DG.Tweening;
+using System.Collections;
 
 public class ShiftDashScript : MonoBehaviour
 {
     [Header("Referencia da Imagem")]
     public Image shiftImage;
     public Image coolDownFillImage;
-    private CanvasGroup _canvasGroup;
+    [SerializeField] private CanvasGroup _canvasDashGroup;
 
     [Header("Configurações do Fade")]
     public float fadeOutDuration = 0.2f;
     public float fadeInDuration = 0.3f;
 
+    private Coroutine fadeCoroutine;
 
     // Oculta o ícone quando o Dash é usado
 
     private void Awake()
     {
-        DOTween.Init(false, true); // inicializa DOTween (silencioso)
-        _canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasDashGroup == null)
+        {
+            _canvasDashGroup = GetComponent<CanvasGroup>();
+            if (_canvasDashGroup == null)
+            {
+                _canvasDashGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+        }
 
-        if(shiftImage == null )
-            Debug.LogWarning("[DashHUDIcon] shiftImage não atribuído e não encontrado automaticamente.");
-
-        _canvasGroup.alpha = 1f;
+        if(shiftImage == null)
+        {
+            Debug.LogWarning("[ShiftDashScript] Nenhuma imagem de dash atribuida");
+        }
     }
-    public void OnDashUSed()
+    public void OnDashUsed()
     {
-        Debug.Log("[DashHUDIcon] HideDashIcon chamado. shiftImage == " + (shiftImage == null ? "NULL" : "OK"));
-        _canvasGroup.DOKill();
-        _canvasGroup.DOFade(1f, fadeOutDuration).SetEase(Ease.OutQuad);
+        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeCanvas(0f, fadeOutDuration));
 
-        
+
     }
 
 
@@ -41,10 +48,24 @@ public class ShiftDashScript : MonoBehaviour
 
     public void OnDashReady()
     {
-        Debug.Log("[DashHUDIcon] ShowDashIcon chamado.");
-        _canvasGroup.DOKill();
-        _canvasGroup.DOFade(1f, fadeInDuration).SetEase(Ease.OutQuad);
+        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeCanvas(1f, fadeInDuration));
     }
 
-    
+
+    private IEnumerator FadeCanvas(float targetAlpha, float duration)
+    {
+        float startAlpha = _canvasDashGroup.alpha;
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            _canvasDashGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
+            yield return null;
+        }
+
+        _canvasDashGroup.alpha = targetAlpha;
+    }
+
 }
