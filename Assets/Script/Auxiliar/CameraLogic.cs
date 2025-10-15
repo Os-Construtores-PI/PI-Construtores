@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Cinemachine;
+using System;
 
 public class CameraLogic : Entities
 {
@@ -11,11 +12,26 @@ public class CameraLogic : Entities
     public override void Awake()
     {
         base.Awake();
-
         if (playerTarget != null)
             SetTarget(playerTarget);
+        SetDistanceCulling();
     }
 
+
+    private void SetDistanceCulling()
+    {
+        float[] layersDistance = new float[32];
+        layersDistance[0] = 40;
+        layersDistance[6] = 40;
+        layersDistance[7] = 40;
+        layersDistance[8] = 40;
+        layersDistance[9] = 40;
+        layersDistance[12] = 100;
+        if(TryGetComponent(out Camera cam))
+        {
+            cam.layerCullDistances = layersDistance; 
+        }
+    }
     /// <summary>
     /// Configura a CinemachineCamera para seguir o alvo.
     /// </summary>
