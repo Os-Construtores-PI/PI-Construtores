@@ -27,7 +27,7 @@ public class Player : CombatEntities
     [SerializeField] private float acceleration = 5f;
     [SerializeField] private float friction = 2f;
     [SerializeField] private float airFriction = 2f;
-    [SerializeField] private ShiftDashScript _dashHUD; // adicionado para ter uma animação no Shift
+    [SerializeField] public ShiftDashScript _dashHUD; // adicionado para ter uma animação no Shift
 
     [Header("Pulo")]
     [SerializeField] private float jumpForce = 10f;
@@ -340,18 +340,27 @@ public class Player : CombatEntities
         PlayDashVisual();
         Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
         
-        _dashHUD?.OnDashUSed();
+        if (_dashHUD != null)
+        {
+            if (!_dashHUD.gameObject.activeInHierarchy)
+                _dashHUD.gameObject.SetActive(true);
+            _dashHUD.OnDashUsed();
+        }
         
         
-        Invoke(nameof(ResetDash), dashCooldown);
+        Invoke(nameof(ResetDashed), dashCooldown);
     }
 
     private void ResetDashed()
     {
         canDash = true;
 
-        // avisa o HUD que o Dash está pronto novamente
-        _dashHUD.OnDashReady();
+        if (_dashHUD != null)
+        {
+            if (!_dashHUD.gameObject.activeInHierarchy)
+                _dashHUD.gameObject.SetActive(true);  // ✅ garante que está ativo
+            _dashHUD.OnDashReady();
+        }
     }
 
     private void HandleDash()

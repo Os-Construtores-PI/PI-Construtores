@@ -38,6 +38,22 @@ public class HealthHUDComponent : MonoBehaviour
         _slider.value = percent;
         if (_damageSlider != null)
             _damageSlider.value = percent;
+
+        if (_slider != null)
+        {
+            RectTransform sliderRect = _slider.GetComponent<RectTransform>();
+            if (sliderRect != null)
+            {
+                // Salva o tamanho original
+                float originalWidth = sliderRect.sizeDelta.x;
+
+                // Começa com largura zero 
+                sliderRect.sizeDelta = new Vector2(0f, sliderRect.sizeDelta.y);
+
+                sliderRect.DOSizeDelta(new Vector2(originalWidth, sliderRect.sizeDelta.y), 1f)
+                     .SetEase(Ease.OutQuart);
+            }
+        }
     }
 
     
