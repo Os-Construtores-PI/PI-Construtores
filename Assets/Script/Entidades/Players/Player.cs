@@ -338,7 +338,7 @@ public class Player : CombatEntities
 
         canMove = false;
         PlayDashVisual();
-        Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
+       // Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
         
         if (_dashHUD != null)
         {
@@ -361,6 +361,7 @@ public class Player : CombatEntities
                 _dashHUD.gameObject.SetActive(true);  // ✅ garante que está ativo
             _dashHUD.OnDashReady();
         }
+       
     }
 
     private void HandleDash()
