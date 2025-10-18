@@ -1,12 +1,17 @@
 using DG.Tweening;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class StormEffect : MonoBehaviour
 {
     private Light[] lightcomponents;
 
     [SerializeField] private float cooldownStorm = 5f;
+    [SerializeField] private CustomPositiveFloatRange range; // Classe Wrapper do Random.Range para aparecer no inspetor.
+
+
     private float cooldownTimer = 0f;
+
 
     private void Start()
     {
@@ -19,7 +24,7 @@ public class StormEffect : MonoBehaviour
         StormTimer();
     }
     private void StormTimer()
-    {        
+    {
         cooldownTimer += Time.deltaTime;
 
         if (cooldownTimer >= cooldownStorm)
@@ -33,7 +38,7 @@ public class StormEffect : MonoBehaviour
         foreach (Light light in lightcomponents)
         {
             // duração total aleatória
-            float totalDuration = Random.Range(0.5f, 1.5f);
+            float totalDuration = range.GetRandom(); // Tempo Aleatório para dar o flash de luz
             float upDuration = totalDuration * 0.2f;   // sobe rápido
             float downDuration = totalDuration * 0.8f; // desce devagar
 

@@ -11,3 +11,49 @@ public class ColorPuzzle
     public float durationDesired;
     public List<PuzzleLampObject> lamps;
 }
+
+[Serializable]
+public class CustomPositiveFloatRange
+{
+    [SerializeField, Range(0.01f, 10f)] private float min = 0.5f;
+    [SerializeField, Range(0.01f, 10f)] private float max = 1.5f;
+
+    private const float MIN_LIMIT = 0.01f;
+    private const float MAX_LIMIT = 10f;
+
+    public float Min
+    {
+        get => min;
+        set
+        {
+            min = Mathf.Clamp(value, MIN_LIMIT, MAX_LIMIT);
+            if (min > max)
+                max = min;
+        }
+    }
+
+    public float Max
+    {
+        get => max;
+        set
+        {
+            max = Mathf.Clamp(value, MIN_LIMIT, MAX_LIMIT);
+            if (max < min)
+                min = max;
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        // Garante consistência ao editar no Inspector
+        Min = min;
+        Max = max;
+    }
+#endif
+
+    public float GetRandom() => UnityEngine.Random.Range(min, max);
+    public bool IsValid() => min >= MIN_LIMIT && max <= MAX_LIMIT && min <= max;
+}
+
+
