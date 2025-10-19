@@ -1,9 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class Collectible : MonoBehaviour
 {
+
+    [Header("Efeito Especial")]
+    public AudioClip _collentSound;
+    public ParticleSystem _collectEffect;
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -18,7 +25,16 @@ public class Collectible : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
-        Destroy(gameObject);
+        if (other.CompareTag("Player"))
+        {
+            CollectibleManager.Instance.AddColletable(1);
+
+            if (_collentSound)
+                AudioSource.PlayClipAtPoint(_collentSound, transform.position);
+            if (_collectEffect)
+                Instantiate(_collectEffect, transform.position, Quaternion.identity);
+            
+            Destroy(gameObject);
+        }
     }
 }

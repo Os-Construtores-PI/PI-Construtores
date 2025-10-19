@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,8 @@ public class CollectibleManager : MonoBehaviour
 
     public Text collectableCountText; // Assign your UI Text element in the Inspector
     private int currentCollectables = 0;
+
+    public event Action<int> OnColletableCountChanged;
 
     private void Awake()
     {
@@ -21,18 +24,30 @@ public class CollectibleManager : MonoBehaviour
         }
     }
 
-    public void AddCollectable()
+
+    public void AddColletable(int amount = 1)
     {
-        currentCollectables++;
+        currentCollectables += amount;
         UpdateCollectableText();
+        OnColletableCountChanged?.Invoke(currentCollectables);
     }
 
     private void UpdateCollectableText()
     {
         if (collectableCountText != null)
-        {
-            collectableCountText.text = "Collectables: " + currentCollectables.ToString();
-        }
+            collectableCountText.text = currentCollectables.ToString("00");
+    }
+
+    public int GetCurrentColletables()
+    {
+        return currentCollectables;
+    }
+
+    public void ResetColletables()
+    {
+        currentCollectables = 0;
+        UpdateCollectableText();
+        OnColletableCountChanged?.Invoke(currentCollectables);
     }
 
     // Initialize the text when the game starts

@@ -9,6 +9,8 @@ public class CollectibleAmethyst : Collectible
     {
         if (other.CompareTag("Player"))
         {
+
+            CollectibleManager.Instance?.AddColletable();
             // Call a method on a central manager to update the counter
             //CollectableManager.Instance.AddCollectable();
             Destroy(gameObject);
