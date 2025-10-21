@@ -184,6 +184,7 @@ public class PlayerDirector : MonoBehaviour
             if (hudInstance.TryGetComponent<Canvas>(out var canvas))
             {
                 canvas.worldCamera = camera;
+                canvas.planeDistance = .4f;
             }
         }
     }

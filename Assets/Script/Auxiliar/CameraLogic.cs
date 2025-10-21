@@ -27,6 +27,7 @@ public class CameraLogic : Entities
         layersDistance[8] = 40;
         layersDistance[9] = 40;
         layersDistance[12] = 100;
+        layersDistance[13] = 200;
         if(TryGetComponent(out Camera cam))
         {
             cam.layerCullDistances = layersDistance; 

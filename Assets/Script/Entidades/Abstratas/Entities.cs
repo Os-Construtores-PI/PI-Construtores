@@ -1,14 +1,15 @@
 using UnityEngine;
 
-public abstract class Entities : MonoBehaviour
+public abstract class Entities : BaseRenderedGameObject
 {
     private static int _nextId = 0;
     protected int id;
 
     [HideInInspector] public int ID => id;
 
-    public virtual void Awake()
+    public override void Awake()
     {
+        base.Awake();
         // Se ainda não tem ID, gera um novo
         if (id == 0)
             id = ++_nextId;

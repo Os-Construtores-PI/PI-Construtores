@@ -1,8 +1,9 @@
 using UnityEngine;
 using System.Collections;
+using DG.Tweening;
 
 [RequireComponent(typeof(Rigidbody))]
-public class FallingPlatform : MonoBehaviour
+public class FallingPlatform : BasePlataform
 {
     private Rigidbody rb;
     private Vector3 startPos;
@@ -16,8 +17,9 @@ public class FallingPlatform : MonoBehaviour
     private bool canFall = true;
     private Coroutine fallRoutine;
 
-    private void Awake()
+    public override void Awake()
     {
+        base.Awake();
         rb = GetComponent<Rigidbody>();
         startPos = transform.position;
         startRotation = transform.rotation;
@@ -56,6 +58,8 @@ public class FallingPlatform : MonoBehaviour
 
     private void PlatformReset()
     {
+        DOTween.Kill(transform);
+        transform.localScale = initialScale;
         rb.isKinematic = true;
         transform.SetPositionAndRotation(startPos, startRotation);
         Physics.SyncTransforms();

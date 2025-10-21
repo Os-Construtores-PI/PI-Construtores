@@ -4,7 +4,7 @@ using DG.Tweening;  // Biblioteca DOTween para animações de movimento
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class LoopPlataforms : MonoBehaviour
+public class LoopPlataforms : BasePlataform
 {
     private List<Vector3> targetList = new();  // Lista dinâmica para armazenar posições dos pontos de destino
     private Vector3[] targets;                  // Array fixo de posições usado para a animação do caminho
@@ -22,11 +22,10 @@ public class LoopPlataforms : MonoBehaviour
     [SerializeField] int num_of_loops;    // Quantidade de repetições da animação (loop)
 
     // Inicializa e começa a animação no início
-    void Start()
+    public override void Start()
     {
+        base.Start();
         InitTargets();           // Pega os pontos filhos e salva as posições
-        DOTween.Init();          // Inicializa o DOTween (garante que está pronto para uso)
-
         // Se existir pontos no caminho, inicia a animação de caminho com os parâmetros configurados
         if (targets.Count() > 0)
         {

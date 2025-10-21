@@ -170,8 +170,9 @@ public abstract class LiveEntities : Entities
 
     #region --- Inicialização ---
 
-    public virtual void Start()
+    public override void Start()
     {
+        base.Awake();
         MaxHealth = _maxHealth;
         Health = _maxHealth;
 

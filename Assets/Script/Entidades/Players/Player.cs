@@ -87,6 +87,8 @@ public class Player : CombatEntities
         set => canDash = value;
     }
     private bool isDashing = false;
+    private float dashCount = 1;
+    private float dashCurrent = 0;
     private float dashDuration;
     #endregion
 
@@ -141,6 +143,7 @@ public class Player : CombatEntities
     public override void Awake()
     {
         base.Awake();
+        canPulse = false;
         initialGravity = gravity;
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
@@ -205,7 +208,7 @@ public class Player : CombatEntities
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        if (context.started && canDash)
+        if (context.started && canDash && dashCurrent < dashCount)
             StartDash();
     }
 
@@ -283,6 +286,7 @@ public class Player : CombatEntities
         {
             movementVector.y = 0f;
             currentJumpCount = 0;
+            dashCurrent = 0;
             ApplyFriction(ref movementVector.x, friction);
             ApplyFriction(ref movementVector.z, friction);
         }
@@ -335,7 +339,7 @@ public class Player : CombatEntities
         isDashing = true;
         canDash = false;
         movementVector.y = 0f;
-
+        dashCurrent += 1;
         canMove = false;
         PlayDashVisual();
        // Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
