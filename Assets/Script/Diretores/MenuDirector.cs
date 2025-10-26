@@ -1,4 +1,5 @@
 using System.Collections;
+
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,6 +13,9 @@ public class MenuDirector : MonoBehaviour
     [SerializeField] Transform[] _partsConfig;
     [SerializeField] Transform[] _saveMenuGame; // transform que chama o painel do save
 
+    [SerializeField] Transform[] _pulsarImagem; // Imagens que terão o efeito de pulsar
+    
+
 
     [SerializeField] Button[] _botoes; // Variavel que chama os botoes animados
     private bool _animadoMenu = false;
@@ -21,6 +25,15 @@ public class MenuDirector : MonoBehaviour
         // _painelLayout.DOScale(1, 5);
         StartCoroutine(TimeStart()); // inicia a animação dos painés do menu
         PainelStartOff(); // desativa os paineis de configuração
+
+        if(_pulsarImagem != null)
+        {
+            foreach(var t in _pulsarImagem)
+            {
+                if (t != null && t.gameObject.activeInHierarchy)
+                    t.localScale = Vector3.one;
+            }
+        }
 
         // inicializa todos os paineis do menu com escala zero
         for (int i = 0; i < _painelMenu.Length; i++)
@@ -89,6 +102,7 @@ public class MenuDirector : MonoBehaviour
         }
 
         StartCoroutine(TimeConfig());
+        PararImagemPulsando();
     }
 
     public void FecharOpcoes()
@@ -103,6 +117,7 @@ public class MenuDirector : MonoBehaviour
         {
             botao.transform.DOScale(1, 0.5f);
         }
+        AtivarImagensPulsando();
     }
 
     public void AbrirPainelVolume()
@@ -163,6 +178,7 @@ public class MenuDirector : MonoBehaviour
         {
             _saveMenuGame[i].DOScale(1, .25f);
         }
+        PararImagemPulsando();
     }
 
     public void FecharPainelSave()
@@ -173,6 +189,8 @@ public class MenuDirector : MonoBehaviour
         // Reabre o menu principal
         for (int i = 0; i < _painelMenu.Length; i++)
             _painelMenu[i].DOScale(1, .25f);
+
+        AtivarImagensPulsando();
 
     }
 
@@ -197,6 +215,7 @@ public class MenuDirector : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
 
         AtivarAnimator(); // ativa animadores dos botões
+        AtivarImagensPulsando();
         _animadoMenu = true;
 
 
@@ -245,6 +264,37 @@ public class MenuDirector : MonoBehaviour
     {
         Application.Quit();
         Debug.Log("Fechando jogo");
+    }
+
+    private void AtivarImagensPulsando()
+    {
+        if (_pulsarImagem == null || _pulsarImagem.Length == 0)
+            return;
+
+        foreach (Transform img in _pulsarImagem)
+        {
+            if (img == null) continue;
+
+            img.localScale = Vector3.one;
+
+            img.DOKill();
+
+            img.DOScale(1.05f, 0.8f)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine);
+        }
+    }
+
+    private void PararImagemPulsando()
+    {
+        if (_pulsarImagem == null) return;
+
+        foreach( Transform img in _pulsarImagem)
+        {
+            if (img == null) continue;
+            img.DOKill();
+            img.localScale = Vector3.one; 
+        }
     }
 
 }
