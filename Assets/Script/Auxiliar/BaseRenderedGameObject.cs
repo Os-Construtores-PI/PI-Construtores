@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class BaseRenderedGameObject : MonoBehaviour
 {
-    private float pulseDuration = 0.4f;
-    private float scaleFactor = 1.3f;
+    private readonly float pulseDuration = 0.4f;
+    private readonly float scaleFactor = 1.3f;
     private bool hasPlayed;
     protected Vector3 initialScale;
     private Tween scaleTween;
@@ -14,14 +14,11 @@ public class BaseRenderedGameObject : MonoBehaviour
     {
         initialScale = transform.localScale;
     }
-    
 
     public virtual void Start()
     {
         DOTween.Init(); 
     }
-
-
 
     void OnBecameVisible()
     {
