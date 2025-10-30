@@ -24,14 +24,14 @@ public class Player : CombatEntities
         get => speed;
         set => speed = value;
     }
-    [SerializeField] private float acceleration = 5f;
-    [SerializeField] private float friction = 2f;
-    [SerializeField] private float airFriction = 2f;
+    public float Acceleration { get; set; } = 5f;
+    public float friction { get; set; } = 2f;
+    public float airFriction { get; set; } = 2f;
     [SerializeField] public ShiftDashScript _dashHUD; // adicionado para ter uma animação no Shift
 
     [Header("Pulo")]
     [SerializeField] private float jumpForce = 10f;
-    [SerializeField] private float wallJumpMultiplier = 5;
+    public float wallJumpMultiplier { get; set; } = 5;
     [HideInInspector]
     [Stat(nameof(JumpForce))]
     public float JumpForce
@@ -40,7 +40,7 @@ public class Player : CombatEntities
         set => jumpForce = value;
     }
     [SerializeField] private int maxJumpCount = 2;
-    [SerializeField] private float gravity = -9.81f;
+    public float gravity { get; set; } = -16.62f;
     private float initialGravity;
 
     [Header("Dash")]
@@ -52,6 +52,7 @@ public class Player : CombatEntities
     [SerializeField] protected CharacterController characterController;
     public CharacterController Charactercontroller => characterController;
     [SerializeField] protected CinemachineCamera cinemachineCamera;
+    public CinemachineCamera Cinemachinecamera => cinemachineCamera;
     public void SetCinemachineCamera(CinemachineCamera cam)
     {
         cinemachineCamera = cam;
@@ -61,17 +62,35 @@ public class Player : CombatEntities
 
     #endregion
 
-    #region --- Estados Internos ---
-    private Vector3 movementVector;
-    private Vector3 direction;
-    private Vector3 dashDirection;
-    private Vector2 moveInput;
-    private Vector3 lastWallNormal;
+    #region --- Overrides ---
+    // === GLOBAL ===
+    public bool OverrideGlobal { get; set; } = false;
+    public float GlobalOverride { get; set; } = 0f;
 
-    private int currentJumpCount;
-    private bool isGrounded;
-    private bool wallSpeedApplied;
-    private bool touchingWall;
+    // === HORIZONTAL ===
+    public bool OverrideHorizontal { get; set; } = false;
+    public float HorizontalOverride { get; set; } = 0f;
+
+    // === VERTICAL ===
+    public bool OverrideVertical { get; set; } = false;
+    public float VerticalOverride { get; set; } = 0f;
+    #endregion
+
+    #region --- Estados Internos ---
+    public StateMachine<Player> HorizontalLayer { get; private set; }
+    public StateMachine<Player> VerticalLayer { get; private set; }
+    public StateMachine<Player> ActionLayer { get; private set; }
+
+    public Vector3 MovementVector { get; set; }
+    public Vector3 Direction { get; set; }
+    private Vector3 DashDirection;
+    public Vector2 MoveInput { get; set; }
+    public Vector3 LastWallNormal { get; set; }
+
+    public int currentJumpCount { get; set; }
+    public bool isGrounded { get; set; }
+    public bool wallSpeedApplied { get; set; }
+    public bool touchingWall { get; set; }
     private bool canDash = true;
     private bool canMove = true;
     [Stat(nameof(CanMove))]
@@ -88,7 +107,7 @@ public class Player : CombatEntities
     }
     private bool isDashing = false;
     private float dashCount = 1;
-    private float dashCurrent = 0;
+    public float dashCurrent { get; set; } = 0;
     private float dashDuration;
     #endregion
 
@@ -147,6 +166,9 @@ public class Player : CombatEntities
         initialGravity = gravity;
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
+        VerticalLayer = new();
+        HorizontalLayer = new();
+        ActionLayer = new();
         SetupCamera();
     }
 
@@ -172,6 +194,7 @@ public class Player : CombatEntities
         ChangeCharacterTimer();
         AttackTimer();
         WallRunningTimer();
+        print($"[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}");
         // print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
     }
 
@@ -183,19 +206,15 @@ public class Player : CombatEntities
         if (isDashing) HandleDash();
         else HandleMovement();
 
-        //characterController.Move(movementVector * Time.deltaTime);
-
-        Vector3 finalMovement = movementVector;
+        Vector3 finalMovement = MovementVector;
 
         if (knockbackTimer > 0)
         {
             knockbackTimer -= Time.deltaTime;
             finalMovement += knockbackVelocity;
-
             knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, Time.deltaTime * 5f);
-
         }
-
+        VerticalLayer.FixedUpdate(this);
         characterController.Move(finalMovement * Time.deltaTime);
     }
 
@@ -204,7 +223,7 @@ public class Player : CombatEntities
     #endregion
     #region --- Input Callbacks ---
 
-    public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
+    public void OnMove(InputAction.CallbackContext context) => MoveInput = context.ReadValue<Vector2>();
 
     public void OnDash(InputAction.CallbackContext context)
     {
@@ -267,63 +286,34 @@ public class Player : CombatEntities
 
     private void ApplyRotationAndDirection()
     {
-        if (cinemachineCamera == null || moveInput == Vector2.zero) return;
-
-        Vector3 forward = cinemachineCamera.transform.forward;
-        Vector3 right = cinemachineCamera.transform.right;
-        forward.y = right.y = 0f;
-
-        direction = forward.normalized * moveInput.y + right.normalized * moveInput.x;
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 10f * Time.deltaTime);
-
-        movementVector.x = SmoothLerp(movementVector.x, direction.x * speed, acceleration);
-        movementVector.z = SmoothLerp(movementVector.z, direction.z * speed, acceleration);
     }
 
     private void ApplyGravityAndFriction()
     {
-        if (isGrounded && movementVector.y < 0f)
+        if (isGrounded && MovementVector.y < 0f)
         {
-            movementVector.y = 0f;
-            currentJumpCount = 0;
-            dashCurrent = 0;
-            ApplyFriction(ref movementVector.x, friction);
-            ApplyFriction(ref movementVector.z, friction);
+            VerticalLayer.ChangeState(new PlayerGroundedState(), this);
         }
         else
         {
-            ApplyFriction(ref movementVector.x, airFriction);
-            ApplyFriction(ref movementVector.z, airFriction);
-            movementVector.y += gravity * Time.deltaTime;
+            VerticalLayer.ChangeState(new PlayerFallingState(), this);
         }
     }
 
-    private void ApplyFriction(ref float value, float frictionAmount)
+    public float ApplyFriction(float value, float frictionAmount)
     {
-        if (moveInput == Vector2.zero)
-            value = SmoothLerp(value, 0f, frictionAmount);
+        if (MoveInput == Vector2.zero)
+            return SmoothLerp(value, 0f, frictionAmount);
+        return value;
     }
 
     private void Jump()
     {
-        if (isGrounded || currentJumpCount < maxJumpCount || touchingWall)
+        if (!(isGrounded || currentJumpCount < maxJumpCount || touchingWall) && !OverrideVertical)
         {
-            float multiplier = Mathf.Max(1f - 0.3f * currentJumpCount, 0.2f);
-
-            if (touchingWall) // se estiver na parede → usa vetor mais horizontal
-            {
-                float horizontalBias = 6.5f; // quanto maior, mais horizontal
-                Vector3 jumpDir = (Vector3.up + lastWallNormal * horizontalBias).normalized;
-                movementVector = jumpForce * wallJumpMultiplier * jumpDir;
-                touchingWall = false; // evita repetir
-            }
-            else // pulo normal
-            {
-                movementVector.y = jumpForce * multiplier;
-            }
-
-            currentJumpCount++;
+            return;
         }
+        VerticalLayer.ChangeState(new PlayerJumpingState(), this);
     }
 
 
@@ -334,11 +324,11 @@ public class Player : CombatEntities
 
     private void StartDash()
     {
-        dashDirection = moveInput != Vector2.zero ? direction : transform.forward;
+        DashDirection = MoveInput != Vector2.zero ? Direction : transform.forward;
         dashDuration = dashDistance / dashSpeed;
         isDashing = true;
         canDash = false;
-        movementVector.y = 0f;
+        MovementVector = new(MovementVector.x,0,MovementVector.z);
         dashCurrent += 1;
         canMove = false;
         PlayDashVisual();
@@ -362,7 +352,7 @@ public class Player : CombatEntities
         if (_dashHUD != null)
         {
             if (!_dashHUD.gameObject.activeInHierarchy)
-                _dashHUD.gameObject.SetActive(true);  // ✅ garante que está ativo
+                _dashHUD.gameObject.SetActive(true);
             _dashHUD.OnDashReady();
         }
        
@@ -370,7 +360,7 @@ public class Player : CombatEntities
 
     private void HandleDash()
     {
-        characterController.Move(dashSpeed * Time.deltaTime * dashDirection);
+        characterController.Move(dashSpeed * Time.deltaTime * DashDirection);
         dashDuration -= Time.deltaTime;
 
         if (dashDuration <= 0f)
@@ -507,7 +497,7 @@ public class Player : CombatEntities
         {
             touchingWall = true;
             currentJumpCount = 1;
-            lastWallNormal = hit.normal;
+            LastWallNormal = hit.normal;
 
             // só reseta se já estava fora da parede
             if (wallExitTimer >= 0f)
@@ -684,7 +674,7 @@ public class Player : CombatEntities
 
     #region --- Utilitários ---
 
-    private float SmoothLerp(float from, float to, float smoothing)
+    public float SmoothLerp(float from, float to, float smoothing)
         => Mathf.Lerp(from, to, 1f - Mathf.Exp(-smoothing * Time.deltaTime));
 
     #endregion
