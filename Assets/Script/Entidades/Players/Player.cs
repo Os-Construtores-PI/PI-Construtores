@@ -1,11 +1,10 @@
 using System;
 using System.Collections;
 using DG.Tweening;
-
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using UnityEngine.TextCore.Text;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator))]
@@ -15,8 +14,14 @@ public class Player : CombatEntities
     #region --- Configurações de Movimento ---
 
     [Header("Movimento")]
-    [SerializeField] private float speed = 10f;
-    [SerializeField] private QualityTier wallSpeedMultiplier = QualityTier.RARE;
+    [SerializeField]
+    private float speed = 10f;
+
+    [SerializeField]
+    private QualityTier wallSpeedMultiplier = QualityTier.RARE;
+    public QualityTier WallSpeedMultiplier { get; internal set; }
+
+
     [HideInInspector]
     [Stat(nameof(Speed))]
     public float Speed
@@ -24,14 +29,18 @@ public class Player : CombatEntities
         get => speed;
         set => speed = value;
     }
-    public float Acceleration { get; set; } = 5f;
-    public float friction { get; set; } = 2f;
-    public float airFriction { get; set; } = 2f;
-    [SerializeField] public ShiftDashScript _dashHUD; // adicionado para ter uma animação no Shift
+    public float Acceleration { get; internal set; } = 5f;
+    public float Friction { get; internal set; } = 2f;
+    public float AirFriction { get; internal set; } = 2f;
+
+    [SerializeField]
+    internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
     [Header("Pulo")]
-    [SerializeField] private float jumpForce = 10f;
-    public float wallJumpMultiplier { get; set; } = 5;
+    [SerializeField]
+    private float jumpForce = 10f;
+    public float WallJumpMultiplier { get; internal set; } = 5;
+
     [HideInInspector]
     [Stat(nameof(JumpForce))]
     public float JumpForce
@@ -39,25 +48,37 @@ public class Player : CombatEntities
         get => jumpForce;
         set => jumpForce = value;
     }
-    [SerializeField] private int maxJumpCount = 2;
-    public float gravity { get; set; } = -16.62f;
+
+    [SerializeField]
+    private int maxJumpCount = 2;
+    public float Gravity { get; internal set; } = -16.62f;
     private float initialGravity;
 
     [Header("Dash")]
-    [SerializeField] private float dashSpeed = 30f;
-    [SerializeField] private float dashDistance = 10f;
-    [SerializeField] private float dashCooldown = 5f;
+    public float DashSpeed { get; internal set; } = 30f;
+
+    [SerializeField]
+    internal float dashDistance = 10f;
+
+    [SerializeField]
+    internal float dashCooldown = 5f;
 
     [Header("Componentes")]
-    [SerializeField] protected CharacterController characterController;
+    [SerializeField]
+    protected CharacterController characterController;
     public CharacterController Charactercontroller => characterController;
-    [SerializeField] protected CinemachineCamera cinemachineCamera;
+
+    [SerializeField]
+    protected CinemachineCamera cinemachineCamera;
     public CinemachineCamera Cinemachinecamera => cinemachineCamera;
+
     public void SetCinemachineCamera(CinemachineCamera cam)
     {
         cinemachineCamera = cam;
     }
-    [SerializeField] protected Animator animatorComp;
+
+    [SerializeField]
+    protected Animator animatorComp;
     public Animator AnimatorComp => animatorComp;
 
     #endregion
@@ -77,52 +98,60 @@ public class Player : CombatEntities
     #endregion
 
     #region --- Estados Internos ---
-    public StateMachine<Player> HorizontalLayer { get; private set; }
-    public StateMachine<Player> VerticalLayer { get; private set; }
-    public StateMachine<Player> ActionLayer { get; private set; }
+    internal StateMachine<PlayerContext> HorizontalLayer;
+    internal StateMachine<PlayerContext> VerticalLayer;
+    internal StateMachine<PlayerContext> ActionLayer;
 
-    public Vector3 MovementVector { get; set; }
-    public Vector3 Direction { get; set; }
-    private Vector3 DashDirection;
-    public Vector2 MoveInput { get; set; }
-    public Vector3 LastWallNormal { get; set; }
+    public PlayerContext Context { get; internal set; }
 
-    public int currentJumpCount { get; set; }
-    public bool isGrounded { get; set; }
-    public bool wallSpeedApplied { get; set; }
-    public bool touchingWall { get; set; }
-    private bool canDash = true;
-    private bool canMove = true;
+    public Vector3 MovementVector { get; internal set; }
+    public Vector3 Direction { get; internal set; }
+    public Vector3 DashDirection { get; internal set; }
+    public Vector2 MoveInput { get; internal set; }
+    public Vector3 LastWallNormal { get; internal set; }
+
+    public int CurrentJumpCount { get; internal set; }
+    public bool IsGrounded { get; internal set; }
+    public bool WallSpeedApplied { get; internal set; }
+    public bool TouchingWall { get; internal set; }
+    internal bool canDash = true;
+    internal bool canMove = true;
+
     [Stat(nameof(CanMove))]
     public bool CanMove
     {
         get => canMove;
         set => canMove = value;
     } // nova flag para controle de movimento
+
     [Stat(nameof(CanDash))]
     public bool CanDash
     {
         get => canDash;
         set => canDash = value;
     }
-    private bool isDashing = false;
+    public bool IsDashing { get; internal set; } = false;
     private float dashCount = 1;
-    public float dashCurrent { get; set; } = 0;
-    private float dashDuration;
+    public float DashCurrent { get; internal set; } = 0;
+    public float DashDuration { get; internal set; }
     #endregion
 
 
     #region === EnemyScan ===
     [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
-    [SerializeField, Min(10)] private float enemyScanRadius = 10;
-    [SerializeField, Min(1)] private float enemyScanCooldown = 2.0f;
+    [SerializeField, Min(10)]
+    private float enemyScanRadius = 10;
+
+    [SerializeField, Min(1)]
+    private float enemyScanCooldown = 2.0f;
     private float enemyScanWalker = 0.0f;
     #endregion
 
 
     #region === Interação ===
     [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
-    [SerializeField] private float interactionScanCooldown = .1f;
+    [SerializeField]
+    private float interactionScanCooldown = .1f;
     protected InteractableObject interactableRef;
     private float interactionScanCooldownWalker = 0.0f;
     private Camera selectedcamera = null;
@@ -140,32 +169,40 @@ public class Player : CombatEntities
     // === AMETISTAS ===
     private int amethysts;
     public int Amethysts => amethysts;
+
     public void SetAmethysts(int value)
     {
-        if (amethysts == value) return;
+        if (amethysts == value)
+            return;
         int oldValue = amethysts;
 
         amethysts = Mathf.Max(0, value); // evita negativo
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts);
     }
+
     public void AddAmethysts(int amount) => SetAmethysts(amethysts + amount);
+
     public bool SpendAmethysts(int amount)
     {
-        if (amount <= 0 || amethysts < amount) return false;
+        if (amount <= 0 || amethysts < amount)
+            return false;
         SetAmethysts(amethysts - amount);
         return true;
     }
     #endregion
 
 
-
     public override void Awake()
     {
         base.Awake();
         canPulse = false;
-        initialGravity = gravity;
+        initialGravity = Gravity;
+        Context = new(this);
+
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
+
+
         VerticalLayer = new();
         HorizontalLayer = new();
         ActionLayer = new();
@@ -178,13 +215,17 @@ public class Player : CombatEntities
         DOTween.Init();
         StartCoroutine(DelayedSetupHUD(.1f));
 
-        if(_dashHUD == null)
+        if (dashHUDScript == null)
         {
             var go = GameObject.FindWithTag("DashHUDIcon");
-            if (go) _dashHUD = go.GetComponent<ShiftDashScript>();
-            Debug.LogWarning("[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag");
+            if (go)
+                dashHUDScript = go.GetComponent<ShiftDashScript>();
+            Debug.LogWarning(
+                "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag"
+            );
         }
     }
+
     public override void Update()
     {
         base.Update();
@@ -194,17 +235,25 @@ public class Player : CombatEntities
         ChangeCharacterTimer();
         AttackTimer();
         WallRunningTimer();
-        print($"[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}");
-        // print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
+
+        VerticalLayer.Update(Context);
+        HorizontalLayer.Update(Context);
+        ActionLayer.Update(Context);
+
+        //print($"[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}");
+        //print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
     }
 
     private void FixedUpdate()
     {
-        if (!characterController.enabled) return;
-        isGrounded = characterController.isGrounded;
+        if (!characterController.enabled)
+            return;
+        IsGrounded = characterController.isGrounded;
 
-        if (isDashing) HandleDash();
-        else HandleMovement();
+        if (IsDashing)
+            HandleDash();
+        else
+            HandleMovement();
 
         Vector3 finalMovement = MovementVector;
 
@@ -214,7 +263,9 @@ public class Player : CombatEntities
             finalMovement += knockbackVelocity;
             knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, Time.deltaTime * 5f);
         }
-        VerticalLayer.FixedUpdate(this);
+        ActionLayer.FixedUpdate(Context);
+        HorizontalLayer.FixedUpdate(Context);
+        VerticalLayer.FixedUpdate(Context);
         characterController.Move(finalMovement * Time.deltaTime);
     }
 
@@ -223,11 +274,12 @@ public class Player : CombatEntities
     #endregion
     #region --- Input Callbacks ---
 
-    public void OnMove(InputAction.CallbackContext context) => MoveInput = context.ReadValue<Vector2>();
+    public void OnMove(InputAction.CallbackContext context) =>
+        MoveInput = context.ReadValue<Vector2>();
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        if (context.started && canDash && dashCurrent < dashCount)
+        if (context.started && canDash && DashCurrent < dashCount)
             StartDash();
     }
 
@@ -236,6 +288,7 @@ public class Player : CombatEntities
         if (context.started)
             Jump();
     }
+
     public void OnInteract(InputAction.CallbackContext context)
     {
         if (interactableRef && context.started)
@@ -244,6 +297,7 @@ public class Player : CombatEntities
             interactableRef.Interaction(info);
         }
     }
+
     public void OnAttack(InputAction.CallbackContext context)
     {
         if (context.started)
@@ -251,15 +305,19 @@ public class Player : CombatEntities
             Attack();
         }
     }
+
     public void OnChangeCharacter(InputAction.CallbackContext context)
     {
         float charAxis = context.ReadValue<float>();
         print(charAxis + ":" + name);
     }
+
     [Header("TROCA DE JOGADOR PARÂMETROS")]
-    [SerializeField] private float ChangeCharacterCooldown = 5f;
+    [SerializeField]
+    private float ChangeCharacterCooldown = 5f;
     private float ChangeCharacterCooldownWalker = 0.0f;
     private bool CanChangeCharacter = true;
+
     private void ChangeCharacterTimer()
     {
         if (!CanChangeCharacter)
@@ -279,44 +337,42 @@ public class Player : CombatEntities
 
     private void HandleMovement()
     {
-        if (!CanMove) return;
+        if (!CanMove)
+            return;
         ApplyRotationAndDirection();
         ApplyGravityAndFriction();
     }
 
     private void ApplyRotationAndDirection()
     {
+        if (Cinemachinecamera == null || MoveInput == Vector2.zero)
+        {
+            return;
+        }
+        HorizontalLayer.ChangeState(new PlayerMovimentState(), Context);
+        // Movimentação
     }
 
     private void ApplyGravityAndFriction()
     {
-        if (isGrounded && MovementVector.y < 0f)
+        if (IsGrounded && MovementVector.y < 0f)
         {
-            VerticalLayer.ChangeState(new PlayerGroundedState(), this);
+            VerticalLayer.ChangeState(new PlayerGroundedState(), Context);
         }
         else
         {
-            VerticalLayer.ChangeState(new PlayerFallingState(), this);
+            VerticalLayer.ChangeState(new PlayerFallingState(), Context);
         }
-    }
-
-    public float ApplyFriction(float value, float frictionAmount)
-    {
-        if (MoveInput == Vector2.zero)
-            return SmoothLerp(value, 0f, frictionAmount);
-        return value;
     }
 
     private void Jump()
     {
-        if (!(isGrounded || currentJumpCount < maxJumpCount || touchingWall) && !OverrideVertical)
+        if (!(IsGrounded || CurrentJumpCount < maxJumpCount || TouchingWall) && !OverrideVertical)
         {
             return;
         }
-        VerticalLayer.ChangeState(new PlayerJumpingState(), this);
+        VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
     }
-
-
 
     #endregion
 
@@ -324,48 +380,18 @@ public class Player : CombatEntities
 
     private void StartDash()
     {
-        DashDirection = MoveInput != Vector2.zero ? Direction : transform.forward;
-        dashDuration = dashDistance / dashSpeed;
-        isDashing = true;
-        canDash = false;
-        MovementVector = new(MovementVector.x,0,MovementVector.z);
-        dashCurrent += 1;
-        canMove = false;
-        PlayDashVisual();
-       // Debug.Log("[Player] StartDash chamado. dashHud == " + (_dashHUD == null ? "NULL" : _dashHUD.name));
-        
-        if (_dashHUD != null)
-        {
-            if (!_dashHUD.gameObject.activeInHierarchy)
-                _dashHUD.gameObject.SetActive(true);
-            _dashHUD.OnDashUsed();
-        }
-        
-        
-        Invoke(nameof(ResetDashed), dashCooldown);
+        HorizontalLayer.ChangeState(new PlayerDashState(), Context);
     }
 
-    private void ResetDashed()
-    {
-        canDash = true;
-
-        if (_dashHUD != null)
-        {
-            if (!_dashHUD.gameObject.activeInHierarchy)
-                _dashHUD.gameObject.SetActive(true);
-            _dashHUD.OnDashReady();
-        }
-       
-    }
 
     private void HandleDash()
     {
-        characterController.Move(dashSpeed * Time.deltaTime * DashDirection);
-        dashDuration -= Time.deltaTime;
+        characterController.Move(DashSpeed * Time.deltaTime * DashDirection);
+        DashDuration -= Time.deltaTime;
 
-        if (dashDuration <= 0f)
+        if (DashDuration <= 0f)
         {
-            isDashing = false;
+            IsDashing = false;
             canMove = true;
         }
     }
@@ -374,9 +400,10 @@ public class Player : CombatEntities
 
     private void PlayDashVisual()
     {
-        DOTween.Sequence()
-            .Append(transform.DOScaleY(0.65f, dashDuration * 0.6f))
-            .Append(transform.DOScaleY(1f, dashDuration * 0.4f))
+        DOTween
+            .Sequence()
+            .Append(transform.DOScaleY(0.65f, DashDuration * 0.6f))
+            .Append(transform.DOScaleY(1f, DashDuration * 0.4f))
             .SetEase(Ease.InOutSine)
             .SetUpdate(UpdateType.Fixed);
     }
@@ -393,7 +420,8 @@ public class Player : CombatEntities
     public void ApplyKnockback(Vector3 direction, float force)
     {
         // Aplica o empurrão apenas se não tiver knockback em andamento
-        if (isKnockbackActive) return;
+        if (isKnockbackActive)
+            return;
 
         knockbackVelocity = direction * force;
         knockbackTimer = knockbackDuration;
@@ -411,9 +439,11 @@ public class Player : CombatEntities
                 isKnockbackActive = false;
         }
     }
+
     private void BlockPlayerDash()
     {
-        if (isDashBlocked) return;
+        if (isDashBlocked)
+            return;
         isDashBlocked = true;
         stats.ModifyStatImmediate<bool>(
             Constants.StatsNames.CanDash.ToString(),
@@ -422,18 +452,23 @@ public class Player : CombatEntities
         );
     }
 
-
     private void UnBlockPlayerDash()
     {
-        if (!isDashBlocked) return;
+        if (!isDashBlocked)
+            return;
         isDashBlocked = false;
-        stats.ModifyStatImmediate<bool>(Constants.StatsNames.CanDash.ToString(), ModifyTYPE.POSITIVE, QualityTier.COMMON);
+        stats.ModifyStatImmediate<bool>(
+            Constants.StatsNames.CanDash.ToString(),
+            ModifyTYPE.POSITIVE,
+            QualityTier.COMMON
+        );
         stats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
     }
 
     private void BlockPlayerDashToRoutine(float duration)
     {
-        if (isDashBlocked) return; // já está bloqueado, não chama de novo
+        if (isDashBlocked)
+            return; // já está bloqueado, não chama de novo
 
         StartCoroutine(BlockDashCoroutine(duration));
     }
@@ -456,12 +491,13 @@ public class Player : CombatEntities
     #endregion
     [Header("WALL EXIT")]
     #region === WALLRUNNING ===
-    [SerializeField] private float wallExitDuration = .2f; // duração do tempo fora da parede
+    [SerializeField]
+    private float wallExitDuration = .2f; // duração do tempo fora da parede
     private float wallExitTimer = -1f; // começa desativado
 
     private void WallRunningTimer()
     {
-        if (!touchingWall && wallSpeedApplied)
+        if (!TouchingWall && WallSpeedApplied)
         {
             if (wallExitTimer < 0f)
             {
@@ -476,10 +512,10 @@ public class Player : CombatEntities
             if (wallExitTimer <= 0f)
             {
                 stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // reseta pro base
-                wallSpeedApplied = false;
-                touchingWall = false;
+                WallSpeedApplied = false;
+                TouchingWall = false;
                 UnBlockPlayerDash();
-                gravity = initialGravity;
+                Gravity = initialGravity;
             }
         }
     }
@@ -489,21 +525,20 @@ public class Player : CombatEntities
         wallExitTimer = -1;
     }
 
-
     #endregion
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.gameObject.CompareTag(Constants.Tags.RunningWall.ToString()))
         {
-            touchingWall = true;
-            currentJumpCount = 1;
+            TouchingWall = true;
+            CurrentJumpCount = 1;
             LastWallNormal = hit.normal;
 
             // só reseta se já estava fora da parede
             if (wallExitTimer >= 0f)
                 ResetWallExitTimer();
 
-            if (!wallSpeedApplied)
+            if (!WallSpeedApplied)
             {
                 stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // garante que não acumule
                 stats.ModifyStatImmediate<float>(
@@ -511,15 +546,15 @@ public class Player : CombatEntities
                     ModifyTYPE.POSITIVE,
                     wallSpeedMultiplier
                 );
-                wallSpeedApplied = true;
+                WallSpeedApplied = true;
                 BlockPlayerDash();
             }
 
-            gravity = -2f;
+            Gravity = -2f;
         }
         else
         {
-            touchingWall = false;
+            TouchingWall = false;
         }
 
         if (hit.gameObject.TryGetComponent(out Enemies enemy))
@@ -537,28 +572,30 @@ public class Player : CombatEntities
         yield return new WaitForSeconds(duration);
         SetupHUD();
     }
+
     private void SetupHUD()
     {
         foreach (var hudObj in GameObject.FindGameObjectsWithTag("HealthHUD"))
         {
-            if (hudObj.TryGetComponent(out HealthHUDComponent hud) && hud.IdHealth == ID && hud.HUDType == HealthHUDType.PLAYER)
+            if (
+                hudObj.TryGetComponent(out HealthHUDComponent hud)
+                && hud.IdHealth == ID
+                && hud.HUDType == HealthHUDType.PLAYER
+            )
             {
                 _healthHUD = hud;
                 _healthHUD.BindToPlayer(this);
                 break;
-
             }
         }
 
-        if (GameObject.FindWithTag("GameController").TryGetComponent(out HUDDirector hudDir) == true)
+        if (
+            GameObject.FindWithTag("GameController").TryGetComponent(out HUDDirector hudDir) == true
+        )
         {
             _OnDamage.AddListener(hudDir.ShakeCamera);
         }
     }
-   
-
-
-
 
     #endregion
 
@@ -579,6 +616,7 @@ public class Player : CombatEntities
             }
         }
     }
+
     private void EnemyScanTimer()
     {
         if (enemyScanWalker <= enemyScanCooldown)
@@ -591,9 +629,11 @@ public class Player : CombatEntities
             enemyScanWalker = 0;
         }
     }
+
     protected RaycastHit playerRayHit;
     protected InteractableObject interactionObject;
     protected Type interactionObjectType;
+
     // Base
     protected virtual bool ObjectScan()
     {
@@ -623,6 +663,7 @@ public class Player : CombatEntities
         interactableRef = interactionObject;
         return true;
     }
+
     // --- Método auxiliar para limpar estado ---
     protected void ClearInteractable()
     {
@@ -647,16 +688,19 @@ public class Player : CombatEntities
 
     #region  --- Ataque ---
     [Header("ATAQUE PARÂMETROS")]
-    [SerializeField] private float AttackCooldown;
+    [SerializeField]
+    private float AttackCooldown;
     private float AttackCooldownWalker = 0f;
     private bool canAttack = true;
 
     protected virtual bool Attack()
     {
-        if (!canAttack) return false;
+        if (!canAttack)
+            return false;
         canAttack = false;
         return true;
     }
+
     private void AttackTimer()
     {
         if (!canAttack)
@@ -669,14 +713,6 @@ public class Player : CombatEntities
             }
         }
     }
-    #endregion
-
-
-    #region --- Utilitários ---
-
-    public float SmoothLerp(float from, float to, float smoothing)
-        => Mathf.Lerp(from, to, 1f - Mathf.Exp(-smoothing * Time.deltaTime));
-
     #endregion
 
     #region --- Camera ---
@@ -701,4 +737,192 @@ public class Player : CombatEntities
     }
 
     #endregion
+}
+
+public class PlayerContext
+{
+    private readonly Player player;
+
+    public PlayerContext(Player player) => this.player = player;
+
+    public Transform PlayerTransform
+    {
+        get => player.transform;
+    }
+
+    public CharacterController PlayerController
+    {
+        get => player.Charactercontroller;
+    }
+
+    public CinemachineCamera PlayerCamera
+    {
+        get => player.Cinemachinecamera;
+    }
+
+    public float Speed
+    {
+        get => player.Speed;
+        set => player.Speed = value;
+    }
+
+    public QualityTier WallSpeedMultiplier
+    {
+        get => player.WallSpeedMultiplier;
+    }
+
+    public float WallJumpMultiplier
+    {
+        get => player.WallJumpMultiplier;
+        set => player.WallJumpMultiplier = value;
+    }
+
+    public float JumpForce
+    {
+        get => player.JumpForce;
+        set => player.JumpForce = value;
+    }
+
+    public float Gravity
+    {
+        get => player.Gravity;
+        set => player.Gravity = value;
+    }
+
+    public float DashSpeed
+    {
+        get => player.DashSpeed;
+        set => player.DashSpeed = value;
+    }
+
+    public float DashCooldown
+    {
+        get => player.dashCooldown;
+    }
+
+    public float DashDistance
+    {
+        get => player.dashDistance;
+    }
+
+    public float Acceleration
+    {
+        get => player.Acceleration;
+        set => player.Acceleration = value;
+    }
+
+    public float Friction
+    {
+        get => player.Friction;
+        set => player.Friction = value;
+    }
+
+    public float AirFriction
+    {
+        get => player.AirFriction;
+        set => player.AirFriction = value;
+    }
+
+    public Vector3 MovementVector
+    {
+        get => player.MovementVector;
+        set => player.MovementVector = value;
+    }
+
+    public Vector3 Direction
+    {
+        get => player.Direction;
+        set => player.Direction = value;
+    }
+
+    public Vector3 DashDirection
+    {
+        get => player.DashDirection;
+        set => player.DashDirection = value;
+    }
+
+    public Vector2 MoveInput
+    {
+        get => player.MoveInput;
+        set => player.MoveInput = value;
+    }
+
+    public Vector3 LastWallNormal
+    {
+        get => player.LastWallNormal;
+        set => player.LastWallNormal = value;
+    }
+
+    public int CurrentJumpCount
+    {
+        get => player.CurrentJumpCount;
+        set => player.CurrentJumpCount = value;
+    }
+
+    public bool IsGrounded
+    {
+        get => player.IsGrounded;
+        set => player.IsGrounded = value;
+    }
+
+    public bool WallSpeedApplied
+    {
+        get => player.WallSpeedApplied;
+        set => player.WallSpeedApplied = value;
+    }
+
+    public bool TouchingWall
+    {
+        get => player.TouchingWall;
+        set => player.TouchingWall = value;
+    }
+
+    public bool CanMove
+    {
+        get => player.CanMove;
+        set => player.CanMove = value;
+    }
+    public bool CanDash
+    {
+        get => player.canDash;
+        set => player.canDash = value;
+    }
+
+    public ShiftDashScript DashScript
+    {
+        get => player.dashHUDScript;
+    }
+
+    public bool IsDashing
+    {
+        get => player.IsDashing;
+        set => player.IsDashing = value;
+    }
+
+    public float DashCurrent
+    {
+        get => player.DashCurrent;
+        set => player.DashCurrent = value;
+    }
+
+    public float DashDuration
+    {
+        get => player.DashDuration;
+        set => player.DashDuration = value;
+    }
+
+    public StateMachine<PlayerContext> HorizontalLayer
+    {
+        get => player.HorizontalLayer;
+    }
+    
+    public StateMachine<PlayerContext> VerticalLayer
+    {
+        get => player.VerticalLayer;
+    }
+
+    public StateMachine<PlayerContext> ActionLayer
+    {
+        get => player.ActionLayer;
+    }
 }

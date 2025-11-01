@@ -1,35 +1,30 @@
 using UnityEngine;
 
-public class PlayerGroundedState : IState<Player>
+public class PlayerGroundedState : IState<PlayerContext>
 {
-    public void Enter(Player entity)
+    public void Enter(PlayerContext context)
     {
-        Vector3 move = entity.MovementVector;
+        Vector3 move = context.MovementVector;
         move.y = 0;
-        entity.MovementVector = move;
+        context.MovementVector = move;
     }
 
-    public void Exit(Player entity)
-    {     
-    }
+    public void Exit(PlayerContext context) { }
 
-    public void FixedUpdate(Player entity)
+    public void FixedUpdate(PlayerContext context)
     {
         // Reseta o eixo Y do movimento
-        Vector3 move = entity.MovementVector;
+        Vector3 move = context.MovementVector;
 
         // Reseta jumps e dash
-        entity.currentJumpCount = 0;
-        entity.dashCurrent = 0;
+        context.CurrentJumpCount = 0;
+        context.DashCurrent = 0;
 
         // Aplica atrito separadamente em X e Z
-        move.x = entity.ApplyFriction(move.x, entity.friction);
-        move.z = entity.ApplyFriction(move.z, entity.friction);
-        entity.MovementVector = move;  
+        move.x = QualityOfLife.PlayerFriction(move.x, context.Friction,context.MoveInput);
+        move.z = QualityOfLife.PlayerFriction(move.z, context.Friction,context.MoveInput);
+        context.MovementVector = move;
     }
 
-    public void Update(Player entity)
-    {
-        
-    }
+    public void Update(PlayerContext context) { }
 }

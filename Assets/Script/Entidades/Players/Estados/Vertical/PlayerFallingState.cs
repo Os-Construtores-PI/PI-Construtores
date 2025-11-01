@@ -1,25 +1,25 @@
 using UnityEngine;
 
-public class PlayerFallingState : IState<Player>
+public class PlayerFallingState : IState<PlayerContext>
 {
-    public void Enter(Player entity)
+    public void Enter(PlayerContext context)
     {
     }
 
-    public void Exit(Player entity)
+    public void Exit(PlayerContext context)
     {
     }
 
-    public void FixedUpdate(Player entity)
+    public void FixedUpdate(PlayerContext context)
     {
-        Vector3 move = entity.MovementVector;
-        move.x = entity.ApplyFriction(move.x, entity.airFriction);
-        move.z = entity.ApplyFriction(move.z, entity.airFriction);
-        move = new(move.x, move.y + entity.gravity * Time.deltaTime, move.z);
-        entity.MovementVector = move;
+        Vector3 move = context.MovementVector;
+        move.x = QualityOfLife.PlayerFriction(move.x, context.AirFriction, context.MoveInput);
+        move.z = QualityOfLife.PlayerFriction(move.z, context.AirFriction, context.MoveInput);
+        move = new(move.x, move.y + context.Gravity * Time.deltaTime, move.z);
+        context.MovementVector = move;
     }
 
-    public void Update(Player entity)
+    public void Update(PlayerContext context)
     {
     }
 }

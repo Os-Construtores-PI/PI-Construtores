@@ -1,4 +1,4 @@
-public class StateMachine<T> where T : CombatEntities
+public class StateMachine<T>
 {
     public IState<T> CurrentState { get; private set; }
 

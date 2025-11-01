@@ -11,13 +11,13 @@ public class ShiftDashScript : MonoBehaviour
     public Image coolDownFillImage;
     [SerializeField] private CanvasGroup _canvasDashGroup;
 
-    [Header("Configurações do Fade")]
+    [Header("Configuraï¿½ï¿½es do Fade")]
     public float fadeOutDuration = 0.2f;
     public float fadeInDuration = 0.3f;
 
     private Coroutine fadeCoroutine;
 
-    // Oculta o ícone quando o Dash é usado
+    // Oculta o ï¿½cone quando o Dash ï¿½ usado
 
     private void Awake()
     {
@@ -44,7 +44,7 @@ public class ShiftDashScript : MonoBehaviour
     }
 
 
-    // mostra novamente quando o Dash está liberado
+    // mostra novamente quando o Dash estï¿½ liberado
 
     public void OnDashReady()
     {

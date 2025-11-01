@@ -56,4 +56,5 @@ public class CustomPositiveFloatRange
     public bool IsValid() => min >= MIN_LIMIT && max <= MAX_LIMIT && min <= max;
 }
 
+    
 
