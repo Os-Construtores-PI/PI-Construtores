@@ -57,4 +57,35 @@ public class CustomPositiveFloatRange
 }
 
     
+[System.Serializable]
+public class Timer
+{
+    private float current;
+    private float duration;
+    private bool active;
+
+    public bool IsActive => active;
+    public bool IsDone => !active;
+
+    public void Start(float duration)
+    {
+        this.duration = duration;
+        current = 0f;
+        active = true;
+    }
+
+    public void Stop() => active = false;
+
+    public bool Tick(float deltaTime)
+    {
+        if (!active) return false;
+        current += deltaTime;
+        if (current >= duration)
+        {
+            active = false;
+            return true; // terminou
+        }
+        return false;
+    }
+}
 

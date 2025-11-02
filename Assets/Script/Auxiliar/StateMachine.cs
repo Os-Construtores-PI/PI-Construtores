@@ -1,6 +1,7 @@
 public class StateMachine<T>
 {
     public IState<T> CurrentState { get; private set; }
+    public IState<T> DefaultState;
 
     public void ChangeState(IState<T> newState, T entity)
     {
@@ -17,5 +18,10 @@ public class StateMachine<T>
     public void FixedUpdate(T entity)
     {
         CurrentState?.FixedUpdate(entity);
+    }
+    public StateMachine(IState<T> defaultstate,T context)
+    {
+        this.DefaultState = defaultstate;
+        this.ChangeState(this.DefaultState, context);
     }
 }

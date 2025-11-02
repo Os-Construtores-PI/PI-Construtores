@@ -28,7 +28,7 @@ public class PlayerDashState : IState<PlayerContext>
     public void Exit(PlayerContext context)
     {
         context.CanDash = true;
-        ResetDashed(context.DashScript);
+        ResetDashHUD(context.DashScript);
     }
 
     public void FixedUpdate(PlayerContext context)
@@ -45,7 +45,7 @@ public class PlayerDashState : IState<PlayerContext>
         ExitTimer(context);
     }
 
-    private void ResetDashed(ShiftDashScript dashScript)
+    private void ResetDashHUD(ShiftDashScript dashScript)
     {
         if (dashScript != null)
         {

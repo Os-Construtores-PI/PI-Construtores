@@ -19,6 +19,7 @@ public class PlayerJumpingState : IState<PlayerContext>
         }
         context.CurrentJumpCount++;
         context.MovementVector = move;
+        context.VerticalLayer.ChangeState(new PlayerFallingState(), context);
     }
 
     public void Exit(PlayerContext entity) { }

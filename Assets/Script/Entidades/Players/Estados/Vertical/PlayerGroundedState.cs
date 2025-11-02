@@ -24,6 +24,10 @@ public class PlayerGroundedState : IState<PlayerContext>
         move.x = QualityOfLife.PlayerFriction(move.x, context.Friction,context.MoveInput);
         move.z = QualityOfLife.PlayerFriction(move.z, context.Friction,context.MoveInput);
         context.MovementVector = move;
+        if(!context.IsGrounded)
+        {
+            context.VerticalLayer.ChangeState(new PlayerFallingState(), context);
+        }
     }
 
     public void Update(PlayerContext context) { }

@@ -19,13 +19,8 @@ public class Ruska : Player
         return true;
     }
     
-    protected override bool Attack()
+    protected override void Attack()
     {
-        if (base.Attack())
-        {
-            print("RUSKA ATAQUE");
-            return true;
-        }
-        return false;
+        ActionLayer.ChangeState(new PlayerActionRuskaAttackState(), Context);
     }
 }

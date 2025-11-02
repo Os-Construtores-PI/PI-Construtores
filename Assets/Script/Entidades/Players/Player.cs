@@ -12,64 +12,41 @@ using UnityEngine.TextCore.Text;
 public class Player : CombatEntities
 {
     #region --- Configurações de Movimento ---
-
     [Header("Movimento")]
-    [SerializeField]
-    private float speed = 10f;
-
-    [SerializeField]
-    private QualityTier wallSpeedMultiplier = QualityTier.RARE;
+    [SerializeField] private float speed = 10f;
+    [SerializeField] private QualityTier wallSpeedMultiplier = QualityTier.RARE;
     public QualityTier WallSpeedMultiplier { get; internal set; }
-
 
     [HideInInspector]
     [Stat(nameof(Speed))]
-    public float Speed
-    {
-        get => speed;
-        set => speed = value;
-    }
+    public float Speed { get => speed; set => speed = value; }
     public float Acceleration { get; internal set; } = 5f;
     public float Friction { get; internal set; } = 2f;
     public float AirFriction { get; internal set; } = 2f;
 
-    [SerializeField]
-    internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
     [Header("Pulo")]
-    [SerializeField]
-    private float jumpForce = 10f;
+    [SerializeField] private float jumpForce = 10f;
     public float WallJumpMultiplier { get; internal set; } = 5;
 
     [HideInInspector]
     [Stat(nameof(JumpForce))]
-    public float JumpForce
-    {
-        get => jumpForce;
-        set => jumpForce = value;
-    }
+    public float JumpForce { get => jumpForce; set => jumpForce = value; }
 
     [SerializeField]
     private int maxJumpCount = 2;
     public float Gravity { get; internal set; } = -16.62f;
     private float initialGravity;
 
-    [Header("Dash")]
-    public float DashSpeed { get; internal set; } = 30f;
-
-    [SerializeField]
-    internal float dashDistance = 10f;
-
-    [SerializeField]
-    internal float dashCooldown = 5f;
+    [Header("Dash")] public float DashSpeed { get; internal set; } = 30f;
+    [SerializeField] internal float dashDistance = 10f;
+    [SerializeField] internal float dashCooldown = 5f;
+    [SerializeField] internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
     [Header("Componentes")]
-    [SerializeField]
-    protected CharacterController characterController;
+    [SerializeField] protected CharacterController characterController;
     public CharacterController Charactercontroller => characterController;
-
-    [SerializeField]
-    protected CinemachineCamera cinemachineCamera;
+    [SerializeField] protected CinemachineCamera cinemachineCamera;
     public CinemachineCamera Cinemachinecamera => cinemachineCamera;
 
     public void SetCinemachineCamera(CinemachineCamera cam)
@@ -136,7 +113,6 @@ public class Player : CombatEntities
     public float DashDuration { get; internal set; }
     #endregion
 
-
     #region === EnemyScan ===
     [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
     [SerializeField, Min(10)]
@@ -144,16 +120,14 @@ public class Player : CombatEntities
 
     [SerializeField, Min(1)]
     private float enemyScanCooldown = 2.0f;
-    private float enemyScanWalker = 0.0f;
     #endregion
-
 
     #region === Interação ===
     [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
     [SerializeField]
     private float interactionScanCooldown = .1f;
+    private readonly Timer interactionScanTimer = new();
     protected InteractableObject interactableRef;
-    private float interactionScanCooldownWalker = 0.0f;
     private Camera selectedcamera = null;
     #endregion
 
@@ -202,10 +176,9 @@ public class Player : CombatEntities
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
 
-
-        VerticalLayer = new();
-        HorizontalLayer = new();
-        ActionLayer = new();
+        VerticalLayer = new(new PlayerFallingState(),Context);
+        HorizontalLayer = new(new PlayerMovimentState(), Context);
+        ActionLayer = new(new PlayerActionIdleState(), Context);
         SetupCamera();
     }
 
@@ -233,15 +206,14 @@ public class Player : CombatEntities
         ObjectScanTimer();
         KnockbackTimer();
         ChangeCharacterTimer();
-        AttackTimer();
         WallRunningTimer();
 
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
 
-        //print($"[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}");
-        //print("[SPEED] : " + Speed + " // " + "[ACTIVEMODIFICATIONS] : " + stats.GetActiveModifications().Count);
+        print($"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}");
+        print($"[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}");
     }
 
     private void FixedUpdate()
@@ -249,24 +221,14 @@ public class Player : CombatEntities
         if (!characterController.enabled)
             return;
         IsGrounded = characterController.isGrounded;
-
-        if (IsDashing)
-            HandleDash();
-        else
-            HandleMovement();
-
-        Vector3 finalMovement = MovementVector;
-
-        if (knockbackTimer > 0)
-        {
-            knockbackTimer -= Time.deltaTime;
-            finalMovement += knockbackVelocity;
-            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, Time.deltaTime * 5f);
-        }
-        ActionLayer.FixedUpdate(Context);
+        KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
         VerticalLayer.FixedUpdate(Context);
-        characterController.Move(finalMovement * Time.deltaTime);
+        ActionLayer.FixedUpdate(Context);
+
+        // MOVEMENT
+        Charactercontroller.Move(MovementVector * Time.deltaTime);
+
     }
 
     private void OnDestroy() => DOTween.KillAll();
@@ -274,8 +236,11 @@ public class Player : CombatEntities
     #endregion
     #region --- Input Callbacks ---
 
-    public void OnMove(InputAction.CallbackContext context) =>
+    public void OnMove(InputAction.CallbackContext context)
+    {
         MoveInput = context.ReadValue<Vector2>();
+        Move();
+    }
 
     public void OnDash(InputAction.CallbackContext context)
     {
@@ -310,59 +275,35 @@ public class Player : CombatEntities
     {
         float charAxis = context.ReadValue<float>();
         print(charAxis + ":" + name);
+        StartChangeCooldown();
     }
 
     [Header("TROCA DE JOGADOR PARÂMETROS")]
-    [SerializeField]
-    private float ChangeCharacterCooldown = 5f;
-    private float ChangeCharacterCooldownWalker = 0.0f;
-    private bool CanChangeCharacter = true;
+    [SerializeField]private float changeCharacterCooldown = 5f;
+    private Timer changeCharTimer = new();
+    private bool canChangeCharacter = true;
 
     private void ChangeCharacterTimer()
     {
-        if (!CanChangeCharacter)
-        {
-            ChangeCharacterCooldownWalker += Time.deltaTime;
-            if (ChangeCharacterCooldownWalker >= ChangeCharacterCooldown)
-            {
-                CanChangeCharacter = true;
-                ChangeCharacterCooldownWalker = 0.0f;
-            }
-        }
+        if (!canChangeCharacter && changeCharTimer.Tick(Time.deltaTime))
+            canChangeCharacter = true;
     }
 
+    private void StartChangeCooldown()
+    {
+        canChangeCharacter = false;
+        changeCharTimer.Start(changeCharacterCooldown);
+    }
     #endregion
 
     #region --- Movimento & Pulo ---
-
-    private void HandleMovement()
-    {
-        if (!CanMove)
-            return;
-        ApplyRotationAndDirection();
-        ApplyGravityAndFriction();
-    }
-
-    private void ApplyRotationAndDirection()
+    private void Move()
     {
         if (Cinemachinecamera == null || MoveInput == Vector2.zero)
         {
             return;
         }
         HorizontalLayer.ChangeState(new PlayerMovimentState(), Context);
-        // Movimentação
-    }
-
-    private void ApplyGravityAndFriction()
-    {
-        if (IsGrounded && MovementVector.y < 0f)
-        {
-            VerticalLayer.ChangeState(new PlayerGroundedState(), Context);
-        }
-        else
-        {
-            VerticalLayer.ChangeState(new PlayerFallingState(), Context);
-        }
     }
 
     private void Jump()
@@ -373,7 +314,6 @@ public class Player : CombatEntities
         }
         VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
     }
-
     #endregion
 
     #region --- Dash ---
@@ -382,68 +322,36 @@ public class Player : CombatEntities
     {
         HorizontalLayer.ChangeState(new PlayerDashState(), Context);
     }
-
-
-    private void HandleDash()
-    {
-        characterController.Move(DashSpeed * Time.deltaTime * DashDirection);
-        DashDuration -= Time.deltaTime;
-
-        if (DashDuration <= 0f)
-        {
-            IsDashing = false;
-            canMove = true;
-        }
-    }
-
-    private void ResetDash() => canDash = true;
-
-    private void PlayDashVisual()
-    {
-        DOTween
-            .Sequence()
-            .Append(transform.DOScaleY(0.65f, DashDuration * 0.6f))
-            .Append(transform.DOScaleY(1f, DashDuration * 0.4f))
-            .SetEase(Ease.InOutSine)
-            .SetUpdate(UpdateType.Fixed);
-    }
-
     #endregion
 
     #region --- KNOCKBACK ---
     private Vector3 knockbackVelocity;
     private readonly float knockbackDuration = 0.2f;
-    private float knockbackTimer;
+    private Timer knockbackTimer = new();
     private bool isKnockbackActive;
     private bool isDashBlocked;
 
     public void ApplyKnockback(Vector3 direction, float force)
     {
-        // Aplica o empurrão apenas se não tiver knockback em andamento
-        if (isKnockbackActive)
-            return;
-
+        if (isKnockbackActive) return;
         knockbackVelocity = direction * force;
-        knockbackTimer = knockbackDuration;
+        knockbackTimer.Start(0.2f);
         isKnockbackActive = true;
     }
 
     private void KnockbackTimer()
     {
-        if (isKnockbackActive)
-        {
-            transform.position += knockbackVelocity * Time.deltaTime;
+        if (!isKnockbackActive) return;
 
-            knockbackTimer -= Time.deltaTime;
-            if (knockbackTimer <= 0f)
-                isKnockbackActive = false;
-        }
+        transform.position += knockbackVelocity * Time.deltaTime;
+
+        if (knockbackTimer.Tick(Time.deltaTime))
+            isKnockbackActive = false;
     }
 
     private void BlockPlayerDash()
     {
-        if (isDashBlocked)
-            return;
+        if (isDashBlocked) { return; }
         isDashBlocked = true;
         stats.ModifyStatImmediate<bool>(
             Constants.StatsNames.CanDash.ToString(),
@@ -467,16 +375,13 @@ public class Player : CombatEntities
 
     private void BlockPlayerDashToRoutine(float duration)
     {
-        if (isDashBlocked)
-            return; // já está bloqueado, não chama de novo
-
+        if (isDashBlocked) { return; } // já está bloqueado, não chama de novo
         StartCoroutine(BlockDashCoroutine(duration));
     }
 
     private IEnumerator BlockDashCoroutine(float duration)
     {
         isDashBlocked = true;
-
         // Desativa dash
         yield return stats.ModifyStatCoroutine<bool>(
             Constants.StatsNames.CanDash.ToString(),
@@ -489,41 +394,28 @@ public class Player : CombatEntities
         isDashBlocked = false;
     }
     #endregion
+
     [Header("WALL EXIT")]
     #region === WALLRUNNING ===
-    [SerializeField]
-    private float wallExitDuration = .2f; // duração do tempo fora da parede
-    private float wallExitTimer = -1f; // começa desativado
+    [SerializeField] private float wallExitDuration = .2f; // duração do tempo fora da parede
+    private readonly Timer wallExitTimer = new();
 
     private void WallRunningTimer()
     {
-        if (!TouchingWall && WallSpeedApplied)
-        {
-            if (wallExitTimer < 0f)
-            {
-                wallExitTimer = wallExitDuration;
-            }
-        }
+        if (!TouchingWall && WallSpeedApplied && wallExitTimer.IsDone)
+            wallExitTimer.Start(wallExitDuration);
 
-        if (wallExitTimer >= 0f)
+        if (wallExitTimer.Tick(Time.deltaTime))
         {
-            wallExitTimer -= Time.deltaTime;
-
-            if (wallExitTimer <= 0f)
-            {
-                stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // reseta pro base
-                WallSpeedApplied = false;
-                TouchingWall = false;
-                UnBlockPlayerDash();
-                Gravity = initialGravity;
-            }
+            stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString());
+            WallSpeedApplied = false;
+            TouchingWall = false;
+            UnBlockPlayerDash();
+            Gravity = initialGravity;
         }
     }
 
-    private void ResetWallExitTimer()
-    {
-        wallExitTimer = -1;
-    }
+    private void ResetWallExitTimer() => wallExitTimer.Stop();
 
     #endregion
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -535,7 +427,7 @@ public class Player : CombatEntities
             LastWallNormal = hit.normal;
 
             // só reseta se já estava fora da parede
-            if (wallExitTimer >= 0f)
+            if (wallExitTimer.IsActive)
                 ResetWallExitTimer();
 
             if (!WallSpeedApplied)
@@ -589,9 +481,7 @@ public class Player : CombatEntities
             }
         }
 
-        if (
-            GameObject.FindWithTag("GameController").TryGetComponent(out HUDDirector hudDir) == true
-        )
+        if (GameObject.FindWithTag("GameController").TryGetComponent(out HUDDirector hudDir) == true)
         {
             _OnDamage.AddListener(hudDir.ShakeCamera);
         }
@@ -600,6 +490,7 @@ public class Player : CombatEntities
     #endregion
 
     #region Scan
+    private Timer enemyScanTimer = new();
     private void EnemyScan()
     {
         int amount = EnemySpawner.enemySpawner.GetAmountPool();
@@ -619,14 +510,10 @@ public class Player : CombatEntities
 
     private void EnemyScanTimer()
     {
-        if (enemyScanWalker <= enemyScanCooldown)
-        {
-            enemyScanWalker += Time.deltaTime;
-        }
-        else
+        if (enemyScanTimer.Tick(Time.deltaTime))
         {
             EnemyScan();
-            enemyScanWalker = 0;
+            enemyScanTimer.Start(enemyScanCooldown);
         }
     }
 
@@ -637,27 +524,14 @@ public class Player : CombatEntities
     // Base
     protected virtual bool ObjectScan()
     {
-        if (!selectedcamera)
-        {
-            SetupCamera();
-            return false;
-        }
-
+        if (!selectedcamera) { SetupCamera(); return false; }
         var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
         var layerMask = LayerMask.GetMask("Object");
-
-        if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask))
+        if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask) || !playerRayHit.collider.TryGetComponent(out interactionObject))
         {
             ClearInteractable();
             return false;
         }
-
-        if (!playerRayHit.collider.TryGetComponent(out interactionObject))
-        {
-            ClearInteractable();
-            return false;
-        }
-
         // Não filtra tipo aqui
         interactionObjectType = interactionObject.GetType();
         interactableRef = interactionObject;
@@ -673,46 +547,21 @@ public class Player : CombatEntities
 
     private void ObjectScanTimer()
     {
-        if (interactionScanCooldownWalker <= interactionScanCooldown)
-        {
-            interactionScanCooldownWalker += Time.deltaTime;
-        }
-        else
+        if (interactionScanTimer.Tick(Time.deltaTime))
         {
             ObjectScan();
-            interactionScanCooldownWalker = 0;
+            interactionScanTimer.Start(interactionScanCooldown);
         }
     }
+
     #endregion
 
 
     #region  --- Ataque ---
     [Header("ATAQUE PARÂMETROS")]
-    [SerializeField]
-    private float AttackCooldown;
-    private float AttackCooldownWalker = 0f;
-    private bool canAttack = true;
-
-    protected virtual bool Attack()
-    {
-        if (!canAttack)
-            return false;
-        canAttack = false;
-        return true;
-    }
-
-    private void AttackTimer()
-    {
-        if (!canAttack)
-        {
-            AttackCooldownWalker += Time.deltaTime;
-            if (AttackCooldownWalker >= AttackCooldown)
-            {
-                canAttack = true;
-                AttackCooldownWalker = 0f;
-            }
-        }
-    }
+    [SerializeField] internal float attackCooldown;
+    protected internal bool canAttack = true;
+    protected virtual void Attack() { }
     #endregion
 
     #region --- Camera ---
@@ -735,194 +584,46 @@ public class Player : CombatEntities
         base.DeathHandler();
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke(this);
     }
-
     #endregion
 }
 
 public class PlayerContext
 {
     private readonly Player player;
-
     public PlayerContext(Player player) => this.player = player;
-
-    public Transform PlayerTransform
-    {
-        get => player.transform;
-    }
-
-    public CharacterController PlayerController
-    {
-        get => player.Charactercontroller;
-    }
-
-    public CinemachineCamera PlayerCamera
-    {
-        get => player.Cinemachinecamera;
-    }
-
-    public float Speed
-    {
-        get => player.Speed;
-        set => player.Speed = value;
-    }
-
-    public QualityTier WallSpeedMultiplier
-    {
-        get => player.WallSpeedMultiplier;
-    }
-
-    public float WallJumpMultiplier
-    {
-        get => player.WallJumpMultiplier;
-        set => player.WallJumpMultiplier = value;
-    }
-
-    public float JumpForce
-    {
-        get => player.JumpForce;
-        set => player.JumpForce = value;
-    }
-
-    public float Gravity
-    {
-        get => player.Gravity;
-        set => player.Gravity = value;
-    }
-
-    public float DashSpeed
-    {
-        get => player.DashSpeed;
-        set => player.DashSpeed = value;
-    }
-
-    public float DashCooldown
-    {
-        get => player.dashCooldown;
-    }
-
-    public float DashDistance
-    {
-        get => player.dashDistance;
-    }
-
-    public float Acceleration
-    {
-        get => player.Acceleration;
-        set => player.Acceleration = value;
-    }
-
-    public float Friction
-    {
-        get => player.Friction;
-        set => player.Friction = value;
-    }
-
-    public float AirFriction
-    {
-        get => player.AirFriction;
-        set => player.AirFriction = value;
-    }
-
-    public Vector3 MovementVector
-    {
-        get => player.MovementVector;
-        set => player.MovementVector = value;
-    }
-
-    public Vector3 Direction
-    {
-        get => player.Direction;
-        set => player.Direction = value;
-    }
-
-    public Vector3 DashDirection
-    {
-        get => player.DashDirection;
-        set => player.DashDirection = value;
-    }
-
-    public Vector2 MoveInput
-    {
-        get => player.MoveInput;
-        set => player.MoveInput = value;
-    }
-
-    public Vector3 LastWallNormal
-    {
-        get => player.LastWallNormal;
-        set => player.LastWallNormal = value;
-    }
-
-    public int CurrentJumpCount
-    {
-        get => player.CurrentJumpCount;
-        set => player.CurrentJumpCount = value;
-    }
-
-    public bool IsGrounded
-    {
-        get => player.IsGrounded;
-        set => player.IsGrounded = value;
-    }
-
-    public bool WallSpeedApplied
-    {
-        get => player.WallSpeedApplied;
-        set => player.WallSpeedApplied = value;
-    }
-
-    public bool TouchingWall
-    {
-        get => player.TouchingWall;
-        set => player.TouchingWall = value;
-    }
-
-    public bool CanMove
-    {
-        get => player.CanMove;
-        set => player.CanMove = value;
-    }
-    public bool CanDash
-    {
-        get => player.canDash;
-        set => player.canDash = value;
-    }
-
-    public ShiftDashScript DashScript
-    {
-        get => player.dashHUDScript;
-    }
-
-    public bool IsDashing
-    {
-        get => player.IsDashing;
-        set => player.IsDashing = value;
-    }
-
-    public float DashCurrent
-    {
-        get => player.DashCurrent;
-        set => player.DashCurrent = value;
-    }
-
-    public float DashDuration
-    {
-        get => player.DashDuration;
-        set => player.DashDuration = value;
-    }
-
-    public StateMachine<PlayerContext> HorizontalLayer
-    {
-        get => player.HorizontalLayer;
-    }
-    
-    public StateMachine<PlayerContext> VerticalLayer
-    {
-        get => player.VerticalLayer;
-    }
-
-    public StateMachine<PlayerContext> ActionLayer
-    {
-        get => player.ActionLayer;
-    }
+    public Transform PlayerTransform{ get => player.transform; }
+    public CharacterController PlayerController { get => player.Charactercontroller; }
+    public CinemachineCamera PlayerCamera { get => player.Cinemachinecamera; }
+    public Animator PlayerAnimator { get => player.AnimatorComp; }
+    public float Speed { get => player.Speed; set => player.Speed = value; }
+    public QualityTier WallSpeedMultiplier { get => player.WallSpeedMultiplier; }
+    public float WallJumpMultiplier { get => player.WallJumpMultiplier; set => player.WallJumpMultiplier = value; }
+    public float JumpForce { get => player.JumpForce; set => player.JumpForce = value; }
+    public float Gravity { get => player.Gravity; set => player.Gravity = value; }
+    public float DashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
+    public float DashCooldown { get => player.dashCooldown; }
+    public float DashDistance { get => player.dashDistance; }
+    public float Acceleration { get => player.Acceleration; set => player.Acceleration = value; }
+    public float Friction { get => player.Friction; set => player.Friction = value; }
+    public float AirFriction { get => player.AirFriction; set => player.AirFriction = value; }
+    public Vector3 MovementVector { get => player.MovementVector; set => player.MovementVector = value; }
+    public Vector3 Direction { get => player.Direction; set => player.Direction = value; }
+    public Vector3 DashDirection { get => player.DashDirection; set => player.DashDirection = value; }
+    public Vector2 MoveInput { get => player.MoveInput; set => player.MoveInput = value; }
+    public Vector3 LastWallNormal { get => player.LastWallNormal; set => player.LastWallNormal = value; }
+    public int CurrentJumpCount { get => player.CurrentJumpCount; set => player.CurrentJumpCount = value; }
+    public bool IsGrounded { get => player.IsGrounded; set => player.IsGrounded = value; }
+    public bool WallSpeedApplied { get => player.WallSpeedApplied; set => player.WallSpeedApplied = value; }
+    public bool TouchingWall { get => player.TouchingWall; set => player.TouchingWall = value; }
+    public bool CanMove { get => player.CanMove; set => player.CanMove = value; }
+    public bool CanDash { get => player.canDash; set => player.canDash = value; }
+    public bool CanAttack { get => player.canAttack; set => player.canAttack = value; }
+    public ShiftDashScript DashScript { get => player.dashHUDScript; }
+    public bool IsDashing { get => player.IsDashing; set => player.IsDashing = value; }
+    public float DashCurrent { get => player.DashCurrent; set => player.DashCurrent = value; }
+    public float DashDuration { get => player.DashDuration; set => player.DashDuration = value; }
+    public float AttackCooldown { get => player.attackCooldown; }
+    public StateMachine<PlayerContext> HorizontalLayer { get => player.HorizontalLayer; }
+    public StateMachine<PlayerContext> VerticalLayer { get => player.VerticalLayer; }
+    public StateMachine<PlayerContext> ActionLayer { get => player.ActionLayer; }
 }
