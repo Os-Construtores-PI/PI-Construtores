@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class GameDirector : MonoBehaviour
@@ -6,6 +7,7 @@ public class GameDirector : MonoBehaviour
 
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private PlayerDirector playerDirector;
+    [SerializeField] private TutorialDIalogos _TutorialDialogos;
 
     private void Start()
     {
@@ -61,6 +63,19 @@ public class GameDirector : MonoBehaviour
     public void ShutdownWorld()
     {
         // Aqui você pode desativar players, limpar câmeras, salvar progresso etc.
+    }
+
+    private IEnumerator EsperarDialogoIniciar()
+    {
+        // Espera o diálogo existir e terminar
+    if (_TutorialDialogos != null)
+    {
+        while (!_TutorialDialogos._dialogoConcluido)
+            yield return null;
+    }
+
+    // Agora inicia o mundo normalmente
+    StartWorld();
     }
 
 }
