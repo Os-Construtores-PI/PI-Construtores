@@ -1,12 +1,17 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerActionStateInteraction : IState<PlayerContext>
 {
+    public ActionType Type => ActionType.Interact;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
+
     public void Enter(PlayerContext context)
     {
         InfoPlayerInteraction info = new(context.PlayerGameObject, context);
         context.PlayerInteractionReference.Interaction(info);
-        context.ActionLayer.ChangeState(new PlayerActionStateIdle(), context);
+        context.ActionLayer.PopStateDeferred(context);
     }
 
     public void Exit(PlayerContext context)

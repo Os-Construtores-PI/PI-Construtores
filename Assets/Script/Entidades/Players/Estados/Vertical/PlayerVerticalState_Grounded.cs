@@ -1,7 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerGroundedState : IState<PlayerContext>
 {
+    public ActionType Type => ActionType.Idle;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
+
     public void Enter(PlayerContext context)
     {
         Vector3 move = context.MovementVector;

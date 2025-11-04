@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
-public class PlayerHorizontalStateDash : IState<PlayerContext>
+public class PlayerActionStateDash : IState<PlayerContext>
 {
     private float timeToExit;
     private float timeToExitWalker = 0.0f;
     private int Priority => 10;
+
+    public ActionType Type => ActionType.Dash;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
+
     public void Enter(PlayerContext context)
     {
         context.OverrideGlobal = true;
@@ -73,7 +79,7 @@ public class PlayerHorizontalStateDash : IState<PlayerContext>
         }
         else
         {
-            context.HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);
+            context.ActionLayer.PopStateDeferred(context);
         }
     }
 }

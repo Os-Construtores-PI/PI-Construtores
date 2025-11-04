@@ -21,6 +21,6 @@ public class Ruska : Player
     
     protected override void Attack()
     {
-        ActionLayer.ChangeState(new PlayerActionRuskaAttackState(), Context);
+        ActionLayer.PushState(new PlayerActionRuskaAttackState(), Context);
     }
 }

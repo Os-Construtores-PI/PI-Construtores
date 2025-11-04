@@ -1,24 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerHorizontalStateIdle : IState<PlayerContext>
 {
-    public void Enter(PlayerContext entity)
-    {
-        
-    }
+    public ActionType Type => ActionType.Idle;
 
-    public void Exit(PlayerContext entity)
-    {
-        
-    }
+    public HashSet<ActionType> IncompatibleActions => new() {};
 
-    public void FixedUpdate(PlayerContext entity)
-    {
-        
-    }
-
-    public void Update(PlayerContext entity)
-    {
-
-    }
+    public void Enter(PlayerContext context) { }
+    public void Exit(PlayerContext context) { }
+    public void FixedUpdate(PlayerContext context) { }
+    public void Update(PlayerContext context) { }
 }

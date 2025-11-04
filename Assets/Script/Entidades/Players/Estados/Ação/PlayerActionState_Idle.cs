@@ -1,9 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerActionStateIdle : IState<PlayerContext>
 {
     private float attackCooldownWalker = .0f;
     private float attackCooldown;
+
+    public ActionType Type => ActionType.Idle;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
 
     public void Enter(PlayerContext context)
     {

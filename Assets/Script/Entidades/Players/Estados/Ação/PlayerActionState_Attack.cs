@@ -1,11 +1,15 @@
-using UnityEngine;
+using System.Collections.Generic;
 
 public class PlayerActionPandoraAttackState : IState<PlayerContext>
 {
+    public ActionType Type => ActionType.Attack;
+
+    public HashSet<ActionType> IncompatibleActions => new() {ActionType.Slide};
+
     public void Enter(PlayerContext context)
     {
         context.PlayerAnimator.SetTrigger("Attack");
-        context.ActionLayer.ChangeState(new PlayerActionStateIdle(), context);
+        context.ActionLayer.PopState(context);
     }
 
     public void Exit(PlayerContext context)
@@ -24,8 +28,13 @@ public class PlayerActionPandoraAttackState : IState<PlayerContext>
 
 public class PlayerActionRuskaAttackState : IState<PlayerContext>
 {
+    public ActionType Type => ActionType.Attack;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
+
     public void Enter(PlayerContext context)
     {
+        context.ActionLayer.PopStateDeferred(context);
     }
 
     public void Exit(PlayerContext context)

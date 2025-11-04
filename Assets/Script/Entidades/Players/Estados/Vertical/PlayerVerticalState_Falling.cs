@@ -1,7 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerFallingState : IState<PlayerContext>
 {
+    public ActionType Type => ActionType.Fall;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
+
     public void Enter(PlayerContext context)
     {
     }

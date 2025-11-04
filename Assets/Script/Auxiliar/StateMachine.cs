@@ -10,12 +10,12 @@ public class StateMachine<T>
         CurrentState.Enter(entity);
     }
 
-    public void Update(T entity)
-    {
+    public virtual void Update(T entity)
+    { 
         CurrentState?.Update(entity);
     }
 
-    public void FixedUpdate(T entity)
+    public virtual void FixedUpdate(T entity)
     {
         CurrentState?.FixedUpdate(entity);
     }

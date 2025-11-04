@@ -30,7 +30,7 @@ public class Pandora : Player
     {
         if(canAttack)
         {
-            ActionLayer.ChangeState(new PlayerActionPandoraAttackState(), Context);
+            ActionLayer.PushState(new PlayerActionPandoraAttackState(), Context);
         }
     }
     #endregion

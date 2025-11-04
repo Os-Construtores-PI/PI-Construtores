@@ -1,7 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerJumpingState : IState<PlayerContext>
 {
+    public ActionType Type => ActionType.Jump;
+
+    public HashSet<ActionType> IncompatibleActions => new() {};
+
     public void Enter(PlayerContext context)
     {
         if (context.CurrentJumpCount < context.MaxJumpCount)
