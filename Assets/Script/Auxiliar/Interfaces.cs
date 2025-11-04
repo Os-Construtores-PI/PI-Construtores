@@ -1,3 +1,5 @@
+using Unity.IO.LowLevel.Unsafe;
+
 public interface IState<T>
 {
     virtual int Priority => 0;

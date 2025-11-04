@@ -12,6 +12,7 @@ public class PlayerFallingState : IState<PlayerContext>
 
     public void FixedUpdate(PlayerContext context)
     {
+        if (context.OverrideGlobal || context.OverrideVertical) { return; }
         Vector3 move = context.MovementVector;
         move.x = QualityOfLife.PlayerFriction(move.x, context.AirFriction, context.MoveInput);
         move.z = QualityOfLife.PlayerFriction(move.z, context.AirFriction, context.MoveInput);

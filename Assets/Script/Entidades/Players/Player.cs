@@ -34,13 +34,13 @@ public class Player : CombatEntities
     public float JumpForce { get => jumpForce; set => jumpForce = value; }
 
     [SerializeField]
-    private int maxJumpCount = 2;
+    internal int maxJumpCount = 2;
     public float Gravity { get; internal set; } = -16.62f;
     private float initialGravity;
 
     [Header("Dash")] public float DashSpeed { get; internal set; } = 30f;
-    [SerializeField] internal float dashDistance = 10f;
-    [SerializeField] internal float dashCooldown = 5f;
+    [SerializeField] internal float dashDistance = 5f;
+    [SerializeField] internal float dashCooldown = 1f;
     [SerializeField] internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
     [Header("Componentes")]
@@ -127,7 +127,7 @@ public class Player : CombatEntities
     [SerializeField]
     private float interactionScanCooldown = .1f;
     private readonly Timer interactionScanTimer = new();
-    protected InteractableObject interactableRef;
+    internal protected InteractableObject interactableRef;
     private Camera selectedcamera = null;
     #endregion
 
@@ -177,8 +177,8 @@ public class Player : CombatEntities
         animatorComp = GetComponent<Animator>();
 
         VerticalLayer = new(new PlayerFallingState(),Context);
-        HorizontalLayer = new(new PlayerMovimentState(), Context);
-        ActionLayer = new(new PlayerActionIdleState(), Context);
+        HorizontalLayer = new(new PlayerHorizontalStateIdle(), Context);
+        ActionLayer = new(new PlayerActionStateIdle(), Context);
         SetupCamera();
     }
 
@@ -205,15 +205,17 @@ public class Player : CombatEntities
         EnemyScanTimer();
         ObjectScanTimer();
         KnockbackTimer();
-        ChangeCharacterTimer();
+        //ChangeCharacterTimer();
         WallRunningTimer();
 
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
 
-        print($"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}");
-        print($"[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}");
+
+        print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
+        [STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
+        [STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
     }
 
     private void FixedUpdate()
@@ -223,8 +225,11 @@ public class Player : CombatEntities
         IsGrounded = characterController.isGrounded;
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
+        print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
         VerticalLayer.FixedUpdate(Context);
+        print($"VERTICAL LAYER MOVEMENT: {MovementVector}");
         ActionLayer.FixedUpdate(Context);
+        print($"ACTION LAYER MOVEMENT: {MovementVector}");
 
         // MOVEMENT
         Charactercontroller.Move(MovementVector * Time.deltaTime);
@@ -258,8 +263,7 @@ public class Player : CombatEntities
     {
         if (interactableRef && context.started)
         {
-            InfoPlayerInteraction info = new(gameObject, this);
-            interactableRef.Interaction(info);
+            ActionLayer.ChangeState(new PlayerActionStateInteraction(), Context);
         }
     }
 
@@ -271,44 +275,41 @@ public class Player : CombatEntities
         }
     }
 
-    public void OnChangeCharacter(InputAction.CallbackContext context)
-    {
-        float charAxis = context.ReadValue<float>();
-        print(charAxis + ":" + name);
-        StartChangeCooldown();
-    }
+    // public void OnChangeCharacter(InputAction.CallbackContext context)
+    // {
+    //     float charAxis = context.ReadValue<float>();
+    //     print(charAxis + ":" + name);
+    //     StartChangeCooldown();
+    // }
 
-    [Header("TROCA DE JOGADOR PARÂMETROS")]
-    [SerializeField]private float changeCharacterCooldown = 5f;
-    private Timer changeCharTimer = new();
-    private bool canChangeCharacter = true;
+    // [Header("TROCA DE JOGADOR PARÂMETROS")]
+    // [SerializeField]private float changeCharacterCooldown = 5f;
+    // private Timer changeCharTimer = new();
+    // private bool canChangeCharacter = true;
 
-    private void ChangeCharacterTimer()
-    {
-        if (!canChangeCharacter && changeCharTimer.Tick(Time.deltaTime))
-            canChangeCharacter = true;
-    }
+    // private void ChangeCharacterTimer()
+    // {
+    //     if (!canChangeCharacter && changeCharTimer.Tick(Time.deltaTime))
+    //         canChangeCharacter = true;
+    // }
 
-    private void StartChangeCooldown()
-    {
-        canChangeCharacter = false;
-        changeCharTimer.Start(changeCharacterCooldown);
-    }
+    // private void StartChangeCooldown()
+    // {
+    //     canChangeCharacter = false;
+    //     changeCharTimer.Start(changeCharacterCooldown);
+    // }
     #endregion
 
     #region --- Movimento & Pulo ---
     private void Move()
     {
-        if (Cinemachinecamera == null || MoveInput == Vector2.zero)
-        {
-            return;
-        }
-        HorizontalLayer.ChangeState(new PlayerMovimentState(), Context);
+        if (Cinemachinecamera == null || ((OverrideGlobal || OverrideHorizontal) && HorizontalLayer.CurrentState.Priority > new PlayerHorizontalStateMoviment().Priority)) { return; }
+        HorizontalLayer.ChangeState(new PlayerHorizontalStateMoviment(), Context);
     }
 
     private void Jump()
     {
-        if (!(IsGrounded || CurrentJumpCount < maxJumpCount || TouchingWall) && !OverrideVertical)
+        if (!(IsGrounded || CurrentJumpCount < maxJumpCount || TouchingWall) && (OverrideVertical || OverrideGlobal))
         {
             return;
         }
@@ -320,7 +321,7 @@ public class Player : CombatEntities
 
     private void StartDash()
     {
-        HorizontalLayer.ChangeState(new PlayerDashState(), Context);
+        HorizontalLayer.ChangeState(new PlayerHorizontalStateDash(), Context);
     }
     #endregion
 
@@ -335,7 +336,7 @@ public class Player : CombatEntities
     {
         if (isKnockbackActive) return;
         knockbackVelocity = direction * force;
-        knockbackTimer.Start(0.2f);
+        knockbackTimer.Start(knockbackDuration);
         isKnockbackActive = true;
     }
 
@@ -590,15 +591,19 @@ public class Player : CombatEntities
 public class PlayerContext
 {
     private readonly Player player;
+    public int PlayerID { get => player.ID; }
     public PlayerContext(Player player) => this.player = player;
-    public Transform PlayerTransform{ get => player.transform; }
+    public GameObject PlayerGameObject { get => player.gameObject; }
+    public Transform PlayerTransform { get => player.transform; }
     public CharacterController PlayerController { get => player.Charactercontroller; }
     public CinemachineCamera PlayerCamera { get => player.Cinemachinecamera; }
+    public InteractableObject PlayerInteractionReference { get => player.interactableRef; }
     public Animator PlayerAnimator { get => player.AnimatorComp; }
     public float Speed { get => player.Speed; set => player.Speed = value; }
     public QualityTier WallSpeedMultiplier { get => player.WallSpeedMultiplier; }
     public float WallJumpMultiplier { get => player.WallJumpMultiplier; set => player.WallJumpMultiplier = value; }
     public float JumpForce { get => player.JumpForce; set => player.JumpForce = value; }
+    public int MaxJumpCount { get => player.maxJumpCount; }
     public float Gravity { get => player.Gravity; set => player.Gravity = value; }
     public float DashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
     public float DashCooldown { get => player.dashCooldown; }
@@ -626,4 +631,7 @@ public class PlayerContext
     public StateMachine<PlayerContext> HorizontalLayer { get => player.HorizontalLayer; }
     public StateMachine<PlayerContext> VerticalLayer { get => player.VerticalLayer; }
     public StateMachine<PlayerContext> ActionLayer { get => player.ActionLayer; }
+    public bool OverrideHorizontal { get => player.OverrideHorizontal; set => player.OverrideHorizontal = value; }
+    public bool OverrideVertical { get => player.OverrideVertical; set => player.OverrideVertical = value; }
+    public bool OverrideGlobal { get => player.OverrideGlobal; set => player.OverrideGlobal = value; }
 }

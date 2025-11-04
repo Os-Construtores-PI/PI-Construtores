@@ -14,7 +14,7 @@ public override void Interaction(InfoPlayerInteraction info)
 IEnumerator Cutscene(InfoPlayerInteraction info)
 {
     GameObject player = info.obj;
-    Player playerscript = info.playerscript;
+    PlayerContext playerContext = info.playerContext;
     Vector3 targetPosition = transform.position + Vector3.down * 2;
 
     // Velocidade constante do grappling (ajuste a gosto)
@@ -25,10 +25,10 @@ IEnumerator Cutscene(InfoPlayerInteraction info)
     float duration = distance / grapplingSpeed;
 
     // Evento de cutscene
-    GlobalEventBus.Instance.TRIGGEREDCINEMATIC.Invoke(playerscript.ID,duration);
+    GlobalEventBus.Instance.TRIGGEREDCINEMATIC.Invoke(playerContext.PlayerID,duration);
 
     // Desativa o controle do player
-    playerscript.Charactercontroller.enabled = false;
+    playerContext.PlayerController.enabled = false;
     SetActionState(player, false);
 
     // Movimento com duração calculada
@@ -38,7 +38,7 @@ IEnumerator Cutscene(InfoPlayerInteraction info)
 
     // Restaura o controle
     SetActionState(player, true);
-    playerscript.Charactercontroller.enabled = true;
+    playerContext.PlayerController.enabled = true;
 }
 
     private void SetActionState(GameObject player, bool set)

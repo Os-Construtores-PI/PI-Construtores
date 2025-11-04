@@ -5,7 +5,7 @@ public class PlayerActionPandoraAttackState : IState<PlayerContext>
     public void Enter(PlayerContext context)
     {
         context.PlayerAnimator.SetTrigger("Attack");
-        context.ActionLayer.ChangeState(new PlayerActionIdleState(), context);
+        context.ActionLayer.ChangeState(new PlayerActionStateIdle(), context);
     }
 
     public void Exit(PlayerContext context)

@@ -1,8 +1,9 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class PlayerMovimentState : IState<PlayerContext>
+public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 {
+    public int Priority => 5;
     public void Enter(PlayerContext context) { }
 
     public void Exit(PlayerContext context) { }

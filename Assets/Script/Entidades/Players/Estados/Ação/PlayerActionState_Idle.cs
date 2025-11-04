@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerActionIdleState : IState<PlayerContext>
+public class PlayerActionStateIdle : IState<PlayerContext>
 {
     private float attackCooldownWalker = .0f;
     private float attackCooldown;

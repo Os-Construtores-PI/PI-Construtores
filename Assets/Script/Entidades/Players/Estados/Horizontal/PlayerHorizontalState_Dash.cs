@@ -1,15 +1,20 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 
-public class PlayerDashState : IState<PlayerContext>
+public class PlayerHorizontalStateDash : IState<PlayerContext>
 {
     private float timeToExit;
     private float timeToExitWalker = 0.0f;
+    private int Priority => 10;
     public void Enter(PlayerContext context)
     {
-        timeToExit = context.DashCooldown;
+        context.OverrideGlobal = true;
+
+
         context.DashDirection = context.MoveInput != Vector2.zero ? context.Direction : context.PlayerTransform.forward;
         context.DashDuration = context.DashDistance / context.DashSpeed;
+        timeToExit = context.DashDuration;
         context.IsDashing = true;
         context.CanDash = false;
         context.MovementVector = new(context.MovementVector.x, 0, context.MovementVector.z);
@@ -28,22 +33,17 @@ public class PlayerDashState : IState<PlayerContext>
     public void Exit(PlayerContext context)
     {
         context.CanDash = true;
+        context.OverrideGlobal = false;
+
         ResetDashHUD(context.DashScript);
     }
 
     public void FixedUpdate(PlayerContext context)
     {
-        Vector3 move = context.MovementVector;
-        move.x = QualityOfLife.PlayerFriction(move.x, context.AirFriction,context.MoveInput);
-        move.z = QualityOfLife.PlayerFriction(move.z, context.AirFriction,context.MoveInput);
-        move = new(move.x, move.y + context.Gravity * Time.deltaTime, move.z);
-        context.MovementVector = move;
-    }
-
-    public void Update(PlayerContext context)
-    {
         ExitTimer(context);
     }
+
+    public void Update(PlayerContext context) {}
 
     private void ResetDashHUD(ShiftDashScript dashScript)
     {
@@ -69,10 +69,11 @@ public class PlayerDashState : IState<PlayerContext>
         if (timeToExitWalker < timeToExit)
         {
             timeToExitWalker += Time.deltaTime;
+            context.PlayerController.Move(context.DashSpeed * Time.deltaTime * context.DashDirection);
         }
         else
         {
-            context.HorizontalLayer.ChangeState(new PlayerMovimentState(), context);
+            context.HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);
         }
     }
 }
