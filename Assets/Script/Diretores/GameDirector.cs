@@ -57,7 +57,10 @@ public class GameDirector : MonoBehaviour
 
         Debug.Log("[GameDirector] StartWorld executado com sucesso (modo Debug).");
     }
-
+    public void PauseWorld()
+    {
+        Time.timeScale = 0;
+    }
     public void ShutdownWorld()
     {
         // Aqui você pode desativar players, limpar câmeras, salvar progresso etc.

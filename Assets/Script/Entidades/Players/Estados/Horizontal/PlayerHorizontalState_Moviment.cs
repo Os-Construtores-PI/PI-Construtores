@@ -10,6 +10,7 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 
     public void FixedUpdate(PlayerContext context)
     {
+        if(context.MoveInput == Vector2.zero) { context.HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);};
         CinemachineCamera playerCamera = context.PlayerCamera;
         Transform playerTransform = context.PlayerTransform;
         Vector3 playerMovementVector = context.MovementVector;

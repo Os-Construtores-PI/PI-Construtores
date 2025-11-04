@@ -2,7 +2,7 @@ using System;
 using DG.Tweening;
 using UnityEngine;
 
-public class PlayerHorizontalStateDash : IState<PlayerContext>
+public class PlayerActionStateDash : IState<PlayerContext>
 {
     private float timeToExit;
     private float timeToExitWalker = 0.0f;
@@ -73,7 +73,7 @@ public class PlayerHorizontalStateDash : IState<PlayerContext>
         }
         else
         {
-            context.HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);
+            context.ActionLayer.ChangeState(new PlayerActionStateIdle(), context);
         }
     }
 }

@@ -19,7 +19,7 @@ public class PlayerDirector : MonoBehaviour
     [SerializeField] private GameObject _pauseMenuPrefab;
 
     [Header("Referências de cena")]
-    [SerializeField] private HUDDirector hudDirector;
+    [SerializeField] private HudDirector hudDirector;
 
     private ManualPlayersSpawner playersSpawner;
     private Transform hudParent;
