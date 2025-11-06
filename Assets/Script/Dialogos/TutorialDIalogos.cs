@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 public class TutorialDIalogos : MonoBehaviour
 {
-    [Header("UI do Diálogo")]
+    [Header("UI do Diï¿½logo")]
     public GameObject _dialoguePanel; // painel com fundo
-    public TextMeshProUGUI _dialogueText; // texto do  diálogo
-    public Button _nextButton; // botão opcional (se quiser clicar ao invés de apertar espaço)
+    public TextMeshProUGUI _dialogueText; // texto do  diï¿½logo
+    public Button _nextButton; // botï¿½o opcional (se quiser clicar ao invï¿½s de apertar espaï¿½o)
 
     [Header("Falas do Tutorial")]
     [TextArea(3, 5)]
@@ -19,13 +19,20 @@ public class TutorialDIalogos : MonoBehaviour
     public float _typingSpeed = 0.03f; // velocidade da escrita
     private Coroutine _typingCoroutine;
 
+    [Header("Controle de Jogo")]
+    public GameObject _player; // referencia ao jogador ou controlador do jogo
+    private bool _dialogoAtivo = false;
+
+    public bool _dialogoConcluido { get; private set; } = false;
+
     // Update is called once per frame
 
     private void Start()
     {
-        _dialoguePanel.SetActive(true);
+        _dialoguePanel.SetActive(false);
         _index = 0;
-        StartDialogue();
+        _dialogoAtivo = true;
+        
 
         if (_nextButton != null)
             _nextButton.onClick.AddListener(NextSentence);
@@ -38,12 +45,18 @@ public class TutorialDIalogos : MonoBehaviour
         }
     }
 
-    public void StartDialogue()
+    public void AtivarDialogo()
     {
-        if (_sentences.Length > 0)
-        {
-            _typingCoroutine = StartCoroutine(TypeSentence(_sentences[_index]));
-        }
+        _dialogoAtivo = true;
+        _dialogoConcluido = false;
+        _index = 0;
+
+        _dialoguePanel.SetActive(true);
+
+        if (_player != null)
+            _player.SetActive(false);
+
+        _typingCoroutine = StartCoroutine(TypeSentence(_sentences[_index]));
     }
 
     IEnumerator TypeSentence(string sentence)
@@ -66,23 +79,32 @@ public class TutorialDIalogos : MonoBehaviour
 
         if (_dialogueText.text != _sentences[_index])
         {
-            // se ainda está escrevendo -> completa instantaneamente
+            // se ainda estï¿½ escrevendo -> completa instantaneamente
             _dialogueText.text = _sentences[_index];
         }
         else
         {
-            // próxima fala
+            // prÃ³xima fala
             _index++;
-            if(_index < _sentences.Length)
+            if (_index < _sentences.Length)
             {
                 _typingCoroutine = StartCoroutine(TypeSentence(_sentences[_index]));
-                
+
             }
             else
             {
-                // acabou o tutorial
-                _dialoguePanel.SetActive(false);
+                EncerrarDialogo();
             }
         }
+    }
+    
+    private void EncerrarDialogo()
+    {
+        _dialoguePanel.SetActive(false);
+        _dialogoAtivo = false;
+        _dialogoConcluido = true;
+
+        if (_player != null)
+            _player.SetActive(true);
     }
 }

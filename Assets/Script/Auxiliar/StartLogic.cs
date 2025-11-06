@@ -46,7 +46,7 @@ public class StartLogic : MonoBehaviour
         var dialogue = FindAnyObjectByType<TutorialDIalogos>();
         if(dialogue != null)
         {
-            dialogue.StartDialogue();
+            dialogue.AtivarDialogo();
         }
         else
         {
