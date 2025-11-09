@@ -52,3 +52,15 @@ public enum GameMode
     MULTIPLAYER
 }
 
+public enum ActionType
+{
+    None,
+    Idle,
+    Move,
+    Jump,
+    Fall,
+    Dash,
+    Attack,
+    Slide,
+    Interact
+}

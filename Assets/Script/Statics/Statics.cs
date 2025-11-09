@@ -129,7 +129,7 @@ public static class Constants
     {
         Player,Enemy,RunningWall
     }
-} 
+}
 
 public static class StaticRandomizer
 {
@@ -148,6 +148,22 @@ public static class StaticRandomizer
     }
 
 }
+
+public static class QualityOfLife
+{
+    public static float SmoothLerp(float from, float to, float smoothing)
+    {
+        return Mathf.Lerp(from, to, 1f - Mathf.Exp(-smoothing * Time.deltaTime));
+    }
+    public static float PlayerFriction(float value, float frictionAmount, Vector2 intention)
+    {
+        if (intention == Vector2.zero)
+            return SmoothLerp(value, 0f, frictionAmount);
+        return value;
+    }
+    
+}
+
 
 public static class ReflectionHelpers
 {
