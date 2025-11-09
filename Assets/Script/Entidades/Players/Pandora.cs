@@ -26,15 +26,12 @@ public class Pandora : Player
 
     #endregion
     #region --- ATAQUE ---
-    protected override bool Attack()
+    protected override void Attack()
     {
-        if (base.Attack())
+        if(canAttack)
         {
-            print("ATAQUE");
-            animatorComp.SetTrigger("Attack");
-            return true;
+            ActionLayer.PushState(new PlayerActionPandoraAttackState(), Context);
         }
-        return false;
     }
     #endregion
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class HUDDirector : MonoBehaviour
+public class HudDirector : MonoBehaviour
 {
     private static readonly WaitForSecondsRealtime WAITTELEPORTFADE = new(1f);
     private static readonly WaitForSecondsRealtime WAITSHAKECAM = new(.25f);
@@ -28,6 +28,7 @@ public class HUDDirector : MonoBehaviour
         GlobalEventBus.Instance.TRIGGEREDCINEMATIC.AddListener(TriggerCinematicBars);
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateAmethysts);
         GlobalEventBus.Instance.TRIGGEREDTELEPORT.AddListener(TeleportFade);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(DeathPanel);
     }
 
     private void OnDisable()
@@ -38,6 +39,7 @@ public class HUDDirector : MonoBehaviour
         GlobalEventBus.Instance.TRIGGEREDCINEMATIC.RemoveListener(TriggerCinematicBars);
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateAmethysts);
         GlobalEventBus.Instance.TRIGGEREDTELEPORT.RemoveListener(TeleportFade);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(DeathPanel);
     }
 
     private void Start()
@@ -244,8 +246,15 @@ public class HUDDirector : MonoBehaviour
     }
     #endregion
 
+    # region === DEATH === 
+    private void DeathPanel(Player player)
+    {
+        ShowPanel(Constants.PanelNames.GameOver, player.ID, true);
+    }
 
 
+
+    # endregion
 
     #region Helpers
     private IconImage? GetIcon(string destiny) =>
