@@ -9,7 +9,7 @@ public class PlayerActionPandoraAttackState : IState<PlayerContext>
     public void Enter(PlayerContext context)
     {
         context.PlayerAnimator.SetTrigger("Attack");
-        context.ActionLayer.PopState(context);
+        context.ActionLayer.PopStateDeferred(context);
     }
 
     public void Exit(PlayerContext context)
