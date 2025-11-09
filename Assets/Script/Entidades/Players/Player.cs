@@ -14,7 +14,6 @@ public class Player : CombatEntities
     [Header("Movimento")]
     [SerializeField] private float speed = 10f;
     [SerializeField] internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
-    [SerializeField] internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
 
     [HideInInspector]
     [Stat(nameof(Speed))]
@@ -22,14 +21,10 @@ public class Player : CombatEntities
     internal float acceleration = 5f;
     internal float friction = 2f;
     internal float airFriction = 2f;
-    internal float acceleration = 5f;
-    internal float friction = 2f;
-    internal float airFriction = 2f;
 
 
     [Header("Pulo")]
     [SerializeField] private float jumpForce = 10f;
-    internal float wallJumpMultiplier = 5;
     internal float wallJumpMultiplier = 5;
 
     [HideInInspector]
@@ -40,11 +35,7 @@ public class Player : CombatEntities
     internal int maxJumpCount = 2;
     internal float gravityValue = -16.62f;
     internal float initialGravityValue;
-    internal float gravityValue = -16.62f;
-    internal float initialGravityValue;
 
-    [Header("Dash")] 
-    internal float DashSpeed = 30f;
     [Header("Dash")] 
     internal float DashSpeed = 30f;
     [SerializeField] internal float dashDistance = 5f;
@@ -99,29 +90,14 @@ public class Player : CombatEntities
     internal bool IsGrounded;
     internal bool WallSpeedApplied;
     internal bool TouchingWall;
-    internal Vector3 MovementVector;
-    internal Vector3 Direction;
-    internal Vector3 DashDirection;
-    internal Vector2 MoveInput;
-    internal Vector3 LastWallNormal;
 
-    internal int CurrentJumpCount;
-    internal bool IsGrounded;
-    internal bool WallSpeedApplied;
-    internal bool TouchingWall;
     internal bool canDash = true;
     internal bool canMove = true;
 
     [Stat(nameof(CanMove))]
     public bool CanMove { get => canMove; set => canMove = value; } // nova flag para controle de movimento
-    public bool CanMove { get => canMove; set => canMove = value; } // nova flag para controle de movimento
 
     [Stat(nameof(CanDash))]
-    public bool CanDash { get => canDash; set => canDash = value; }
-    internal bool IsDashing = false;
-    internal float dashCount = 1;
-    internal float DashCurrent = 0;
-    internal float DashDuration;
     public bool CanDash { get => canDash; set => canDash = value; }
     internal bool IsDashing = false;
     internal float dashCount = 1;
@@ -366,7 +342,6 @@ public class Player : CombatEntities
     private Timer knockbackTimer = new();
     private bool isKnockbackActive;
     internal bool isDashBlocked;
-    internal bool isDashBlocked;
 
     public void ApplyKnockback(Vector3 direction, float force)
     {
@@ -410,7 +385,6 @@ public class Player : CombatEntities
 
     [Header("WALL EXIT")]
     #region === WALLRUNNING ===
-    [SerializeField] internal float wallExitDuration = .2f; // duração do tempo fora da parede
     [SerializeField] internal float wallExitDuration = .2f; // duração do tempo fora da parede
 
     #endregion
@@ -458,7 +432,6 @@ public class Player : CombatEntities
             }
         }
 
-        if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir) == true)
         if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir) == true)
         {
             _OnDamage.AddListener(hudDir.ShakeCamera);
@@ -572,8 +545,6 @@ public class PlayerContext
     public PlayerContext(Player player) => this.player = player;
 
     public Stats PlayerStats { get => player.stats; }
-
-    public Stats PlayerStats { get => player.stats; }
     public GameObject PlayerGameObject { get => player.gameObject; }
     public Transform PlayerTransform { get => player.transform; }
     public CharacterController PlayerController { get => player.Charactercontroller; }
@@ -584,23 +555,14 @@ public class PlayerContext
     public QualityTier WallSpeedMultiplier { get => player.wallSpeedMultiplier; }
     public float WallJumpMultiplier { get => player.wallJumpMultiplier; set => player.wallJumpMultiplier = value; }
     public float WallExitDuration { get => player.wallExitDuration; }
-    public QualityTier WallSpeedMultiplier { get => player.wallSpeedMultiplier; }
-    public float WallJumpMultiplier { get => player.wallJumpMultiplier; set => player.wallJumpMultiplier = value; }
-    public float WallExitDuration { get => player.wallExitDuration; }
     public float JumpForce { get => player.JumpForce; set => player.JumpForce = value; }
     public int MaxJumpCount { get => player.maxJumpCount; }
     public float Gravity { get => player.gravityValue; set => player.gravityValue = value; }
     public float InitialGravityValue { get => player.initialGravityValue; }
-    public float Gravity { get => player.gravityValue; set => player.gravityValue = value; }
-    public float InitialGravityValue { get => player.initialGravityValue; }
     public float DashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
-    public bool IsDashBlocked { get => player.isDashBlocked; set => player.isDashBlocked = value; }
     public bool IsDashBlocked { get => player.isDashBlocked; set => player.isDashBlocked = value; }
     public float DashCooldown { get => player.dashCooldown; }
     public float DashDistance { get => player.dashDistance; }
-    public float Acceleration { get => player.acceleration; set => player.acceleration = value; }
-    public float Friction { get => player.friction; set => player.friction = value; }
-    public float AirFriction { get => player.airFriction; set => player.airFriction = value; }
     public float Acceleration { get => player.acceleration; set => player.acceleration = value; }
     public float Friction { get => player.friction; set => player.friction = value; }
     public float AirFriction { get => player.airFriction; set => player.airFriction = value; }
