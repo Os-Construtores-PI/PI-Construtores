@@ -10,6 +10,7 @@ public class LevelManager : MonoBehaviour
         dataSystem = FindAnyObjectByType<DataSystem>();
         gameDirector = FindAnyObjectByType<GameDirector>();
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(PlayerDeathHandler);
+        GlobalEventBus.Instance.PLAYERTRIGGERREDRESPAWN.AddListener(RespawnPlayers);
     }
     private void PlayerDeathHandler()
     {
@@ -21,7 +22,7 @@ public class LevelManager : MonoBehaviour
         }
 
     }
-    private void Respawn()
+    private void RespawnPlayers()
     {
         if (!dataSystem) return;
         gameDirector.SetPauseWorld(false);

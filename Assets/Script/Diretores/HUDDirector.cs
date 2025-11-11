@@ -29,6 +29,7 @@ public class HudDirector : MonoBehaviour
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateAmethysts);
         GlobalEventBus.Instance.TRIGGEREDTELEPORT.AddListener(TeleportFade);
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(DeathPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGERREDRESPAWN.AddListener(RespawnPanel);
     }
 
     private void OnDisable()
@@ -40,6 +41,7 @@ public class HudDirector : MonoBehaviour
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateAmethysts);
         GlobalEventBus.Instance.TRIGGEREDTELEPORT.RemoveListener(TeleportFade);
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(DeathPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGERREDRESPAWN.RemoveListener(RespawnPanel);
     }
 
     private void Start()
@@ -252,9 +254,21 @@ public class HudDirector : MonoBehaviour
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             ShowPanel(Constants.PanelNames.GameOver, player.ID, true);
+            HidePanel(Constants.PanelNames.AmethystCounter, player.ID, true);
+            HidePanel(Constants.PanelNames.HealthBar, player.ID, true);
+            HidePanel(Constants.PanelNames.DashIcon, player.ID, true);
         }
     }
-
+    private void RespawnPanel()
+    {
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            HidePanel(Constants.PanelNames.GameOver, player.ID, true);
+            ShowPanel(Constants.PanelNames.AmethystCounter, player.ID, true);
+            ShowPanel(Constants.PanelNames.HealthBar, player.ID, true);
+            ShowPanel(Constants.PanelNames.DashIcon, player.ID, true);
+        }
+    }
 
 
     # endregion

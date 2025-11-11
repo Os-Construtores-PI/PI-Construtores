@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameOverLogic : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class GameOverLogic : MonoBehaviour
     }
     public void ExitToMainMenu()
     {
-        
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+        SceneManager.LoadScene(Constants.SceneNames.MainMenu);
     }
 }

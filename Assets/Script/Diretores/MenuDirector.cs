@@ -22,6 +22,8 @@ public class MenuDirector : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         // _painelLayout.DOScale(1, 5);
         StartCoroutine(TimeStart()); // inicia a animação dos painés do menu
         PainelStartOff(); // desativa os paineis de configuração
