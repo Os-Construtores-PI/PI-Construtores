@@ -28,7 +28,9 @@ public class GlobalEventBus : MonoBehaviour
     public readonly UnityEvent<bool, InteractableObject, int> OBJECTWASSEEN = new();
     public readonly UnityEvent<int, float> TRIGGEREDCINEMATIC = new();
     public readonly UnityEvent<int> TRIGGEREDTELEPORT = new();
-    public readonly UnityEvent<Player> PLAYERTRIGGEREDDEATH = new();
+    public readonly UnityEvent PLAYERTRIGGEREDDEATH = new();
+    public readonly UnityEvent PLAYERTRIGGERREDRESPAWN = new();
+    public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
     public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
     #endregion
 

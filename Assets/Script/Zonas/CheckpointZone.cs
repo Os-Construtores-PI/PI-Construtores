@@ -20,7 +20,7 @@ public class CheckpointZone : MonoBehaviour
             Vector3 checkpointPosition = firstPlayer.transform.position;
 
             // salva o checkpoint usando essa posição para todos os players
-            dataSystem.SaveCheckpoint(GameContext.currentSlot);
+            dataSystem.SaveCheckpoint(GameContext.CurrentSlot);
 
             saved = true;
             Debug.Log($"Checkpoint salvo na posição {checkpointPosition} para todos os players.");

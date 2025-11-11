@@ -267,6 +267,15 @@ public class Player : CombatEntities
         }
     }
 
+    public void OnPause(InputAction.CallbackContext context)
+    {
+        if(context.started)
+        {
+            Pause();
+        }
+    }
+
+
     // public void OnChangeCharacter(InputAction.CallbackContext context)
     // {
     //     float charAxis = context.ReadValue<float>();
@@ -306,7 +315,7 @@ public class Player : CombatEntities
         if (OverrideGlobal) return;
 
         if (TouchingWall)
-        if (OverrideGlobal) return;
+            if (OverrideGlobal) return;
 
         if (TouchingWall)
         {
@@ -328,10 +337,18 @@ public class Player : CombatEntities
     }
     #endregion
 
+    #region  === PAUSE ===
+    private void Pause()
+    {
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameContext.IsPaused);
+    }
+    #endregion
+
     #region --- Dash ---
     private void StartDash()
     {
-        if (isDashBlocked) { return; };
+        if (isDashBlocked) { return; }
+        ;
         ActionLayer.PushState(new PlayerActionStateDash(), Context);
     }
     #endregion
@@ -533,7 +550,7 @@ public class Player : CombatEntities
     public override void DeathHandler()
     {
         base.DeathHandler();
-        GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke(this);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke();
     }
     #endregion
 }

@@ -19,7 +19,7 @@ public class LoadDirector : MonoBehaviour
     {
         if (index < 0 || index >= dataSystem.GetMaxSlots()) return;
 
-        GameContext.currentSlot = index;
+        GameContext.CurrentSlot = index;
         SavedSlotData savedSlot = dataSystem.GetSlotData(index);
 
         if (savedSlot != null && !string.IsNullOrEmpty(savedSlot.lastLevelName))

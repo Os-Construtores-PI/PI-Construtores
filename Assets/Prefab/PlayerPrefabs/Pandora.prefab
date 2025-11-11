@@ -601,7 +601,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6819150713396876715
 Transform:
   m_ObjectHideFlags: 0
@@ -822,6 +822,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 5d06e648-e3de-401f-ad9f-b8398ce90e22
     m_ActionName: 'Player/ChangeCharacter[/Keyboard/q,/Keyboard/e]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1765817406893881962}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: OnPause
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: f3ea0366-70e0-40e8-ac86-bdf3dd1c7ee3
+    m_ActionName: 'Player/Pause[/Keyboard/tab]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
