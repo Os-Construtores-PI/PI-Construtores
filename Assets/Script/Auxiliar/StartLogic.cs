@@ -10,6 +10,8 @@ public class StartLogic : MonoBehaviour
     [SerializeField] private GameObject _playerPrefab;
     [SerializeField] private Transform _spawnPoint;
 
+    public bool _iniciarDialogoNoStart = false;
+
     private void Start()
     {
         DOTween.Init();
@@ -42,16 +44,15 @@ public class StartLogic : MonoBehaviour
                 Destroy(gameObject);
             });
 
+         gameDirector.StartWorld();
 
-        var dialogue = FindAnyObjectByType<TutorialDIalogos>();
-        if(dialogue != null)
-        {
-            dialogue.AtivarDialogo();
-        }
-        else
-        {
-            Debug.LogWarning("[StartLogic] TutorialDialogue não encontrado na cena. Verifique se DialogueManager existe e está ativo.");
+         // animação
 
-        }
+         if(_iniciarDialogoNoStart)
+         {
+           var dialogue = FindAnyObjectByType<TutorialDIalogos>();
+           dialogue?.AtivarDialogo();
+         }
+       
     }
 }
