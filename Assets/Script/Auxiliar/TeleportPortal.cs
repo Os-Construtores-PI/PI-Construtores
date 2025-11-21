@@ -1,45 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Portal : MonoBehaviour
+public class Teleport_Portal : BasePortal
 {
-    [SerializeField] private Portal destiny;
+    [SerializeField] private Teleport_Portal destiny;
     private Transform exitPoint;
-    [SerializeField] private Color outerColor = new();
-    [SerializeField] private Color midColor = new();
-    [SerializeField] private Color centerColor = new();
 
-    private void Start()
+    protected override void Start()
     {
-        SetupColors();
-        SetupParticles();
+        base.Start();
         // Pega o filho "Destiny" do portal atual
         exitPoint = transform.Find("Destiny");
         if (exitPoint == null)
             Debug.LogWarning($"{name} não tem filho 'Destiny' definido!");
     }
 
-    private void SetupColors()
-    {
-        GameObject portal = transform.Find("Portal").gameObject;
-        MeshRenderer meshRenderer = portal.GetComponent<MeshRenderer>();
-        Material material = meshRenderer.material;
-        if (material && meshRenderer)
-        {
-            material.SetColor("_PortalColor", outerColor);
-            material.SetColor("_PortalColor2", midColor);
-            material.SetColor("_PortalColor3", centerColor);
-        }
-    }
-    private void SetupParticles()
-    {
-        ParticleSystem particles = GetComponentInChildren<ParticleSystem>();
-        if (particles)
-        {
-            var main = particles.main;
-            main.startColor = centerColor;
-        }
-    }
+
     private void OnTriggerEnter(Collider col)
     {
         if (!col.TryGetComponent(out Player player) || destiny == null) return;

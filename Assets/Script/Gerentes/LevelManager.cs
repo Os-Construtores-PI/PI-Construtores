@@ -10,7 +10,8 @@ public class LevelManager : MonoBehaviour
         dataSystem = FindAnyObjectByType<DataSystem>();
         gameDirector = FindAnyObjectByType<GameDirector>();
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(PlayerDeathHandler);
-        GlobalEventBus.Instance.PLAYERTRIGGERREDRESPAWN.AddListener(RespawnPlayers);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPlayers);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(PlayerEndGameHandler);
     }
     private void PlayerDeathHandler()
     {
@@ -20,7 +21,16 @@ public class LevelManager : MonoBehaviour
         {
             player.GetComponent<PlayerInput>().DeactivateInput();
         }
+    }
 
+    private void PlayerEndGameHandler()
+    {
+        if(!gameDirector) return;
+        gameDirector.SetPauseWorld(true);
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            player.GetComponent<PlayerInput>().DeactivateInput();
+        }
     }
     private void RespawnPlayers()
     {

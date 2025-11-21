@@ -106,6 +106,7 @@ public static class Constants
         public static readonly string GameOver = "PainelGameOver";
         public static readonly string HealthBar = "HealthBar";
         public static readonly string DashIcon = "DashIcon";
+        public static readonly string EndGame = "PainelEndGame";
         public static readonly string AmethystCounter = "AmethystCounter";
         public static readonly string InteractionPopup = "InteractionPopup";
         public static readonly string InteractionLetter = "InteractionLetter";

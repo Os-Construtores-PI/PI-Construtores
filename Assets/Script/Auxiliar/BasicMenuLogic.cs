@@ -1,11 +1,15 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameOverLogic : MonoBehaviour
+public class BasicMenuLogic : MonoBehaviour
 {
     public void Respawn()
     {
-        GlobalEventBus.Instance.PLAYERTRIGGERREDRESPAWN.Invoke();
+        GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.Invoke();
+    }
+    public void ResetScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     public void ExitToMainMenu()
     {
