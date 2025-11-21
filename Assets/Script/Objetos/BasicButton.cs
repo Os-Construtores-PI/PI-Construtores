@@ -1,7 +1,5 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.InputSystem;
 
 public class BasicButton : InteractableObject
 {

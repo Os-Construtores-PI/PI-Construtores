@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.SearchService;
-using UnityEngine.SceneManagement;
 
 public static class Tiers
 {

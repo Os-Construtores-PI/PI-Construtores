@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class Ruska : Player
 {
     protected override bool ObjectScan()

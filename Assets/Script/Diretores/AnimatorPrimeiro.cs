@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using DG.Tweening;
 
 
 public class AnimatorPrimeiro : MonoBehaviour
@@ -55,7 +54,7 @@ public class AnimatorPrimeiro : MonoBehaviour
             botao.onClick.RemoveListener(() => ParaAnimacao(botao));
             animaLoops.Remove(botao);
 
-            Debug.Log("Botao pressionada - animação encerrada");
+            Debug.Log("Botao pressionada - animaï¿½ï¿½o encerrada");
 
         }
     }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;  // Biblioteca DOTween para animações de movimento
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class LoopPlataforms : BasePlataform

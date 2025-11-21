@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Project.Tools.DictionaryHelp;
 using UnityEngine;
 
 public class StatZone : MonoBehaviour

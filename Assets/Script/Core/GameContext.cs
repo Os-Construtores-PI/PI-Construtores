@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public static class GameContext
 {
     public static int CurrentSlot = 0;

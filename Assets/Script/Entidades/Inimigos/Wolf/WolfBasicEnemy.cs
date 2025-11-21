@@ -1,13 +1,7 @@
 using System.Collections;
-using System.Diagnostics;
-using System.Reflection;
 using DG.Tweening;
-using Unity.Mathematics;
-using Unity.VisualScripting;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Rendering;
 
 public class WolfBasicEnemy : Enemies
 {
