@@ -35,5 +35,11 @@ public class GameEventTrigger : MonoBehaviour
         if (!other.CompareTag(_playerTag)) return;
 
         onTriggerExit?.Invoke();
+        _actived = false;
+    }
+    
+    public void Debug_ReabirDialogo()
+    {
+        FindAnyObjectByType<TutorialDIalogos>().ReiniciarDialogos();
     }
 }
