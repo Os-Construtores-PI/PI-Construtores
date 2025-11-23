@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class LevelManager : MonoBehaviour
 {
@@ -9,17 +10,36 @@ public class LevelManager : MonoBehaviour
         dataSystem = FindAnyObjectByType<DataSystem>();
         gameDirector = FindAnyObjectByType<GameDirector>();
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(PlayerDeathHandler);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPlayers);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(PlayerEndGameHandler);
     }
-    private void PlayerDeathHandler(Player player)
+    private void PlayerDeathHandler()
     {
         if (!gameDirector) return;
-        gameDirector.PauseWorld();
-        
+        gameDirector.SetPauseWorld(true);
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            player.GetComponent<PlayerInput>().DeactivateInput();
+        }
     }
-    private void Respawn(Player player)
+
+    private void PlayerEndGameHandler()
+    {
+        if(!gameDirector) return;
+        gameDirector.SetPauseWorld(true);
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            player.GetComponent<PlayerInput>().DeactivateInput();
+        }
+    }
+    private void RespawnPlayers()
     {
         if (!dataSystem) return;
-
-        dataSystem.RespawnPlayer(player, GameContext.currentSlot);
+        gameDirector.SetPauseWorld(false);
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            dataSystem.RespawnPlayer(player, GameContext.CurrentSlot);
+            player.GetComponent<PlayerInput>().ActivateInput();
+        }
     }
 }

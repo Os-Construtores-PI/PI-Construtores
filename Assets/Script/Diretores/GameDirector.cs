@@ -12,6 +12,7 @@ public class GameDirector : MonoBehaviour
     private void Start()
     {
         TryGetComponent(out dataSystem);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);
         // O painel de Start agora é gerenciado por outro script,
         // então não precisamos fazer nada aqui.
     }
@@ -59,9 +60,14 @@ public class GameDirector : MonoBehaviour
 
         Debug.Log("[GameDirector] StartWorld executado com sucesso (modo Debug).");
     }
-    public void PauseWorld()
+    public void TogglePauseWorld()
     {
-        Time.timeScale = 0;
+        SetPauseWorld(!GameContext.IsPaused);
+    }
+    public void SetPauseWorld(bool setPause)
+    {
+        Time.timeScale = setPause ? 0f : 1f;
+        GameContext.IsPaused = setPause;
     }
     public void ShutdownWorld()
     {

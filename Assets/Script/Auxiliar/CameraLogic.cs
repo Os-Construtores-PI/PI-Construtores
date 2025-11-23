@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Cinemachine;
-using System;
 
 public class CameraLogic : Entities
 {

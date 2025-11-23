@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class Pandora : Player
 {
     #region --- OBJETOS ---

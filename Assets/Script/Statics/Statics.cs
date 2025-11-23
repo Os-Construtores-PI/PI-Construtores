@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.SearchService;
-using UnityEngine.SceneManagement;
 
 public static class Tiers
 {
@@ -95,7 +93,7 @@ public static class Constants
     {
         public static readonly string DebugScene = "Cena Debug";
         public static readonly string Fase0 = "Fase0";
-        public static readonly string MenuScene = "MainMenu";
+        public static readonly string MainMenu = "MainMenu";
     }
     public static class Values
     {
@@ -104,6 +102,10 @@ public static class Constants
     public static class PanelNames
     {
         public static readonly string GameOver = "PainelGameOver";
+        public static readonly string HealthBar = "HealthBar";
+        public static readonly string DashIcon = "DashIcon";
+        public static readonly string EndGame = "PainelEndGame";
+        public static readonly string AmethystCounter = "AmethystCounter";
         public static readonly string InteractionPopup = "InteractionPopup";
         public static readonly string InteractionLetter = "InteractionLetter";
         public static readonly string GraplingHookCutscene = "GraplingHookCutscene";

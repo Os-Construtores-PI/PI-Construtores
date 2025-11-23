@@ -47,6 +47,7 @@ public class TutorialDIalogos : MonoBehaviour
 
     public void AtivarDialogo()
     {
+        Debug.Log("ATIVAR DIALOGO!");
         _dialogoAtivo = true;
         _dialogoConcluido = false;
         _index = 0;
@@ -57,6 +58,7 @@ public class TutorialDIalogos : MonoBehaviour
             _player.SetActive(false);
 
         _typingCoroutine = StartCoroutine(TypeSentence(_sentences[_index]));
+
     }
 
     IEnumerator TypeSentence(string sentence)

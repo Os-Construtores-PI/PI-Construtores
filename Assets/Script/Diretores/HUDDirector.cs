@@ -29,6 +29,8 @@ public class HudDirector : MonoBehaviour
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateAmethysts);
         GlobalEventBus.Instance.TRIGGEREDTELEPORT.AddListener(TeleportFade);
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(DeathPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(EndPanel);
     }
 
     private void OnDisable()
@@ -40,6 +42,8 @@ public class HudDirector : MonoBehaviour
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateAmethysts);
         GlobalEventBus.Instance.TRIGGEREDTELEPORT.RemoveListener(TeleportFade);
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(DeathPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.RemoveListener(RespawnPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
     }
 
     private void Start()
@@ -80,9 +84,10 @@ public class HudDirector : MonoBehaviour
             }
         }
 
-        HidePanel(Constants.PanelNames.GameOver, playerID, fade: true, instant: true);
-        HidePanel(Constants.PanelNames.InteractionPopup, playerID, instant: true);
-        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID, false, false);
+        HidePanel(Constants.PanelNames.GameOver, playerID,independent:true ,fade: true, instant: true);
+        HidePanel(Constants.PanelNames.EndGame, playerID, independent:true, fade: true, instant: true);
+        HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true, instant: true);
+        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, false);
 
         return hudInstance;
     }
@@ -99,29 +104,29 @@ public class HudDirector : MonoBehaviour
     #endregion
 
     #region Panel Handling
-    private void HidePanel(string panelName, int playerID, bool fade = false, bool instant = false)
+    private void HidePanel(string panelName, int playerID,bool independent, bool fade = false, bool instant = false)
     {
         foreach (var go in GetPanel(playerID, panelName))
         {
             if (fade && go.TryGetComponent(out Image image))
             {
                 if (instant) image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
-                else image.DOFade(0f, .25f);
+                else image.DOFade(0f, .25f).SetUpdate(UpdateType.Normal,independent);
             }
 
             if (instant) go.transform.localScale = Vector3.zero;
-            else go.transform.DOScale(Vector3.zero, .25f);
+            else go.transform.DOScale(Vector3.zero, .25f).SetUpdate(UpdateType.Normal,independent);
         }
     }
 
-    public void ShowPanel(string panelName, int playerID, bool fade = false)
+    public void ShowPanel(string panelName, int playerID,bool independent ,bool fade = false)
     {
         foreach (var go in GetPanel(playerID, panelName))
         {
             if (fade && go.TryGetComponent(out Image image))
-                image.DOFade(.8f, .25f);
+                image.DOFade(.8f, .25f).SetUpdate(UpdateType.Normal,independent);
 
-            go.transform.DOScale(Vector3.one, .25f);
+            go.transform.DOScale(Vector3.one, .25f).SetUpdate(UpdateType.Normal,independent);
         }
     }
     #endregion
@@ -157,7 +162,7 @@ public class HudDirector : MonoBehaviour
 
         if (!seeing)
         {
-            HidePanel(Constants.PanelNames.InteractionPopup, playerID);
+            HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:false);
             text.DOColor(Color.white, duration);
             text.text = "";
             image.sprite = ogSprites[playerID];
@@ -181,7 +186,7 @@ public class HudDirector : MonoBehaviour
                 break;
         }
 
-        ShowPanel(Constants.PanelNames.InteractionPopup, playerID);
+        ShowPanel(Constants.PanelNames.InteractionPopup, playerID,independent:false);
     }
 
     private void UpdateAmethysts(int newAmount) { }
@@ -247,11 +252,34 @@ public class HudDirector : MonoBehaviour
     #endregion
 
     # region === DEATH === 
-    private void DeathPanel(Player player)
+    private void DeathPanel()
     {
-        ShowPanel(Constants.PanelNames.GameOver, player.ID, true);
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            ShowPanel(Constants.PanelNames.GameOver, player.ID, true);
+            DisableHud(player.ID);
+        }
     }
+    private void RespawnPanel()
+    {
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            HidePanel(Constants.PanelNames.GameOver, player.ID, true);
+            HidePanel(Constants.PanelNames.EndGame, player.ID, true);
+            EnableHUD(player.ID);
+        }
+    }
+    # endregion
 
+    # region === END GAME ===
+    private void EndPanel()
+    {
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            ShowPanel(Constants.PanelNames.EndGame, player.ID, true);
+            DisableHud(player.ID);    
+        }
+    }
 
 
     # endregion
@@ -264,6 +292,20 @@ public class HudDirector : MonoBehaviour
         canvasMap.TryGetValue(playerID, out var dict) && dict.TryGetValue(panelName, out var result)
             ? result
             : new List<GameObject>();
+
+
+    private void DisableHud(int playerID)
+    {
+        HidePanel(Constants.PanelNames.AmethystCounter, playerID, true);
+        HidePanel(Constants.PanelNames.HealthBar, playerID, true);
+        HidePanel(Constants.PanelNames.DashIcon, playerID, true);        
+    }
+    private void EnableHUD(int playerID)
+    {
+        ShowPanel(Constants.PanelNames.AmethystCounter, playerID, true);
+        ShowPanel(Constants.PanelNames.HealthBar, playerID, true);
+        ShowPanel(Constants.PanelNames.DashIcon, playerID, true);    
+    }
     #endregion
 }
 

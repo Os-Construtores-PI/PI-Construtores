@@ -243,6 +243,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 5d06e648-e3de-401f-ad9f-b8398ce90e22
     m_ActionName: 'Player/ChangeCharacter[/Keyboard/q,/Keyboard/e]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5862528542002616574}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: OnPause
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: f3ea0366-70e0-40e8-ac86-bdf3dd1c7ee3
+    m_ActionName: 'Player/Pause[/Keyboard/tab]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -380,25 +396,19 @@ MonoBehaviour:
   Damaged: 0
   speed: 10
   wallSpeedMultiplier: 2
-  acceleration: 5
-  friction: 2
-  airFriction: 2
   jumpForce: 10
-  wallJumpMultiplier: 5
   maxJumpCount: 2
-  gravity: -9.81
-  dashSpeed: 30
   dashDistance: 10
   dashCooldown: 5
+  dashHUDScript: {fileID: 0}
   characterController: {fileID: 4898153852524502878}
   cinemachineCamera: {fileID: 0}
   animatorComp: {fileID: 0}
   enemyScanRadius: 10
   enemyScanCooldown: 2
   interactionScanCooldown: 0.1
-  ChangeCharacterCooldown: 5
   wallExitDuration: 0.1
-  AttackCooldown: 2
+  attackCooldown: 0
 --- !u!95 &5337315832998793957
 Animator:
   serializedVersion: 7

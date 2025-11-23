@@ -101,7 +101,7 @@ public class PlayerDirector : MonoBehaviour
 
     public void ActivatePlayers()
     {
-        switch (GameContext.gameMode)
+        switch (GameContext.GameMode)
         {
             case GameMode.SINGLEPLAYER:
                 ActivateSinglePlayer();

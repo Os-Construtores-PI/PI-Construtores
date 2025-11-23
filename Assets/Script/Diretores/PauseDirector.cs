@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -6,11 +5,6 @@ public class PauseDirector : MonoBehaviour
 {
     [SerializeField] private GameObject pauseMenuUI; // painel do pause
     [SerializeField] private string pauseMenuTag = "PauseMenu"; // Tag para identificar o painel
-
-
-    private bool isPaused = false;
-    public bool IsPaused => isPaused;
-    // Update is called once per frame
 
     private void Start()
     {
@@ -27,25 +21,19 @@ public class PauseDirector : MonoBehaviour
         {
             Debug.LogWarning($"[PauseDirector] nenhum objeto com a TAG '{pauseMenuTag}' foi encontrado");
         }
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseMenu);
     }
-    void Update()
-    {
-        if (Input.GetKeyUp(KeyCode.Tab))
-        {
-            TogglePause();
-        }
-    }
-    private void TogglePause()
-    {
-        SetPause(!IsPaused);
-    }
-    public void SetPause(bool setPause)
+
+    public void SetPauseMenu(bool setPause)
     {
         pauseMenuUI.SetActive(setPause);
-        Time.timeScale = setPause ? 0f : 1f;
-        isPaused = setPause;
         Cursor.lockState = setPause ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = setPause;
+    }
+    
+    public void ContinueGame()
+    {
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
     }
 
     public void OpenOptions()
@@ -56,6 +44,6 @@ public class PauseDirector : MonoBehaviour
     public void LoadMainMenu()
     {
         Time.timeScale = 1f; // garante que o tempo volte
-        SceneManager.LoadScene(Constants.SceneNames.MenuScene);
+        SceneManager.LoadScene(Constants.SceneNames.MainMenu);
     }
 }

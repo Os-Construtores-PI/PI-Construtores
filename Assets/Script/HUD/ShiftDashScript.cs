@@ -1,7 +1,5 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
-using DG.Tweening;
 using System.Collections;
 
 public class ShiftDashScript : MonoBehaviour
