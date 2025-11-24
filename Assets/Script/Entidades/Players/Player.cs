@@ -208,8 +208,9 @@ public class Player : CombatEntities
         //print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
         //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
         //[STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
+        // print($"CANATTACK: {canAttack}");
+        // print($"WILLATTACK: {willAttack}");
 #endif
-        print(Speed);
     }
 
     private void FixedUpdate()
@@ -531,6 +532,7 @@ public class Player : CombatEntities
     [Header("ATAQUE PARÂMETROS")]
      internal float attackCooldown;
     protected internal bool canAttack = true;
+    protected internal bool willAttack = true;
     protected virtual void Attack() { }
     #endregion
 
@@ -596,7 +598,9 @@ public class PlayerContext : CombatEntityContext
     public bool PlayerTouchingWall { get => player.TouchingWall; set => player.TouchingWall = value; }
     public bool PlayerCanMove { get => player.CanMove; set => player.CanMove = value; }
     public bool PlayerCanDash { get => player.canDash; set => player.canDash = value; }
+    public bool PlayerWillAttack { get => player.willAttack; set => player.willAttack = value; }
     public bool PlayerCanAttack { get => player.canAttack; set => player.canAttack = value; }
+
     public ShiftDashScript PlayerDashScript { get => player.dashHUDScript; }
     public bool PlayerIsDashing { get => player.IsDashing; set => player.IsDashing = value; }
     public float PlayerAttackCooldown { get => player.attackCooldown; set => player.attackCooldown = value; }

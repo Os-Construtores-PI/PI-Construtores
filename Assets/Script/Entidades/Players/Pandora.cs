@@ -26,7 +26,7 @@ public class Pandora : Player
     #region --- ATAQUE ---
     protected override void Attack()
     {
-        if(canAttack)
+        if(canAttack && willAttack)
         {
             ActionLayer.PushState(new PlayerActionPandoraAttackState(), Context);
         }

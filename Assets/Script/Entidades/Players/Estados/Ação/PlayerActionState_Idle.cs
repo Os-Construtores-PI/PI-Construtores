@@ -29,7 +29,7 @@ public class PlayerActionStateIdle : IState<PlayerContext>
     }
     private void AttackTimer(PlayerContext context)
     {
-        if (!context.PlayerCanAttack)
+        if (!context.PlayerCanAttack && context.PlayerWillAttack)
         {
             attackCooldownWalker += Time.deltaTime;
             if (attackCooldownWalker >= attackCooldown)

@@ -63,7 +63,7 @@ public class ConfigPlayer : ScriptableObject
         playerContext.PlayerWallSpeedMultiplier = multiplicadorVelocidadeParede;
         playerContext.PlayerWallJumpMultiplier = multiplicadorForcaPuloParede;
         playerContext.PlayerWallExitDuration = duracaoSaidaParede;
-        playerContext.PlayerCanAttack = podeAtacar;
+        playerContext.PlayerWillAttack = podeAtacar;
         playerContext.PlayerAttackCooldown = cooldownAtaque;
 
     }
