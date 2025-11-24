@@ -4,7 +4,6 @@ public abstract class Entities : BaseRenderedGameObject
 {
     private static int _nextId = 0;
     protected int id;
-
     [HideInInspector] public int ID => id;
 
     public override void Awake()
@@ -30,4 +29,13 @@ public abstract class Entities : BaseRenderedGameObject
         if (value > _nextId)
             _nextId = value;
     }
+
+}
+public class EntityContext
+{
+    private readonly Entities entity;
+    public int EntityID { get => entity.ID; }
+    public EntityContext(object entity) => this.entity = (Entities)entity;    
+    public GameObject EntityGameObject { get => entity.gameObject; }
+    public Transform EntityTransform { get => entity.transform; }
 }

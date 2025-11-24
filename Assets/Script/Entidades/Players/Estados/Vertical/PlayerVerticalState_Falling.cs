@@ -18,14 +18,14 @@ public class PlayerFallingState : IState<PlayerContext>
     public void FixedUpdate(PlayerContext context)
     {
         if (context.OverrideGlobal || context.OverrideVertical) { return; }
-        Vector3 move = context.MovementVector;
-        move.x = QualityOfLife.PlayerFriction(move.x, context.AirFriction, context.MoveInput);
-        move.z = QualityOfLife.PlayerFriction(move.z, context.AirFriction, context.MoveInput);
-        move = new(move.x, move.y + context.Gravity * Time.deltaTime, move.z);
-        context.MovementVector = move;
-        if(context.IsGrounded && context.MovementVector.y < 0f)
+        Vector3 move = context.PlayerMovementVector;
+        move.x = QualityOfLife.PlayerFriction(move.x, context.PlayerAirFriction, context.PlayerMoveInput);
+        move.z = QualityOfLife.PlayerFriction(move.z, context.PlayerAirFriction, context.PlayerMoveInput);
+        move = new(move.x, move.y + context.PlayerGravity * Time.deltaTime, move.z);
+        context.PlayerMovementVector = move;
+        if(context.PlayerIsGrounded && context.PlayerMovementVector.y < 0f)
         {
-            context.VerticalLayer.ChangeState(new PlayerGroundedState(), context);
+            context.PlayerVerticalLayer.ChangeState(new PlayerGroundedState(), context);
         }
     }
 

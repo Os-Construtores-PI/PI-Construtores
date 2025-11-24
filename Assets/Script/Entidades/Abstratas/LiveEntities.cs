@@ -189,8 +189,30 @@ public abstract class LiveEntities : Entities
     }
     #endregion
 
-    
+
 }
+
+public class LiveEntityContext : EntityContext
+{
+    private readonly LiveEntities liveEntity;
+
+    public LiveEntityContext(LiveEntities entity) : base(entity)
+    {
+        liveEntity = entity;
+    }
+
+    public Stats LiveEntityStats { get => liveEntity.stats; }
+    public float LiveEntityHealth { get => liveEntity.Health; set => liveEntity.Health = value; }
+    public float LiveEntityMaxHealth { get => liveEntity.MaxHealth; set => liveEntity.MaxHealth = value; }
+    public float LiveEntityDefense { get => liveEntity.Defense; set => liveEntity.Defense = value; } 
+}
+
+
+
+
+
+
+
 
 /// <summary>
 /// Atributo para marcar propriedades que representam stats.

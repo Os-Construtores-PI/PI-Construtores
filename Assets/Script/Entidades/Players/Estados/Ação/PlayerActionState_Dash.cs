@@ -17,30 +17,30 @@ public class PlayerActionStateDash : IState<PlayerContext>
         context.OverrideGlobal = true;
 
 
-        context.DashDirection = context.MoveInput != Vector2.zero ? context.Direction : context.PlayerTransform.forward;
-        context.DashDuration = context.DashDistance / context.DashSpeed;
-        timeToExit = context.DashDuration;
-        context.IsDashing = true;
-        context.CanDash = false;
-        context.MovementVector = new(context.MovementVector.x, 0, context.MovementVector.z);
-        context.DashCurrent += 1;
-        context.CanMove = false;
-        PlayDashVisual(context.PlayerTransform,context.DashDuration);
+        context.PlayerDashDirection = context.PlayerMoveInput != Vector2.zero ? context.PlayerDirection : context.EntityTransform.forward;
+        context.PlayerDashDuration = context.DashDistance / context.PlayerDashSpeed;
+        timeToExit = context.PlayerDashDuration;
+        context.PlayerIsDashing = true;
+        context.PlayerCanDash = false;
+        context.PlayerMovementVector = new(context.PlayerMovementVector.x, 0, context.PlayerMovementVector.z);
+        context.PlayerDashCurrent += 1;
+        context.PlayerCanMove = false;
+        PlayDashVisual(context.EntityTransform,context.PlayerDashDuration);
 
-        if (context.DashScript != null)
+        if (context.PlayerDashScript != null)
         {
-            if (!context.DashScript.gameObject.activeInHierarchy)
-                context.DashScript.gameObject.SetActive(true);
-            context.DashScript.OnDashUsed();
+            if (!context.PlayerDashScript.gameObject.activeInHierarchy)
+                context.PlayerDashScript.gameObject.SetActive(true);
+            context.PlayerDashScript.OnDashUsed();
         }
     }
 
     public void Exit(PlayerContext context)
     {
-        context.CanDash = true;
+        context.PlayerCanDash = true;
         context.OverrideGlobal = false;
 
-        ResetDashHUD(context.DashScript);
+        ResetDashHUD(context.PlayerDashScript);
     }
 
     public void FixedUpdate(PlayerContext context)
@@ -74,11 +74,11 @@ public class PlayerActionStateDash : IState<PlayerContext>
         if (timeToExitWalker < timeToExit)
         {
             timeToExitWalker += Time.deltaTime;
-            context.PlayerController.Move(context.DashSpeed * Time.deltaTime * context.DashDirection);
+            context.PlayerController.Move(context.PlayerDashSpeed * Time.deltaTime * context.PlayerDashDirection);
         }
         else
         {
-            context.ActionLayer.PopStateDeferred(context);
+            context.PlayerActionLayer.PopStateDeferred(context);
         }
     }
 }

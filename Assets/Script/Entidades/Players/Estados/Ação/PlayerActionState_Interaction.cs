@@ -8,9 +8,9 @@ public class PlayerActionStateInteraction : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
-        InfoPlayerInteraction info = new(context.PlayerGameObject, context);
+        InfoPlayerInteraction info = new(context.EntityGameObject, context);
         context.PlayerInteractionReference.Interaction(info);
-        context.ActionLayer.PopStateDeferred(context);
+        context.PlayerActionLayer.PopStateDeferred(context);
     }
 
     public void Exit(PlayerContext context)

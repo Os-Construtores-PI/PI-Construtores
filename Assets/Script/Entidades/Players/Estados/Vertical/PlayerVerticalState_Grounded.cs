@@ -9,9 +9,9 @@ public class PlayerGroundedState : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
-        Vector3 move = context.MovementVector;
+        Vector3 move = context.PlayerMovementVector;
         move.y = 0;
-        context.MovementVector = move;
+        context.PlayerMovementVector = move;
     }
 
     public void Exit(PlayerContext context) { }
@@ -19,19 +19,19 @@ public class PlayerGroundedState : IState<PlayerContext>
     public void FixedUpdate(PlayerContext context)
     {
         // Reseta o eixo Y do movimento
-        Vector3 move = context.MovementVector;
+        Vector3 move = context.PlayerMovementVector;
 
         // Reseta jumps e dash
-        context.CurrentJumpCount = 0;
-        context.DashCurrent = 0;
+        context.PlayerCurrentJumpCount = 0;
+        context.PlayerDashCurrent = 0;
 
         // Aplica atrito separadamente em X e Z
-        move.x = QualityOfLife.PlayerFriction(move.x, context.Friction,context.MoveInput);
-        move.z = QualityOfLife.PlayerFriction(move.z, context.Friction,context.MoveInput);
-        context.MovementVector = move;
-        if(!context.IsGrounded)
+        move.x = QualityOfLife.PlayerFriction(move.x, context.PlayerFriction,context.PlayerMoveInput);
+        move.z = QualityOfLife.PlayerFriction(move.z, context.PlayerFriction,context.PlayerMoveInput);
+        context.PlayerMovementVector = move;
+        if(!context.PlayerIsGrounded)
         {
-            context.VerticalLayer.ChangeState(new PlayerFallingState(), context);
+            context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
         }
     }
 

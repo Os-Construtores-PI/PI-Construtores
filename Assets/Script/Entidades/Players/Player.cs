@@ -10,10 +10,10 @@ using UnityEngine.InputSystem;
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
-    #region --- Configurações de Movimento ---
+    #region === Configurações de Movimento ===
     [Header("Movimento")]
-    [SerializeField] private float speed = 10f;
-    [SerializeField] internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
+     private float speed = 10f;
+     internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
 
     [HideInInspector]
     [Stat(nameof(Speed))]
@@ -24,28 +24,28 @@ public class Player : CombatEntities
 
 
     [Header("Pulo")]
-    [SerializeField] private float jumpForce = 10f;
+     private float jumpForce = 10f;
     internal float wallJumpMultiplier = 5;
 
     [HideInInspector]
     [Stat(nameof(JumpForce))]
     public float JumpForce { get => jumpForce; set => jumpForce = value; }
 
-    [SerializeField]
+    
     internal int maxJumpCount = 2;
     internal float gravityValue = -16.62f;
     internal float initialGravityValue;
 
     [Header("Dash")] 
     internal float DashSpeed = 30f;
-    [SerializeField] internal float dashDistance = 5f;
-    [SerializeField] internal float dashCooldown = 1f;
-    [SerializeField] internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
+     internal float dashDistance = 5f;
+     internal float dashCooldown = 1f;
+     internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
     [Header("Componentes")]
-    [SerializeField] protected CharacterController characterController;
+     protected CharacterController characterController;
     public CharacterController Charactercontroller => characterController;
-    [SerializeField] protected CinemachineCamera cinemachineCamera;
+     protected CinemachineCamera cinemachineCamera;
     public CinemachineCamera Cinemachinecamera => cinemachineCamera;
 
     public void SetCinemachineCamera(CinemachineCamera cam)
@@ -53,13 +53,13 @@ public class Player : CombatEntities
         cinemachineCamera = cam;
     }
 
-    [SerializeField]
+    
     protected Animator animatorComp;
     public Animator AnimatorComp => animatorComp;
 
     #endregion
 
-    #region --- Overrides ---
+    #region === Overrides ===
     // === GLOBAL ===
     public bool OverrideGlobal { get; set; } = false;
     public float GlobalOverride { get; set; } = 0f;
@@ -73,7 +73,7 @@ public class Player : CombatEntities
     public float VerticalOverride { get; set; } = 0f;
     #endregion
 
-    #region --- Estados Internos ---
+    #region === Estados Internos ===
     internal StateMachine<PlayerContext> HorizontalLayer;
     internal StateMachine<PlayerContext> VerticalLayer;
     internal StackStateMachine<PlayerContext> ActionLayer;
@@ -116,7 +116,7 @@ public class Player : CombatEntities
 
     #region === Interação ===
     [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
-    [SerializeField]
+    
     private float interactionScanCooldown = .1f;
     private readonly Timer interactionScanTimer = new();
     internal protected InteractableObject interactableRef;
@@ -128,7 +128,7 @@ public class Player : CombatEntities
     public Inventory Inventory => inventory;
     #endregion
 
-    #region --- Inicialização Unity ---
+    #region === Inicialização Unity ===
     #region Coletáveis
 
 
@@ -204,10 +204,12 @@ public class Player : CombatEntities
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
 
-
-        print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
-        [STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
-        [STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
+#if DEBUG
+        //print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
+        //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
+        //[STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
+#endif
+        print(Speed);
     }
 
     private void FixedUpdate()
@@ -217,11 +219,11 @@ public class Player : CombatEntities
         IsGrounded = characterController.isGrounded;
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
-        print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
+        //print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
         VerticalLayer.FixedUpdate(Context);
-        print($"VERTICAL LAYER MOVEMENT: {MovementVector}");
+        //print($"VERTICAL LAYER MOVEMENT: {MovementVector}");
         ActionLayer.FixedUpdate(Context);
-        print($"ACTION LAYER MOVEMENT: {MovementVector}");
+        //print($"ACTION LAYER MOVEMENT: {MovementVector}");
 
         // MOVEMENT
         Charactercontroller.Move(MovementVector * Time.deltaTime);
@@ -231,7 +233,7 @@ public class Player : CombatEntities
     private void OnDestroy() => DOTween.KillAll();
 
     #endregion
-    #region --- Input Callbacks ---
+    #region === Input Callbacks ===
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -284,7 +286,7 @@ public class Player : CombatEntities
     // }
 
     // [Header("TROCA DE JOGADOR PARÂMETROS")]
-    // [SerializeField]private float changeCharacterCooldown = 5f;
+    // private float changeCharacterCooldown = 5f;
     // private Timer changeCharTimer = new();
     // private bool canChangeCharacter = true;
 
@@ -302,7 +304,7 @@ public class Player : CombatEntities
     // } 
     #endregion
 
-    #region --- Movimento & Pulo ---
+    #region === Movimento & Pulo ===
     private void Move()
     {
         if (Cinemachinecamera == null || OverrideGlobal || OverrideHorizontal || HorizontalLayer.CurrentState is PlayerActionStateDash) { return; }
@@ -344,7 +346,7 @@ public class Player : CombatEntities
     }
     #endregion
 
-    #region --- Dash ---
+    #region === Dash ===
     private void StartDash()
     {
         if (isDashBlocked) { return; }
@@ -353,7 +355,7 @@ public class Player : CombatEntities
     }
     #endregion
 
-    #region --- KNOCKBACK ---
+    #region === KNOCKBACK ===
     private Vector3 knockbackVelocity;
     private readonly float knockbackDuration = 0.2f;
     private Timer knockbackTimer = new();
@@ -402,7 +404,7 @@ public class Player : CombatEntities
 
     [Header("WALL EXIT")]
     #region === WALLRUNNING ===
-    [SerializeField] internal float wallExitDuration = .2f; // duração do tempo fora da parede
+     internal float wallExitDuration = .2f; // duração do tempo fora da parede
 
     #endregion
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -425,7 +427,7 @@ public class Player : CombatEntities
         }
     }
 
-    #region --- HUD & Feedback ---
+    #region === HUD & Feedback ===
 
     private IEnumerator DelayedSetupHUD(float duration)
     {
@@ -506,7 +508,7 @@ public class Player : CombatEntities
         return true;
     }
 
-    // --- Método auxiliar para limpar estado ---
+    // === Método auxiliar para limpar estado ===
     protected void ClearInteractable()
     {
         interactableRef = null;
@@ -525,14 +527,14 @@ public class Player : CombatEntities
     #endregion
 
 
-    #region  --- Ataque ---
+    #region  === Ataque ===
     [Header("ATAQUE PARÂMETROS")]
-    [SerializeField] internal float attackCooldown;
+     internal float attackCooldown;
     protected internal bool canAttack = true;
     protected virtual void Attack() { }
     #endregion
 
-    #region --- Camera ---
+    #region === Camera ===
     private void SetupCamera()
     {
         Camera[] cameras = Camera.allCameras;
@@ -555,54 +557,52 @@ public class Player : CombatEntities
     #endregion
 }
 
-public class PlayerContext
+public class PlayerContext : CombatEntityContext
 {
     private readonly Player player;
-    public int PlayerID { get => player.ID; }
-    public PlayerContext(Player player) => this.player = player;
-
-    public Stats PlayerStats { get => player.stats; }
-    public GameObject PlayerGameObject { get => player.gameObject; }
-    public Transform PlayerTransform { get => player.transform; }
+    public PlayerContext(Player player) : base(player)
+    {
+        this.player = player;
+    }
     public CharacterController PlayerController { get => player.Charactercontroller; }
     public CinemachineCamera PlayerCamera { get => player.Cinemachinecamera; }
     public InteractableObject PlayerInteractionReference { get => player.interactableRef; }
     public Animator PlayerAnimator { get => player.AnimatorComp; }
-    public float Speed { get => player.Speed; set => player.Speed = value; }
-    public QualityTier WallSpeedMultiplier { get => player.wallSpeedMultiplier; }
-    public float WallJumpMultiplier { get => player.wallJumpMultiplier; set => player.wallJumpMultiplier = value; }
-    public float WallExitDuration { get => player.wallExitDuration; }
-    public float JumpForce { get => player.JumpForce; set => player.JumpForce = value; }
-    public int MaxJumpCount { get => player.maxJumpCount; }
-    public float Gravity { get => player.gravityValue; set => player.gravityValue = value; }
+    public float PlayerSpeed { get => player.Speed; set => player.Speed = value; }
+    public QualityTier PlayerWallSpeedMultiplier { get => player.wallSpeedMultiplier; set => player.wallSpeedMultiplier = value; }
+    public float PlayerWallJumpMultiplier { get => player.wallJumpMultiplier; set => player.wallJumpMultiplier = value; }
+    public float PlayerWallExitDuration { get => player.wallExitDuration; set => player.wallExitDuration = value; }
+    public float PlayerJumpForce { get => player.JumpForce; set => player.JumpForce = value; }
+    public int PlayerMaxJumpCount { get => player.maxJumpCount; set => player.maxJumpCount = value; }
+    public float PlayerGravity { get => player.gravityValue; set => player.gravityValue = value; }
     public float InitialGravityValue { get => player.initialGravityValue; }
-    public float DashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
+    public float PlayerDashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
     public bool IsDashBlocked { get => player.isDashBlocked; set => player.isDashBlocked = value; }
-    public float DashCooldown { get => player.dashCooldown; }
+    public float PlayerDashCooldown { get => player.dashCooldown; set => player.dashCooldown = value; }
     public float DashDistance { get => player.dashDistance; }
-    public float Acceleration { get => player.acceleration; set => player.acceleration = value; }
-    public float Friction { get => player.friction; set => player.friction = value; }
-    public float AirFriction { get => player.airFriction; set => player.airFriction = value; }
-    public Vector3 MovementVector { get => player.MovementVector; set => player.MovementVector = value; }
-    public Vector3 Direction { get => player.Direction; set => player.Direction = value; }
-    public Vector3 DashDirection { get => player.DashDirection; set => player.DashDirection = value; }
-    public Vector2 MoveInput { get => player.MoveInput; set => player.MoveInput = value; }
-    public Vector3 LastWallNormal { get => player.LastWallNormal; set => player.LastWallNormal = value; }
-    public int CurrentJumpCount { get => player.CurrentJumpCount; set => player.CurrentJumpCount = value; }
-    public bool IsGrounded { get => player.IsGrounded; set => player.IsGrounded = value; }
-    public bool WallSpeedApplied { get => player.WallSpeedApplied; set => player.WallSpeedApplied = value; }
-    public bool TouchingWall { get => player.TouchingWall; set => player.TouchingWall = value; }
-    public bool CanMove { get => player.CanMove; set => player.CanMove = value; }
-    public bool CanDash { get => player.canDash; set => player.canDash = value; }
-    public bool CanAttack { get => player.canAttack; set => player.canAttack = value; }
-    public ShiftDashScript DashScript { get => player.dashHUDScript; }
-    public bool IsDashing { get => player.IsDashing; set => player.IsDashing = value; }
-    public float DashCurrent { get => player.DashCurrent; set => player.DashCurrent = value; }
-    public float DashDuration { get => player.DashDuration; set => player.DashDuration = value; }
-    public float AttackCooldown { get => player.attackCooldown; }
-    public StateMachine<PlayerContext> HorizontalLayer { get => player.HorizontalLayer; }
-    public StateMachine<PlayerContext> VerticalLayer { get => player.VerticalLayer; }
-    public StackStateMachine<PlayerContext> ActionLayer { get => player.ActionLayer; }
+    public float PlayerAcceleration { get => player.acceleration; set => player.acceleration = value; }
+    public float PlayerFriction { get => player.friction; set => player.friction = value; }
+    public float PlayerAirFriction { get => player.airFriction; set => player.airFriction = value; }
+    public Vector3 PlayerMovementVector { get => player.MovementVector; set => player.MovementVector = value; }
+    public Vector3 PlayerDirection { get => player.Direction; set => player.Direction = value; }
+    public Vector3 PlayerDashDirection { get => player.DashDirection; set => player.DashDirection = value; }
+    public float PlayerDashCurrent { get => player.DashCurrent; set => player.DashCurrent = value; }
+    public float PlayerDashDuration { get => player.DashDuration; set => player.DashDuration = value; }
+    public Vector2 PlayerMoveInput { get => player.MoveInput; set => player.MoveInput = value; }
+    public Vector3 PlayerLastWallNormal { get => player.LastWallNormal; set => player.LastWallNormal = value; }
+    public int PlayerCurrentJumpCount { get => player.CurrentJumpCount; set => player.CurrentJumpCount = value; }
+    public bool PlayerIsGrounded { get => player.IsGrounded; set => player.IsGrounded = value; }
+    public bool PlayerWallSpeedApplied { get => player.WallSpeedApplied; set => player.WallSpeedApplied = value; }
+    public bool PlayerTouchingWall { get => player.TouchingWall; set => player.TouchingWall = value; }
+    public bool PlayerCanMove { get => player.CanMove; set => player.CanMove = value; }
+    public bool PlayerCanDash { get => player.canDash; set => player.canDash = value; }
+    public bool PlayerCanAttack { get => player.canAttack; set => player.canAttack = value; }
+    public ShiftDashScript PlayerDashScript { get => player.dashHUDScript; }
+    public bool PlayerIsDashing { get => player.IsDashing; set => player.IsDashing = value; }
+    public float PlayerAttackCooldown { get => player.attackCooldown; set => player.attackCooldown = value; }
+    public StateMachine<PlayerContext> PlayerHorizontalLayer { get => player.HorizontalLayer; }
+    public StateMachine<PlayerContext> PlayerVerticalLayer { get => player.VerticalLayer; }
+    public StackStateMachine<PlayerContext> PlayerActionLayer { get => player.ActionLayer; }
     public bool OverrideHorizontal { get => player.OverrideHorizontal; set => player.OverrideHorizontal = value; }
     public bool OverrideVertical { get => player.OverrideVertical; set => player.OverrideVertical = value; }
     public bool OverrideGlobal { get => player.OverrideGlobal; set => player.OverrideGlobal = value; }

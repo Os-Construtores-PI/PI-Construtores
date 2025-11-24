@@ -5,6 +5,7 @@ public class LevelManager : MonoBehaviour
 {
     DataSystem dataSystem;
     GameDirector gameDirector;
+
     private void Start()
     {
         dataSystem = FindAnyObjectByType<DataSystem>();

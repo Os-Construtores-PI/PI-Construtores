@@ -16,25 +16,25 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 
     public void FixedUpdate(PlayerContext context)
     {
-        if(context.MoveInput == Vector2.zero) { context.HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);};
+        if(context.PlayerMoveInput == Vector2.zero) { context.PlayerHorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);};
         CinemachineCamera playerCamera = context.PlayerCamera;
-        Transform playerTransform = context.PlayerTransform;
-        Vector3 playerMovementVector = context.MovementVector;
-        float playerSpeed = context.Speed;
-        float playerAcceleration = context.Acceleration;
-        Vector3 moveInput = context.MoveInput;
+        Transform playerTransform = context.EntityTransform;
+        Vector3 playerMovementVector = context.PlayerMovementVector;
+        float playerSpeed = context.PlayerSpeed;
+        float playerAcceleration = context.PlayerAcceleration;
+        Vector3 moveInput = context.PlayerMoveInput;
 
         Vector3 forward = playerCamera.transform.forward;
         Vector3 right = playerCamera.transform.right;
         forward.y = right.y = 0f;
 
         Vector3 playerDirection = forward.normalized * moveInput.y + right.normalized * moveInput.x;
-        context.PlayerTransform.rotation = Quaternion.Slerp(
+        context.EntityTransform.rotation = Quaternion.Slerp(
             playerTransform.rotation,
             Quaternion.LookRotation(playerDirection),
             10f * Time.deltaTime
         );
-        context.Direction = playerDirection;
+        context.PlayerDirection = playerDirection;
 
         playerMovementVector = new(
             QualityOfLife.SmoothLerp(
@@ -54,7 +54,7 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
                 playerAcceleration
             )
         );
-        context.MovementVector = playerMovementVector;
+        context.PlayerMovementVector = playerMovementVector;
     }
 
     public void Update(PlayerContext context) { }

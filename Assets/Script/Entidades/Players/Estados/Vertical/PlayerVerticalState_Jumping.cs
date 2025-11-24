@@ -9,25 +9,25 @@ public class PlayerJumpingState : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
-        if (context.CurrentJumpCount < context.MaxJumpCount)
+        if (context.PlayerCurrentJumpCount < context.PlayerMaxJumpCount)
         {
-            Vector3 move = context.MovementVector;
-            float multiplier = Mathf.Max(1f - 0.3f * context.CurrentJumpCount, 0.2f);
-            if (context.TouchingWall) // se estiver na parede → usa vetor mais horizontal
+            Vector3 move = context.PlayerMovementVector;
+            float multiplier = Mathf.Max(1f - 0.3f * context.PlayerCurrentJumpCount, 0.2f);
+            if (context.PlayerTouchingWall) // se estiver na parede → usa vetor mais horizontal
             {
                 float horizontalBias = 6.5f; // quanto maior, mais horizontal
-                Vector3 jumpDir = (Vector3.up + context.LastWallNormal * horizontalBias).normalized;
-                move = context.JumpForce * context.WallJumpMultiplier * jumpDir;
-                context.TouchingWall = false; // evita repetir
+                Vector3 jumpDir = (Vector3.up + context.PlayerLastWallNormal * horizontalBias).normalized;
+                move = context.PlayerJumpForce * context.PlayerWallJumpMultiplier * jumpDir;
+                context.PlayerTouchingWall = false; // evita repetir
             }
             else // pulo normal
             {
-                move = new(move.x, context.JumpForce * multiplier, move.z);
+                move = new(move.x, context.PlayerJumpForce * multiplier, move.z);
             }
-            context.CurrentJumpCount++;
-            context.MovementVector = move;
+            context.PlayerCurrentJumpCount++;
+            context.PlayerMovementVector = move;
         }
-        context.VerticalLayer.ChangeState(new PlayerFallingState(), context);
+        context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
     }
 
     public void Exit(PlayerContext entity) { }

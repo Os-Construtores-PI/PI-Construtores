@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 
@@ -43,6 +44,30 @@ public abstract class CombatEntities : LiveEntities
             }
             _enableRegen = value;
         }
+    }
+
+    [HideInInspector]
+    [Stat(nameof(regenerationInterval))]
+    public float RegenerationInterval
+    {
+        get => regenerationInterval;
+        set => regenerationInterval = value;
+    }
+
+    [HideInInspector]
+    [Stat(nameof(combatCooldown))]
+    public float CombatCooldown
+    {
+        get => combatCooldown;
+        set => combatCooldown = value;
+    }
+
+    [HideInInspector]
+    [Stat(nameof(damagedCooldown))]
+    public float DamagedCooldown
+    {
+        get => damagedCooldown;
+        set => damagedCooldown = value;
     }
 
     #endregion
@@ -143,4 +168,18 @@ public abstract class CombatEntities : LiveEntities
         }
     }    
     #endregion
+}
+
+public class CombatEntityContext : LiveEntityContext
+{
+    private readonly CombatEntities combatEntity;
+    public CombatEntityContext(CombatEntities entity) : base(entity)
+    {
+        combatEntity = entity;
+    }
+    public bool CombatEntityEnableRegen { get => combatEntity.EnableRegen; set => combatEntity.EnableRegen = value; }
+    public float CombatEntityRegenInterval { get => combatEntity.RegenerationInterval; set => combatEntity.RegenerationInterval = value; }
+
+    public float CombatEntityCombatCooldown { get => combatEntity.CombatCooldown; set => combatEntity.CombatCooldown = value; }
+    public float CombatEntityDamagedCooldown { get => combatEntity.DamagedCooldown; set => combatEntity.DamagedCooldown = value; }
 }

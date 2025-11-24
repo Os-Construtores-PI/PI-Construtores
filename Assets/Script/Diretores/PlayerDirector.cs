@@ -24,6 +24,10 @@ public class PlayerDirector : MonoBehaviour
     private ManualPlayersSpawner playersSpawner;
     private Transform hudParent;
 
+    #region === CONFIGURAÇÃO ===
+    [SerializeField] private ConfigPlayer configPlayer;
+    #endregion
+
 
     private List<Player> allPlayers = new List<Player>();
 
@@ -132,7 +136,7 @@ public class PlayerDirector : MonoBehaviour
         Player fb = allPlayers[1];
         fb.gameObject.SetActive(false);
 
-        SetupPlayerHUDAndCamera(fp, new Rect(0f, 0f, 1f, 1f));
+        SetupPlayer(fp, new Rect(0f, 0f, 1f, 1f));
     }
 
     private void ActivateMultiplayer()
@@ -140,14 +144,13 @@ public class PlayerDirector : MonoBehaviour
         Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
         Player sp = playersSpawner.Spawn(2).GetComponent<Player>();
 
-        SetupPlayerHUDAndCamera(fp, new Rect(0f, 0f, 0.5f, 1f));
-        SetupPlayerHUDAndCamera(sp, new Rect(0.5f, 0f, 0.5f, 1f));
+        SetupPlayer(fp, new Rect(0f, 0f, 0.5f, 1f));
+        SetupPlayer(sp, new Rect(0.5f, 0f, 0.5f, 1f));
     }
 
-    private void SetupPlayerHUDAndCamera(Player player, Rect viewport)
+    private void SetupPlayer(Player player, Rect viewport)
     {
         int playerID = player.ID;
-
         // Cria HUD apenas uma vez
         if (!playerHUDInstances.ContainsKey(playerID))
         {
@@ -176,6 +179,7 @@ public class PlayerDirector : MonoBehaviour
         }
         player.gameObject.SetActive(true);
         player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
+        ConfigPlayer(player);
     }
     private void LinkCanvasToCamera(Camera camera, int playerID)
     {
@@ -187,6 +191,17 @@ public class PlayerDirector : MonoBehaviour
                 canvas.planeDistance = .4f;
             }
         }
+    }
+    private void ConfigPlayer(Player player)
+    {
+        if(configPlayer == null)
+        {
+            print("CONFIG PLAYER NULL");
+            return;
+        }
+        configPlayer.SetConfig(player.Context);
+        print($"Speed:{player.Context.PlayerSpeed}");
+       
     }
 
 }

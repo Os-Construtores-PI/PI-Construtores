@@ -12,7 +12,7 @@ public class PlayerActionStateIdle : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
-        attackCooldown = context.AttackCooldown;
+        attackCooldown = context.PlayerAttackCooldown;
     }
 
     public void Exit(PlayerContext context)
@@ -29,12 +29,12 @@ public class PlayerActionStateIdle : IState<PlayerContext>
     }
     private void AttackTimer(PlayerContext context)
     {
-        if (!context.CanAttack)
+        if (!context.PlayerCanAttack)
         {
             attackCooldownWalker += Time.deltaTime;
             if (attackCooldownWalker >= attackCooldown)
             {
-                context.CanAttack = true;
+                context.PlayerCanAttack = true;
                 attackCooldownWalker = 0f;
             }
         }
