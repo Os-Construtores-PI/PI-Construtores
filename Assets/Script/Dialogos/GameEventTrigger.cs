@@ -40,6 +40,6 @@ public class GameEventTrigger : MonoBehaviour
     
     public void Debug_ReabirDialogo()
     {
-        FindAnyObjectByType<TutorialDIalogos>().ReiniciarDialogos();
+        FindAnyObjectByType<TutorialDIalogos>().AtivarDialogo();
     }
 }

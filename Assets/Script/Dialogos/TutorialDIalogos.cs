@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 public class TutorialDIalogos : MonoBehaviour
 {
+    [Header("Icone Pulsante")]
+    public ImageTriggerEvent _pulseIcon;
+
+    public float _tempoParaRetornarIcone = 2f;
+
     [Header("UI do Di�logo")]
     public GameObject _dialoguePanel; // painel com fundo
     public TextMeshProUGUI _dialogueText; // texto do  di�logo
@@ -83,6 +88,10 @@ public class TutorialDIalogos : MonoBehaviour
         if (_typingCoroutine != null)
             StopCoroutine(_typingCoroutine);
 
+        if (_pulseIcon != null)
+            _pulseIcon.HideIcon();
+        _podeReabrirDialogo = false;
+
         _typingCoroutine = StartCoroutine(TypeSentence(_sentences[_index]));
 
     }
@@ -139,6 +148,9 @@ public class TutorialDIalogos : MonoBehaviour
 
         if (_player != null)
             _player.SetActive(true);
+
+        if (_pulseIcon != null)
+            StartCoroutine(ReturnIcon());
     }
 
     public void ReiniciarDialogos()
@@ -162,5 +174,14 @@ public class TutorialDIalogos : MonoBehaviour
         _podeReabrirDialogo = false;
     }
 
+    IEnumerator ReturnIcon()
+    {
+        yield return new WaitForSeconds(_tempoParaRetornarIcone);
+
+        if (_pulseIcon != null)
+            _pulseIcon.ShowIcon();
+
+        _podeReabrirDialogo = true;
+    }
     
 }
