@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class GameDirector : MonoBehaviour
@@ -8,6 +9,8 @@ public class GameDirector : MonoBehaviour
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private PlayerDirector playerDirector;
     [SerializeField] private TutorialDIalogos _TutorialDialogos;
+
+
 
     private void Start()
     {

@@ -10,6 +10,8 @@ public class ImageTriggerEvent : MonoBehaviour
 
     private Tween _rotationTween;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+
     
     private void Update()
     {

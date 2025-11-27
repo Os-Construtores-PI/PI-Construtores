@@ -33,7 +33,7 @@ public class TutorialDIalogos : MonoBehaviour
     public bool _podeReabrirDialogo = false;
     public bool _jaMostrouDialogo = false;
 
-    public KeyCode _tecladoDialogo = KeyCode.F;
+    public KeyCode _tecladoDialogo = KeyCode.G;
 
     public bool _dialogoConcluido { get; private set; } = false;
 
