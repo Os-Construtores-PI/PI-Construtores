@@ -30,7 +30,7 @@ public class GameEventTrigger : MonoBehaviour
         }
     }
 
-    public void OnTriggerExit(Collider other)
+    /*public void OnTriggerExit(Collider other)
     {
         if (!other.CompareTag(_playerTag)) return;
 
@@ -41,5 +41,5 @@ public class GameEventTrigger : MonoBehaviour
     public void Debug_ReabirDialogo()
     {
         FindAnyObjectByType<TutorialDIalogos>().AtivarDialogo();
-    }
+    }*/
 }

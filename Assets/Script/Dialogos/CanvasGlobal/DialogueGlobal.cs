@@ -17,6 +17,9 @@ public class DialogueGlobal : MonoBehaviour
     private bool _dialogoAtivo = false;
     public int dialogoAtivo = 0;
 
+    public GameObject _botoesDialogo; // grupo de botões que aparecem no diálogo
+    public GameObject _botoesGameplay; // grupo de botões da HUD que somem no diálogo
+
     void Awake()
     {
         Instance = this;
@@ -60,12 +63,17 @@ public class DialogueGlobal : MonoBehaviour
         {
             dialogoAtivo = 0;
         }
-        if (dialogoAtivo >= _currentTrigger._dialogo.Length-1)
+       
+       
+
+        if (dialogoAtivo >= _currentTrigger._dialogo.Length)
         {
             dialogoAtivo = _currentTrigger._dialogo.Length-1;
+            FecharDialogo();
+            return;
         }
-        _textoDialogo.text = _currentTrigger._dialogo[dialogoAtivo];
 
+        _textoDialogo.text = _currentTrigger._dialogo[dialogoAtivo];
     }
 
     public void IniciarDialogo(string[] falas)
@@ -74,9 +82,13 @@ public class DialogueGlobal : MonoBehaviour
 
         _falasAtuais = falas;
         _index = 0;
+        dialogoAtivo = 0;
         _dialogoAtivo = true;
 
         _painelDialogo.SetActive(true);
+
+        if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
+        if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
         _textoDialogo.text = _falasAtuais[_index];
     }
 
@@ -98,5 +110,8 @@ public class DialogueGlobal : MonoBehaviour
         _painelDialogo.SetActive(false);
         _dialogoAtivo = false;
         //_falasAtuais = null;
+
+        if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
+        if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
     }
 }

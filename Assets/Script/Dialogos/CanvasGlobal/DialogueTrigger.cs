@@ -9,6 +9,8 @@ public class DialogueTrigger : MonoBehaviour
     private bool _primeiraVez = true;
     public TextMeshProUGUI _TextoTutor;
     public DialogueGlobal _dialogoGlobal;
+    public GameObject _iconInteracao; // icon "Press F"
+    private bool _jogadorDentro = false;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -19,34 +21,49 @@ public class DialogueTrigger : MonoBehaviour
             _dialogoGlobal._currentTrigger = gameObject.GetComponent<DialogueTrigger>();
 
             _TextoTutor.text = _dialogo[0];
+            _jogadorDentro = true;
+            _iconInteracao.SetActive(true);
 
             _dialogoGlobal.IniciarDialogo(_dialogo);
         }
+    }
+
 
 
      
 
-        /* if (_primeiraVez)
-         {
-            _primeiraVez = false;
-            DialogueGlobal.Instance.IniciarDialogo(_dialogo);
-         }
-      } 
+        
 
       private void OnTriggerExit(Collider other)
       {
           if (!other.CompareTag("Player")) return;
 
-         // if (DialogueGlobal.Instance != null)
+        _jogadorDentro = false;
+        _iconInteracao.SetActive(false);  // 👉 some o ícone
 
-             DialogueGlobal.Instance.SetTrigger(null);
-             DialogueGlobal.Instance.FecharDialogo();
+        if (_dialogoGlobal != null)
+            _dialogoGlobal.FecharDialogo();
+      }
+    
 
-      }*/
-    }
-
-     void Start()
+     private void Start()
     {
         _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
+        _iconInteracao.SetActive(false);
     }
-} 
+    private void Update()
+    {
+         if (_jogadorDentro && Input.GetKeyDown(KeyCode.F))
+         {
+             AbrirDialogo();
+         }
+    }
+
+    void AbrirDialogo()
+    {
+         _iconInteracao.SetActive(false); // some enquanto o painel esta aberto
+         _dialogoGlobal.IniciarDialogo(_dialogo);
+    }   
+     
+}
+
