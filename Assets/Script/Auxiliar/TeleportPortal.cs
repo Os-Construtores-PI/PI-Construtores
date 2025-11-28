@@ -35,7 +35,7 @@ public class Teleport_Portal : BasePortal
         victim.transform.rotation = targetExit.rotation; // opcional, mantém orientação
         victim.Charactercontroller.enabled = true;
 
-        GlobalEventBus.Instance.TRIGGEREDTELEPORT.Invoke(victim.ID);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.ID);
     }
 
     public GameObject GetDestiny() => destiny.gameObject;

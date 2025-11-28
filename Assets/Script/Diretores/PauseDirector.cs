@@ -21,16 +21,8 @@ public class PauseDirector : MonoBehaviour
         {
             Debug.LogWarning($"[PauseDirector] nenhum objeto com a TAG '{pauseMenuTag}' foi encontrado");
         }
-        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseMenu);
     }
 
-    public void SetPauseMenu(bool setPause)
-    {
-        pauseMenuUI.SetActive(setPause);
-        Cursor.lockState = setPause ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = setPause;
-    }
-    
     public void ContinueGame()
     {
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);

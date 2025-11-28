@@ -101,7 +101,8 @@ public static class Constants
     }
     public static class PanelNames
     {
-        public static readonly string GameOver = "PainelGameOver";
+        public static readonly string GameOver = "GameOver";
+        public static readonly string Pause = "Pause";
         public static readonly string HealthBar = "HealthBar";
         public static readonly string DashIcon = "DashIcon";
         public static readonly string EndGame = "PainelEndGame";

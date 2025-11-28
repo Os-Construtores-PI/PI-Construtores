@@ -6,6 +6,7 @@ using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HudDirector : MonoBehaviour
@@ -24,13 +25,29 @@ public class HudDirector : MonoBehaviour
     private void OnEnable()
     {
         if (!GlobalEventBus.HasInstance) return;
+
+        // SCANNER OBJETOS
         GlobalEventBus.Instance.OBJECTWASSEEN.AddListener(InteractionPopup);
-        GlobalEventBus.Instance.TRIGGEREDCINEMATIC.AddListener(TriggerCinematicBars);
+
+        // CINEMÁTICA
+        GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.AddListener(TriggerCinematicBars);
+
+        // SISTEMA MONETÁRIO
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateAmethysts);
-        GlobalEventBus.Instance.TRIGGEREDTELEPORT.AddListener(TeleportFade);
+
+        //TELEPORTE
+        GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.AddListener(TeleportFade);
+
+        // VIDA
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(DeathPanel);
         GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPanel);
+
+        // ENDGAME
         GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(EndPanel);
+
+        // PAUSE
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(PausePanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.AddListener(OptionsPausePanel);
     }
 
     private void OnDisable()
@@ -38,12 +55,13 @@ public class HudDirector : MonoBehaviour
         if (!GlobalEventBus.HasInstance) return;
 
         GlobalEventBus.Instance.OBJECTWASSEEN.RemoveListener(InteractionPopup);
-        GlobalEventBus.Instance.TRIGGEREDCINEMATIC.RemoveListener(TriggerCinematicBars);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.RemoveListener(TriggerCinematicBars);
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateAmethysts);
-        GlobalEventBus.Instance.TRIGGEREDTELEPORT.RemoveListener(TeleportFade);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.RemoveListener(TeleportFade);
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(DeathPanel);
         GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.RemoveListener(RespawnPanel);
         GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
     }
 
     private void Start()
@@ -83,13 +101,18 @@ public class HudDirector : MonoBehaviour
                 ogSprites[playerID] = image.sprite;
             }
         }
+        
+        HideAllPanels(playerID);
+        return hudInstance;
+    }
 
+    private void HideAllPanels(int playerID)
+    {
         HidePanel(Constants.PanelNames.GameOver, playerID,independent:true ,fade: true, instant: true);
         HidePanel(Constants.PanelNames.EndGame, playerID, independent:true, fade: true, instant: true);
         HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true, instant: true);
-        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, false);
-
-        return hudInstance;
+        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, true);        
+        HidePanel(Constants.PanelNames.Pause, playerID, independent:true,false,true);
     }
 
     private void CollectPanelsRecursive(Transform parent, Dictionary<string, List<GameObject>> map)
@@ -124,7 +147,9 @@ public class HudDirector : MonoBehaviour
         foreach (var go in GetPanel(playerID, panelName))
         {
             if (fade && go.TryGetComponent(out Image image))
+            {
                 image.DOFade(.8f, .25f).SetUpdate(UpdateType.Normal,independent);
+            }
 
             go.transform.DOScale(Vector3.one, .25f).SetUpdate(UpdateType.Normal,independent);
         }
@@ -254,6 +279,7 @@ public class HudDirector : MonoBehaviour
     # region === DEATH === 
     private void DeathPanel()
     {
+        CursorOptions(true);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             ShowPanel(Constants.PanelNames.GameOver, player.ID, true);
@@ -262,6 +288,7 @@ public class HudDirector : MonoBehaviour
     }
     private void RespawnPanel()
     {
+        CursorOptions(false);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             HidePanel(Constants.PanelNames.GameOver, player.ID, true);
@@ -274,15 +301,43 @@ public class HudDirector : MonoBehaviour
     # region === END GAME ===
     private void EndPanel()
     {
+        CursorOptions(false);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             ShowPanel(Constants.PanelNames.EndGame, player.ID, true);
             DisableHud(player.ID);    
         }
     }
-
-
     # endregion
+
+    # region === PAUSE ===
+    private void PausePanel(bool set)
+    {
+        CursorOptions(set);
+        foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
+        {
+            if(set)
+            {
+                ShowPanel(Constants.PanelNames.Pause, player.ID, true);
+                DisableHud(player.ID);
+            }
+            else
+            {
+                HidePanel(Constants.PanelNames.Pause, player.ID, true);
+                EnableHUD(player.ID);
+            }
+        }
+    }
+    private void OptionsPausePanel(bool set)
+    {
+        // aqui você pode abrir outro painel ou cena de opções
+    }
+    private void SoundOptionsPausePanel(bool set)
+    {
+        // menu de som
+    }
+    
+    #endregion
 
     #region Helpers
     private IconImage? GetIcon(string destiny) =>
@@ -296,15 +351,21 @@ public class HudDirector : MonoBehaviour
 
     private void DisableHud(int playerID)
     {
-        HidePanel(Constants.PanelNames.AmethystCounter, playerID, true);
-        HidePanel(Constants.PanelNames.HealthBar, playerID, true);
-        HidePanel(Constants.PanelNames.DashIcon, playerID, true);        
+        HidePanel(Constants.PanelNames.AmethystCounter, playerID,true,false,true);
+        HidePanel(Constants.PanelNames.HealthBar, playerID, true,false,true);
+        HidePanel(Constants.PanelNames.DashIcon, playerID, true,false,true);        
     }
     private void EnableHUD(int playerID)
     {
-        ShowPanel(Constants.PanelNames.AmethystCounter, playerID, true);
-        ShowPanel(Constants.PanelNames.HealthBar, playerID, true);
-        ShowPanel(Constants.PanelNames.DashIcon, playerID, true);    
+        ShowPanel(Constants.PanelNames.AmethystCounter, playerID,true,false);
+        ShowPanel(Constants.PanelNames.HealthBar, playerID, true,false);
+        ShowPanel(Constants.PanelNames.DashIcon, playerID, true,false);    
+    }
+
+    private void CursorOptions(bool set)
+    {
+        Cursor.lockState = set ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = set;  
     }
     #endregion
 }
