@@ -25,14 +25,28 @@ public class GlobalEventBus : MonoBehaviour
     public static bool HasInstance => _instance != null;
 
     #region Events
+    // Interação
     public readonly UnityEvent<bool, InteractableObject, int> OBJECTWASSEEN = new();
-    public readonly UnityEvent<int, float> TRIGGEREDCINEMATIC = new();
-    public readonly UnityEvent<int> TRIGGEREDTELEPORT = new();
+
+    // Cinemática
+    public readonly UnityEvent<int, float> PLAYERTRIGGEREDCINEMATIC = new();
+
+    // Teleporte
+    public readonly UnityEvent<int> PLAYERTRIGGEREDTELEPORT = new();
+
+    // Vida
     public readonly UnityEvent PLAYERTRIGGEREDDEATH = new();
     public readonly UnityEvent PLAYERTRIGGEREDRESPAWN = new();
-    public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
-    public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
+
+    // Fim de Jogo
     public readonly UnityEvent PLAYERTRIGGEREDENDGAME = new();
+
+    // Pause
+    public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
+    public readonly UnityEvent<bool> PLAYERTRIGGEREDOPTIONS = new();
+
+    // Sistema monetário
+    public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
     #endregion
 
     #region Unity Lifecycle
