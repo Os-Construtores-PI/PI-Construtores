@@ -36,6 +36,8 @@ public class PlayerDirector : MonoBehaviour
     private Dictionary<int, GameObject> playerCameras = new();
     private GameObject _pauseMenuInstance;
 
+    
+
     private void Awake()
     {
         playersSpawner = GetComponent<ManualPlayersSpawner>();
@@ -203,5 +205,17 @@ public class PlayerDirector : MonoBehaviour
         print($"Speed:{player.Context.PlayerSpeed}");
        
     }
+
+    public void SetPlayerControl(bool state)
+    {
+        foreach (Player p in allPlayers)
+        {
+            if (p != null)
+               p.canMove = state;
+               
+        }
+    }
+
+    
 
 }

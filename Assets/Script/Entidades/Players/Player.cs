@@ -204,6 +204,9 @@ public class Player : CombatEntities
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
 
+        if(!canMove)
+          return;
+
 #if DEBUG
         //print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
         //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}

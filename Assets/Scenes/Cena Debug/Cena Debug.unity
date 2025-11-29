@@ -1422,7 +1422,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!223 &322122734
 Canvas:
   m_ObjectHideFlags: 0
@@ -4158,7 +4158,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: 'Next
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
   m_sharedMaterial: {fileID: -9140512969687513639, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
@@ -5045,9 +5047,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 322122735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 108.82}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1337364839
@@ -6852,7 +6854,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: 'Back
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
   m_sharedMaterial: {fileID: -9140512969687513639, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
@@ -7999,15 +8003,15 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2117682458}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.008775076}
-  m_LocalScale: {x: 1.0833334, y: 1.12, z: 2.76}
+  m_LocalPosition: {x: 0, y: 0, z: -11.869999}
+  m_LocalScale: {x: 3.25, y: 3.3600001, z: 8.28}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8061311879291269954}
+  m_Father: {fileID: 188965835087973960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.22000012, y: 0.31666684}
+  m_AnchoredPosition: {x: -0.6600026, y: -2.3199992}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!225 &2117682460
@@ -8458,6 +8462,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8061311879291269954}
+  - {fileID: 2117682459}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -9836,6 +9841,9 @@ MonoBehaviour:
   - "Ol\xE1, sejam bem vindos ao jogo Pandora!!"
   - "Vamos dar inicio aqui ao cen\xE1rio \nde di\xE1logos do jogo\t"
   - Ok?
+  - 'kkkkkkkkk
+
+'
   _TextoTutor: {fileID: 6922859980103898126}
   _dialogoGlobal: {fileID: 8934930705660245307}
   _iconInteracao: {fileID: 322122733}
@@ -10697,6 +10705,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   backgroundMusic: {fileID: 0}
   playerDirector: {fileID: 0}
+  _DialogueGlobal: {fileID: 8934930705660245307}
   _TutorialDialogos: {fileID: 0}
 --- !u!1 &4323994112721394544
 GameObject:
@@ -13507,8 +13516,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: -11.843674}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2117682459}
+  m_Children: []
   m_Father: {fileID: 188965835087973960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -14478,7 +14486,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _painelDialogo: {fileID: 3479205156190647367}
   _textoDialogo: {fileID: 6922859980103898126}
-  _currentTrigger: {fileID: 2760889775252863610}
+  _currentTrigger: {fileID: 0}
   dialogoAtivo: 0
   _botoesDialogo: {fileID: 1969649527}
   _botoesGameplay: {fileID: 0}

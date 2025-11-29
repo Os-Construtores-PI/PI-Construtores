@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System;
 
 public class DialogueGlobal : MonoBehaviour
 {
@@ -16,14 +17,32 @@ public class DialogueGlobal : MonoBehaviour
     private int _index = 0;
     private bool _dialogoAtivo = false;
     public int dialogoAtivo = 0;
+    private PlayerDirector playerDirectoor;
+    private GameDirector _gameDirector;
 
     public GameObject _botoesDialogo; // grupo de botões que aparecem no diálogo
     public GameObject _botoesGameplay; // grupo de botões da HUD que somem no diálogo
+
+    public event Action OndialogueStart;
+    public event Action OndialogueEnd;
+
+    
 
     void Awake()
     {
         Instance = this;
         _painelDialogo.SetActive(false);
+
+        playerDirectoor = FindAnyObjectByType<PlayerDirector>();
+        _gameDirector = FindAnyObjectByType<GameDirector>();
+
+        
+    Instance = this;
+    if (_painelDialogo == null) Debug.LogWarning("[DialogueGlobal] _painelDialogo NÃO atribuído!");
+    if (_textoDialogo == null) Debug.LogWarning("[DialogueGlobal] _textoDialogo NÃO atribuído!");
+    _painelDialogo?.SetActive(false);
+
+        
     }
 
     public void SetTrigger(DialogueTrigger trigger)
@@ -31,22 +50,7 @@ public class DialogueGlobal : MonoBehaviour
         _currentTrigger = trigger;
     }
 
-    void Update()
-    {
-        if (_currentTrigger == null) return;
-        
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            if (!_dialogoAtivo)
-            {
-                IniciarDialogo(_currentTrigger._dialogo);
-            }
-            else
-            {
-                ProximaFala();
-            }
-        }
-    }
+    
 
     public void Falas(bool value)
     {
@@ -78,12 +82,22 @@ public class DialogueGlobal : MonoBehaviour
 
     public void IniciarDialogo(string[] falas)
     {
+
+        
+        if(_currentTrigger == null)
+       
+        
         if (falas == null || falas.Length == 0) return;
 
         _falasAtuais = falas;
         _index = 0;
         dialogoAtivo = 0;
         _dialogoAtivo = true;
+
+
+        
+        
+        OndialogueStart?.Invoke();
 
         _painelDialogo.SetActive(true);
 
@@ -107,11 +121,20 @@ public class DialogueGlobal : MonoBehaviour
 
     public void FecharDialogo()
     {
+
+        
         _painelDialogo.SetActive(false);
         _dialogoAtivo = false;
         //_falasAtuais = null;
 
+
+        
+         OndialogueEnd?.Invoke();
+
         if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
         if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
+
+        if(_currentTrigger != null)
+          _currentTrigger.OnDialogoFechado();
     }
 }
