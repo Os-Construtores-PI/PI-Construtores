@@ -14,6 +14,7 @@ public class Player : CombatEntities
     [Header("Movimento")]
      private float speed = 10f;
      internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
+     public PlayerInput input;
 
     [HideInInspector]
     [Stat(nameof(Speed))]
@@ -103,6 +104,11 @@ public class Player : CombatEntities
     internal float dashCount = 1;
     internal float DashCurrent = 0;
     internal float DashDuration;
+
+    public bool CanMoveByDialogue = true;
+    public bool CanMoveByDash = true;
+
+    public bool CanMoveFinal => CanMoveByDialogue && CanMoveByDash;
     #endregion
 
     #region === EnemyScan ===
@@ -157,6 +163,22 @@ public class Player : CombatEntities
     }
     #endregion
 
+    public void BlockMovimentByDash()
+    {
+        CanMoveByDash = false;
+    }
+    public void UnblockMoventByDash()
+    {
+        CanMoveByDash = true;
+        HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), Context);
+    }
+    public void RestoreMovementAfterDash()
+    {
+        CanMoveByDash = true;
+        HorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), Context);
+        MovementVector = Vector3.zero;
+    }
+
 
     public override void Awake()
     {
@@ -201,11 +223,20 @@ public class Player : CombatEntities
         //ChangeCharacterTimer();
 
         VerticalLayer.Update(Context);
-        HorizontalLayer.Update(Context);
-        ActionLayer.Update(Context);
+        //HorizontalLayer.Update(Context);
+       // ActionLayer.Update(Context);
 
-        if(!canMove)
-          return;
+        if (CanMoveFinal)
+        {
+            HorizontalLayer.Update(Context);
+            ActionLayer.Update(Context);
+        }
+        else
+        {
+            MovementVector = Vector3.zero;
+            MoveInput = Vector2.zero;
+        }
+          
 
 #if DEBUG
         //print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
@@ -222,15 +253,34 @@ public class Player : CombatEntities
             return;
         IsGrounded = characterController.isGrounded;
         KnockbackTimer();
-        HorizontalLayer.FixedUpdate(Context);
+        /*HorizontalLayer.FixedUpdate(Context);
         //print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
         VerticalLayer.FixedUpdate(Context);
         //print($"VERTICAL LAYER MOVEMENT: {MovementVector}");
         ActionLayer.FixedUpdate(Context);
         //print($"ACTION LAYER MOVEMENT: {MovementVector}");
+         */
+        if (CanMoveFinal)
+        {
+         HorizontalLayer.FixedUpdate(Context);
+         //print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
+         VerticalLayer.FixedUpdate(Context);
+         //print($"VERTICAL LAYER MOVEMENT: {MovementVector}");
+         ActionLayer.FixedUpdate(Context);
+         //print($"ACTION LAYER MOVEMENT: {MovementVector}");
+         Charactercontroller.Move(MovementVector * Time.deltaTime);
+        }
+        else
+        {
+            
+            if (!CanMoveByDialogue)
+            {
+                MovementVector = Vector3.zero;
+            }
+        }
 
         // MOVEMENT
-        Charactercontroller.Move(MovementVector * Time.deltaTime);
+       // Charactercontroller.Move(MovementVector * Time.deltaTime);
 
     }
 
@@ -241,6 +291,8 @@ public class Player : CombatEntities
 
     public void OnMove(InputAction.CallbackContext context)
     {
+        if(!canMove)
+         return;
         MoveInput = context.ReadValue<Vector2>();
         Move();
     }
@@ -311,6 +363,8 @@ public class Player : CombatEntities
     #region === Movimento & Pulo ===
     private void Move()
     {
+        if (!canMove) return;
+
         if (Cinemachinecamera == null || OverrideGlobal || OverrideHorizontal || HorizontalLayer.CurrentState is PlayerActionStateDash) { return; }
         if (Cinemachinecamera == null || OverrideGlobal || OverrideHorizontal || HorizontalLayer.CurrentState is PlayerActionStateDash) { return; }
         HorizontalLayer.ChangeState(new PlayerHorizontalStateMoviment(), Context);

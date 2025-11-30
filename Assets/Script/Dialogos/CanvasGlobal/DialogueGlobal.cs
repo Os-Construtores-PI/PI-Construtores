@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System;
+using UnityEngine.InputSystem;
 
 public class DialogueGlobal : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class DialogueGlobal : MonoBehaviour
     private string[] _falasAtuais;
     private int _index = 0;
     private bool _dialogoAtivo = false;
+
+    public bool IsDialogueActive => _dialogoAtivo; // exposto para outros saberem
     public int dialogoAtivo = 0;
     private PlayerDirector playerDirectoor;
     private GameDirector _gameDirector;
@@ -23,8 +26,15 @@ public class DialogueGlobal : MonoBehaviour
     public GameObject _botoesDialogo; // grupo de botões que aparecem no diálogo
     public GameObject _botoesGameplay; // grupo de botões da HUD que somem no diálogo
 
+    
+
     public event Action OndialogueStart;
     public event Action OndialogueEnd;
+
+    public UnityEngine.UI.Button botaoAvancar;
+    public UnityEngine.UI.Button botaoVoltar;
+
+    public PlayerInput _playerInputForDialogue;
 
     
 
@@ -44,6 +54,8 @@ public class DialogueGlobal : MonoBehaviour
 
         
     }
+
+    
 
     public void SetTrigger(DialogueTrigger trigger)
     {
@@ -82,7 +94,11 @@ public class DialogueGlobal : MonoBehaviour
 
     public void IniciarDialogo(string[] falas)
     {
+        Debug.Log("[DialogueGlobal] IniciarDialogo chamado.");
 
+        _playerInputForDialogue = _currentTrigger != null ? _currentTrigger.CurrentPlayerInput : null;
+
+        OndialogueStart?.Invoke();
         
         if(_currentTrigger == null)
        
@@ -97,7 +113,6 @@ public class DialogueGlobal : MonoBehaviour
 
         
         
-        OndialogueStart?.Invoke();
 
         _painelDialogo.SetActive(true);
 
@@ -106,7 +121,7 @@ public class DialogueGlobal : MonoBehaviour
         _textoDialogo.text = _falasAtuais[_index];
     }
 
-    void ProximaFala()
+    public void ProximaFala()
     {
         if (!_dialogoAtivo) return;
         
@@ -122,6 +137,7 @@ public class DialogueGlobal : MonoBehaviour
     public void FecharDialogo()
     {
 
+         OndialogueEnd?.Invoke();
         
         _painelDialogo.SetActive(false);
         _dialogoAtivo = false;
@@ -129,12 +145,49 @@ public class DialogueGlobal : MonoBehaviour
 
 
         
-         OndialogueEnd?.Invoke();
 
         if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
         if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
 
         if(_currentTrigger != null)
-          _currentTrigger.OnDialogoFechado();
+        {
+            _currentTrigger.OnDialogoFechado();
+        }
+
+        _playerInputForDialogue = null;
+          
     }
+
+    private void Update()
+    {
+        if(_playerInputForDialogue != null && _playerInputForDialogue.actions["AdvanceDialogue"].WasPerformedThisFrame())
+        {
+            Debug.Log("AdvanceDialogue detectado");
+        }
+        if(!_dialogoAtivo) return;
+
+        if (_playerInputForDialogue == null) return;
+        {
+            Debug.LogError("❌ A action 'AdvanceDialogue' NÃO EXISTE no PlayerInput! Veja o nome exato no InputActionAsset.");
+        }
+        
+        if (_playerInputForDialogue.actions["AdvanceDialogue"].WasPerformedThisFrame())
+        {
+            if(botaoAvancar != null)
+              botaoAvancar.onClick.Invoke();
+              
+            else
+             ProximaFala();
+        }
+    }
+
+    public void VoltarFala()
+{
+    if (!_dialogoAtivo) return;
+
+    _index--;
+    if (_index < 0) _index = 0;
+
+    _textoDialogo.text = _falasAtuais[_index];
+}
 }
