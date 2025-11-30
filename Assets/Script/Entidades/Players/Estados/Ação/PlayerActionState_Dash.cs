@@ -40,11 +40,6 @@ public class PlayerActionStateDash : IState<PlayerContext>
         context.PlayerCanDash = true;
         context.OverrideGlobal = false;
 
-        context.PlayerIsDashing = false;
-        context.PlayerCanMove = true;
-
-        context.PlayerMovementVector = Vector3.zero;
-
         ResetDashHUD(context.PlayerDashScript);
     }
 

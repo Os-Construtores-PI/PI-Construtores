@@ -220,7 +220,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 936627228}
-  - {fileID: 560873147}
   m_Father: {fileID: 1969649528}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -276,18 +275,6 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
         m_MethodName: Falas
         m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
-      - m_Target: {fileID: 8934930705660245307}
-        m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
-        m_MethodName: ProximaFala
-        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -1435,7 +1422,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!223 &322122734
 Canvas:
   m_ObjectHideFlags: 0
@@ -3358,11 +3345,11 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1804341971}
-  m_Father: {fileID: 11967508}
+  m_Father: {fileID: 1969649528}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -841.0001, y: 0}
+  m_AnchoredPosition: {x: -106, y: -407}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &560873148
@@ -3413,18 +3400,6 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
         m_MethodName: Falas
         m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 8934930705660245307}
-        m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
-        m_MethodName: VoltarFala
-        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -5074,8 +5049,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 10.4, y: 108.82}
-  m_SizeDelta: {x: 72.34, y: 376}
+  m_AnchoredPosition: {x: 0, y: 108.82}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1337364839
 MonoBehaviour:
@@ -5097,9 +5072,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 98535994, guid: 7c6560398934d844ea8ff337e1f85a57, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
-  m_PreserveAspect: 1
+  m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -7583,6 +7558,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 560873147}
   - {fileID: 11967508}
   m_Father: {fileID: 195441066273916719}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -8035,7 +8011,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.6600026, y: 1}
+  m_AnchoredPosition: {x: -0.6600026, y: -2.3199992}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!225 &2117682460
@@ -8094,7 +8070,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1362011162, guid: ebdb8a9d6d91f474f8ef28b706c4ce3d, type: 3}
+  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -9871,9 +9847,6 @@ MonoBehaviour:
   _TextoTutor: {fileID: 6922859980103898126}
   _dialogoGlobal: {fileID: 8934930705660245307}
   _iconInteracao: {fileID: 322122733}
-  _mapeamento: {fileID: 11400000, guid: 0b1ac8706b1f79d4880c07daf580dcc7, type: 2}
-  iconImage: {fileID: 1337364839}
-  CurrentPlayerInput: {fileID: 0}
 --- !u!33 &2898858696873167299
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -10695,6 +10668,7 @@ MonoBehaviour:
   hudCanvasParent: Canvas
   mainCameraPrefab: {fileID: 1707261825629555682, guid: b1c4a5d69de25e447af953e1b8ee888b, type: 3}
   freeLookPrefab: {fileID: 1658166362939553594, guid: fdc0c2b74ead6a7499fecbbcf9b83c35, type: 3}
+  _pauseMenuPrefab: {fileID: 6743088158827448549, guid: 9dd0fec0640d45844a7a4ceeac3cc7ca, type: 3}
   hudDirector: {fileID: 6727117098894901407}
   configPlayer: {fileID: 0}
 --- !u!1 &4285229016805082405
@@ -14516,9 +14490,6 @@ MonoBehaviour:
   dialogoAtivo: 0
   _botoesDialogo: {fileID: 1969649527}
   _botoesGameplay: {fileID: 0}
-  botaoAvancar: {fileID: 560873148}
-  botaoVoltar: {fileID: 11967509}
-  _playerInputForDialogue: {fileID: 0}
 --- !u!33 &8967141106763346333
 MeshFilter:
   m_ObjectHideFlags: 0

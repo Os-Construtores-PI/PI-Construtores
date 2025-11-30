@@ -125,9 +125,6 @@ public class PlayerDirector : MonoBehaviour
         player.gameObject.SetActive(true);
         player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
         ConfigPlayer(player);
-
-        if(!allPlayers.Contains(player))
-           allPlayers.Add(player);
     }
     private void LinkCanvasToCamera(Camera camera, int playerID)
     {
@@ -154,15 +151,10 @@ public class PlayerDirector : MonoBehaviour
 
     public void SetPlayerControl(bool state)
     {
-        Player[] players = Object.FindObjectsByType<Player>(FindObjectsSortMode.None);
-       
         foreach (Player p in allPlayers)
         {
             if (p != null)
-            {
-                p.CanMoveByDialogue = state;
-            Debug.Log($"[PlayerDirector] SetPlayerControl({state}) aplicado em: {p.name}");
-            }
+               p.canMove = state;
                
         }
     }

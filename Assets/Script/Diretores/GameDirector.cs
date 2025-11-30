@@ -2,7 +2,6 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-
 public class GameDirector : MonoBehaviour
 {
     private DataSystem dataSystem;
@@ -20,29 +19,17 @@ public class GameDirector : MonoBehaviour
         TryGetComponent(out dataSystem);
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);
 
-        if(_DialogueGlobal == null)
-           _DialogueGlobal = FindAnyObjectByType<DialogueGlobal>();
-
         if (_DialogueGlobal != null)
         {
-            
+            _DialogueGlobal = FindAnyObjectByType<DialogueGlobal>();
             _DialogueGlobal.OndialogueStart +=  TravarPlayer;
             _DialogueGlobal.OndialogueEnd += LiberarPlayer;
-                Debug.Log("[GameDirector] Subscrito aos eventos de diálogo.");
-        }
-        else
-        {
-            Debug.LogWarning("[GameDirector] DialogueGlobal não encontrado no Start()");
         }
         
-
-
         
         // O painel de Start agora é gerenciado por outro script,
         // então não precisamos fazer nada aqui.
     }
-
-    
 
     /// <summary>
     /// Inicia o mundo após o painel de Start chamar este método.
@@ -116,13 +103,13 @@ public class GameDirector : MonoBehaviour
 
     private void TravarPlayer()
     {
-        Debug.Log("[GameDirector] TravarPlayer() chamado — travando controles.");
+        
         playerDirector?.SetPlayerControl(false);
     }
 
     private void LiberarPlayer()
     {
-        Debug.Log("[GameDirector] LiberarPlayer() chamado — liberando controles.");
+        
         playerDirector?.SetPlayerControl(true);
     }
 
