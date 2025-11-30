@@ -54,9 +54,9 @@ public class Player : CombatEntities
     }
 
     
-    protected Animator animatorComp;
-    public Animator AnimatorComp => animatorComp;
-
+    protected internal Animator animatorComp;
+    
+    internal PlayerInput playerInput;
     #endregion
 
     #region === Overrides ===
@@ -94,6 +94,8 @@ public class Player : CombatEntities
     internal bool canDash = true;
     internal bool canMove = true;
 
+    private ConditionalGate idleConditional = new();
+
     [Stat(nameof(CanMove))]
     public bool CanMove { get => canMove; set => canMove = value; } // nova flag para controle de movimento
 
@@ -111,7 +113,7 @@ public class Player : CombatEntities
     private float enemyScanRadius = 10;
 
     [SerializeField, Min(1)]
-    private float enemyScanCooldown = 2.0f;
+    private float enemyScanInterval = 2.0f;
     #endregion
 
     #region === Interação ===
@@ -128,8 +130,13 @@ public class Player : CombatEntities
     public Inventory Inventory => inventory;
     #endregion
 
+    #region  === Scanner ===
+    private Scanner<Ray,(bool, RaycastHit)> objectScanner;
+    private Scanner<Vector3,bool> enemyScanner;
+    #endregion
     #region === Inicialização Unity ===
     #region Coletáveis
+
 
 
     // === AMETISTAS ===
@@ -168,6 +175,7 @@ public class Player : CombatEntities
 
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
+        playerInput = GetComponent<PlayerInput>();
 
         VerticalLayer = new(new PlayerFallingState(),Context);
         HorizontalLayer = new(new PlayerHorizontalStateIdle(), Context);
@@ -180,7 +188,6 @@ public class Player : CombatEntities
         base.Start();
         DOTween.Init();
         StartCoroutine(DelayedSetupHUD(.1f));
-
         if (dashHUDScript == null)
         {
             var go = GameObject.FindWithTag("DashHUDIcon");
@@ -190,23 +197,34 @@ public class Player : CombatEntities
                 "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag"
             );
         }
+
+        objectScanner = new Scanner<Ray, (bool, RaycastHit)>(
+            interactionScanCooldown,
+            r =>
+            {
+                bool hit = Physics.SphereCast(r, radius:1.25f, out RaycastHit info,40f,layerMask:LayerMask.GetMask("Object"));
+                return (hit, info);
+            }
+        );
+        enemyScanner = new Scanner<Vector3, bool>(
+            enemyScanInterval,
+            ScanEnemies // <-- injeta o método diretamente
+        );
+
+        idleConditional.Setup(() => animatorComp.SetTrigger(Constants.AnimatorTriggerNames.Idle),() => animatorComp.ResetTrigger(Constants.AnimatorTriggerNames.Idle)); 
     }
 
     public override void Update()
     {
         base.Update();
-        EnemyScanTimer();
-        ObjectScanTimer();
+        ScanEnemies(transform.position);
+        ScanObjects();
         KnockbackTimer();
         //ChangeCharacterTimer();
 
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
-
-        if(!canMove)
-          return;
-
 #if DEBUG
         //print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
         //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
@@ -214,6 +232,7 @@ public class Player : CombatEntities
         // print($"CANATTACK: {canAttack}");
         // print($"WILLATTACK: {willAttack}");
 #endif
+        TryToSkipDialogue();
     }
 
     private void FixedUpdate()
@@ -221,6 +240,12 @@ public class Player : CombatEntities
         if (!characterController.enabled)
             return;
         IsGrounded = characterController.isGrounded;
+        idleConditional.Check(
+            VerticalLayer.CurrentState.Type == ActionType.Idle &&
+            HorizontalLayer.CurrentState.Type == ActionType.Idle &&
+            ActionLayer.CurrentState.Type == ActionType.Idle &&
+            IsGrounded
+        );
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
         //print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
@@ -232,9 +257,22 @@ public class Player : CombatEntities
         // MOVEMENT
         Charactercontroller.Move(MovementVector * Time.deltaTime);
 
+
     }
 
     private void OnDestroy() => DOTween.KillAll();
+
+    #endregion
+
+    #region  === Dialogue ===
+
+    private void TryToSkipDialogue()
+    {
+        if(Input.GetKeyDown(KeyCode.F))
+        {
+            GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(Context);
+        }
+    }
 
     #endregion
     #region === Input Callbacks ===
@@ -464,31 +502,25 @@ public class Player : CombatEntities
     #endregion
 
     #region Scan
-    private Timer enemyScanTimer = new();
-    private void EnemyScan()
+    private bool ScanEnemies(Vector3 playerPos)
     {
         int amount = EnemySpawner.enemySpawner.GetAmountPool();
+
         for (int i = 0; i < amount; i++)
         {
             GameObject enemytmp = EnemySpawner.enemySpawner.GetDisabledObject();
+
             if (enemytmp != null)
             {
-                float distance = Vector3.Distance(enemytmp.transform.position, transform.position);
+                float distance = Vector3.Distance(enemytmp.transform.position, playerPos);
+
                 if (distance <= enemyScanRadius)
                 {
                     enemytmp.SetActive(true);
                 }
             }
         }
-    }
-
-    private void EnemyScanTimer()
-    {
-        if (enemyScanTimer.Tick(Time.deltaTime))
-        {
-            EnemyScan();
-            enemyScanTimer.Start(enemyScanCooldown);
-        }
+        return true; // só para cumprir TOutput
     }
 
     protected RaycastHit playerRayHit;
@@ -496,21 +528,46 @@ public class Player : CombatEntities
     protected Type interactionObjectType;
 
     // Base
-    protected virtual bool ObjectScan()
+    protected virtual (bool, RaycastHit) ScanObjects()
     {
-        if (!selectedcamera) { SetupCamera(); return false; }
-        var ray = new Ray(selectedcamera.transform.position, selectedcamera.transform.forward);
-        var layerMask = LayerMask.GetMask("Object");
-        if (!Physics.SphereCast(ray, 1.25f, out playerRayHit, 40f, layerMask) || !playerRayHit.collider.TryGetComponent(out interactionObject))
+        if (!selectedcamera)
+        {
+            SetupCamera();
+            return (false, default);
+        }
+
+        // 1 — Monta o ray
+        var ray = new Ray(
+            selectedcamera.transform.position,
+            selectedcamera.transform.forward
+        );
+
+        // 2 — Usa o scanner genérico
+        var (executed, result) = objectScanner.Scan(Time.deltaTime,ray);
+
+
+        // 3 — Se o scanner não executou, só retorna "não achou"
+        if (!executed || !result.Item1)
         {
             ClearInteractable();
-            return false;
+            return (false, default);
         }
-        // Não filtra tipo aqui
+
+        // 4 — Tenta pegar o componente de interação
+        if (!result.Item2.collider.TryGetComponent(out interactionObject))
+        {
+            ClearInteractable();
+            return (false, default);
+        }
+
+        // 5 — Sucesso
         interactionObjectType = interactionObject.GetType();
         interactableRef = interactionObject;
-        return true;
+
+        return (true, result.Item2);
     }
+
+
 
     // === Método auxiliar para limpar estado ===
     protected void ClearInteractable()
@@ -518,16 +575,6 @@ public class Player : CombatEntities
         interactableRef = null;
         GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
     }
-
-    private void ObjectScanTimer()
-    {
-        if (interactionScanTimer.Tick(Time.deltaTime))
-        {
-            ObjectScan();
-            interactionScanTimer.Start(interactionScanCooldown);
-        }
-    }
-
     #endregion
 
 
@@ -560,6 +607,7 @@ public class Player : CombatEntities
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke();
     }
     #endregion
+
 }
 
 public class PlayerContext : CombatEntityContext
@@ -572,7 +620,8 @@ public class PlayerContext : CombatEntityContext
     public CharacterController PlayerController { get => player.Charactercontroller; }
     public CinemachineCamera PlayerCamera { get => player.Cinemachinecamera; }
     public InteractableObject PlayerInteractionReference { get => player.interactableRef; }
-    public Animator PlayerAnimator { get => player.AnimatorComp; }
+    public Animator PlayerAnimator { get => player.animatorComp; }
+    public PlayerInput PlayerInput { get => player.playerInput;}
     public float PlayerSpeed { get => player.Speed; set => player.Speed = value; }
     public QualityTier PlayerWallSpeedMultiplier { get => player.wallSpeedMultiplier; set => player.wallSpeedMultiplier = value; }
     public float PlayerWallJumpMultiplier { get => player.wallJumpMultiplier; set => player.wallJumpMultiplier = value; }

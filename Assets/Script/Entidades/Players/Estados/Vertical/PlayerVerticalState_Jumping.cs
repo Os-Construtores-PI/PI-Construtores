@@ -26,13 +26,14 @@ public class PlayerJumpingState : IState<PlayerContext>
             }
             context.PlayerCurrentJumpCount++;
             context.PlayerMovementVector = move;
+            context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.Jump);
         }
         context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
     }
 
-    public void Exit(PlayerContext entity) { }
+    public void Exit(PlayerContext context) { }
 
-    public void FixedUpdate(PlayerContext entity) { }
+    public void FixedUpdate(PlayerContext context) { }
 
-    public void Update(PlayerContext entity) { }
+    public void Update(PlayerContext context) { }
 }

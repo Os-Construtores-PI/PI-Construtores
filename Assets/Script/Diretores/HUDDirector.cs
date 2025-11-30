@@ -48,6 +48,10 @@ public class HudDirector : MonoBehaviour
         // PAUSE
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(PausePanel);
         GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.AddListener(OptionsPausePanel);
+
+        // DIALOGUE
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.AddListener(DialoguePanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.AddListener(SkipText);
     }
 
     private void OnDisable()
@@ -62,6 +66,8 @@ public class HudDirector : MonoBehaviour
         GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.RemoveListener(RespawnPanel);
         GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.RemoveListener(DialoguePanel);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.RemoveListener(SkipText);
     }
 
     private void Start()
@@ -113,6 +119,7 @@ public class HudDirector : MonoBehaviour
         HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true, instant: true);
         HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, true);        
         HidePanel(Constants.PanelNames.Pause, playerID, independent:true,false,true);
+        HidePanel(Constants.PanelNames.Dialogue, playerID, independent:true,fade:true,instant:true);
     }
 
     private void CollectPanelsRecursive(Transform parent, Dictionary<string, List<GameObject>> map)
@@ -308,7 +315,32 @@ public class HudDirector : MonoBehaviour
             DisableHud(player.ID);    
         }
     }
-    # endregion
+    # endregion === END GAME ===
+
+    # region === DIALOGUE ===
+    private void DialoguePanel(PlayerContext context, List<string> text, float typeSpeed)
+    {
+        int playerID = context.EntityID;
+        CursorOptions(false);
+        ShowPanel(Constants.PanelNames.Dialogue, playerID, true);
+        DisableHud(playerID);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.Invoke(context, false);
+
+        TextMeshProUGUI targetText = GetPanel(playerID,Constants.PanelNames.Dialogue)[0].GetComponentInChildren<TextMeshProUGUI>();
+        WriteText(context,targetText,text,typeSpeed);
+    }
+    private void EndDialoguePanel(PlayerContext context)
+    {
+        int playerID = context.EntityID;
+        CursorOptions(true);
+        HidePanel(Constants.PanelNames.Dialogue,playerID,true);
+        EnableHUD(playerID);
+
+
+        GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.Invoke(context, true);
+    }
+
+    # endregion === DIALOGUE ===
 
     # region === PAUSE ===
     private void PausePanel(bool set)
@@ -367,6 +399,89 @@ public class HudDirector : MonoBehaviour
         Cursor.lockState = set ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = set;  
     }
+
+    private readonly Dictionary<int, Sequence> currentTyping = new();
+    private readonly Dictionary<int, int> dialogueIndex = new();
+    private readonly Dictionary<int, List<string>> dialogueCache = new();
+    private readonly Dictionary<int, TextMeshProUGUI> textTargets = new();
+    private readonly Dictionary<int, float> typeSpeeds = new();
+
+    public void WriteText(PlayerContext context, TextMeshProUGUI textTarget, List<string> texts, float typeSpeed)
+    {
+        int id = context.EntityID;
+
+        // salva dados para skip
+        dialogueCache[id] = texts;
+        textTargets[id] = textTarget;
+        typeSpeeds[id] = typeSpeed;
+        dialogueIndex[id] = 0;
+
+        StartLine(context);
+    }
+
+    private void StartLine(PlayerContext context)
+    {
+        int id = context.EntityID;
+
+        // mata tween anterior
+        if (currentTyping.TryGetValue(id, out var oldSeq))
+            oldSeq.Kill();
+
+        var texts = dialogueCache[id];
+        int index = dialogueIndex[id];
+
+        // terminou tudo
+        if (index >= texts.Count)
+        {
+            EndDialoguePanel(context);
+            return;
+        }
+
+        var text = texts[index];
+        var target = textTargets[id];
+        float speed = typeSpeeds[id];
+
+        target.text = "";
+
+        Sequence seq = DOTween.Sequence();
+        currentTyping[id] = seq;
+
+        seq.Append(
+            DOTween.To(() => target.text,
+                    x => target.text = x,
+                    text,
+                    text.Length / speed)
+                .SetEase(Ease.Linear)
+        );
+
+        seq.OnComplete(() =>
+        {
+            // espera 1 seg depois da fala completa
+            DOVirtual.DelayedCall(1f, () =>
+            {
+                dialogueIndex[id]++;
+                StartLine(context);
+            });
+        });
+    }
+
+    public void SkipText(PlayerContext context)
+    {
+        int id = context.EntityID;
+
+        if (!currentTyping.TryGetValue(id, out var seq))
+            return;
+
+        seq.Complete(true);  // finaliza apenas a fala atual sem callbacks antigos
+    }
+
+
+
+    private void SetText(TextMeshProUGUI textTarget, string text)
+    {
+        textTarget.text = text;
+    }
+
     #endregion
 }
 

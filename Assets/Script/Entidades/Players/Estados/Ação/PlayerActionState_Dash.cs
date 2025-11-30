@@ -16,7 +16,6 @@ public class PlayerActionStateDash : IState<PlayerContext>
     {
         context.OverrideGlobal = true;
 
-
         context.PlayerDashDirection = context.PlayerMoveInput != Vector2.zero ? context.PlayerDirection : context.EntityTransform.forward;
         context.PlayerDashDuration = context.DashDistance / context.PlayerDashSpeed;
         timeToExit = context.PlayerDashDuration;
@@ -25,6 +24,7 @@ public class PlayerActionStateDash : IState<PlayerContext>
         context.PlayerMovementVector = new(context.PlayerMovementVector.x, 0, context.PlayerMovementVector.z);
         context.PlayerDashCurrent += 1;
         context.PlayerCanMove = false;
+        context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.Dash);
         PlayDashVisual(context.EntityTransform,context.PlayerDashDuration);
 
         if (context.PlayerDashScript != null)
@@ -39,7 +39,7 @@ public class PlayerActionStateDash : IState<PlayerContext>
     {
         context.PlayerCanDash = true;
         context.OverrideGlobal = false;
-
+        context.PlayerAnimator.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
         ResetDashHUD(context.PlayerDashScript);
     }
 

@@ -95,6 +95,15 @@ public static class Constants
         public static readonly string Fase0 = "Fase0";
         public static readonly string MainMenu = "MainMenu";
     }
+
+    public static class AnimatorTriggerNames
+    {
+        public static readonly string Idle = "Idle";
+        public static readonly string Walk = "Walk";
+        public static readonly string Jump = "Jump";
+        public static readonly string Hit = "Hit";
+        public static readonly string Dash = "Dash";
+    }
     public static class Values
     {
         public static readonly float GraplingHookSpeed = 10f;
@@ -103,9 +112,10 @@ public static class Constants
     {
         public static readonly string GameOver = "GameOver";
         public static readonly string Pause = "Pause";
+        public static readonly string Dialogue = "Dialogue";
         public static readonly string HealthBar = "HealthBar";
         public static readonly string DashIcon = "DashIcon";
-        public static readonly string EndGame = "PainelEndGame";
+        public static readonly string EndGame = "EndGame";
         public static readonly string AmethystCounter = "AmethystCounter";
         public static readonly string InteractionPopup = "InteractionPopup";
         public static readonly string InteractionLetter = "InteractionLetter";

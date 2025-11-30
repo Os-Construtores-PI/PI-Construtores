@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -8,25 +9,13 @@ public class GameDirector : MonoBehaviour
 
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private PlayerDirector playerDirector;
-    [SerializeField] private DialogueGlobal _DialogueGlobal;
-    [SerializeField] private TutorialDIalogos _TutorialDialogos;
-
-
 
     private void Start()
     {
         Debug.Log("GameDirector START rodou!");
         TryGetComponent(out dataSystem);
-        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);
-
-        if (_DialogueGlobal != null)
-        {
-            _DialogueGlobal = FindAnyObjectByType<DialogueGlobal>();
-            _DialogueGlobal.OndialogueStart +=  TravarPlayer;
-            _DialogueGlobal.OndialogueEnd += LiberarPlayer;
-        }
-        
-        
+        GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);        
+        GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.AddListener(SetLockPlayer);
         // O painel de Start agora é gerenciado por outro script,
         // então não precisamos fazer nada aqui.
     }
@@ -88,29 +77,17 @@ public class GameDirector : MonoBehaviour
         // Aqui você pode desativar players, limpar câmeras, salvar progresso etc.
     }
 
-    private IEnumerator EsperarDialogoIniciar()
+    public void SetLockPlayer(PlayerContext playerContext, bool set)
     {
-        // Espera o diálogo existir e terminar
-    if (_TutorialDialogos != null)
-    {
-        while (!_TutorialDialogos._dialogoConcluido)
-            yield return null;
-    }
+        if(set)
+        {
+            playerContext.PlayerInput.ActivateInput();
+        }
+        else
+        {
+            playerContext.PlayerInput.DeactivateInput();
+        }
+        playerContext.PlayerController.enabled = set;
 
-    // Agora inicia o mundo normalmente
-    StartWorld();
     }
-
-    private void TravarPlayer()
-    {
-        
-        playerDirector?.SetPlayerControl(false);
-    }
-
-    private void LiberarPlayer()
-    {
-        
-        playerDirector?.SetPlayerControl(true);
-    }
-
 }

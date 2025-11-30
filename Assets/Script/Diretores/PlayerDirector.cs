@@ -147,18 +147,5 @@ public class PlayerDirector : MonoBehaviour
         configPlayer.SetConfig(player.Context);
         print($"Speed:{player.Context.PlayerSpeed}");
        
-    }
-
-    public void SetPlayerControl(bool state)
-    {
-        foreach (Player p in allPlayers)
-        {
-            if (p != null)
-               p.canMove = state;
-               
-        }
-    }
-
-    
-
+    }   
 }

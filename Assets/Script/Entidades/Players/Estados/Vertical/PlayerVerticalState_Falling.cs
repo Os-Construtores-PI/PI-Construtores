@@ -4,7 +4,6 @@ using UnityEngine;
 public class PlayerFallingState : IState<PlayerContext>
 {
     public ActionType Type => ActionType.Fall;
-
     public HashSet<ActionType> IncompatibleActions => new() {};
 
     public void Enter(PlayerContext context)
@@ -22,6 +21,10 @@ public class PlayerFallingState : IState<PlayerContext>
         move.x = QualityOfLife.PlayerFriction(move.x, context.PlayerAirFriction, context.PlayerMoveInput);
         move.z = QualityOfLife.PlayerFriction(move.z, context.PlayerAirFriction, context.PlayerMoveInput);
         move = new(move.x, move.y + context.PlayerGravity * Time.deltaTime, move.z);
+        if(move.y < -2f)
+        {
+            context.PlayerAnimator.ResetTrigger(Constants.AnimatorTriggerNames.Jump);
+        }
         context.PlayerMovementVector = move;
         if(context.PlayerIsGrounded && context.PlayerMovementVector.y < 0f)
         {

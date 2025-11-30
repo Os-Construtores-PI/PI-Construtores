@@ -10,9 +10,15 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 
     public HashSet<ActionType> IncompatibleActions => new() {};
 
-    public void Enter(PlayerContext context) { }
+    public void Enter(PlayerContext context)
+    {
+        context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.Walk);
+    }
 
-    public void Exit(PlayerContext context) { }
+    public void Exit(PlayerContext context)
+    {
+        context.PlayerAnimator.ResetTrigger(Constants.AnimatorTriggerNames.Walk);
+    }
 
     public void FixedUpdate(PlayerContext context)
     {

@@ -1,23 +1,29 @@
+using UnityEngine;
+
 public class Pandora : Player
 {
     #region --- OBJETOS ---
     bool HasGrapling = true;
-    protected override bool ObjectScan()
+    protected override (bool, RaycastHit) ScanObjects()
     {
-        if (!base.ObjectScan()) return false;
+        // executa o scan base
+        var (hit, info) = base.ScanObjects();
 
-        // Agora faz o filtro final
+        if (!hit)
+            return (false, default);
+
+        // FILTRO FINAL (somente na classe filha)
         if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)
             && (!Constants.PandoraObjects.types.Contains(interactionObjectType) || !HasGrapling))
         {
-            print("filtro final");
             ClearInteractable();
-            return false;
+            return (false, default);
         }
 
+        // Sucesso
         interactableRef = interactionObject;
         GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, interactionObject, ID);
-        return true;
+        return (true, info);
     }
 
 

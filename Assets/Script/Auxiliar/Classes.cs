@@ -42,16 +42,6 @@ public class CustomPositiveFloatRange
                 min = max;
         }
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        // Garante consistência ao editar no Inspector
-        Min = min;
-        Max = max;
-    }
-#endif
-
     public float GetRandom() => UnityEngine.Random.Range(min, max);
     public bool IsValid() => min >= MIN_LIMIT && max <= MAX_LIMIT && min <= max;
 }
@@ -89,3 +79,74 @@ public class Timer
     }
 }
 
+[System.Serializable]
+public class Scanner<TInput, TOutput>
+{
+    private readonly Func<TInput, TOutput> scanFunc;
+    private readonly float interval;
+
+    private Timer timer = new Timer();
+
+    public Scanner(float interval, Func<TInput, TOutput> scanFunc)
+    {
+        this.interval = interval;
+        this.scanFunc = scanFunc;
+        timer.Start(interval);
+    }
+
+    /// <summary>
+    /// Executa o scan somente quando o tempo expira.
+    /// Caso contrário, retorna default(TOutput).
+    /// </summary>
+    public (bool executed, TOutput result) Scan(float deltaTime, TInput input)
+    {
+        if (timer.Tick(deltaTime))
+        {
+            timer.Start(interval);
+            return (true, scanFunc(input));
+        }
+
+        return (false, default);
+    }
+}
+
+
+[System.Serializable]
+public class ConditionalGate
+{
+    bool entered = false;
+    bool exited = false;
+    Action onEnter;
+    Action onExit;
+    public void Setup(Action enterAction, Action exitAction)
+    {
+        onEnter = enterAction;
+        onExit = exitAction;
+    }
+    public void Enter()
+    {
+        if(entered || onEnter == null) return;
+        entered = true;
+        exited = false;
+        onEnter.Invoke();
+    }
+    public void Check(bool condition)
+    {
+        if (condition)
+        {
+            Enter();
+        }
+        else
+        {
+            Exit();
+        }    
+    }
+    public void Exit()
+    {
+        if(exited || onExit == null) return;
+        entered = false;
+        exited = true;
+        onExit.Invoke();
+    }
+    
+}

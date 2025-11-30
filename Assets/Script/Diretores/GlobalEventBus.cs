@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -47,6 +48,12 @@ public class GlobalEventBus : MonoBehaviour
 
     // Sistema monetário
     public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
+
+    // Diálogo
+    public readonly UnityEvent<PlayerContext,List<string>,float> PLAYERTRIGGEREDDIALOGUE = new();
+    public readonly UnityEvent<PlayerContext,bool> PLAYERTRIGGEREDLOCKDIALOGUE = new();
+    public readonly UnityEvent<PlayerContext> PLAYERTRIGGEREDSKIPDIALOGUE = new();
+    public readonly UnityEvent<PlayerContext> PLAYERTRIGGEREDENDDIALOGUE = new();
     #endregion
 
     #region Unity Lifecycle
