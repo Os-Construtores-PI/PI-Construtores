@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DialogueArea : MonoBehaviour
+public class DialogueArea : InteractableObject
 {
     [TextArea(2,6)]
     [SerializeField]
@@ -11,13 +11,8 @@ public class DialogueArea : MonoBehaviour
 
     private bool naturalTriggeredDialogue = false;
 
-    private void OnTriggerEnter(Collider other)
+    public override void Interaction(InfoPlayerInteraction info)
     {
-        if(naturalTriggeredDialogue) return;
-        naturalTriggeredDialogue = true;
-        if(other.TryGetComponent(out Player player))
-        {
-            GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.Invoke(player.Context,dialogues,dialogueSpeed);
-        }
+        GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.Invoke(info.playerContext,dialogues,dialogueSpeed);
     }
 }
