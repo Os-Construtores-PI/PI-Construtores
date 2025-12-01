@@ -10,7 +10,7 @@ public class PlayerGroundedState : IState<PlayerContext>
     public void Enter(PlayerContext context)
     {
         Vector3 move = context.PlayerMovementVector;
-        move.y = 0;
+        move.y = -.01f;
         context.PlayerMovementVector = move;
     }
 
