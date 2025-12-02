@@ -186,6 +186,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc95c9c16d59db14a9cd5f719c161de1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
   buttonColorEnum: 1
   targetobject: {fileID: 1980088070}
 --- !u!1 &39335537
@@ -3079,6 +3082,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c755d9598d9cc7e46bcb93e2242d5c27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
 --- !u!1 &561886157
 GameObject:
   m_ObjectHideFlags: 0
@@ -5123,6 +5129,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc95c9c16d59db14a9cd5f719c161de1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
   buttonColorEnum: 0
   targetobject: {fileID: 1980088070}
 --- !u!1 &1522114772
@@ -7184,6 +7193,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc95c9c16d59db14a9cd5f719c161de1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
   buttonColorEnum: 2
   targetobject: {fileID: 1980088070}
 --- !u!1 &2064302057
@@ -7288,6 +7300,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc95c9c16d59db14a9cd5f719c161de1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
   buttonColorEnum: 3
   targetobject: {fileID: 1980088070}
 --- !u!1 &2129302935
@@ -8030,6 +8045,8 @@ MonoBehaviour:
   dialogoAtivo: 0
   _botoesDialogo: {fileID: 8077866042074245223}
   _botoesGameplay: {fileID: 0}
+  _botaoAvancar: {fileID: 1228956969172237324}
+  _botaoRetornar: {fileID: 6990642069445673694}
 --- !u!1 &884157116911316149
 GameObject:
   m_ObjectHideFlags: 0
@@ -10234,7 +10251,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f33a3366880a446438ffb5b0cc2207da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstPlayerPrefab: {fileID: 8701590459736021765, guid: 64dd3e6f1f05f5446875518b7fc0322d, type: 3}
+  firstPlayerPrefab: {fileID: 8200904327345480104, guid: 2e6b248901f2335b3bbf87492532793c, type: 3}
   fallbackPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
   secondPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
   hudPrefab: {fileID: 488739853224379904, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
@@ -10694,6 +10711,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 578102382, guid: 353cf25ddfe51624899e6574644dbc65, type: 3}
+  _playstationSprites: {fileID: -327804870, guid: de451c05b6320ea42a4310b4f2e8835c, type: 3}
+  _xboxSprites: {fileID: -2128125850, guid: 5ce60fb5961c4be43a5a1f8d21ad4724, type: 3}
   _dialogo:
   - "Ol\xE1, sejam bem vindos ao jogo Pandora!!"
   - "Vamos dar inicio aqui ao cen\xE1rio \nde di\xE1logos do jogo\t"
@@ -10703,7 +10723,8 @@ MonoBehaviour:
 '
   _TextoTutor: {fileID: 4850164873411718467}
   _dialogoGlobal: {fileID: 880437044483661388}
-  _iconInteracao: {fileID: 6502192497616990412}
+  _iconInteracao: {fileID: 9066435537285148879}
+  _CurrentPlayerInput: {fileID: 0}
 --- !u!114 &4850164873411718467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12162,7 +12183,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &6508902779525528721
 GameObject:
   m_ObjectHideFlags: 0
@@ -13328,6 +13349,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77e65cebb26e3134fa356621d5bb93d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
   targetobject: {fileID: 5876957179906853768}
 --- !u!33 &7919734597472066636
 MeshFilter:

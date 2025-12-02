@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System;
+using UnityEngine.InputSystem;
 
 public class DialogueGlobal : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class DialogueGlobal : MonoBehaviour
     private string[] _falasAtuais;
     private int _index = 0;
     private bool _dialogoAtivo = false;
+    public bool IsDialogueActive => _dialogoAtivo;
     public int dialogoAtivo = 0;
     private PlayerDirector playerDirectoor;
     private GameDirector _gameDirector;
@@ -26,21 +28,29 @@ public class DialogueGlobal : MonoBehaviour
     public event Action OndialogueStart;
     public event Action OndialogueEnd;
 
+    public UnityEngine.UI.Button _botaoAvancar;
+    public UnityEngine.UI.Button _botaoRetornar;
+
+    private PlayerInput _Interactable;
+
     
 
     void Awake()
     {
         Instance = this;
-        _painelDialogo.SetActive(false);
+
+        if(_painelDialogo != null)
+            _painelDialogo.SetActive(false);
+       // _painelDialogo.SetActive(false);
 
         playerDirectoor = FindAnyObjectByType<PlayerDirector>();
         _gameDirector = FindAnyObjectByType<GameDirector>();
 
+      //_painelDialogo?.SetActive(false);
         
-    Instance = this;
-    if (_painelDialogo == null) Debug.LogWarning("[DialogueGlobal] _painelDialogo NÃO atribuído!");
-    if (_textoDialogo == null) Debug.LogWarning("[DialogueGlobal] _textoDialogo NÃO atribuído!");
-    _painelDialogo?.SetActive(false);
+      
+      if (_painelDialogo == null) Debug.LogWarning("[DialogueGlobal] _painelDialogo NÃO atribuído!");
+      if (_textoDialogo == null) Debug.LogWarning("[DialogueGlobal] _textoDialogo NÃO atribuído!");
 
         
     }
@@ -83,21 +93,25 @@ public class DialogueGlobal : MonoBehaviour
     public void IniciarDialogo(string[] falas)
     {
 
-        
-        if(_currentTrigger == null)
+
+
+        if (_currentTrigger != null)
+            _Interactable = _currentTrigger._CurrentPlayerInput;
+            if (falas == null || falas.Length == 0) 
+                return;
        
+         
+         OndialogueStart?.Invoke();
         
-        if (falas == null || falas.Length == 0) return;
 
-        _falasAtuais = falas;
-        _index = 0;
-        dialogoAtivo = 0;
-        _dialogoAtivo = true;
+          _falasAtuais = falas;
+          _index = 0;
+          dialogoAtivo = 0;
+          _dialogoAtivo = true;
 
 
         
         
-        OndialogueStart?.Invoke();
 
         _painelDialogo.SetActive(true);
 
@@ -106,7 +120,7 @@ public class DialogueGlobal : MonoBehaviour
         _textoDialogo.text = _falasAtuais[_index];
     }
 
-    void ProximaFala()
+    public void ProximaFala()
     {
         if (!_dialogoAtivo) return;
         
@@ -119,22 +133,50 @@ public class DialogueGlobal : MonoBehaviour
         _textoDialogo.text = _falasAtuais[_index];
     }
 
+    public void VoltarFala()
+    {
+        if (!_dialogoAtivo) return;
+
+        _index--;
+
+        if(_index < 0) _index = 0;
+
+        _textoDialogo.text = _falasAtuais[_index];  
+    }
+
     public void FecharDialogo()
     {
 
         
-        _painelDialogo.SetActive(false);
+         OndialogueEnd?.Invoke();
         _dialogoAtivo = false;
         //_falasAtuais = null;
 
 
-        
-         OndialogueEnd?.Invoke();
-
         if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
         if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
+        
+
 
         if(_currentTrigger != null)
           _currentTrigger.OnDialogoFechado();
+        _painelDialogo.SetActive(false);
+    }
+
+    private void Update()
+    {
+        if (!_dialogoAtivo) return;
+        if(_Interactable == null) return;
+
+        if (_Interactable.actions["AdvanceDialogue"].WasPerformedThisFrame())
+        {
+            if(_botaoRetornar != null)
+            {
+                if (_botaoRetornar != null)
+                    _botaoRetornar.onClick.Invoke();
+                else
+                    VoltarFala();
+            }
+        }
     }
 }

@@ -1,16 +1,21 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
-public class DialogueTrigger : MonoBehaviour
+public class DialogueTrigger : InteractableObject
 {
     [TextArea(2, 4)]
     public string[] _dialogo;
 
-    private bool _primeiraVez = true;
+    //private bool _primeiraVez = true;
     public TextMeshProUGUI _TextoTutor;
     public DialogueGlobal _dialogoGlobal;
-    public GameObject _iconInteracao; // icon "Press F"
+    public Image _iconInteracao; // icon "Press F"
+    [HideInInspector] public PlayerInput _CurrentPlayerInput;
     private bool _jogadorDentro = false;
+
+
     
 
     private void OnTriggerEnter(Collider other)
@@ -22,6 +27,7 @@ public class DialogueTrigger : MonoBehaviour
         if (!other.CompareTag("Player")) return;
 
             _dialogoGlobal._currentTrigger = gameObject.GetComponent<DialogueTrigger>();
+            _CurrentPlayerInput = other.GetComponent<PlayerInput>();
 
             if(_dialogoGlobal != null)
             _dialogoGlobal._currentTrigger = this;
@@ -32,7 +38,12 @@ public class DialogueTrigger : MonoBehaviour
             _TextoTutor.text = _dialogo[0];
 
             if(_iconInteracao != null)
-            _iconInteracao.SetActive(true);
+            {
+              _iconInteracao.sprite = GetCorrentSprite(_CurrentPlayerInput);
+              _iconInteracao.gameObject.SetActive(true);
+            }
+
+        _dialogoGlobal.SetTrigger(this);
 
             
 
@@ -53,14 +64,15 @@ public class DialogueTrigger : MonoBehaviour
           if (!other.CompareTag("Player")) return;  
 
         _jogadorDentro = false;
-        _iconInteracao.SetActive(false);  // 👉 some o ícone
 
-        if(_dialogoGlobal != null)
-        {
+        if (_iconInteracao != null)
+            _iconInteracao.gameObject.SetActive(false);
+        
+        
             if(_dialogoGlobal._currentTrigger == this)
                 _dialogoGlobal._currentTrigger = null;
            // _dialogoGlobal.FecharDialogo();
-        }
+        
 
         
       }
@@ -71,22 +83,31 @@ public class DialogueTrigger : MonoBehaviour
         
         _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
         
-        if (_iconInteracao != null) _iconInteracao.SetActive(false);
+        if (_iconInteracao != null) _iconInteracao.gameObject.SetActive(false);
     }
     private void Update()
     {
-         if (_jogadorDentro && Input.GetKeyDown(KeyCode.F))
-         {
-            
-             AbrirDialogo();
-         }
+        if (!_jogadorDentro) return;
+        if (_CurrentPlayerInput == null) return;
+        if(_dialogoGlobal == null) return;
+
+        if(_dialogoGlobal.IsDialogueActive) return;
+
+        if (_CurrentPlayerInput.actions["Interaction"].WasPerformedThisFrame())
+        {
+            AbrirDialogo();
+        }
+        
     }
+
 
     void AbrirDialogo()
     {
-        
-         _iconInteracao.SetActive(false); // some enquanto o painel esta aberto
+
+        // _iconInteracao.SetActive(false); // some enquanto o painel esta aberto
         // _dialogoGlobal.IniciarDialogo(_dialogo);
+        if (_iconInteracao != null)
+            _iconInteracao.gameObject.SetActive(false);
         
 
         _dialogoGlobal.SetTrigger(this);
@@ -96,9 +117,8 @@ public class DialogueTrigger : MonoBehaviour
     public void OnDialogoFechado()
     {
         if(_jogadorDentro && _iconInteracao != null)
-        {
-            _iconInteracao.SetActive(true);
-        }
+            _iconInteracao.gameObject.SetActive(true);
+        
     }   
      
 }
