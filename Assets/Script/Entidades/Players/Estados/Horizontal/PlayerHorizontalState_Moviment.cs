@@ -49,11 +49,6 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
                 playerAcceleration
             ),
             playerMovementVector.y,
-            playerMovementVector.z
-        );
-        playerMovementVector = new(
-            playerMovementVector.x,
-            playerMovementVector.y,
             QualityOfLife.SmoothLerp(
                 playerMovementVector.z,
                 playerDirection.z * playerSpeed,
