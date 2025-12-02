@@ -104,6 +104,14 @@ public static class Constants
         public static readonly string Hit = "Hit";
         public static readonly string Dash = "Dash";
     }
+    public static class AnimatorBoolNames
+    {
+        public static readonly string IsGrounded = "IsGrounded";
+    }
+    public static class AnimatorFloatNames
+    {
+        public static readonly string VelocityY = "VelocityY";
+    }
     public static class Values
     {
         public static readonly float GraplingHookSpeed = 10f;
@@ -124,7 +132,7 @@ public static class Constants
     }
     public static class PlayerCommonObjects
     {
-        public static HashSet<Type> types = new() { typeof(BasicButton), typeof(PuzzleColorButton) };
+        public static HashSet<Type> types = new() { typeof(BasicButton), typeof(PuzzleColorButton), typeof(DialogueArea) };
     }
     public static class PandoraObjects
     {

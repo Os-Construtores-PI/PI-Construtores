@@ -26,7 +26,6 @@ public class PlayerJumpingState : IState<PlayerContext>
             }
             context.PlayerCurrentJumpCount++;
             context.PlayerMovementVector = move;
-            context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.Jump);
         }
         context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
     }

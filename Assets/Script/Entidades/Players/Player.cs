@@ -240,11 +240,12 @@ public class Player : CombatEntities
         if (!characterController.enabled)
             return;
         IsGrounded = characterController.isGrounded;
+        animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
+        animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
         idleConditional.Check(
             VerticalLayer.CurrentState.Type == ActionType.Idle &&
             HorizontalLayer.CurrentState.Type == ActionType.Idle &&
-            ActionLayer.CurrentState.Type == ActionType.Idle &&
-            IsGrounded
+            ActionLayer.CurrentState.Type == ActionType.Idle
         );
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);

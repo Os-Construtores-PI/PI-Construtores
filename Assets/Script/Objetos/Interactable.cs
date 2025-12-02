@@ -3,10 +3,14 @@ using UnityEngine.InputSystem;
 
 public abstract class InteractableObject : MonoBehaviour
 {
-    [Header("Sprites de Interação")]
+
+    [Header("Sprites de Interaï¿½ï¿½o")]
     public Sprite _keyboardSprites; //F
     public Sprite _playstationSprites; //X
     public Sprite _xboxSprites; //A
+
+    [SerializeField] protected float range = 10;
+
     public virtual void Interaction(InfoPlayerInteraction info)
     {
         
