@@ -9,8 +9,6 @@ public class DialogueArea : InteractableObject
     
     [SerializeField] float dialogueSpeed = 20f;
 
-    private bool naturalTriggeredDialogue = false;
-
     public override void Interaction(InfoPlayerInteraction info)
     {
         GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.Invoke(info.playerContext,dialogues,dialogueSpeed);

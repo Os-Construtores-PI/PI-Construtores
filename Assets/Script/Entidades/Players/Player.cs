@@ -89,10 +89,10 @@ public class Player : CombatEntities
     internal Vector2 MoveInput;
     internal Vector3 LastWallNormal;
 
-    internal int CurrentJumpCount;
-    internal bool IsGrounded;
-    internal bool WallSpeedApplied;
-    internal bool TouchingWall;
+    internal int currentJumpCount;
+    internal bool isGrounded;
+    internal bool wallSpeedApplied;
+    internal bool touchingWall;
 
     internal bool canDash = true;
     internal bool canMove = true;
@@ -104,10 +104,10 @@ public class Player : CombatEntities
 
     [Stat(nameof(CanDash))]
     public bool CanDash { get => canDash; set => canDash = value; }
-    internal bool IsDashing = false;
+    internal bool isDashing = false;
     internal float dashCount = 1;
-    internal float DashCurrent = 0;
-    internal float DashDuration;
+    internal float dashCurrent = 0;
+    internal float dashDuration;
     #endregion
 
     #region === EnemyScan ===
@@ -244,9 +244,10 @@ public class Player : CombatEntities
     {
         if (!characterController.enabled)
             return;
-        IsGrounded = characterController.isGrounded;
+        isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
-        animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
+        animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, isGrounded);
+        animatorComp.SetInteger(Constants.AnimatorIntNames.JumpCount, currentJumpCount);
         idleConditional.Check(
             VerticalLayer.CurrentState.Type == ActionType.Idle &&
             HorizontalLayer.CurrentState.Type == ActionType.Idle &&
@@ -262,8 +263,6 @@ public class Player : CombatEntities
 
         // MOVEMENT
         Charactercontroller.Move(MovementVector * Time.deltaTime);
-
-
     }
 
     private void OnDestroy() => DOTween.KillAll();
@@ -293,7 +292,7 @@ public class Player : CombatEntities
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        if (context.started && canDash && DashCurrent < dashCount)
+        if (context.started && canDash && dashCurrent < dashCount)
             StartDash();
     }
 
@@ -358,7 +357,6 @@ public class Player : CombatEntities
     private void Move()
     {
         if (Cinemachinecamera == null || OverrideGlobal || OverrideHorizontal || HorizontalLayer.CurrentState is PlayerActionStateDash) { return; }
-        if (Cinemachinecamera == null || OverrideGlobal || OverrideHorizontal || HorizontalLayer.CurrentState is PlayerActionStateDash) { return; }
         HorizontalLayer.ChangeState(new PlayerHorizontalStateMoviment(), Context);
     }
 
@@ -366,23 +364,19 @@ public class Player : CombatEntities
     {
         if (OverrideGlobal) return;
 
-        if (TouchingWall)
+        if (touchingWall)
             if (OverrideGlobal) return;
 
-        if (TouchingWall)
+        if (touchingWall)
         {
-            // wall-jump permitido — segue pra VerticalLayer.ChangeState(...)
-            VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
             // wall-jump permitido — segue pra VerticalLayer.ChangeState(...)
             VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
             return;
         }
-        if (!(IsGrounded || CurrentJumpCount < maxJumpCount)) return;
+
 
         if (OverrideVertical) return;
-        if (!(IsGrounded || CurrentJumpCount < maxJumpCount)) return;
-
-        if (OverrideVertical) return;
+        if (!(isGrounded || currentJumpCount < maxJumpCount)) return;
         VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
 
 
@@ -400,7 +394,6 @@ public class Player : CombatEntities
     private void StartDash()
     {
         if (isDashBlocked) { return; }
-        ;
         ActionLayer.PushState(new PlayerActionStateDash(), Context);
     }
     #endregion
@@ -466,7 +459,7 @@ public class Player : CombatEntities
         }
         else
         {
-            TouchingWall = false;
+            touchingWall = false;
         }
 
         if (hit.gameObject.TryGetComponent(out Enemies enemy))
@@ -552,7 +545,7 @@ public class Player : CombatEntities
 
         // 2 — Usa o scanner genérico
         var (executed, result) = objectScanner.Scan(Time.deltaTime,ray);
-
+        print($"Executed: {executed} // Result: {result}");
 
         // 3 — Se o scanner não executou, só retorna "não achou"
         if (!executed || !result.Item1)
@@ -562,7 +555,7 @@ public class Player : CombatEntities
         }
 
         // 4 — Tenta pegar o componente de interação
-        if (!result.Item2.collider.TryGetComponent(out interactionObject))
+        if (!result.Item2.collider.TryGetComponent(out interactionObject) && result.Item2.distance > interactionObject.Range)
         {
             ClearInteractable();
             return (false, default);
@@ -648,21 +641,21 @@ public class PlayerContext : CombatEntityContext
     public Vector3 PlayerMovementVector { get => player.MovementVector; set => player.MovementVector = value; }
     public Vector3 PlayerDirection { get => player.Direction; set => player.Direction = value; }
     public Vector3 PlayerDashDirection { get => player.DashDirection; set => player.DashDirection = value; }
-    public float PlayerDashCurrent { get => player.DashCurrent; set => player.DashCurrent = value; }
-    public float PlayerDashDuration { get => player.DashDuration; set => player.DashDuration = value; }
+    public float PlayerDashCurrent { get => player.dashCurrent; set => player.dashCurrent = value; }
+    public float PlayerDashDuration { get => player.dashDuration; set => player.dashDuration = value; }
     public Vector2 PlayerMoveInput { get => player.MoveInput; set => player.MoveInput = value; }
     public Vector3 PlayerLastWallNormal { get => player.LastWallNormal; set => player.LastWallNormal = value; }
-    public int PlayerCurrentJumpCount { get => player.CurrentJumpCount; set => player.CurrentJumpCount = value; }
-    public bool PlayerIsGrounded { get => player.IsGrounded; set => player.IsGrounded = value; }
-    public bool PlayerWallSpeedApplied { get => player.WallSpeedApplied; set => player.WallSpeedApplied = value; }
-    public bool PlayerTouchingWall { get => player.TouchingWall; set => player.TouchingWall = value; }
+    public int PlayerCurrentJumpCount { get => player.currentJumpCount; set => player.currentJumpCount = value; }
+    public bool PlayerIsGrounded { get => player.isGrounded; set => player.isGrounded = value; }
+    public bool PlayerWallSpeedApplied { get => player.wallSpeedApplied; set => player.wallSpeedApplied = value; }
+    public bool PlayerTouchingWall { get => player.touchingWall; set => player.touchingWall = value; }
     public bool PlayerCanMove { get => player.CanMove; set => player.CanMove = value; }
     public bool PlayerCanDash { get => player.canDash; set => player.canDash = value; }
     public bool PlayerWillAttack { get => player.willAttack; set => player.willAttack = value; }
     public bool PlayerCanAttack { get => player.canAttack; set => player.canAttack = value; }
 
     public ShiftDashScript PlayerDashScript { get => player.dashHUDScript; }
-    public bool PlayerIsDashing { get => player.IsDashing; set => player.IsDashing = value; }
+    public bool PlayerIsDashing { get => player.isDashing; set => player.isDashing = value; }
     public float PlayerAttackCooldown { get => player.attackCooldown; set => player.attackCooldown = value; }
     public StateMachine<PlayerContext> PlayerHorizontalLayer { get => player.HorizontalLayer; }
     public StateMachine<PlayerContext> PlayerVerticalLayer { get => player.VerticalLayer; }

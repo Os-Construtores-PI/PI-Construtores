@@ -185,7 +185,9 @@ public class HudDirector : MonoBehaviour
     public void InteractionPopup(bool seeing, InteractableObject obj, int playerID)
     {
         if (!interactionTexts.ContainsKey(playerID) || !interactionImages.ContainsKey(playerID))
+        {
             return;
+        }
 
         var text = interactionTexts[playerID];
         var image = interactionImages[playerID];
@@ -194,7 +196,7 @@ public class HudDirector : MonoBehaviour
 
         if (!seeing)
         {
-            HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:false);
+            HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true);
             text.DOColor(Color.white, duration);
             text.text = "";
             image.sprite = ogSprites[playerID];
@@ -208,17 +210,18 @@ public class HudDirector : MonoBehaviour
                 text.text = interactionBind;
                 break;
 
-            case BasicButton:
-                text.text = interactionBind;
-                break;
 
             case GraplingHookTarget:
                 if (GetIcon("GHOOK") is IconImage validIcon)
                     image.sprite = validIcon.sprite;
                 break;
+
+            default:
+                text.text = interactionBind;
+                break;
         }
 
-        ShowPanel(Constants.PanelNames.InteractionPopup, playerID,independent:false);
+        ShowPanel(Constants.PanelNames.InteractionPopup, playerID,independent:true);
     }
 
     private void UpdateAmethysts(int newAmount) { }
@@ -311,8 +314,8 @@ public class HudDirector : MonoBehaviour
         CursorOptions(false);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
+            DisableHud(player.ID);
             ShowPanel(Constants.PanelNames.EndGame, player.ID, true);
-            DisableHud(player.ID);    
         }
     }
     # endregion === END GAME ===

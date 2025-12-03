@@ -10,6 +10,7 @@ public abstract class InteractableObject : MonoBehaviour
     public Sprite _xboxSprites; //A
     
     [SerializeField] protected float range = 10;
+    public float Range => range;
 
     public virtual void Interaction(InfoPlayerInteraction info)
     {

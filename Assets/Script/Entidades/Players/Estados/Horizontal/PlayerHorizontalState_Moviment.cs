@@ -35,6 +35,8 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
         forward.y = right.y = 0f;
 
         Vector3 playerDirection = forward.normalized * moveInput.y + right.normalized * moveInput.x;
+        if(playerDirection == Vector3.zero) playerDirection = context.EntityTransform.forward;
+        
         context.EntityTransform.rotation = Quaternion.Slerp(
             playerTransform.rotation,
             Quaternion.LookRotation(playerDirection),

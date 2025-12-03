@@ -112,6 +112,10 @@ public static class Constants
     {
         public static readonly string VelocityY = "VelocityY";
     }
+    public static class AnimatorIntNames
+    {
+        public static readonly string JumpCount = "JumpCount";
+    }
     public static class Values
     {
         public static readonly float GraplingHookSpeed = 10f;
