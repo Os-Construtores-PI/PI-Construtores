@@ -189,6 +189,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
+  range: 10
   buttonColorEnum: 1
   targetobject: {fileID: 1980088070}
 --- !u!1 &39335537
@@ -3085,6 +3086,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
+  range: 10
 --- !u!1 &561886157
 GameObject:
   m_ObjectHideFlags: 0
@@ -5132,6 +5134,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
+  range: 10
   buttonColorEnum: 0
   targetobject: {fileID: 1980088070}
 --- !u!1 &1522114772
@@ -7196,6 +7199,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
+  range: 10
   buttonColorEnum: 2
   targetobject: {fileID: 1980088070}
 --- !u!1 &2064302057
@@ -7303,6 +7307,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
+  range: 10
   buttonColorEnum: 3
   targetobject: {fileID: 1980088070}
 --- !u!1 &2129302935
@@ -8045,8 +8050,8 @@ MonoBehaviour:
   dialogoAtivo: 0
   _botoesDialogo: {fileID: 8077866042074245223}
   _botoesGameplay: {fileID: 0}
-  _botaoAvancar: {fileID: 1228956969172237324}
-  _botaoRetornar: {fileID: 6990642069445673694}
+  _botaoAvancar: {fileID: 6990642069445673694}
+  _botaoRetornar: {fileID: 1228956969172237324}
 --- !u!1 &884157116911316149
 GameObject:
   m_ObjectHideFlags: 0
@@ -8203,6 +8208,18 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
         m_MethodName: Falas
         m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 880437044483661388}
+        m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
+        m_MethodName: VoltarFala
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -9631,7 +9648,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!225 &3342490250340307759
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -10714,6 +10731,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 578102382, guid: 353cf25ddfe51624899e6574644dbc65, type: 3}
   _playstationSprites: {fileID: -327804870, guid: de451c05b6320ea42a4310b4f2e8835c, type: 3}
   _xboxSprites: {fileID: -2128125850, guid: 5ce60fb5961c4be43a5a1f8d21ad4724, type: 3}
+  range: 10
   _dialogo:
   - "Ol\xE1, sejam bem vindos ao jogo Pandora!!"
   - "Vamos dar inicio aqui ao cen\xE1rio \nde di\xE1logos do jogo\t"
@@ -12653,6 +12671,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+      - m_Target: {fileID: 880437044483661388}
+        m_TargetAssemblyTypeName: DialogueGlobal, Assembly-CSharp
+        m_MethodName: ProximaFala
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
 --- !u!223 &6995501963707311648
 Canvas:
   m_ObjectHideFlags: 0
@@ -13352,6 +13382,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
+  range: 10
   targetobject: {fileID: 5876957179906853768}
 --- !u!33 &7919734597472066636
 MeshFilter:
@@ -14608,7 +14639,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

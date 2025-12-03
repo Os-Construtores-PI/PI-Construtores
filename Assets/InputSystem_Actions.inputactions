@@ -103,6 +103,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "AdvanceDialogue",
+                    "type": "Button",
+                    "id": "04743eba-8f91-458f-9e36-e36faa6fb0eb",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ReturnDialogue",
+                    "type": "Button",
+                    "id": "724e6473-c134-4302-956f-5ac571b223a1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -471,7 +489,18 @@
                 },
                 {
                     "name": "",
-                    "id": "26b9c7dc-33ec-4bcc-8e82-8152406cac5c",
+                    "id": "55a1b2cc-a77f-40c2-8dab-eff16f1c1bc9",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Interaction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e7604c01-ded3-451f-a637-68077af6e27e",
                     "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
@@ -565,6 +594,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dda3cdea-cb3a-439c-a264-a0406ed2a5f2",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "AdvanceDialogue",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f758f4c7-c0c0-49d6-a5f9-149a309f6ce9",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "ReturnDialogue",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -57,6 +57,9 @@ public class Player : CombatEntities
     protected internal Animator animatorComp;
     
     internal PlayerInput playerInput;
+    public string _ultimoDispositivo = "Keyboard";
+    private PlayerInput _playerIinpuut;
+
     #endregion
 
     #region === Overrides ===
@@ -211,6 +214,8 @@ public class Player : CombatEntities
             ScanEnemies // <-- injeta o método diretamente
         );
 
+        
+
         idleConditional.Setup(() => animatorComp.SetTrigger(Constants.AnimatorTriggerNames.Idle),() => animatorComp.ResetTrigger(Constants.AnimatorTriggerNames.Idle)); 
     }
 
@@ -266,6 +271,8 @@ public class Player : CombatEntities
     #endregion
 
     #region  === Dialogue ===
+
+    
 
     private void TryToSkipDialogue()
     {
