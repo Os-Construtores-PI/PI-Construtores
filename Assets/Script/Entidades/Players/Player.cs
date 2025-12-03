@@ -90,7 +90,7 @@ public class Player : CombatEntities
     internal Vector3 LastWallNormal;
 
     internal int currentJumpCount;
-    internal bool isGrounded;
+    [SerializeField] internal bool isGrounded;
     internal bool wallSpeedApplied;
     internal bool touchingWall;
 
@@ -231,7 +231,7 @@ public class Player : CombatEntities
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
 #if DEBUG
-        //print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
+        print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
         //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
         //[STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
         // print($"CANATTACK: {canAttack}");
@@ -247,7 +247,7 @@ public class Player : CombatEntities
         isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, isGrounded);
-        animatorComp.SetInteger(Constants.AnimatorIntNames.JumpCount, currentJumpCount);
+        animatorComp.SetFloat(Constants.AnimatorFloatNames.JumpCount, currentJumpCount);
         idleConditional.Check(
             VerticalLayer.CurrentState.Type == ActionType.Idle &&
             HorizontalLayer.CurrentState.Type == ActionType.Idle &&
@@ -255,11 +255,8 @@ public class Player : CombatEntities
         );
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
-        //print($"HORIZONTAL LAYER MOVEMENT: {MovementVector}");
         VerticalLayer.FixedUpdate(Context);
-        //print($"VERTICAL LAYER MOVEMENT: {MovementVector}");
         ActionLayer.FixedUpdate(Context);
-        //print($"ACTION LAYER MOVEMENT: {MovementVector}");
 
         // MOVEMENT
         Charactercontroller.Move(MovementVector * Time.deltaTime);
@@ -545,7 +542,6 @@ public class Player : CombatEntities
 
         // 2 — Usa o scanner genérico
         var (executed, result) = objectScanner.Scan(Time.deltaTime,ray);
-        print($"Executed: {executed} // Result: {result}");
 
         // 3 — Se o scanner não executou, só retorna "não achou"
         if (!executed || !result.Item1)
