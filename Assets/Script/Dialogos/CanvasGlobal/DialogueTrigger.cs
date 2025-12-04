@@ -91,7 +91,15 @@ public class DialogueTrigger : InteractableObject
         if (_CurrentPlayerInput == null) return;
         if(_dialogoGlobal == null) return;
 
-        if(_dialogoGlobal.IsDialogueActive) return;
+        
+
+
+        if (!_dialogoGlobal.IsDialogueActive && _iconInteracao != null)
+        {
+            _iconInteracao.sprite = GetCorrentSprite(_CurrentPlayerInput);
+        }
+
+        if (_dialogoGlobal.IsDialogueActive) return;
 
         if (_CurrentPlayerInput.actions["Interaction"].WasPerformedThisFrame())
         {
