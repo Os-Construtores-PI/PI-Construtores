@@ -231,9 +231,9 @@ public class Player : CombatEntities
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
 #if DEBUG
-        print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
-        //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
-        //[STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
+        // print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
+        // //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
+        // //[STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
         // print($"CANATTACK: {canAttack}");
         // print($"WILLATTACK: {willAttack}");
 #endif
