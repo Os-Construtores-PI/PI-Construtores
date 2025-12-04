@@ -311,7 +311,7 @@ public class HudDirector : MonoBehaviour
     # region === END GAME ===
     private void EndPanel()
     {
-        CursorOptions(false);
+        CursorOptions(true);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             DisableHud(player.ID);
