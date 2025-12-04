@@ -51,7 +51,6 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
     public void Enter(PlayerContext context)
     {
         context.OverrideHorizontal = true;
-        context.PlayerTouchingWall = true;
         context.PlayerCurrentJumpCount = 1;
         // só reseta se já estava fora da parede
         if (wallExitTimer.IsActive)

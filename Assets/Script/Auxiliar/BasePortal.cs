@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(MeshRenderer))]
 public class BasePortal : MonoBehaviour
 {
     [SerializeField] protected Color outerColor = new();
@@ -14,8 +15,7 @@ public class BasePortal : MonoBehaviour
 
     private void SetupColors()
     {
-        GameObject portal = transform.Find("Portal").gameObject;
-        MeshRenderer meshRenderer = portal.GetComponent<MeshRenderer>();
+        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
         Material material = meshRenderer.material;
         if (material && meshRenderer)
         {

@@ -11,15 +11,20 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: 3ec83a309e8475647ba75efb03f5369a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _ALPHAPREMULTIPLY_ON
+  - _RECEIVE_SHADOWS_OFF
+  - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
+  stringTagMap:
+    RenderType: Transparent
   disabledShaderPasses:
   - MOTIONVECTORS
+  - DepthOnly
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -38,13 +43,27 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 1
+    - _CastShadows: 1
+    - _Cull: 0
+    - _DstBlend: 10
     - _EmissionValue: 4
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _ReceiveShadows: 0
     - _RotationSpeed: 2
     - _ScaleFirstBend: 1.69
     - _ScaleSecondBend: 0.42
     - _ScaleUV: 3
+    - _SrcBlend: 1
+    - _Surface: 1
+    - _WorkflowMode: 1
+    - _ZTest: 4
+    - _ZWrite: 0
+    - _ZWriteControl: 0
     m_Colors:
     - _PortalColor: {r: 1, g: 1, b: 1, a: 1}
     - _PortalColor2: {r: 0.6, g: 0.6, b: 0.6, a: 1}
