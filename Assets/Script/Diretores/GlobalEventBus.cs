@@ -49,6 +49,8 @@ public class GlobalEventBus : MonoBehaviour
     // Sistema monetário
     public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
 
+    public readonly UnityEvent<string> PLAYERINPUTCHANGED = new();
+
     // Diálogo
     public readonly UnityEvent<PlayerContext,List<string>,float> PLAYERTRIGGEREDDIALOGUE = new();
     public readonly UnityEvent<PlayerContext,bool> PLAYERTRIGGEREDLOCKDIALOGUE = new();

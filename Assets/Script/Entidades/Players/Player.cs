@@ -22,6 +22,8 @@ public class Player : CombatEntities
     internal float friction = 2f;
     internal float airFriction = 2f;
 
+    
+
 
     [Header("Pulo")]
      private float jumpForce = 10f;
@@ -293,6 +295,43 @@ public class Player : CombatEntities
             StartDash();
     }
 
+    private void OnEnable()
+    {
+        _playerIinpuut.onControlsChanged += DetectarDispositivo;
+    }
+
+    private void OnDisable()
+    {
+        _playerIinpuut.onControlsChanged -= DetectarDispositivo;
+    }
+
+    private void DetectarDispositivo(PlayerInput input)
+    {
+        string last = input.currentControlScheme;
+
+        switch (last)
+        {
+            case "Keyboard&Mouse" :
+                 _ultimoDispositivo = "Keyboard";
+                 break;
+            var gp = Gamepad.current;
+
+            if (gp == null)
+            {
+                _ultimoDispositivo = "Keyboard";
+                break;
+            }
+
+            if (gp.displayName.Contains("DualShock") || gp.displayName.Contains("DualSense"))
+            _ultimoDispositivo = "Playstation";
+           else
+           _ultimoDispositivo = "Xbox";
+            break;
+        }
+
+        GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo);
+    }
+
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.started)
@@ -551,7 +590,7 @@ public class Player : CombatEntities
         }
 
         // 4 — Tenta pegar o componente de interação
-        if (!result.Item2.collider.TryGetComponent(out interactionObject) && result.Item2.distance > interactionObject.Range)
+        if (!result.Item2.collider.TryGetComponent(out interactionObject) && result.Item2.distance > interactionObject.range)
         {
             ClearInteractable();
             return (false, default);
