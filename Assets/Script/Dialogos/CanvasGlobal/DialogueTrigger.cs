@@ -7,6 +7,7 @@ public class DialogueTrigger : InteractableObject
 {
     [TextArea(2, 4)]
     public string[] _dialogo;
+    
 
     //private bool _primeiraVez = true;
     public TextMeshProUGUI _TextoTutor;
@@ -14,6 +15,8 @@ public class DialogueTrigger : InteractableObject
     public Image _iconInteracao; // icon "Press F"
     [HideInInspector] public PlayerInput _CurrentPlayerInput;
     private bool _jogadorDentro = false;
+    private Player player;
+    
 
 
     
@@ -39,11 +42,22 @@ public class DialogueTrigger : InteractableObject
 
             if(_iconInteracao != null)
             {
-              _iconInteracao.sprite = GetCorrentSprite(_CurrentPlayerInput);
+              _iconInteracao.sprite = GetCorrentSprite(other.GetComponent<Player>());
               _iconInteracao.gameObject.SetActive(true);
             }
 
         _dialogoGlobal.SetTrigger(this);
+        if (other.TryGetComponent(out Player player))
+        {
+            
+            DialogueGlobal.Instance.SetTrigger(this);
+            AtualizarIconeDeInteracao(player);
+        }
+        
+            
+        
+        
+      
 
             
 
@@ -96,7 +110,7 @@ public class DialogueTrigger : InteractableObject
 
         if (!_dialogoGlobal.IsDialogueActive && _iconInteracao != null)
         {
-            _iconInteracao.sprite = GetCorrentSprite(_CurrentPlayerInput);
+            _iconInteracao.sprite = GetCorrentSprite(player);
         }
 
         if (_dialogoGlobal.IsDialogueActive) return;
@@ -120,6 +134,8 @@ public class DialogueTrigger : InteractableObject
 
         _dialogoGlobal.SetTrigger(this);
         _dialogoGlobal.IniciarDialogo(_dialogo);
+
+        
     }
 
     public void OnDialogoFechado()
@@ -127,6 +143,17 @@ public class DialogueTrigger : InteractableObject
         if(_jogadorDentro && _iconInteracao != null)
             _iconInteracao.gameObject.SetActive(true);
         
+    }
+
+    public void AtualizarIconeDeInteracao(Player player)
+    {
+        if (_iconInteracao == null) return;
+
+    // SE O MÉTODO EXISTE NO PLAYER:
+    _iconInteracao.sprite = GetCorrentSprite(player);
+
+    // OU SE EXISTE EM OUTRO SCRIPT DO PLAYER:
+    //_iconInteracao.sprite = player.iconController.GetCorrectSprite();
     }   
      
 }

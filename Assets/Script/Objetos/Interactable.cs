@@ -9,35 +9,26 @@ public abstract class InteractableObject : MonoBehaviour
     public Sprite _playstationSprites; //X
     public Sprite _xboxSprites; //A
     
-    [SerializeField] protected float range = 10;
-    public float Range => range;
+    [SerializeField] public float range = 10;
 
     public virtual void Interaction(InfoPlayerInteraction info)
     {
         
     }
 
-    public virtual Sprite GetCorrentSprite(PlayerInput _playerInput)
+    public virtual Sprite GetCorrentSprite(Player player)
    {  
-    Player player = _playerInput.GetComponent<Player>();
-
     if (player == null)
         return _keyboardSprites;
 
-    switch (player._ultimoDispositivo)
+    return player._ultimoDispositivo switch
     {
-        case "Keyboard":
-            return _keyboardSprites;
-
-        case "Playstation":
-            return _playstationSprites;
-
-        case "Xbox":
-            return _xboxSprites;
-
-        default:
-            return _keyboardSprites;
-    }
-   } 
+        "Keyboard" => _keyboardSprites,
+        "Playstation" => _playstationSprites,
+        "Xbox" => _xboxSprites,
+        _ => _keyboardSprites
+    };
+   }
 }
+
 
