@@ -297,11 +297,13 @@ public class Player : CombatEntities
 
     private void OnEnable()
     {
+        if(!_playerIinpuut) return;
         _playerIinpuut.onControlsChanged += DetectarDispositivo;
     }
 
     private void OnDisable()
     {
+        if(!_playerIinpuut) return;
         _playerIinpuut.onControlsChanged -= DetectarDispositivo;
     }
 
