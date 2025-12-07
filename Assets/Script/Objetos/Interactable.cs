@@ -20,6 +20,7 @@ public abstract class InteractableObject : MonoBehaviour
    {  
     if (player == null)
         return _keyboardSprites;
+    Debug.Log($"[GetCorrentSprite] _ultimoDispositivo do player = {player._ultimoDispositivo}");
 
     return player._ultimoDispositivo switch
     {

@@ -29,10 +29,10 @@ public class DialogueTrigger : InteractableObject
 
         if (!other.CompareTag("Player")) return;
 
-            _dialogoGlobal._currentTrigger = gameObject.GetComponent<DialogueTrigger>();
+            //_dialogoGlobal._currentTrigger = gameObject.GetComponent<DialogueTrigger>();
             _CurrentPlayerInput = other.GetComponent<PlayerInput>();
 
-            if(_dialogoGlobal != null)
+           // if(_dialogoGlobal != null)
             _dialogoGlobal._currentTrigger = this;
 
             _jogadorDentro = true;
@@ -40,19 +40,17 @@ public class DialogueTrigger : InteractableObject
             if(_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
             _TextoTutor.text = _dialogo[0];
 
-            if(_iconInteracao != null)
-            {
-              _iconInteracao.sprite = GetCorrentSprite(other.GetComponent<Player>());
-              _iconInteracao.gameObject.SetActive(true);
-            }
+            if(other.TryGetComponent(out Player p))
+               player = p;
 
-        _dialogoGlobal.SetTrigger(this);
-        if (other.TryGetComponent(out Player player))
+            if(_iconInteracao != null)
         {
-            
-            DialogueGlobal.Instance.SetTrigger(this);
-            AtualizarIconeDeInteracao(player);
+            AtualizarIconeDeInteracao();
+            _iconInteracao.gameObject.SetActive(true);
         }
+
+          _dialogoGlobal.SetTrigger(this);
+        
         
             
         
@@ -62,7 +60,7 @@ public class DialogueTrigger : InteractableObject
             
 
            // _dialogoGlobal.IniciarDialogo(_dialogo);
-        
+        //DialogueGlobal.Instance.SetTrigger(this);   
     }
 
 
@@ -97,28 +95,31 @@ public class DialogueTrigger : InteractableObject
         
         _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
         
-        if (_iconInteracao != null) _iconInteracao.gameObject.SetActive(false);
+        if (_iconInteracao != null)
+           _iconInteracao.gameObject.SetActive(false);
+        
+        GlobalEventBus.Instance.PLAYERINPUTCHANGED.AddListener(OnControlChanged);
+    }
+
+    private void OnControlChanged(string _)
+    {
+        if (_jogadorDentro)
+            AtualizarIconeDeInteracao();
     }
     private void Update()
     {
-        if (!_jogadorDentro) return;
-        if (_CurrentPlayerInput == null) return;
-        if(_dialogoGlobal == null) return;
+        if (!_jogadorDentro || _CurrentPlayerInput == null || _dialogoGlobal == null)
+            return;
 
-        
+        // Atualiza a sprite enquanto não está em diálogo
+        if (!_dialogoGlobal.IsDialogueActive)
+            AtualizarIconeDeInteracao();
 
-
-        if (!_dialogoGlobal.IsDialogueActive && _iconInteracao != null)
-        {
-            _iconInteracao.sprite = GetCorrentSprite(player);
-        }
-
-        if (_dialogoGlobal.IsDialogueActive) return;
+        if (_dialogoGlobal.IsDialogueActive)
+            return;
 
         if (_CurrentPlayerInput.actions["Interaction"].WasPerformedThisFrame())
-        {
             AbrirDialogo();
-        }
         
     }
 
@@ -145,15 +146,11 @@ public class DialogueTrigger : InteractableObject
         
     }
 
-    public void AtualizarIconeDeInteracao(Player player)
+    public void AtualizarIconeDeInteracao()
     {
-        if (_iconInteracao == null) return;
+        if (_iconInteracao == null || player == null) return;
 
-    // SE O MÉTODO EXISTE NO PLAYER:
-    _iconInteracao.sprite = GetCorrentSprite(player);
-
-    // OU SE EXISTE EM OUTRO SCRIPT DO PLAYER:
-    //_iconInteracao.sprite = player.iconController.GetCorrectSprite();
+        _iconInteracao.sprite = GetCorrentSprite(player);
     }   
      
 }

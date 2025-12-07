@@ -60,7 +60,7 @@ public class Player : CombatEntities
     
     internal PlayerInput playerInput;
     public string _ultimoDispositivo = "Keyboard";
-    private PlayerInput _playerIinpuut;
+    
 
     #endregion
 
@@ -181,6 +181,8 @@ public class Player : CombatEntities
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
         playerInput = GetComponent<PlayerInput>();
+        //_playerIinpuut = playerInput;
+        DetectarDispositivo(playerInput);
 
         VerticalLayer = new(new PlayerFallingState(),Context);
         HorizontalLayer = new(new PlayerHorizontalStateIdle(), Context);
@@ -228,6 +230,23 @@ public class Player : CombatEntities
         ScanObjects();
         KnockbackTimer();
         //ChangeCharacterTimer();
+
+        if (MoveInput.sqrMagnitude < 0.0001f)
+    {
+        var gp = Gamepad.current;
+        if (gp != null)
+        {
+            Vector2 stick = gp.leftStick.ReadValue();
+            // deadzone pequena
+            if (Mathf.Abs(stick.x) > 0.09f || Mathf.Abs(stick.y) > 0.09f)
+            {
+                MoveInput = stick;
+                // opcional: log para ver que o fallback está pegando a entrada
+                Debug.Log($"[Fallback] Gamepad stick read: {stick}");
+                Move(); // chama Move() como se viesse por callback
+            }
+        }
+    }
 
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
@@ -286,6 +305,7 @@ public class Player : CombatEntities
     public void OnMove(InputAction.CallbackContext context)
     {
         MoveInput = context.ReadValue<Vector2>();
+         Debug.Log($"[OnMove] controlScheme={playerInput.currentControlScheme} value={MoveInput}");
         Move();
     }
 
@@ -297,39 +317,53 @@ public class Player : CombatEntities
 
     private void OnEnable()
     {
-        if(!_playerIinpuut) return;
-        _playerIinpuut.onControlsChanged += DetectarDispositivo;
+        playerInput.onControlsChanged += DetectarDispositivo;
+
+        // Força atualização inicial
+        DetectarDispositivo(playerInput);
+
+    // Atualiza no primeiro frame
+    
     }
 
     private void OnDisable()
     {
-        if(!_playerIinpuut) return;
-        _playerIinpuut.onControlsChanged -= DetectarDispositivo;
+        playerInput.onControlsChanged -= DetectarDispositivo;
     }
 
     private void DetectarDispositivo(PlayerInput input)
     {
         string last = input.currentControlScheme;
+        Debug.Log($"[DetectarDispositivo] Scheme detectado = {last}");
 
         switch (last)
         {
-            case "Keyboard&Mouse" :
-                 _ultimoDispositivo = "Keyboard";
-                 break;
-            var gp = Gamepad.current;
-
-            if (gp == null)
-            {
+            case "Keyboard&Mouse":
                 _ultimoDispositivo = "Keyboard";
                 break;
-            }
 
-            if (gp.displayName.Contains("DualShock") || gp.displayName.Contains("DualSense"))
-            _ultimoDispositivo = "Playstation";
-           else
-           _ultimoDispositivo = "Xbox";
-            break;
+            case "Gamepad":
+                var gp = Gamepad.current;
+
+                if (gp == null)
+                {
+                    _ultimoDispositivo = "Keyboard";
+                    break;
+                }
+
+                if (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
+                    _ultimoDispositivo = "Playstation";
+                else
+                    _ultimoDispositivo = "Xbox";
+
+                break;
+
+            default:
+                _ultimoDispositivo = "Keyboard";
+                break;
         }
+
+        Debug.Log($"[DetectarDispositivo] ÚLTIMO DISPOSITIVO DEFINIDO = {_ultimoDispositivo}");
 
         GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo);
     }
