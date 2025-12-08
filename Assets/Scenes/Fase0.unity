@@ -94,7 +94,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 112000000, guid: 497ee361a6c0ceb49843159d1ac4a31d, type: 2}
-  m_LightingSettings: {fileID: 0}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 439a905f3fadc039784fcf4d0ed03fbe, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -532,6 +532,7 @@ GameObject:
   - component: {fileID: 28547148}
   - component: {fileID: 28547147}
   - component: {fileID: 28547151}
+  - component: {fileID: 28547152}
   m_Layer: 8
   m_Name: Plataforma
   m_TagString: Untagged
@@ -604,7 +605,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28547145}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -668,8 +669,35 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.09922265, y: 0.03, z: 0.097552605}
-  m_Center: {x: -0.00018223001, y: 0.027, z: 0.00041103546}
+  m_Size: {x: 0.09922265, y: 0.015, z: 0.097552605}
+  m_Center: {x: -0.00018223001, y: 0.02, z: 0.00041103546}
+--- !u!54 &28547152
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28547145}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &56008028
 GameObject:
   m_ObjectHideFlags: 0
@@ -28641,7 +28669,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1295841011}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Target
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34952,7 +34980,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1411360669}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Target
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40792,7 +40820,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
+  m_StaticShadowCaster: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -47884,7 +47912,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1798407377}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -51400,7 +51428,7 @@ GameObject:
   - component: {fileID: 6702476313022919955}
   - component: {fileID: 6907408729248069306}
   - component: {fileID: 5069563433602181446}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -51736,7 +51764,7 @@ GameObject:
   - component: {fileID: 1047596748545480355}
   - component: {fileID: 6921703085308942800}
   - component: {fileID: 8027796338987208904}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -52602,7 +52630,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
+  m_StaticShadowCaster: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -52827,7 +52855,7 @@ GameObject:
   - component: {fileID: 2736060924320249003}
   - component: {fileID: 2736060924320249002}
   - component: {fileID: 2736060924320249001}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Plataforma.1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -52871,7 +52899,7 @@ GameObject:
   - component: {fileID: 3252160130353783714}
   - component: {fileID: 5899735424687348246}
   - component: {fileID: 5866446333559615368}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53422,8 +53450,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.15003778, y: 0.03, z: 0.13530686}
-  m_Center: {x: -0.0055556297, y: 0.05, z: 0.0017630607}
+  m_Size: {x: 0.15003778, y: 0.02, z: 0.13530686}
+  m_Center: {x: -0.0055556297, y: 0.045, z: 0.0017630607}
 --- !u!54 &2736060924320249002
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -53686,7 +53714,7 @@ GameObject:
   - component: {fileID: 8152017813004991615}
   - component: {fileID: 5823512687117559755}
   - component: {fileID: 591047756084364920}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.007
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -54606,7 +54634,7 @@ GameObject:
   - component: {fileID: 1638133790057807820}
   - component: {fileID: 2922131786719696499}
   - component: {fileID: 881464279602561219}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55478,7 +55506,7 @@ GameObject:
   - component: {fileID: 2350579877154635818}
   - component: {fileID: 5653915740823426770}
   - component: {fileID: 2374405402262319065}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.013
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55504,7 +55532,7 @@ GameObject:
   - component: {fileID: 3909562663773996410}
   - component: {fileID: 184176198149067005}
   - component: {fileID: 6490140027150069871}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56018,7 +56046,7 @@ GameObject:
   - component: {fileID: 5946045425279271883}
   - component: {fileID: 7425753290352811961}
   - component: {fileID: 3817147653821041328}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.014
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56221,7 +56249,7 @@ GameObject:
   - component: {fileID: 3551151364653436907}
   - component: {fileID: 8664557002990060776}
   - component: {fileID: 539623576324751695}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56315,7 +56343,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
+  m_StaticShadowCaster: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -56540,7 +56568,7 @@ GameObject:
   - component: {fileID: 7526437312020299050}
   - component: {fileID: 5632975314003237762}
   - component: {fileID: 4452125213325378507}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.012
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56769,7 +56797,7 @@ GameObject:
   - component: {fileID: 7861217735579175596}
   - component: {fileID: 5680473800122715750}
   - component: {fileID: 3956238883691858157}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Diamond.004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56787,7 +56815,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
+  m_StaticShadowCaster: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -56959,8 +56987,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f33a3366880a446438ffb5b0cc2207da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstPlayerPrefab: {fileID: 8200904327345480104, guid: 2e6b248901f2335b3bbf87492532793c, type: 3}
-  fallbackPlayerPrefab: {fileID: 8200904327345480104, guid: 2e6b248901f2335b3bbf87492532793c, type: 3}
+  firstPlayerPrefab: {fileID: 7958797620662136170, guid: ea24acccc60d16e928e9941cbc261821, type: 3}
+  fallbackPlayerPrefab: {fileID: 7958797620662136170, guid: ea24acccc60d16e928e9941cbc261821, type: 3}
   secondPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
   hudPrefab: {fileID: 488739853224379904, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
   hudCanvasParent: Canvas
@@ -57675,7 +57703,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
+  m_StaticShadowCaster: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1

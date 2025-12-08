@@ -90,6 +90,7 @@ public class Player : CombatEntities
     internal Vector3 DashDirection;
     internal Vector2 MoveInput;
     internal Vector3 LastWallNormal;
+    internal Transform modelTransform;
 
     internal int currentJumpCount;
     [SerializeField] internal bool isGrounded;
@@ -218,8 +219,7 @@ public class Player : CombatEntities
             ScanEnemies // <-- injeta o método diretamente
         );
 
-        
-
+        modelTransform = transform.Find("Pandora.014");
         idleConditional.Setup(() => animatorComp.SetTrigger(Constants.AnimatorTriggerNames.Idle),() => animatorComp.ResetTrigger(Constants.AnimatorTriggerNames.Idle)); 
     }
 
@@ -693,6 +693,7 @@ public class PlayerContext : CombatEntityContext
     public CinemachineCamera PlayerCamera { get => player.Cinemachinecamera; }
     public InteractableObject PlayerInteractionReference { get => player.interactableRef; }
     public Animator PlayerAnimator { get => player.animatorComp; }
+    public Transform PlayerModelTransform {get => player.modelTransform;}
     public PlayerInput PlayerInput { get => player.playerInput;}
     public float PlayerSpeed { get => player.Speed; set => player.Speed = value; }
     public QualityTier PlayerWallSpeedMultiplier { get => player.wallSpeedMultiplier; set => player.wallSpeedMultiplier = value; }
