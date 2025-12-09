@@ -47,6 +47,9 @@ public class DialogueGlobal : MonoBehaviour
         playerDirectoor = FindAnyObjectByType<PlayerDirector>();
         
         _gameDirector = FindAnyObjectByType<GameDirector>();
+
+        if (playerDirectoor != null)
+            _playerContext = playerDirectoor.FirstPlayerContext;
         
 
       //_painelDialogo?.SetActive(false);
@@ -103,12 +106,24 @@ public class DialogueGlobal : MonoBehaviour
 
         if (falas == null || falas.Length == 0)
             return;
-
+        _playerContext = null;
+        if (_currentTrigger != null && _currentTrigger._playerInput != null)
+        {
+            var playerGO = _currentTrigger._playerInput.gameObject;
+            if (playerGO != null)
+            {
+                var playerComp = playerGO.GetComponent<Player>();
+                if (playerComp != null)
+                    _playerContext = playerComp.Context;
+            }
+        }
         OndialogueStart?.Invoke();
 
         _falasAtuais = falas;
         _index = 0;
         _dialogoAtivo = true;
+
+
 
         _painelDialogo.SetActive(true);
         if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
@@ -116,10 +131,10 @@ public class DialogueGlobal : MonoBehaviour
 
         _textoDialogo.text = _falasAtuais[_index];
 
-        if(_gameDirector != null && _playerContext != null)
-        {
+        
+
+        if (_gameDirector != null && _playerContext != null)
             _gameDirector.SetLockPlayer(_playerContext, true);
-        }
     }
 
     public void ProximaFala()
@@ -164,10 +179,12 @@ public class DialogueGlobal : MonoBehaviour
           _currentTrigger.OnDialogoFechado();
         _painelDialogo.SetActive(false);
 
-        if(_gameDirector != null && _playerContext != null)
-        {
+        
+
+        if (_gameDirector != null && _playerContext != null)
             _gameDirector.SetLockPlayer(_playerContext, false);
-        }
+
+        _playerContext = null;
     }
 
     private void Update()
@@ -195,4 +212,8 @@ public class DialogueGlobal : MonoBehaviour
         VoltarFala();   // SEMPRE retorna a fala
     }
     }
+
+    
+
+
 }
