@@ -82,12 +82,14 @@ public class GameDirector : MonoBehaviour
         if(set)
         {
             playerContext.PlayerInput.ActivateInput();
+            playerContext.PlayerController.enabled = false;
         }
         else
         {
             playerContext.PlayerInput.DeactivateInput();
+            playerContext.PlayerController.enabled = true;
         }
-        playerContext.PlayerController.enabled = set;
+        //playerContext.PlayerController.enabled = set;
 
     }
 }

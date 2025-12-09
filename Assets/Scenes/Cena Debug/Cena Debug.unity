@@ -8259,7 +8259,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -9635,6 +9635,7 @@ GameObject:
   - component: {fileID: 1844685620427563359}
   - component: {fileID: 7382347499201072063}
   - component: {fileID: 9066435537285148879}
+  - component: {fileID: 9066435537285148880}
   m_Layer: 0
   m_Name: F
   m_TagString: Untagged
@@ -10242,7 +10243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f33a3366880a446438ffb5b0cc2207da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstPlayerPrefab: {fileID: 8200904327345480104, guid: 2e6b248901f2335b3bbf87492532793c, type: 3}
+  firstPlayerPrefab: {fileID: 7958797620662136170, guid: ea24acccc60d16e928e9941cbc261821, type: 3}
   fallbackPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
   secondPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
   hudPrefab: {fileID: 488739853224379904, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
@@ -10682,9 +10683,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyboardSprites: {fileID: 578102382, guid: 353cf25ddfe51624899e6574644dbc65, type: 3}
-  _playstationSprites: {fileID: 255648001, guid: 83011c63bb6c52a4b9a2d95824242f74, type: 3}
-  _xboxSprites: {fileID: -1029081070, guid: 2bbb7399515f9d245bacd99fb802a2b6, type: 3}
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
   range: 10
   _dialogo:
   - "Ol\xE1, sejam bem vindos ao jogo Pandora!!"
@@ -10696,7 +10697,7 @@ MonoBehaviour:
   _TextoTutor: {fileID: 4850164873411718467}
   _dialogoGlobal: {fileID: 1260270791}
   _iconInteracao: {fileID: 9066435537285148879}
-  _CurrentPlayerInput: {fileID: 0}
+  _playerInput: {fileID: 0}
 --- !u!114 &4850164873411718467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12581,7 +12582,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -14596,9 +14597,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1029081070, guid: 2bbb7399515f9d245bacd99fb802a2b6, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -14606,6 +14607,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9066435537285148880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3286470999117449593}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a9daf3ab6d0f6644b30df2329ec9ef0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _KeyBoardSprite: {fileID: -1715719919, guid: baf426e33a3b64a4c82f3013d8ad2379, type: 3}
+  _xboxSprite: {fileID: -1029081070, guid: 2bbb7399515f9d245bacd99fb802a2b6, type: 3}
+  _playstationSprite: {fileID: 255648001, guid: 83011c63bb6c52a4b9a2d95824242f74, type: 3}
 --- !u!114 &9089816850782651313
 MonoBehaviour:
   m_ObjectHideFlags: 0

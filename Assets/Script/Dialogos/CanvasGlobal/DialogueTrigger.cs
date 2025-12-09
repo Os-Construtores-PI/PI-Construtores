@@ -13,145 +13,134 @@ public class DialogueTrigger : InteractableObject
     public TextMeshProUGUI _TextoTutor;
     public DialogueGlobal _dialogoGlobal;
     public Image _iconInteracao; // icon "Press F"
-    [HideInInspector] public PlayerInput _CurrentPlayerInput;
+    public PlayerInput _playerInput;
     private bool _jogadorDentro = false;
-    private Player player;
+
+    private bool _canInteractAgain = true;
+    
     
 
 
     
 
-    private void OnTriggerEnter(Collider other)
+    private void Start()
     {
-       
+        _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
 
-        
+        if (_iconInteracao != null)
+            _iconInteracao.gameObject.SetActive(false);
 
-        if (!other.CompareTag("Player")) return;
+        if(DeviceSpriteManager.Instance != null)
+           DeviceSpriteManager.Instance.OnDeviceChanged += OnDeviceChanged;
+    }
 
-            //_dialogoGlobal._currentTrigger = gameObject.GetComponent<DialogueTrigger>();
-            _CurrentPlayerInput = other.GetComponent<PlayerInput>();
-
-           // if(_dialogoGlobal != null)
-            _dialogoGlobal._currentTrigger = this;
-
-            _jogadorDentro = true;
-
-            if(_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
-            _TextoTutor.text = _dialogo[0];
-
-            if(other.TryGetComponent(out Player p))
-               player = p;
-
-            if(_iconInteracao != null)
-        {
-            AtualizarIconeDeInteracao();
-            _iconInteracao.gameObject.SetActive(true);
-        }
-
-          _dialogoGlobal.SetTrigger(this);
-        
-        
-            
-        
-        
-      
-
-            
-
-           // _dialogoGlobal.IniciarDialogo(_dialogo);
-        //DialogueGlobal.Instance.SetTrigger(this);   
+    private void OnDestroy()
+    {
+        if(DeviceSpriteManager.Instance != null)
+           DeviceSpriteManager.Instance.OnDeviceChanged -= OnDeviceChanged;
     }
 
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
 
-     
+        _playerInput = other.GetComponent<PlayerInput>();
+        _jogadorDentro = true;
 
-        
+        // Exibe primeira linha do diálogo no tutor
+        if (_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
+            _TextoTutor.text = _dialogo[0];
 
-      private void OnTriggerExit(Collider other)
-      {
+        // Mostra sprite atual do painel de interação
+        if (_iconInteracao != null)
+        {
+            AtualizaSpriteDoIcone();
+            _iconInteracao.gameObject.SetActive(true);
+        }
 
-        
-          if (!other.CompareTag("Player")) return;  
+        // vincula este trigger ao DialogueGlobal
+        if (_dialogoGlobal != null)
+            _dialogoGlobal.SetTrigger(this);
+    }
+
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
 
         _jogadorDentro = false;
 
         if (_iconInteracao != null)
             _iconInteracao.gameObject.SetActive(false);
-        
-        
-            if(_dialogoGlobal._currentTrigger == this)
-                _dialogoGlobal._currentTrigger = null;
-           // _dialogoGlobal.FecharDialogo();
-        
 
-        
-      }
-    
-
-     private void Start()
-    {
-        
-        _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
-        
-        if (_iconInteracao != null)
-           _iconInteracao.gameObject.SetActive(false);
-        
-        GlobalEventBus.Instance.PLAYERINPUTCHANGED.AddListener(OnControlChanged);
+        // remove vínculo do trigger
+        if (_dialogoGlobal != null && _dialogoGlobal._currentTrigger == this)
+            _dialogoGlobal._currentTrigger = null;
     }
 
-    private void OnControlChanged(string _)
-    {
-        if (_jogadorDentro)
-            AtualizarIconeDeInteracao();
-    }
+
     private void Update()
     {
-        if (!_jogadorDentro || _CurrentPlayerInput == null || _dialogoGlobal == null)
+        if (!_jogadorDentro || _playerInput == null || _dialogoGlobal == null)
             return;
 
-        // Atualiza a sprite enquanto não está em diálogo
-        if (!_dialogoGlobal.IsDialogueActive)
-            AtualizarIconeDeInteracao();
-
+        // Não deixa interagir enquanto o diálogo está ativo
         if (_dialogoGlobal.IsDialogueActive)
             return;
 
-        if (_CurrentPlayerInput.actions["Interaction"].WasPerformedThisFrame())
+        if (_canInteractAgain && _playerInput.actions["Interaction"].WasPerformedThisFrame())
             AbrirDialogo();
         
+            
     }
 
 
-    void AbrirDialogo()
+    private void AbrirDialogo()
     {
-
-        // _iconInteracao.SetActive(false); // some enquanto o painel esta aberto
-        // _dialogoGlobal.IniciarDialogo(_dialogo);
         if (_iconInteracao != null)
             _iconInteracao.gameObject.SetActive(false);
-        
 
         _dialogoGlobal.SetTrigger(this);
         _dialogoGlobal.IniciarDialogo(_dialogo);
-
-        
     }
+
 
     public void OnDialogoFechado()
     {
-        if(_jogadorDentro && _iconInteracao != null)
+        if (_jogadorDentro && _iconInteracao != null)
             _iconInteracao.gameObject.SetActive(true);
         
+        BloquearInteracao();
     }
 
-    public void AtualizarIconeDeInteracao()
-    {
-        if (_iconInteracao == null || player == null) return;
 
-        _iconInteracao.sprite = GetCorrentSprite(player);
+    public void AtualizaSpriteDoIcone()
+    {
+        if (_iconInteracao == null)
+            return;
+
+        if (DeviceSpriteManager.Instance != null)
+            _iconInteracao.sprite = DeviceSpriteManager.Instance.GetCurrentSprite();
+    }
+
+    private void OnDeviceChanged(string novoDevice)
+    {
+        if(_jogadorDentro) 
+          AtualizaSpriteDoIcone();
     }   
-     
+
+    public void BloquearInteracao()
+    {
+        _canInteractAgain = false;
+        Invoke(nameof(DesbloquearInteracao), 0.15f);
+    }
+    public void DesbloquearInteracao()
+    {
+        _canInteractAgain = true;
+    }
+    
 }
 
