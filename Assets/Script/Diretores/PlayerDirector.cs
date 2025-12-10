@@ -148,4 +148,14 @@ public class PlayerDirector : MonoBehaviour
         print($"Speed:{player.Context.PlayerSpeed}");
        
     }   
+
+    public PlayerContext FirstPlayerContext
+    {
+        get
+        {
+            if (allPlayers.Count > 0)
+                return allPlayers[0].Context;
+            return null;
+        }
+    }
 }

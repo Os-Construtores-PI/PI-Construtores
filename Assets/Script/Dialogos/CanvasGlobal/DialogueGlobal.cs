@@ -18,9 +18,10 @@ public class DialogueGlobal : MonoBehaviour
     private int _index = 0;
     private bool _dialogoAtivo = false;
     public bool IsDialogueActive => _dialogoAtivo;
-    public int dialogoAtivo = 0;
+    //public int dialogoAtivo = 0;
     private PlayerDirector playerDirectoor;
     private GameDirector _gameDirector;
+    private PlayerContext _playerContext;
 
     public GameObject _botoesDialogo; // grupo de botões que aparecem no diálogo
     public GameObject _botoesGameplay; // grupo de botões da HUD que somem no diálogo
@@ -44,7 +45,12 @@ public class DialogueGlobal : MonoBehaviour
        // _painelDialogo.SetActive(false);
 
         playerDirectoor = FindAnyObjectByType<PlayerDirector>();
+        
         _gameDirector = FindAnyObjectByType<GameDirector>();
+
+        if (playerDirectoor != null)
+            _playerContext = playerDirectoor.FirstPlayerContext;
+        
 
       //_painelDialogo?.SetActive(false);
         
@@ -62,7 +68,7 @@ public class DialogueGlobal : MonoBehaviour
 
     
 
-    public void Falas(bool value)
+    /*public void Falas(bool value)
     {
         if (value)
         {
@@ -88,7 +94,7 @@ public class DialogueGlobal : MonoBehaviour
         }
 
         _textoDialogo.text = _currentTrigger._dialogo[dialogoAtivo];
-    }
+    }*/
 
     public void IniciarDialogo(string[] falas)
     {
@@ -96,28 +102,39 @@ public class DialogueGlobal : MonoBehaviour
 
 
         if (_currentTrigger != null)
-            _Interactable = _currentTrigger._CurrentPlayerInput;
-            if (falas == null || falas.Length == 0) 
-                return;
-       
-         
-         OndialogueStart?.Invoke();
-        
+            _Interactable = _currentTrigger._playerInput;
 
-          _falasAtuais = falas;
-          _index = 0;
-          dialogoAtivo = 0;
-          _dialogoAtivo = true;
+        if (falas == null || falas.Length == 0)
+            return;
+        _playerContext = null;
+        if (_currentTrigger != null && _currentTrigger._playerInput != null)
+        {
+            var playerGO = _currentTrigger._playerInput.gameObject;
+            if (playerGO != null)
+            {
+                var playerComp = playerGO.GetComponent<Player>();
+                if (playerComp != null)
+                    _playerContext = playerComp.Context;
+            }
+        }
+        OndialogueStart?.Invoke();
+
+        _falasAtuais = falas;
+        _index = 0;
+        _dialogoAtivo = true;
 
 
-        
-        
 
         _painelDialogo.SetActive(true);
-
         if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
         if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
+
         _textoDialogo.text = _falasAtuais[_index];
+
+        
+
+        if (_gameDirector != null && _playerContext != null)
+            _gameDirector.SetLockPlayer(_playerContext, true);
     }
 
     public void ProximaFala()
@@ -161,6 +178,13 @@ public class DialogueGlobal : MonoBehaviour
         if(_currentTrigger != null)
           _currentTrigger.OnDialogoFechado();
         _painelDialogo.SetActive(false);
+
+        
+
+        if (_gameDirector != null && _playerContext != null)
+            _gameDirector.SetLockPlayer(_playerContext, false);
+
+        _playerContext = null;
     }
 
     private void Update()
@@ -169,14 +193,27 @@ public class DialogueGlobal : MonoBehaviour
         if(_Interactable == null) return;
 
         if (_Interactable.actions["AdvanceDialogue"].WasPerformedThisFrame())
-        {
-            if(_botaoRetornar != null)
+    {
+        
+
+        if(_index >= _falasAtuais.Length - 1)
             {
-                if (_botaoRetornar != null)
-                    _botaoRetornar.onClick.Invoke();
-                else
-                    VoltarFala();
+                FecharDialogo();
+                return;
             }
-        }
+        ProximaFala();
     }
+
+    // VOLTAR
+    if (_Interactable.actions["ReturnDialogue"].WasPerformedThisFrame())
+    {
+        
+
+        VoltarFala();   // SEMPRE retorna a fala
+    }
+    }
+
+    
+
+
 }

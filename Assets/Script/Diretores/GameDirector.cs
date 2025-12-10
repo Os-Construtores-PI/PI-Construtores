@@ -79,15 +79,37 @@ public class GameDirector : MonoBehaviour
 
     public void SetLockPlayer(PlayerContext playerContext, bool set)
     {
-        if(set)
+        /*if(set)
         {
             playerContext.PlayerInput.ActivateInput();
+            playerContext.PlayerController.enabled = false;
         }
         else
         {
             playerContext.PlayerInput.DeactivateInput();
+            playerContext.PlayerController.enabled = true;
         }
-        playerContext.PlayerController.enabled = set;
+        */
+
+
+        if (playerContext == null)
+            return;
+
+        if (set)
+        {
+            // TRAVAR PLAYER
+            try { playerContext.PlayerInput.DeactivateInput(); } catch { }
+            if (playerContext.PlayerController != null)
+                playerContext.PlayerController.enabled = false;
+        }
+        else
+        {
+            // DESTRAVAR PLAYER
+            try { playerContext.PlayerInput.ActivateInput(); } catch { }
+            if (playerContext.PlayerController != null)
+                playerContext.PlayerController.enabled = true;
+        }
+        //playerContext.PlayerController.enabled = set;
 
     }
 }
