@@ -6,6 +6,8 @@ using UnityEngine;
 public class GameDirector : MonoBehaviour
 {
     private DataSystem dataSystem;
+    private bool worldStarted = false; 
+
 
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private PlayerDirector playerDirector;
@@ -25,13 +27,19 @@ public class GameDirector : MonoBehaviour
     /// </summary>
     public void StartWorld()
     {
+        if(worldStarted)
+        {
+            Debug.LogError("[GameDirector] MUNDO JÁ INICIALIZADO, LÓGICA DUPLICADA");
+            return;
+        }
+        worldStarted = true;
         // 🔹 Garante que o DataSystem exista
         if (!dataSystem)
         {
             dataSystem = FindAnyObjectByType<DataSystem>();
             if (!dataSystem)
             {
-                Debug.LogWarning("[GameDirector] Nenhum DataSystem encontrado na cena!");
+                Debug.LogError("[GameDirector] Nenhum DataSystem encontrado na cena!");
                 return; // sem DataSystem não dá para continuar
             }
         }
@@ -42,7 +50,7 @@ public class GameDirector : MonoBehaviour
             playerDirector = FindAnyObjectByType<PlayerDirector>();
             if (!playerDirector)
             {
-                Debug.LogWarning("[GameDirector] Nenhum PlayerDirector encontrado. Cena Debug pode continuar sem jogadores.");
+                Debug.LogError("[GameDirector] Nenhum PlayerDirector encontrado. Cena Debug pode continuar sem jogadores.");
             }
         }
 
@@ -52,16 +60,22 @@ public class GameDirector : MonoBehaviour
             backgroundMusic = FindAnyObjectByType<AudioSource>();
             if (!backgroundMusic)
             {
-                Debug.LogWarning("[GameDirector] Nenhuma música de fundo encontrada.");
+                Debug.LogError("[GameDirector] Nenhuma música de fundo encontrada.");
             }
         }
 
         // 🔹 Executa os sistemas que conseguir encontrar
-        playerDirector?.ActivatePlayers();
-        backgroundMusic?.Play();
+        if(playerDirector)
+        {
+            playerDirector.ActivatePlayers();
+        }
+        if(backgroundMusic)
+        {
+            backgroundMusic.Play();
+        }
         dataSystem.AddReferences();
 
-        Debug.Log("[GameDirector] StartWorld executado com sucesso (modo Debug).");
+        Debug.Log("[GameDirector] StartWorld executado com sucesso!");
     }
     public void TogglePauseWorld()
     {

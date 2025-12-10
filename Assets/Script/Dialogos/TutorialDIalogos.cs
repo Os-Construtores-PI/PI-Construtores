@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TutorialDIalogos : MonoBehaviour
+public class TutorialDialogos : MonoBehaviour
 {
     [Header("Icone Pulsante")]
     public ImageTriggerEvent _pulseIcon;
