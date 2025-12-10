@@ -47,7 +47,10 @@ public class LoopPlataforms : BasePlataform
     {
         foreach (Transform child in transform)
         {
-            targetList.Add(child.position);  // Adiciona cada posição de filho na lista
+            if(child.name.ToLower() == "target")
+            {
+                targetList.Add(child.position);  // Adiciona cada posição de filho na lista
+            }
         }
         targets = targetList.ToArray();     // Converte para array para ser usado no DOPath
     }

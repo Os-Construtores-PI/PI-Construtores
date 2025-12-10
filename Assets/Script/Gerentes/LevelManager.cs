@@ -6,13 +6,35 @@ public class LevelManager : MonoBehaviour
     DataSystem dataSystem;
     GameDirector gameDirector;
 
+    [SerializeField] private bool startDialogueOnStart = false;
+
+
     private void Start()
     {
         dataSystem = FindAnyObjectByType<DataSystem>();
         gameDirector = FindAnyObjectByType<GameDirector>();
+        StartLevel();
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(PlayerDeathHandler);
         GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPlayers);
         GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(PlayerEndGameHandler);
+    }
+    private void StartLevel()
+    {
+        if(!gameDirector)
+        {
+            Debug.LogError("[LevelManager] GameDirector Não Encontrado!");
+            return;
+        }
+        gameDirector.StartWorld();
+        if(startDialogueOnStart)
+         {
+           TutorialDialogos dialogue = FindAnyObjectByType<TutorialDialogos>();
+           if(dialogue)
+            {
+                dialogue.AtivarDialogo();
+            }
+        
+         }
     }
     private void PlayerDeathHandler()
     {
