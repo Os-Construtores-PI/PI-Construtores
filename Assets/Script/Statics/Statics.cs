@@ -113,7 +113,13 @@ public static class Constants
         public static readonly string VelocityY = "VelocityY";
         public static readonly string JumpCount = "JumpCount";
     }
-
+    public static class EffectsNames
+    {
+        public static class Player
+        {
+            public static readonly string Dash = "Dash";
+        }
+    }
     public static class Values
     {
         public static readonly float GraplingHookSpeed = 10f;

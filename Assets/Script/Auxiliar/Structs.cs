@@ -91,3 +91,10 @@ public struct IconImage
     public string destiny;
     public Sprite sprite;
 }
+
+[Serializable]
+public struct Effect
+{
+    public string name;
+    public GameObject gameObject;
+}
