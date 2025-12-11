@@ -735,4 +735,5 @@ public class PlayerContext : CombatEntityContext
     public bool OverrideHorizontal { get => player.OverrideHorizontal; set => player.OverrideHorizontal = value; }
     public bool OverrideVertical { get => player.OverrideVertical; set => player.OverrideVertical = value; }
     public bool OverrideGlobal { get => player.OverrideGlobal; set => player.OverrideGlobal = value; }
+    public GameObject PlayerObject => player.gameObject;
 }

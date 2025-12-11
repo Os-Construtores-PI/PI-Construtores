@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System;
 using UnityEngine.InputSystem;
+using DG.Tweening;
 
 public class DialogueGlobal : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class DialogueGlobal : MonoBehaviour
     [Header("UI")]
     public GameObject _painelDialogo;
     public TMP_Text _textoDialogo;
+    private Tween _tweenText;
 
 
     public DialogueTrigger _currentTrigger;
@@ -126,15 +128,18 @@ public class DialogueGlobal : MonoBehaviour
 
 
         _painelDialogo.SetActive(true);
+        _painelDialogo.transform.localScale = Vector3.zero;
+        _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
         if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
         if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
 
-        _textoDialogo.text = _falasAtuais[_index];
+        MostrarFala(_falasAtuais[_index]);
 
-        
+
 
         if (_gameDirector != null && _playerContext != null)
             _gameDirector.SetLockPlayer(_playerContext, true);
+       
     }
 
     public void ProximaFala()
@@ -147,7 +152,7 @@ public class DialogueGlobal : MonoBehaviour
             FecharDialogo();
             return;
         }
-        _textoDialogo.text = _falasAtuais[_index];
+        MostrarFala(_falasAtuais[_index]);
     }
 
     public void VoltarFala()
@@ -177,9 +182,14 @@ public class DialogueGlobal : MonoBehaviour
 
         if(_currentTrigger != null)
           _currentTrigger.OnDialogoFechado();
+        _painelDialogo.transform.DOScale(0f, 0.2f)
+    .SetEase(Ease.InBack)
+    .OnComplete(() =>
+    {
         _painelDialogo.SetActive(false);
+    });
 
-        
+
 
         if (_gameDirector != null && _playerContext != null)
             _gameDirector.SetLockPlayer(_playerContext, false);
@@ -211,6 +221,25 @@ public class DialogueGlobal : MonoBehaviour
 
         VoltarFala();   // SEMPRE retorna a fala
     }
+    }
+
+
+
+    private void MostrarFala(string texto)
+    {
+        if (_tweenText != null && _tweenText.IsActive())
+            _tweenText.Kill();
+
+        _textoDialogo.maxVisibleCharacters = 0;
+        _textoDialogo.text = texto;
+
+        // anima letra por letra
+        _tweenText = DOTween.To(
+            () => _textoDialogo.maxVisibleCharacters,
+            v => _textoDialogo.maxVisibleCharacters = v,
+            texto.Length,
+            0.35f + (texto.Length * 0.01f) // velocidade automática baseada no tamanho
+        );
     }
 
     
