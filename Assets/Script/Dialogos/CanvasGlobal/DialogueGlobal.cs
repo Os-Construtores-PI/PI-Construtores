@@ -36,6 +36,8 @@ public class DialogueGlobal : MonoBehaviour
 
     private PlayerInput _Interactable;
 
+    private bool _openCooldown = false;
+
     
 
     void Awake()
@@ -101,10 +103,25 @@ public class DialogueGlobal : MonoBehaviour
     public void IniciarDialogo(string[] falas)
     {
 
+        if(_openCooldown) return;
+        _openCooldown = true;
+        Invoke(nameof(ResetCoolDown), 0.1f);
+
 
 
         if (_currentTrigger != null)
             _Interactable = _currentTrigger._playerInput;
+
+        
+        if(_Interactable != null)
+        {
+            try
+            {
+                _Interactable.actions["AdvanceDialogue"]?.Reset();
+                _Interactable.actions["ReturnDialogue"]?.Reset();
+            }
+            catch{}
+        }
 
         if (falas == null || falas.Length == 0)
             return;
@@ -140,6 +157,10 @@ public class DialogueGlobal : MonoBehaviour
         if (_gameDirector != null && _playerContext != null)
             _gameDirector.SetLockPlayer(_playerContext, true);
        
+    }
+    private void ResetCoolDown()
+    {
+        _openCooldown = false;
     }
 
     public void ProximaFala()
