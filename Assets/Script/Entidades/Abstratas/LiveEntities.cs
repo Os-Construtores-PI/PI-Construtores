@@ -172,7 +172,7 @@ public abstract class LiveEntities : Entities
 
     public override void Start()
     {
-        base.Awake();
+        base.Start();
         MaxHealth = _maxHealth;
         Health = _maxHealth;
 
