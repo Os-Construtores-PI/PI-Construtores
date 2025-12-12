@@ -7,6 +7,7 @@ public class CameraLogic : Entities
     [SerializeField] private Player playerTarget;
 
     private CinemachineCamera currentCamera;
+    private CinemachineInputAxisController inputAxisController;
 
     public override void Awake()
     {
@@ -14,6 +15,29 @@ public class CameraLogic : Entities
         if (playerTarget != null)
             SetTarget(playerTarget);
         SetDistanceCulling();
+    }
+
+    private void Update()
+    {
+        if (playerTarget == null || currentCamera == null)
+            return;
+
+        // Garante referência ao controlador de input
+        if (inputAxisController == null)
+            currentCamera.TryGetComponent(out inputAxisController);
+
+        if (playerTarget.Context.CameraLocked)
+        {
+            // 🔥 trava completamente os inputs da câmera
+            if (inputAxisController != null)
+                inputAxisController.enabled = false;
+
+            return;
+        }
+
+        // se destravou → garante que voltou ao normal
+        if (inputAxisController != null && !inputAxisController.enabled)
+            inputAxisController.enabled = true;
     }
 
 

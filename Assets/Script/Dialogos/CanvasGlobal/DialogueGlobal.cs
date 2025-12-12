@@ -38,6 +38,9 @@ public class DialogueGlobal : MonoBehaviour
 
     private bool _openCooldown = false;
 
+    [SerializeField] private float _delayAntesdotexto = 0.25f;
+    [SerializeField] private float _tempoPorLetra = 0.015f;
+
     
 
     void Awake()
@@ -150,7 +153,12 @@ public class DialogueGlobal : MonoBehaviour
         if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
         if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
 
-        MostrarFala(_falasAtuais[_index]);
+        _painelDialogo.transform.DOScale(1f, 0.30f)
+            .SetEase(Ease.OutBack)
+            .OnComplete(() =>
+            {
+                StartCoroutine(DelayMostrarFala());
+            });
 
 
 
@@ -254,13 +262,22 @@ public class DialogueGlobal : MonoBehaviour
         _textoDialogo.maxVisibleCharacters = 0;
         _textoDialogo.text = texto;
 
+        float duracao = texto.Length * _tempoPorLetra;
+        duracao = Mathf.Clamp(duracao, 0.10f, 1.0f);
+
         // anima letra por letra
         _tweenText = DOTween.To(
-            () => _textoDialogo.maxVisibleCharacters,
-            v => _textoDialogo.maxVisibleCharacters = v,
-            texto.Length,
-            0.35f + (texto.Length * 0.01f) // velocidade automática baseada no tamanho
+        () => _textoDialogo.maxVisibleCharacters,
+        v => _textoDialogo.maxVisibleCharacters = v,
+        texto.Length,
+        duracao //velocidade automática baseada no tamanho
         );
+    }
+
+    private System.Collections.IEnumerator DelayMostrarFala()
+    {
+        yield return new WaitForSeconds(_delayAntesdotexto);
+        MostrarFala(_falasAtuais[_index]);
     }
 
     

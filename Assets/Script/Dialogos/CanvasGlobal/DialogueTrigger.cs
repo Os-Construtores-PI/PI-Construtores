@@ -8,7 +8,7 @@ public class DialogueTrigger : InteractableObject
     [TextArea(2, 4)]
     public string[] _dialogo = new string[]
     {
-        "<align=left> Argh... Minha cabeça...\nAquela <color=red>Caixa</color>... Mas que...?"
+        
     };
     
 
@@ -60,7 +60,7 @@ public class DialogueTrigger : InteractableObject
         // Exibe primeira linha do diálogo no tutor
         if (_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
             _TextoTutor.text = _dialogo[0];
-
+        
         // Mostra sprite atual do painel de interação
         if (_iconInteracao != null)
         {
