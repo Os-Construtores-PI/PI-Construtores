@@ -43,6 +43,7 @@ public class LevelManager : MonoBehaviour
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             player.GetComponent<PlayerInput>().DeactivateInput();
+
         }
     }
 
@@ -62,6 +63,7 @@ public class LevelManager : MonoBehaviour
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             dataSystem.RespawnPlayer(player, GameContext.CurrentSlot);
+            player.transform.SetParent(null, true); // Remove o pai mantendo a posição mundial
             player.GetComponent<PlayerInput>().ActivateInput();
         }
     }
