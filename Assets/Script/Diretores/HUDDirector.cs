@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -20,6 +21,21 @@ public class HudDirector : MonoBehaviour
     private readonly Dictionary<int, TextMeshProUGUI> interactionTexts = new();
     private readonly Dictionary<int, Image> interactionImages = new();
     private readonly Dictionary<int, Sprite> ogSprites = new();
+
+    private static readonly HashSet<string> ValidPanelNames = new()
+    {
+        Constants.PanelNames.InteractionPopup,
+        Constants.PanelNames.GameOver,
+        Constants.PanelNames.EndGame,
+        Constants.PanelNames.TeleportFadePanel,
+        Constants.PanelNames.Pause,
+        Constants.PanelNames.Dialogue,
+        Constants.PanelNames.AmethystCounter,
+        Constants.PanelNames.HealthBar,
+        Constants.PanelNames.DashIcon,
+        Constants.PanelNames.GraplingHookCutscene
+    };
+
 
     #region Unity Events
     private void OnEnable()
@@ -114,7 +130,7 @@ public class HudDirector : MonoBehaviour
 
     private void HideAllPanels(int playerID)
     {
-        HidePanel(Constants.PanelNames.GameOver, playerID,independent:true ,fade: true, instant: true);
+        HidePanel(Constants.PanelNames.GameOver, playerID,independent:true ,fade: false, instant: true);
         HidePanel(Constants.PanelNames.EndGame, playerID, independent:true, fade: true, instant: true);
         HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true, instant: true);
         HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, true);        
@@ -126,36 +142,64 @@ public class HudDirector : MonoBehaviour
     {
         foreach (Transform child in parent)
         {
-            if (!map.ContainsKey(child.name)) map[child.name] = new List<GameObject>();
-            map[child.name].Add(child.gameObject);
+            if (ValidPanelNames.Contains(child.name))
+            {
+                if (!map.ContainsKey(child.name))
+                    map[child.name] = new List<GameObject>();
+
+                map[child.name].Add(child.gameObject);
+            }
+
             CollectPanelsRecursive(child, map);
         }
     }
+
     #endregion
 
     #region Panel Handling
     private void HidePanel(string panelName, int playerID,bool independent, bool fade = false, bool instant = false)
     {
-        foreach (var go in GetPanel(playerID, panelName))
+        foreach (var go in GetPanelObjects(playerID, panelName))
         {
+            if(go.TryGetComponent(out Button button))
+            {
+                button.interactable = false;
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+
             if (fade && go.TryGetComponent(out Image image))
             {
                 if (instant) image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
                 else image.DOFade(0f, .25f).SetUpdate(UpdateType.Normal,independent);
+
+                image.raycastTarget = false;
             }
 
             if (instant) go.transform.localScale = Vector3.zero;
             else go.transform.DOScale(Vector3.zero, .25f).SetUpdate(UpdateType.Normal,independent);
+
         }
     }
 
     public void ShowPanel(string panelName, int playerID,bool independent ,bool fade = false)
     {
-        foreach (var go in GetPanel(playerID, panelName))
+        bool firstButtonSelected = false;
+        foreach (var go in GetPanelObjects(playerID, panelName))
         {
+            if(go.TryGetComponent(out Button button))
+            {
+                button.interactable = true;
+                if(!firstButtonSelected)
+                {
+                    button.Select();
+                    firstButtonSelected = true;
+                }
+            }
             if (fade && go.TryGetComponent(out Image image))
             {
                 image.DOFade(.8f, .25f).SetUpdate(UpdateType.Normal,independent);
+                image.raycastTarget = true;
+
             }
 
             go.transform.DOScale(Vector3.one, .25f).SetUpdate(UpdateType.Normal,independent);
@@ -383,6 +427,15 @@ public class HudDirector : MonoBehaviour
             ? result
             : new List<GameObject>();
 
+
+    private IEnumerable<GameObject> GetPanelObjects(int playerID, string panelName)
+    {
+        foreach (var root in GetPanel(playerID, panelName))
+        {
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+                yield return t.gameObject;
+        }
+    }
 
     private void DisableHud(int playerID)
     {
