@@ -131,11 +131,11 @@ public class HudDirector : MonoBehaviour
     private void HideAllPanels(int playerID)
     {
         HidePanel(Constants.PanelNames.GameOver, playerID,independent:true ,fade: false, instant: true);
-        HidePanel(Constants.PanelNames.EndGame, playerID, independent:true, fade: true, instant: true);
-        HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true, instant: true);
-        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, true);        
-        HidePanel(Constants.PanelNames.Pause, playerID, independent:true,false,true);
-        HidePanel(Constants.PanelNames.Dialogue, playerID, independent:true,fade:true,instant:true);
+        HidePanel(Constants.PanelNames.EndGame, playerID, independent:true, fade: false, instant: true);
+        HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true,fade:false ,instant: true);
+        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,fade:false, instant:true);        
+        HidePanel(Constants.PanelNames.Pause, playerID, independent:true,fade:false,instant:true);
+        HidePanel(Constants.PanelNames.Dialogue, playerID, independent:true,fade:false,instant:true);
     }
 
     private void CollectPanelsRecursive(Transform parent, Dictionary<string, List<GameObject>> map)
