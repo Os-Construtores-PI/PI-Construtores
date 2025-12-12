@@ -101,6 +101,7 @@ public static class Constants
         public static readonly string Idle = "Idle";
         public static readonly string Walk = "Walk";
         public static readonly string Jump = "Jump";
+        public static readonly string DoubleJump = "DoubleJump";
         public static readonly string Hit = "Hit";
         public static readonly string Dash = "Dash";
     }
@@ -111,7 +112,6 @@ public static class Constants
     public static class AnimatorFloatNames
     {
         public static readonly string VelocityY = "VelocityY";
-        public static readonly string JumpCount = "JumpCount";
     }
     public static class EffectsNames
     {

@@ -269,7 +269,6 @@ public class Player : CombatEntities
         isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, isGrounded);
-        animatorComp.SetFloat(Constants.AnimatorFloatNames.JumpCount, currentJumpCount);
         idleConditional.Check(
             VerticalLayer.CurrentState.Type == ActionType.Idle &&
             HorizontalLayer.CurrentState.Type == ActionType.Idle &&

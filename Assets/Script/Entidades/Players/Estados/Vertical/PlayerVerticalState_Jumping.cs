@@ -9,6 +9,10 @@ public class PlayerJumpingState : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
+        if(context.PlayerCurrentJumpCount != 0)
+        {
+            context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
+        }
         if (context.PlayerCurrentJumpCount < context.PlayerMaxJumpCount)
         {
             Vector3 move = context.PlayerMovementVector;
