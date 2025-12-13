@@ -15,7 +15,7 @@ public class LoadDirector : MonoBehaviour
     /// Botão do menu para carregar um slot específico
     /// </summary>
     /// <param name="index">Índice do slot</param>
-    public void OnClickButton(int index)
+    public void OnNewSlotButton(int index)
     {
         if (index < 0 || index >= dataSystem.GetMaxSlots()) return;
 
