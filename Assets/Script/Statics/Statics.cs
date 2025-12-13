@@ -124,7 +124,7 @@ public static class Constants
     {
         public static readonly float GraplingHookSpeed = 10f;
     }
-    public static class PanelNames
+    public static class HudPanelNames
     {
         public static readonly string GameOver = "GameOver";
         public static readonly string Pause = "Pause";
@@ -137,6 +137,13 @@ public static class Constants
         public static readonly string InteractionLetter = "InteractionLetter";
         public static readonly string GraplingHookCutscene = "GraplingHookCutscene";
         public static readonly string TeleportFadePanel = "TeleportFadePanel";
+    }
+    public static class MenuPanelNames
+    {
+        public static readonly string Menu = "Menu";
+        public static readonly string AudioMenu = "AudioMenu";
+        public static readonly string OptionsMenu = "OptionsMenu";
+        public static readonly string SaveMenu = "SaveMenu";
     }
     public static class PlayerCommonObjects
     {
