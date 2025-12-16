@@ -14,6 +14,10 @@ public class PlayerActionStateDash : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
+
+        if (context.IsHardLocked)
+            return;
+        
         context.OverrideGlobal = true;
 
 
@@ -35,6 +39,9 @@ public class PlayerActionStateDash : IState<PlayerContext>
                 context.PlayerDashScript.gameObject.SetActive(true);
             context.PlayerDashScript.OnDashUsed();
         }
+
+        
+
     }
 
     public void Exit(PlayerContext context)

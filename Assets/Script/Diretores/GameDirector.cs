@@ -114,6 +114,7 @@ public class GameDirector : MonoBehaviour
         //playerContext.PlayerController.enabled = set;
 
         playerContext.CameraLocked = set;
+        playerContext.IsHardLocked = set;
 
     }
 }

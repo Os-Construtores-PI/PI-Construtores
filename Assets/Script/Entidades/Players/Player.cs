@@ -742,5 +742,6 @@ public class PlayerContext : CombatEntityContext
     public bool OverrideGlobal { get => player.OverrideGlobal; set => player.OverrideGlobal = value; }
     public GameObject PlayerObject => player.gameObject;
     public bool CameraLocked { get; set; } = false;
+    public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
     
 }

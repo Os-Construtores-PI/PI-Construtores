@@ -9565,11 +9565,11 @@ RectTransform:
   m_Children:
   - {fileID: 6806177140302889758}
   - {fileID: 2568372768298031981}
-  m_Father: {fileID: 6272568376991660472}
+  m_Father: {fileID: 9026504989613309532}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 123.70001}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!33 &2898858696873167299
@@ -10364,6 +10364,8 @@ MonoBehaviour:
   _botoesGameplay: {fileID: 6490582264975961458}
   _botaoAvancar: {fileID: 1653916063395344304}
   _botaoRetornar: {fileID: 5547083270956293816}
+  _delayAntesdotexto: 0.25
+  _tempoPorLetra: 0.015
 --- !u!1 &4323994112721394544
 GameObject:
   m_ObjectHideFlags: 0
@@ -10443,6 +10445,7 @@ GameObject:
   - component: {fileID: 8297569693271028455}
   - component: {fileID: 3695331441216953798}
   - component: {fileID: 5812214554499635354}
+  - component: {fileID: 8297569693271028456}
   m_Layer: 0
   m_Name: DialogueTriger
   m_TagString: Untagged
@@ -12072,8 +12075,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 6896761183416247402}
   - {fileID: 9100037383440131984}
-  - {fileID: 2773098632370629405}
   m_Father: {fileID: 9026504989613309532}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -12475,11 +12478,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 9026504989613309532}
+  m_Father: {fileID: 6272568376991660472}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 123.70001}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &6913164279928072821
@@ -13576,6 +13579,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8297569693271028456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4413435716773277473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4ff0462e65bcf54d92075ab5fc570e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetTrigger: {fileID: 5812214554499635354}
+  onlyOnce: 1
 --- !u!23 &8338416378891440199
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -14526,7 +14543,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6272568376991660472}
-  - {fileID: 6896761183416247402}
+  - {fileID: 2773098632370629405}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
