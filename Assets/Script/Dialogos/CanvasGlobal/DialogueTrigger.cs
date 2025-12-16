@@ -6,7 +6,10 @@ using UnityEngine.UI;
 public class DialogueTrigger : InteractableObject
 {
     [TextArea(2, 4)]
-    public string[] _dialogo;
+    public string[] _dialogo = new string[]
+    {
+        
+    };
     
 
     //private bool _primeiraVez = true;
@@ -17,6 +20,9 @@ public class DialogueTrigger : InteractableObject
     private bool _jogadorDentro = false;
 
     private bool _canInteractAgain = true;
+
+    private bool _dialogoJaAberto = false;
+    
     
     
 
@@ -47,12 +53,14 @@ public class DialogueTrigger : InteractableObject
             return;
 
         _playerInput = other.GetComponent<PlayerInput>();
+        
+
         _jogadorDentro = true;
 
         // Exibe primeira linha do diálogo no tutor
         if (_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
             _TextoTutor.text = _dialogo[0];
-
+        
         // Mostra sprite atual do painel de interação
         if (_iconInteracao != null)
         {
@@ -98,8 +106,14 @@ public class DialogueTrigger : InteractableObject
     }
 
 
-    private void AbrirDialogo()
+    public void AbrirDialogo()
     {
+        if (_dialogoJaAberto) return;
+        _dialogoJaAberto = true;
+
+        try {_playerInput.actions["Interaction"]?.Reset();} catch { }
+
+
         if (_iconInteracao != null)
             _iconInteracao.gameObject.SetActive(false);
 
@@ -110,6 +124,8 @@ public class DialogueTrigger : InteractableObject
 
     public void OnDialogoFechado()
     {
+        _dialogoJaAberto = false;
+       
         if (_jogadorDentro && _iconInteracao != null)
             _iconInteracao.gameObject.SetActive(true);
         
@@ -141,6 +157,8 @@ public class DialogueTrigger : InteractableObject
     {
         _canInteractAgain = true;
     }
+
+    
     
 }
 

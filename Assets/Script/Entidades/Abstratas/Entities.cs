@@ -4,6 +4,7 @@ public abstract class Entities : BaseRenderedGameObject
 {
     private static int _nextId = 0;
     protected int id;
+    internal protected EffectsWorker effectsWorker = new();
     [HideInInspector] public int ID => id;
 
     public override void Awake()
@@ -16,6 +17,24 @@ public abstract class Entities : BaseRenderedGameObject
             _nextId = id; // garante que o contador nunca volte
     }
 
+    public override void Start()
+    {
+        base.Start();
+        InitializeEffects();
+    }
+
+    private void InitializeEffects()
+    {
+        Transform effectContainer = transform.Find("Effects");
+        if(effectContainer)
+        {
+            effectsWorker.InitEffects(effectContainer);
+        }
+        else
+        {
+            Debug.LogWarning($"[Entities] CONTAINER NÃO ACHADO \n VÍTIMA : {gameObject.name}");
+        }
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void ResetIdCounter()
@@ -38,4 +57,5 @@ public class EntityContext
     public EntityContext(object entity) => this.entity = (Entities)entity;    
     public GameObject EntityGameObject { get => entity.gameObject; }
     public Transform EntityTransform { get => entity.transform; }
+    public EffectsWorker EntityEffects { get => entity.effectsWorker;}
 }

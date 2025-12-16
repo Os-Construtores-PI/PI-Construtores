@@ -62,13 +62,6 @@ public class LoopPlataforms : BasePlataform
         collision.transform.SetParent(transform);
     }
 
-    // Enquanto o jogador permanece na plataforma, mantém a hierarquia para acompanhar o movimento
-    void OnTriggerStay(Collider collision)
-    {
-        if (!collision.gameObject.CompareTag("Player")) return;
-        collision.transform.SetParent(transform);
-    }
-
     // Quando o jogador sai da plataforma, remove a hierarquia para não se mover junto
     void OnTriggerExit(Collider collision)
     {

@@ -1,303 +1,196 @@
-using System.Collections;
-
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MenuDirector : MonoBehaviour
 {
-    [SerializeField] Transform[] _painelMenu; // transform que interage com os botões do menu
-    [SerializeField] Transform[] _painelConfig; // transform que chama e interage com o painel de config
-    [SerializeField] Transform[] _parts;
-    [SerializeField] Transform[] _partsConfig;
-    [SerializeField] Transform[] _saveMenuGame; // transform que chama o painel do save
+    [Header("Canvas Roots")]
+    [SerializeField] private Transform[] canvasRoots;
 
-    [SerializeField] Transform[] _pulsarImagem; // Imagens que terão o efeito de pulsar
-    
+    private readonly Dictionary<string, List<GameObject>> panels = new();
 
-
-    [SerializeField] Button[] _botoes; // Variavel que chama os botoes animados
-    private bool _animadoMenu = false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Awake()
     {
+        Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        // _painelLayout.DOScale(1, 5);
-        StartCoroutine(TimeStart()); // inicia a animação dos painés do menu
-        PainelStartOff(); // desativa os paineis de configuração
 
-        if(_pulsarImagem != null)
-        {
-            foreach(var t in _pulsarImagem)
-            {
-                if (t != null && t.gameObject.activeInHierarchy)
-                    t.localScale = Vector3.one;
-            }
-        }
-
-        // inicializa todos os paineis do menu com escala zero
-        for (int i = 0; i < _painelMenu.Length; i++)
-        {
-            _painelMenu[i].localScale = Vector3.zero;
-        }
-        // inicializa todos os paineis de configuração com escala zero
-        for (int i = 0; i < _painelConfig.Length; i++)
-        {
-            _painelConfig[i].localScale = Vector3.zero;
-        }
-        // inicializa todos os paineis de save com escala zero
-        for (int i = 0; i < _saveMenuGame.Length; i++)
-            _saveMenuGame[i].localScale = Vector3.zero;
-
+        BuildPanelMap();
     }
 
+    #region Start
 
-
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-
+        InitMenu();
     }
 
-    public void CenaGame(string Fase1)
+    private void InitMenu()
     {
-        SceneManager.LoadScene(Fase1); // inicia a cena fase1 como teste
+        ShowPanel(Constants.MenuPanelNames.Menu);
     }
 
-    public void PainelStartOff()
+    #endregion
+
+
+    #region Panel Discovery
+
+    private void BuildPanelMap()
     {
+        panels.Clear();
 
-        // desativa todos os paineis de configuração com animação de escala para zero
-        for (int i = 0; i < _partsConfig.Length; i++)
-        {
-            _partsConfig[i].DOScale(0, .25f);
-        }
+        foreach (var root in canvasRoots)
+            CollectPanelsRecursive(root);
     }
 
-    public void PainelCheck()
-    {   // desativa todos os paineis do menu principal com animação de escala para zero
-        for (int i = 0; i < _painelMenu.Length; i++)
-        {
-            _painelMenu[i].DOScale(0, .25f);
-        }
-    }
-
-    public void PainelMusicPartsCheck()
+    private void CollectPanelsRecursive(Transform parent)
     {
-        for (int i = 0; i < _painelConfig.Length; i++)
+        foreach (Transform child in parent)
         {
-            _painelConfig[i].DOScale(0, .25f);
+            if (!panels.ContainsKey(child.name))
+                panels[child.name] = new List<GameObject>();
+
+            panels[child.name].Add(child.gameObject);
+            CollectPanelsRecursive(child);
         }
     }
-    public void AbrirOpcoes()
+
+    #endregion
+
+    #region Public Panel API
+
+    private void ShowPanel(string panelName, bool fade = false)
     {
-        _painelMenu[0].DOScale(0, 0.25f);
-        for (int i = 0; i < _painelMenu.Length; i++)
-        {
-            _painelMenu[i].DOScale(0, 0.25f);
-        }
-        foreach (Button botao in _botoes)
-        {
-            botao.transform.DOScale(0, 0.25f);
-        }
-
-        StartCoroutine(TimeConfig());
-        PararImagemPulsando();
-    }
-
-    public void FecharOpcoes()
-    {
-
-        for (int i = 0; i < _painelMenu.Length; i++)
-        {
-            _painelMenu[i].DOScale(1, 0.25f);
-        }
-        StartCoroutine(TimeStart());
-        foreach (Button botao in _botoes)
-        {
-            botao.transform.DOScale(1, 0.5f);
-        }
-        AtivarImagensPulsando();
-    }
-
-    public void AbrirPainelVolume()
-    {
-        for (int i = 0; i < _painelConfig.Length; i++)
-        {
-            _painelConfig[i].DOScale(0, .25f);
-
-        }
-        StartCoroutine(TimeConfigSom());
-    }
-    public void VoltarParaConfi()
-    {
-        for (int i = 0; i < _partsConfig.Length; i++)
-        {
-            _partsConfig[i].DOScale(0, .25f);
-        }
-    }
-
-
-
-    public void PainelStartCheck(bool CheckON)
-    {   // ativa ou desativa do menu principal baseado no parametro
-        if (CheckON == true)
-        {
-            StartCoroutine(TimeStart()); // se verdadeiro, inicia dos paineis de animação dos painéis
-
-
-        }
-        else
-        {
-            //  PainelStartOff(); // se false, desativa os paineis
-        }
-    }
-
-    public void PainelConfigCheck(bool CheckON)
-    {   // ativa ou desativa os paineis de config baseado no parametro
-        if (CheckON)
-        {
-            _painelMenu[0].DOScale(0, 0);
-            StartCoroutine(TimeConfig()); // se verdadeiro, inicia dos paineis de config
-        }
-        else
-        {
-            //   PainelStartOff(); // se falso, desativa os paineis
-        }
-    }
-
-
-    public void AbrirPainelSave()
-    {
-        // fecha o menu principal
-        for (int i = 0; i < _painelMenu.Length; i++)
-            _painelMenu[i].DOScale(0, .25f);
-
-        // abre os paineis de save
-        for (int i = 0; i < _saveMenuGame.Length; i++)
-        {
-            _saveMenuGame[i].DOScale(1, .25f);
-        }
-        PararImagemPulsando();
-    }
-
-    public void FecharPainelSave()
-    {
-        for (int i = 0; i < _saveMenuGame.Length; i++)
-            _saveMenuGame[i].DOScale(0, .25f);
-
-        // Reabre o menu principal
-        for (int i = 0; i < _painelMenu.Length; i++)
-            _painelMenu[i].DOScale(1, .25f);
-
-        AtivarImagensPulsando();
-
-    }
-
-
-
-    IEnumerator TimeStart()
-    {
-        if (_animadoMenu) yield break;
-        _animadoMenu = false;
-        // animação de entrada dos paineis do menu principal
-        for (int i = 0; i < _painelMenu.Length; i++)
-        {
-
-            // _painelMenu[i].localScale = Vector3.zero;
-            // anima cada painel para escala 1.5 e depois volta para 1
-            _painelMenu[i].DOScale(1.5f, .25f);
-            yield return new WaitForSeconds(0.25f);
-            _painelMenu[i].DOScale(1, .25f);
-        }
-
-
-        yield return new WaitForSeconds(0.25f);
-
-        AtivarAnimator(); // ativa animadores dos botões
-        AtivarImagensPulsando();
-        _animadoMenu = true;
-
-
-    }
-
-    IEnumerator TimeConfig()
-    {
-        _animadoMenu = true;
-        // animação de entrada dos paineis de configuração 
-        for (int i = 0; i < _painelConfig.Length; i++)
-        {
-            // _painelMenu[i].localScale = Vector3.zero;
-            // anima cada painel para a escala 1.5 e depois volta para 1
-            _painelConfig[i].DOScale(1.5f, .25f);
-            yield return new WaitForSeconds(0.25f);
-            _painelConfig[i].DOScale(1, .25f);
-        }
-
-    }
-    IEnumerator TimeConfigSom()
-    {
-
-        _animadoMenu = true;
-        for (int i = 0; i < _partsConfig.Length; i++)
-        {
-            _partsConfig[i].DOScale(1.5f, .25f);
-            yield return new WaitForSeconds(0.25f);
-            _partsConfig[i].DOScale(1, .25f);
-        }
-        //_animadoMenu = true;
-    }
-
-
-
-
-    private void AtivarAnimator()
-    {
-        //ativa o componente animator em todos os botoes
-        foreach (Button botao in _botoes)
-        {
-            botao.gameObject.GetComponent<Animator>().enabled = true;
-        }
-    }
-
-    public void FecharJogo()
-    {
-        Application.Quit();
-        Debug.Log("Fechando jogo");
-    }
-
-    private void AtivarImagensPulsando()
-    {
-        if (_pulsarImagem == null || _pulsarImagem.Length == 0)
+        if (!panels.TryGetValue(panelName, out var roots))
             return;
 
-        foreach (Transform img in _pulsarImagem)
+        bool firstButtonSelected = false;
+
+        foreach (var root in roots)
         {
-            if (img == null) continue;
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            {
+                var go = t.gameObject;
+                go.SetActive(true);
+                t.DOKill();
 
-            img.localScale = Vector3.one;
+                t.localScale = Vector3.zero;
+                t.DOScale(new Vector3(1.15f,1.15f,1.15f), .35f).OnComplete(() => t.DOScale(Vector3.one,.15f));
 
-            img.DOKill();
+                if (t.TryGetComponent(out Image img) && fade)
+                {
+                    img.DOFade(1f, .25f);
+                    img.raycastTarget = true;
+                }
 
-            img.DOScale(1.05f, 0.8f)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
+                if (t.TryGetComponent(out Button btn))
+                {
+                    btn.interactable = true;
+
+                    if (!firstButtonSelected)
+                    {
+                        btn.Select();
+                        firstButtonSelected = true;
+                    }
+                }
+
+                if (t.TryGetComponent(out UIPulse pulse))
+                 {
+                    pulse.Play();
+                 }
+            }
         }
     }
 
-    private void PararImagemPulsando()
+    private void HidePanel(string panelName, bool fade = false)
     {
-        if (_pulsarImagem == null) return;
+        if (!panels.TryGetValue(panelName, out var roots))
+            return;
 
-        foreach( Transform img in _pulsarImagem)
+        EventSystem.current.SetSelectedGameObject(null);
+
+        foreach (var root in roots)
         {
-            if (img == null) continue;
-            img.DOKill();
-            img.localScale = Vector3.one; 
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            {
+                var go = t.gameObject;
+                t.DOKill();
+
+                if (t.TryGetComponent(out Button btn))
+                    btn.interactable = false;
+
+                if (t.TryGetComponent(out Image img) && fade)
+                {
+                    img.DOFade(0f, .25f);
+                    img.raycastTarget = false;
+                }
+
+                 if (t.TryGetComponent(out UIPulse pulse))
+                 {
+                    pulse.Stop();
+                 }
+
+                t.DOScale(Vector3.zero, .25f)
+                 .OnComplete(() => go.SetActive(false));
+            }
         }
     }
 
-}
+    private void SwitchPanel(string from, string to, bool fade = false)
+    {
+        HidePanel(from, fade);
+        ShowPanel(to, fade);
+    }
 
+    #endregion
+
+    #region Scene / App Control
+
+    public void EnterOptions()
+    {
+        SwitchPanel(Constants.MenuPanelNames.Menu,Constants.MenuPanelNames.OptionsMenu);
+    }
+
+    public void ExitOptions()
+    {
+        SwitchPanel(Constants.MenuPanelNames.OptionsMenu,Constants.MenuPanelNames.Menu);
+    }
+
+    public void EnterAudioOptions()
+    {
+        SwitchPanel(Constants.MenuPanelNames.OptionsMenu,Constants.MenuPanelNames.AudioMenu);
+    }
+
+    public void ExitAudioOption()
+    {
+        SwitchPanel(Constants.MenuPanelNames.AudioMenu,Constants.MenuPanelNames.OptionsMenu);        
+    }
+
+    public void EnterSaveMenu()
+    {
+        SwitchPanel(Constants.MenuPanelNames.Menu,Constants.MenuPanelNames.SaveMenu);        
+    }
+
+    public void ExitSaveMenu()
+    {
+        SwitchPanel(Constants.MenuPanelNames.SaveMenu,Constants.MenuPanelNames.Menu);
+    }
+
+    public void LoadScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+#if UNITY_EDITOR
+        Debug.Log("Quit Game");
+#endif
+    }
+
+    #endregion
+}

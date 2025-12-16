@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -20,6 +21,21 @@ public class HudDirector : MonoBehaviour
     private readonly Dictionary<int, TextMeshProUGUI> interactionTexts = new();
     private readonly Dictionary<int, Image> interactionImages = new();
     private readonly Dictionary<int, Sprite> ogSprites = new();
+
+    private static readonly HashSet<string> ValidPanelNames = new()
+    {
+        Constants.HudPanelNames.InteractionPopup,
+        Constants.HudPanelNames.GameOver,
+        Constants.HudPanelNames.EndGame,
+        Constants.HudPanelNames.TeleportFadePanel,
+        Constants.HudPanelNames.Pause,
+        Constants.HudPanelNames.Dialogue,
+        Constants.HudPanelNames.AmethystCounter,
+        Constants.HudPanelNames.HealthBar,
+        Constants.HudPanelNames.DashIcon,
+        Constants.HudPanelNames.GraplingHookCutscene
+    };
+
 
     #region Unity Events
     private void OnEnable()
@@ -95,7 +111,7 @@ public class HudDirector : MonoBehaviour
         if (healthHUD && healthHUD.HUDType == HealthHUDType.PLAYER)
             healthHUD.BindToPlayer(player);
 
-        if (panelMap.TryGetValue(Constants.PanelNames.InteractionPopup, out var panels) && panels.Count > 0)
+        if (panelMap.TryGetValue(Constants.HudPanelNames.InteractionPopup, out var panels) && panels.Count > 0)
         {
             var text = panels[0].GetComponentInChildren<TextMeshProUGUI>();
             var image = panels[0].GetComponent<Image>();
@@ -114,48 +130,76 @@ public class HudDirector : MonoBehaviour
 
     private void HideAllPanels(int playerID)
     {
-        HidePanel(Constants.PanelNames.GameOver, playerID,independent:true ,fade: true, instant: true);
-        HidePanel(Constants.PanelNames.EndGame, playerID, independent:true, fade: true, instant: true);
-        HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true, instant: true);
-        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,independent:true,false, true);        
-        HidePanel(Constants.PanelNames.Pause, playerID, independent:true,false,true);
-        HidePanel(Constants.PanelNames.Dialogue, playerID, independent:true,fade:true,instant:true);
+        HidePanel(Constants.HudPanelNames.GameOver, playerID,independent:true ,fade: false, instant: true);
+        HidePanel(Constants.HudPanelNames.EndGame, playerID, independent:true, fade: false, instant: true);
+        HidePanel(Constants.HudPanelNames.InteractionPopup, playerID,independent:true,fade:false ,instant: true);
+        HidePanel(Constants.HudPanelNames.TeleportFadePanel, playerID,independent:true,fade:false, instant:true);        
+        HidePanel(Constants.HudPanelNames.Pause, playerID, independent:true,fade:false,instant:true);
+        HidePanel(Constants.HudPanelNames.Dialogue, playerID, independent:true,fade:false,instant:true);
     }
 
     private void CollectPanelsRecursive(Transform parent, Dictionary<string, List<GameObject>> map)
     {
         foreach (Transform child in parent)
         {
-            if (!map.ContainsKey(child.name)) map[child.name] = new List<GameObject>();
-            map[child.name].Add(child.gameObject);
+            if (ValidPanelNames.Contains(child.name))
+            {
+                if (!map.ContainsKey(child.name))
+                    map[child.name] = new List<GameObject>();
+
+                map[child.name].Add(child.gameObject);
+            }
+
             CollectPanelsRecursive(child, map);
         }
     }
+
     #endregion
 
     #region Panel Handling
     private void HidePanel(string panelName, int playerID,bool independent, bool fade = false, bool instant = false)
     {
-        foreach (var go in GetPanel(playerID, panelName))
+        foreach (var go in GetPanelObjects(playerID, panelName))
         {
+            if(go.TryGetComponent(out Button button))
+            {
+                button.interactable = false;
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+
             if (fade && go.TryGetComponent(out Image image))
             {
                 if (instant) image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
                 else image.DOFade(0f, .25f).SetUpdate(UpdateType.Normal,independent);
+
+                image.raycastTarget = false;
             }
 
             if (instant) go.transform.localScale = Vector3.zero;
             else go.transform.DOScale(Vector3.zero, .25f).SetUpdate(UpdateType.Normal,independent);
+
         }
     }
 
     public void ShowPanel(string panelName, int playerID,bool independent ,bool fade = false)
     {
-        foreach (var go in GetPanel(playerID, panelName))
+        bool firstButtonSelected = false;
+        foreach (var go in GetPanelObjects(playerID, panelName))
         {
+            if(go.TryGetComponent(out Button button))
+            {
+                button.interactable = true;
+                if(!firstButtonSelected)
+                {
+                    button.Select();
+                    firstButtonSelected = true;
+                }
+            }
             if (fade && go.TryGetComponent(out Image image))
             {
                 image.DOFade(.8f, .25f).SetUpdate(UpdateType.Normal,independent);
+                image.raycastTarget = true;
+
             }
 
             go.transform.DOScale(Vector3.one, .25f).SetUpdate(UpdateType.Normal,independent);
@@ -196,7 +240,7 @@ public class HudDirector : MonoBehaviour
 
         if (!seeing)
         {
-            HidePanel(Constants.PanelNames.InteractionPopup, playerID,independent:true);
+            HidePanel(Constants.HudPanelNames.InteractionPopup, playerID,independent:true);
             text.DOColor(Color.white, duration);
             text.text = "";
             image.sprite = ogSprites[playerID];
@@ -221,7 +265,7 @@ public class HudDirector : MonoBehaviour
                 break;
         }
 
-        ShowPanel(Constants.PanelNames.InteractionPopup, playerID,independent:true);
+        ShowPanel(Constants.HudPanelNames.InteractionPopup, playerID,independent:true);
     }
 
     private void UpdateAmethysts(int newAmount) { }
@@ -230,7 +274,7 @@ public class HudDirector : MonoBehaviour
     #region Cinematic Bars
     private void TriggerCinematicBars(int playerID, float duration)
     {
-        List<GameObject> holders = GetPanel(playerID, Constants.PanelNames.GraplingHookCutscene);
+        List<GameObject> holders = GetPanel(playerID, Constants.HudPanelNames.GraplingHookCutscene);
         List<GameObject> cinematicPanels = new();
 
         foreach (var holder in holders)
@@ -274,15 +318,15 @@ public class HudDirector : MonoBehaviour
     private IEnumerator TeleportFadeRoutine(int playerID)
     {
         // pega o painel preto do HUD do jogador
-        GameObject teleportPanel = GetPanel(playerID, Constants.PanelNames.TeleportFadePanel).FirstOrDefault();
+        GameObject teleportPanel = GetPanel(playerID, Constants.HudPanelNames.TeleportFadePanel).FirstOrDefault();
         if (!teleportPanel) { Debug.LogWarning("SEM TELEPORT PANEL"); yield break; }
 
         // fade in
-        ShowPanel(Constants.PanelNames.TeleportFadePanel, playerID,false);
+        ShowPanel(Constants.HudPanelNames.TeleportFadePanel, playerID,false);
         yield return WAITTELEPORTFADE;
 
         // fade out
-        HidePanel(Constants.PanelNames.TeleportFadePanel, playerID,false,false);
+        HidePanel(Constants.HudPanelNames.TeleportFadePanel, playerID,false,false);
     }
     #endregion
 
@@ -292,7 +336,7 @@ public class HudDirector : MonoBehaviour
         CursorOptions(true);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
-            ShowPanel(Constants.PanelNames.GameOver, player.ID, true);
+            ShowPanel(Constants.HudPanelNames.GameOver, player.ID, true);
             DisableHud(player.ID);
         }
     }
@@ -301,8 +345,8 @@ public class HudDirector : MonoBehaviour
         CursorOptions(false);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
-            HidePanel(Constants.PanelNames.GameOver, player.ID, true);
-            HidePanel(Constants.PanelNames.EndGame, player.ID, true);
+            HidePanel(Constants.HudPanelNames.GameOver, player.ID, true);
+            HidePanel(Constants.HudPanelNames.EndGame, player.ID, true);
             EnableHUD(player.ID);
         }
     }
@@ -315,7 +359,7 @@ public class HudDirector : MonoBehaviour
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
             DisableHud(player.ID);
-            ShowPanel(Constants.PanelNames.EndGame, player.ID, true);
+            ShowPanel(Constants.HudPanelNames.EndGame, player.ID, true);
         }
     }
     # endregion === END GAME ===
@@ -325,18 +369,18 @@ public class HudDirector : MonoBehaviour
     {
         int playerID = context.EntityID;
         CursorOptions(false);
-        ShowPanel(Constants.PanelNames.Dialogue, playerID, true);
+        ShowPanel(Constants.HudPanelNames.Dialogue, playerID, true);
         DisableHud(playerID);
         GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.Invoke(context, false);
 
-        TextMeshProUGUI targetText = GetPanel(playerID,Constants.PanelNames.Dialogue)[0].GetComponentInChildren<TextMeshProUGUI>();
+        TextMeshProUGUI targetText = GetPanel(playerID,Constants.HudPanelNames.Dialogue)[0].GetComponentInChildren<TextMeshProUGUI>();
         WriteText(context,targetText,text,typeSpeed);
     }
     private void EndDialoguePanel(PlayerContext context)
     {
         int playerID = context.EntityID;
         CursorOptions(true);
-        HidePanel(Constants.PanelNames.Dialogue,playerID,true);
+        HidePanel(Constants.HudPanelNames.Dialogue,playerID,true);
         EnableHUD(playerID);
 
 
@@ -353,12 +397,12 @@ public class HudDirector : MonoBehaviour
         {
             if(set)
             {
-                ShowPanel(Constants.PanelNames.Pause, player.ID, true);
+                ShowPanel(Constants.HudPanelNames.Pause, player.ID, true);
                 DisableHud(player.ID);
             }
             else
             {
-                HidePanel(Constants.PanelNames.Pause, player.ID, true);
+                HidePanel(Constants.HudPanelNames.Pause, player.ID, true);
                 EnableHUD(player.ID);
             }
         }
@@ -384,17 +428,26 @@ public class HudDirector : MonoBehaviour
             : new List<GameObject>();
 
 
+    private IEnumerable<GameObject> GetPanelObjects(int playerID, string panelName)
+    {
+        foreach (var root in GetPanel(playerID, panelName))
+        {
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+                yield return t.gameObject;
+        }
+    }
+
     private void DisableHud(int playerID)
     {
-        HidePanel(Constants.PanelNames.AmethystCounter, playerID,true,false,true);
-        HidePanel(Constants.PanelNames.HealthBar, playerID, true,false,true);
-        HidePanel(Constants.PanelNames.DashIcon, playerID, true,false,true);        
+        HidePanel(Constants.HudPanelNames.AmethystCounter, playerID,true,false,true);
+        HidePanel(Constants.HudPanelNames.HealthBar, playerID, true,false,true);
+        HidePanel(Constants.HudPanelNames.DashIcon, playerID, true,false,true);        
     }
     private void EnableHUD(int playerID)
     {
-        ShowPanel(Constants.PanelNames.AmethystCounter, playerID,true,false);
-        ShowPanel(Constants.PanelNames.HealthBar, playerID, true,false);
-        ShowPanel(Constants.PanelNames.DashIcon, playerID, true,false);    
+        ShowPanel(Constants.HudPanelNames.AmethystCounter, playerID,true,false);
+        ShowPanel(Constants.HudPanelNames.HealthBar, playerID, true,false);
+        ShowPanel(Constants.HudPanelNames.DashIcon, playerID, true,false);    
     }
 
     private void CursorOptions(bool set)

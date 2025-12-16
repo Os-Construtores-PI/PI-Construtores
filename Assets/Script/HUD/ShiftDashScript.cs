@@ -41,6 +41,15 @@ public class ShiftDashScript : MonoBehaviour
 
     }
 
+    public void OnEnable()
+    {
+        if (DeviceSpriteManager.Instance != null)
+        {
+            //
+            
+        }
+    }
+
 
     // mostra novamente quando o Dash est� liberado
 

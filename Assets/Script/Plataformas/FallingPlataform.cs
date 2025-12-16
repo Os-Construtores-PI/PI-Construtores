@@ -1,29 +1,37 @@
 using UnityEngine;
-using System.Collections;
 using DG.Tweening;
+using System.Collections.Generic;
 
-[RequireComponent(typeof(Rigidbody))]
 public class FallingPlatform : BasePlataform
 {
-    private Rigidbody rb;
     private Vector3 startPos;
-    private Quaternion startRotation;
 
     [Header("Timings")]
-    [SerializeField] private float fallDelay = 3f;
     [SerializeField] private float resetDelay = 5f;
-    [SerializeField] private float cooldown = 10f;
+
+    [Header("Sprites")]
+    [SerializeField] private List<Texture2D> crackingSprites = new();
 
     private bool canFall = true;
-    private Coroutine fallRoutine;
+    private Timer fallTimer = new();
+
+    private const float TIME_TO_FALL = 3f;
+
+    private Transform fallTarget;
+    private Renderer platformRenderer;
 
     public override void Awake()
     {
         base.Awake();
-        rb = GetComponent<Rigidbody>();
         startPos = transform.position;
-        startRotation = transform.rotation;
-        rb.isKinematic = true;
+        platformRenderer = GetComponent<Renderer>();
+    }
+
+    public override void Start()
+    {
+        base.Start();
+        fallTarget = transform.Find("Target");
+        SetTextureOnMaterial(crackingSprites[0]);
     }
 
     private void OnTriggerEnter(Collider collider)
@@ -32,36 +40,68 @@ public class FallingPlatform : BasePlataform
 
         if (collider.gameObject.layer == LayerMask.NameToLayer("Entity"))
         {
-            fallRoutine ??= StartCoroutine(FallSequence());
+            if (!fallTimer.IsActive)
+                fallTimer.Start(TIME_TO_FALL);
         }
     }
 
-    private IEnumerator FallSequence()
+    private void Update()
     {
-        // Aguarda antes de cair
-        yield return new WaitForSeconds(fallDelay);
+        if (!fallTimer.IsActive) return;
 
-        rb.isKinematic = false;
+        // terminou → cai
+        if (fallTimer.Tick(Time.deltaTime) && canFall)
+        {
+            PlatformFall();
+            return;
+        }
 
-        // Aguarda antes de resetar
-        yield return new WaitForSeconds(resetDelay);
+        // atualiza sprite enquanto conta
+        UpdateCrackingSprite();
+    }
 
-        PlatformReset();
+    private void UpdateCrackingSprite()
+    {
+        if (crackingSprites.Count == 0) return;
 
-        // Espera cooldown antes de poder cair de novo
+        float progress = fallTimer.Current / TIME_TO_FALL;
+        int index = Mathf.FloorToInt(progress * crackingSprites.Count);
+        index = Mathf.Clamp(index, 0, crackingSprites.Count - 1);
+
+        SetTextureOnMaterial(crackingSprites[index]);
+    }
+
+    private void SetTextureOnMaterial(Texture2D texture)
+    {
+        if (!platformRenderer || !texture) return;
+        platformRenderer.material.SetTexture("_CrackingTexture",texture);
+    }
+
+    private void PlatformFall()
+    {
+        if (!fallTarget) return;
+
         canFall = false;
-        yield return new WaitForSeconds(cooldown);
-        canFall = true;
+        fallTimer.Stop();
 
-        fallRoutine = null;
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(transform.DOMoveY(fallTarget.position.y, 0.75f)
+            .SetUpdate(UpdateType.Fixed, false));
+        sequence.AppendInterval(resetDelay);
+        sequence.AppendCallback(PlatformReset);
+        sequence.Play();
     }
 
     private void PlatformReset()
     {
         DOTween.Kill(transform);
+
+        transform.position = startPos;
         transform.localScale = initialScale;
-        rb.isKinematic = true;
-        transform.SetPositionAndRotation(startPos, startRotation);
+
+        SetTextureOnMaterial(crackingSprites[0]);
+
+        canFall = true;
         Physics.SyncTransforms();
     }
 }

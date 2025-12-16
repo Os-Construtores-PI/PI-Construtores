@@ -1,6 +1,8 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine.InputSystem;
 
 [Serializable]
 public class ColorPuzzle
@@ -56,6 +58,9 @@ public class Timer
 
     public bool IsActive => active;
     public bool IsDone => !active;
+    
+    public float Current => current;
+    public float TimeLeft => duration - current;
 
     public void Start(float duration)
     {
@@ -149,4 +154,30 @@ public class ConditionalGate
         onExit.Invoke();
     }
     
+}
+
+public class EffectsWorker
+{
+    private Dictionary<string,GameObject> effects = new();
+    public void InitEffects(Transform transform)
+    {
+        foreach(Transform child in transform)
+        {
+            effects.Add(child.name,child.gameObject);
+        }
+    }
+    public void PlayEffect(string name)
+    {
+        if(effects.TryGetValue(name,out GameObject effect) && effect.TryGetComponent(out ParticleSystem particleSystem))
+        {
+            particleSystem.Play(true);
+        }
+    }
+    public void StopEffect(string name)
+    {
+        if(effects.TryGetValue(name,out GameObject effect) && effect.TryGetComponent(out ParticleSystem particleSystem))
+        {
+            particleSystem.Stop(true);
+        }
+    }
 }

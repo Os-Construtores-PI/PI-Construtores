@@ -101,6 +101,7 @@ public static class Constants
         public static readonly string Idle = "Idle";
         public static readonly string Walk = "Walk";
         public static readonly string Jump = "Jump";
+        public static readonly string DoubleJump = "DoubleJump";
         public static readonly string Hit = "Hit";
         public static readonly string Dash = "Dash";
     }
@@ -111,14 +112,20 @@ public static class Constants
     public static class AnimatorFloatNames
     {
         public static readonly string VelocityY = "VelocityY";
-        public static readonly string JumpCount = "JumpCount";
     }
-
+    public static class EffectsNames
+    {
+        public static class Player
+        {
+            public static readonly string Dash = "Dash";
+            public const string Jump = "Jump";
+        }
+    }
     public static class Values
     {
         public static readonly float GraplingHookSpeed = 10f;
     }
-    public static class PanelNames
+    public static class HudPanelNames
     {
         public static readonly string GameOver = "GameOver";
         public static readonly string Pause = "Pause";
@@ -131,6 +138,13 @@ public static class Constants
         public static readonly string InteractionLetter = "InteractionLetter";
         public static readonly string GraplingHookCutscene = "GraplingHookCutscene";
         public static readonly string TeleportFadePanel = "TeleportFadePanel";
+    }
+    public static class MenuPanelNames
+    {
+        public static readonly string Menu = "Menu";
+        public static readonly string AudioMenu = "AudioMenu";
+        public static readonly string OptionsMenu = "OptionsMenu";
+        public static readonly string SaveMenu = "SaveMenu";
     }
     public static class PlayerCommonObjects
     {
@@ -183,6 +197,10 @@ public static class QualityOfLife
         if (intention == Vector2.zero)
             return SmoothLerp(value, 0f, frictionAmount);
         return value;
+    }
+    public static bool IsValidIndex<T>(List<T> list, int index)
+    {
+        return index == (list.Count - 1) && index >= 0;
     }
     
 }

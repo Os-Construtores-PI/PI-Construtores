@@ -12,6 +12,11 @@ public class DeviceSpriteManager : MonoBehaviour
     [SerializeField] private Sprite _xboxSprite;
     [SerializeField] private Sprite _playstationSprite;
 
+    [Header("Sprites Dash")]
+    [SerializeField] private Sprite _dashKeyboard;
+    [SerializeField] private Sprite _dashXbox;
+    [SerializeField] private Sprite _dashPlaystation;
+
     public event Action<string> OnDeviceChanged;
 
     private string _currentDevice = "Keyboard";
@@ -21,10 +26,14 @@ public class DeviceSpriteManager : MonoBehaviour
     
     private void Awake()
     {
-        if(Instance == null) Instance = this;
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
         else
         {
-            Destroy(gameObject);
+            DontDestroyOnLoad (gameObject);
             return;
         }
     }
@@ -111,6 +120,33 @@ public class DeviceSpriteManager : MonoBehaviour
             "Xbox"         => _xboxSprite,
             _ => _KeyBoardSprite
         };
+    }
+
+    public Sprite GetSprite(InputIconType type)
+    {
+        return type switch
+        {
+            InputIconType.Interact => GetCurrentSprite(),
+
+            InputIconType.Dash => _currentDevice switch
+            {
+                "Keyboard" => _dashKeyboard,
+                "Playstation" => _dashPlaystation,
+                "Xbox" => _dashXbox,
+
+                _ => _dashKeyboard
+            },
+
+            _ => _KeyBoardSprite
+        };
+    }
+
+    public enum InputIconType
+    {
+        Interact,
+        Dash,
+        Attack,
+        Jump
     }
 }
 

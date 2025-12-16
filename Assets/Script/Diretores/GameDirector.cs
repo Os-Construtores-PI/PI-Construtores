@@ -109,21 +109,12 @@ public class GameDirector : MonoBehaviour
         if (playerContext == null)
             return;
 
-        if (set)
-        {
-            // TRAVAR PLAYER
-            try { playerContext.PlayerInput.DeactivateInput(); } catch { }
-            if (playerContext.PlayerController != null)
-                playerContext.PlayerController.enabled = false;
-        }
-        else
-        {
-            // DESTRAVAR PLAYER
-            try { playerContext.PlayerInput.ActivateInput(); } catch { }
-            if (playerContext.PlayerController != null)
-                playerContext.PlayerController.enabled = true;
-        }
+        if (playerContext.PlayerController != null)
+            playerContext.PlayerController.enabled = !set;
         //playerContext.PlayerController.enabled = set;
+
+        playerContext.CameraLocked = set;
+        playerContext.IsHardLocked = set;
 
     }
 }

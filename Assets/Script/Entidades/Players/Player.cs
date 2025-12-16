@@ -134,6 +134,7 @@ public class Player : CombatEntities
     #region === Inventário ===
     private readonly Inventory inventory = new();
     public Inventory Inventory => inventory;
+    
     #endregion
 
     #region  === Scanner ===
@@ -268,7 +269,6 @@ public class Player : CombatEntities
         isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, isGrounded);
-        animatorComp.SetFloat(Constants.AnimatorFloatNames.JumpCount, currentJumpCount);
         idleConditional.Check(
             VerticalLayer.CurrentState.Type == ActionType.Idle &&
             HorizontalLayer.CurrentState.Type == ActionType.Idle &&
@@ -305,8 +305,13 @@ public class Player : CombatEntities
     public void OnMove(InputAction.CallbackContext context)
     {
         MoveInput = context.ReadValue<Vector2>();
-         Debug.Log($"[OnMove] controlScheme={playerInput.currentControlScheme} value={MoveInput}");
+         
         Move();
+    }
+
+    public void LockCamera(bool state)
+    {
+        Context.CameraLocked = state;
     }
 
     public void OnDash(InputAction.CallbackContext context)
@@ -334,7 +339,7 @@ public class Player : CombatEntities
     private void DetectarDispositivo(PlayerInput input)
     {
         string last = input.currentControlScheme;
-        Debug.Log($"[DetectarDispositivo] Scheme detectado = {last}");
+        
 
         switch (last)
         {
@@ -363,7 +368,7 @@ public class Player : CombatEntities
                 break;
         }
 
-        Debug.Log($"[DetectarDispositivo] ÚLTIMO DISPOSITIVO DEFINIDO = {_ultimoDispositivo}");
+        
 
         GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo);
     }
@@ -735,4 +740,8 @@ public class PlayerContext : CombatEntityContext
     public bool OverrideHorizontal { get => player.OverrideHorizontal; set => player.OverrideHorizontal = value; }
     public bool OverrideVertical { get => player.OverrideVertical; set => player.OverrideVertical = value; }
     public bool OverrideGlobal { get => player.OverrideGlobal; set => player.OverrideGlobal = value; }
+    public GameObject PlayerObject => player.gameObject;
+    public bool CameraLocked { get; set; } = false;
+    public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
+    
 }

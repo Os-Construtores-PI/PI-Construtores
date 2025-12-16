@@ -14,8 +14,14 @@ public class PlayerActionStateDash : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
+
+        if (context.IsHardLocked)
+            return;
+        
         context.OverrideGlobal = true;
 
+
+        context.EntityEffects.PlayEffect(Constants.EffectsNames.Player.Dash);
         context.PlayerDashDirection = context.PlayerMoveInput != Vector2.zero ? context.PlayerDirection : context.EntityTransform.forward;
         context.PlayerDashDuration = context.DashDistance / context.PlayerDashSpeed;
         timeToExit = context.PlayerDashDuration;
@@ -33,6 +39,9 @@ public class PlayerActionStateDash : IState<PlayerContext>
                 context.PlayerDashScript.gameObject.SetActive(true);
             context.PlayerDashScript.OnDashUsed();
         }
+
+        
+
     }
 
     public void Exit(PlayerContext context)
@@ -40,6 +49,7 @@ public class PlayerActionStateDash : IState<PlayerContext>
         context.PlayerCanDash = true;
         context.OverrideGlobal = false;
         context.PlayerAnimator.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
+        context.EntityEffects.StopEffect(Constants.EffectsNames.Player.Dash);
         ResetDashHUD(context.PlayerDashScript);
     }
 
