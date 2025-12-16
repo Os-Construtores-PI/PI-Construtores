@@ -172,6 +172,7 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
 
         // ---- APLICAR POSIÇÃO E VIDA ----
         player.transform.position = pdata.position;
+        player.Charactercontroller.velocity.Set(0,0,0);
         player.Health = pdata.health;
         // ---- RESTAURAR INVENTÁRIO ----
         player.Inventory.ClearItems();
