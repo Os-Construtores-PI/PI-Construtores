@@ -118,6 +118,7 @@ public static class Constants
         public static class Player
         {
             public static readonly string Dash = "Dash";
+            public const string Jump = "Jump";
         }
     }
     public static class Values
@@ -196,6 +197,10 @@ public static class QualityOfLife
         if (intention == Vector2.zero)
             return SmoothLerp(value, 0f, frictionAmount);
         return value;
+    }
+    public static bool IsValidIndex<T>(List<T> list, int index)
+    {
+        return index == (list.Count - 1) && index >= 0;
     }
     
 }

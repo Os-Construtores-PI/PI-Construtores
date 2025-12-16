@@ -58,6 +58,9 @@ public class Timer
 
     public bool IsActive => active;
     public bool IsDone => !active;
+    
+    public float Current => current;
+    public float TimeLeft => duration - current;
 
     public void Start(float duration)
     {
