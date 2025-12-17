@@ -45,15 +45,25 @@ public class DialogueGlobal : MonoBehaviour
 
     void Awake()
     {
+
+        if(Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
 
         if(_painelDialogo != null)
             _painelDialogo.SetActive(false);
        // _painelDialogo.SetActive(false);
 
+        
+
         playerDirectoor = FindAnyObjectByType<PlayerDirector>();
         
         _gameDirector = FindAnyObjectByType<GameDirector>();
+
+        
 
         if (playerDirectoor != null)
             _playerContext = playerDirectoor.FirstPlayerContext;
