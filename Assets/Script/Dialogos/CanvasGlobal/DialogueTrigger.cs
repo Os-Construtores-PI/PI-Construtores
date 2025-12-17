@@ -31,7 +31,12 @@ public class DialogueTrigger : InteractableObject
 
     private void Start()
     {
+
+        _dialogoGlobal = DialogueGlobal.Instance;
         _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
+
+        
+        
 
         if (_iconInteracao != null)
             _iconInteracao.gameObject.SetActive(false);
@@ -92,6 +97,13 @@ public class DialogueTrigger : InteractableObject
 
     private void Update()
     {
+
+        if(_dialogoGlobal == null)
+        {
+            _dialogoGlobal = DialogueGlobal.Instance;
+            return;
+        }
+        
         if (!_jogadorDentro || _playerInput == null || _dialogoGlobal == null)
             return;
 
