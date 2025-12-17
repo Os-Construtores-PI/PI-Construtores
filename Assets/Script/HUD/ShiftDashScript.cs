@@ -19,20 +19,19 @@ public class ShiftDashScript : MonoBehaviour
 
     private void Awake()
     {
-        if (_canvasDashGroup == null)
-        {
-            _canvasDashGroup = GetComponent<CanvasGroup>();
-            if (_canvasDashGroup == null)
-            {
-                _canvasDashGroup = gameObject.AddComponent<CanvasGroup>();
-            }
-        }
+        
 
-        if(shiftImage == null)
-        {
-            Debug.LogWarning("[ShiftDashScript] Nenhuma imagem de dash atribuida");
-        }
+        
+
+        if (_canvasDashGroup == null)
+            _canvasDashGroup = GetComponent<CanvasGroup>()
+                ?? gameObject.AddComponent<CanvasGroup>();
+
+        if (shiftImage == null)
+            shiftImage = GetComponent<Image>();
     }
+
+   
     public void OnDashUsed()
     {
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
@@ -41,13 +40,37 @@ public class ShiftDashScript : MonoBehaviour
 
     }
 
-    public void OnEnable()
+    private void OnEnable()
     {
         if (DeviceSpriteManager.Instance != null)
         {
-            //
+            DeviceSpriteManager.Instance.OnDeviceChanged += OnDeviceChanged;
+            AtualizarSprite();
             
         }
+    }
+
+    private void OnDisable()
+    {
+        if(DeviceSpriteManager.Instance != null)
+            DeviceSpriteManager.Instance.OnDeviceChanged -= OnDeviceChanged;
+    }
+
+    private void OnDeviceChanged(string device)
+    {
+        AtualizarSprite();
+    }
+    public void AtualizarSprite()
+    {
+        if (shiftImage == null || DeviceSpriteManager.Instance == null)
+            return;
+        shiftImage.sprite =
+            DeviceSpriteManager.Instance.GetSprite(DeviceSpriteManager.InputIconType.Dash);
+
+        //shiftImage.color = Color.red;
+
+        Debug.Log($"[DASH] Device: {DeviceSpriteManager.Instance.GetCurrentDevice()}");
+
     }
 
 

@@ -148,5 +148,10 @@ public class DeviceSpriteManager : MonoBehaviour
         Attack,
         Jump
     }
+
+    public string GetCurrentDevice()
+    {
+        return _currentDevice;
+    }
 }
 
