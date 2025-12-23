@@ -7,11 +7,16 @@ public class PlayerFallingState : IState<PlayerContext>
     public HashSet<ActionType> IncompatibleActions => new() { };
 
     // ajustes finos
-    private const float GravityUpMultiplier   = 2.2f; // sobe rápido, perde força cedo
-    private const float GravityDownMultiplier = 0.6f; // cai mais lento
-    private const float MaxFallSpeed          = -26f; // limite da queda
+    private float _gravityUpMultiplier   = 2.2f; // sobe rápido, perde força cedo
+    private float _gravityDownMultiplier = 0.6f; // cai mais lento
+    private float _maxFallSpeed          = -26f; // limite da queda
 
-    public void Enter(PlayerContext context) { }
+    public void Enter(PlayerContext context)
+    {
+        _gravityUpMultiplier = context.PlayerGravityUpMultiplier;
+        _gravityDownMultiplier = context.PlayerGravityDownMultiplier;
+        _maxFallSpeed = context.PlayerMaxFallSpeed;
+    }
 
     public void Exit(PlayerContext context) { }
 
@@ -26,14 +31,16 @@ public class PlayerFallingState : IState<PlayerContext>
         move.z = QualityOfLife.PlayerFriction(move.z, context.PlayerAirFriction, context.PlayerMoveInput);
 
         float gravityMultiplier = move.y > 0f
-            ? GravityUpMultiplier     // SUBIDA
-            : GravityDownMultiplier;  // DESCIDA
+            ? _gravityUpMultiplier     // SUBIDA
+            : _gravityDownMultiplier;  // DESCIDA
 
         move.y += context.PlayerGravity * gravityMultiplier * Time.deltaTime;
 
         // limite da queda
-        if (move.y < MaxFallSpeed)
-            move.y = MaxFallSpeed;
+        if (move.y < _maxFallSpeed)
+        {
+            move.y = _maxFallSpeed;
+        }
 
         context.PlayerMovementVector = move;
 

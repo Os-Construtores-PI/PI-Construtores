@@ -25,6 +25,9 @@ public class ConfigPlayer : ScriptableObject
     [SerializeField] private float forcaPulo;
     [SerializeField] private int maximoDePulos;
     [SerializeField] private float gravidade;
+    [SerializeField] private float gravidademultsubida;
+    [SerializeField] private float gravidademultdescida;
+    [SerializeField] private float velocidademaximaqueda;
 
     [Header("Movimento [DASH]")]
     [SerializeField] private float velocidadeDash;
@@ -56,6 +59,9 @@ public class ConfigPlayer : ScriptableObject
         playerContext.PlayerJumpForce = forcaPulo;
         playerContext.PlayerMaxJumpCount = maximoDePulos;
         playerContext.PlayerGravity = gravidade;
+        playerContext.PlayerGravityUpMultiplier = gravidademultsubida;
+        playerContext.PlayerGravityDownMultiplier = gravidademultdescida;
+        playerContext.PlayerMaxFallSpeed = velocidademaximaqueda;
         playerContext.PlayerDashDuration = duracaoDash;
         playerContext.PlayerDashSpeed = velocidadeDash;
         playerContext.PlayerDashCooldown = cooldownDash;

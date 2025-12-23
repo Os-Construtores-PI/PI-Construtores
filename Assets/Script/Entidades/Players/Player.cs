@@ -36,7 +36,10 @@ public class Player : CombatEntities
     
     internal int maxJumpCount = 2;
     internal float gravityValue = -16.62f;
-    internal float initialGravityValue;
+    internal float _gravityUpMultiplier   = 2.2f; // sobe rápido, perde força cedo
+    internal float _gravityDownMultiplier = 0.6f; // cai mais lento
+    internal float _maxFallSpeed          = -26f; // limite da queda
+    internal float _initialGravityValue;
 
     [Header("Dash")] 
     internal float DashSpeed = 30f;
@@ -85,32 +88,32 @@ public class Player : CombatEntities
 
     public PlayerContext Context { get; internal set; }
 
-    internal Vector3 MovementVector;
-    internal Vector3 Direction;
-    internal Vector3 DashDirection;
-    internal Vector2 MoveInput;
-    internal Vector3 LastWallNormal;
-    internal Transform modelTransform;
+    internal Vector3 _movementVector;
+    internal Vector3 _direction;
+    internal Vector3 _dashDirection;
+    internal Vector2 _moveInput;
+    internal Vector3 _lastWallNormal;
+    internal Transform _modelTransform;
 
-    internal int currentJumpCount;
-    [SerializeField] internal bool isGrounded;
-    internal bool wallSpeedApplied;
-    internal bool touchingWall;
+    internal int _currentJumpCount;
+    [SerializeField] internal bool _isGrounded;
+    internal bool _wallSpeedApplied;
+    internal bool _touchingWall;
 
-    internal bool canDash = true;
-    internal bool canMove = true;
+    internal bool _canDash = true;
+    internal bool _canMove = true;
 
     private ConditionalGate idleConditional = new();
 
     [Stat(nameof(CanMove))]
-    public bool CanMove { get => canMove; set => canMove = value; } // nova flag para controle de movimento
+    public bool CanMove { get => _canMove; set => _canMove = value; } // nova flag para controle de movimento
 
     [Stat(nameof(CanDash))]
-    public bool CanDash { get => canDash; set => canDash = value; }
-    internal bool isDashing = false;
-    internal float dashCount = 1;
-    internal float dashCurrent = 0;
-    internal float dashDuration;
+    public bool CanDash { get => _canDash; set => _canDash = value; }
+    internal bool _isDashing = false;
+    internal float _dashCount = 1;
+    internal float _dashCurrent = 0;
+    internal float _dashDuration;
     #endregion
 
     #region === EnemyScan ===
@@ -176,8 +179,8 @@ public class Player : CombatEntities
     {
         base.Awake();
         canPulse = false;
-        initialGravityValue = gravityValue;
-        initialGravityValue = gravityValue;
+        _initialGravityValue = gravityValue;
+        _initialGravityValue = gravityValue;
         Context = new(this);
 
         characterController = GetComponent<CharacterController>();
@@ -220,7 +223,7 @@ public class Player : CombatEntities
             ScanEnemies // <-- injeta o método diretamente
         );
 
-        modelTransform = transform.Find("Pandora.014");
+        _modelTransform = transform.Find("Pandora.014");
         idleConditional.Setup(() => animatorComp.SetTrigger(Constants.AnimatorTriggerNames.Idle),() => animatorComp.ResetTrigger(Constants.AnimatorTriggerNames.Idle)); 
     }
 
@@ -232,7 +235,7 @@ public class Player : CombatEntities
         KnockbackTimer();
         //ChangeCharacterTimer();
 
-        if (MoveInput.sqrMagnitude < 0.0001f)
+        if (_moveInput.sqrMagnitude < 0.0001f)
     {
         var gp = Gamepad.current;
         if (gp != null)
@@ -241,7 +244,7 @@ public class Player : CombatEntities
             // deadzone pequena
             if (Mathf.Abs(stick.x) > 0.09f || Mathf.Abs(stick.y) > 0.09f)
             {
-                MoveInput = stick;
+                _moveInput = stick;
                 // opcional: log para ver que o fallback está pegando a entrada
                 Debug.Log($"[Fallback] Gamepad stick read: {stick}");
                 Move(); // chama Move() como se viesse por callback
@@ -266,9 +269,9 @@ public class Player : CombatEntities
     {
         if (!characterController.enabled)
             return;
-        isGrounded = characterController.isGrounded;
+        _isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
-        animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, isGrounded);
+        animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
         idleConditional.Check(
             VerticalLayer.CurrentState.Type == ActionType.Idle &&
             HorizontalLayer.CurrentState.Type == ActionType.Idle &&
@@ -280,7 +283,7 @@ public class Player : CombatEntities
         ActionLayer.FixedUpdate(Context);
 
         // MOVEMENT
-        Charactercontroller.Move(MovementVector * Time.deltaTime);
+        Charactercontroller.Move(_movementVector * Time.deltaTime);
     }
 
     private void OnDestroy() => DOTween.KillAll();
@@ -304,7 +307,7 @@ public class Player : CombatEntities
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        MoveInput = context.ReadValue<Vector2>();
+        _moveInput = context.ReadValue<Vector2>();
          
         Move();
     }
@@ -316,7 +319,7 @@ public class Player : CombatEntities
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        if (context.started && canDash && dashCurrent < dashCount)
+        if (context.started && _canDash && _dashCurrent < _dashCount)
             StartDash();
     }
 
@@ -441,10 +444,10 @@ public class Player : CombatEntities
     {
         if (OverrideGlobal) return;
 
-        if (touchingWall)
+        if (_touchingWall)
             if (OverrideGlobal) return;
 
-        if (touchingWall)
+        if (_touchingWall)
         {
             // wall-jump permitido — segue pra VerticalLayer.ChangeState(...)
             VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
@@ -453,7 +456,7 @@ public class Player : CombatEntities
 
 
         if (OverrideVertical) return;
-        if (!(isGrounded || currentJumpCount < maxJumpCount)) return;
+        if (!(_isGrounded || _currentJumpCount < maxJumpCount)) return;
         VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
 
 
@@ -470,23 +473,23 @@ public class Player : CombatEntities
     #region === Dash ===
     private void StartDash()
     {
-        if (isDashBlocked) { return; }
+        if (_isDashBlocked) { return; }
         ActionLayer.PushState(new PlayerActionStateDash(), Context);
     }
     #endregion
 
     #region === KNOCKBACK ===
-    private Vector3 knockbackVelocity;
-    private readonly float knockbackDuration = 0.2f;
-    private Timer knockbackTimer = new();
+    private Vector3 _knockbackVelocity;
+    private readonly float _knockbackDuration = 0.2f;
+    private Timer _knockbackTimer = new();
     private bool isKnockbackActive;
-    internal bool isDashBlocked;
+    internal bool _isDashBlocked;
 
     public void ApplyKnockback(Vector3 direction, float force)
     {
         if (isKnockbackActive) return;
-        knockbackVelocity = direction * force;
-        knockbackTimer.Start(knockbackDuration);
+        _knockbackVelocity = direction * force;
+        _knockbackTimer.Start(_knockbackDuration);
         isKnockbackActive = true;
     }
 
@@ -494,21 +497,21 @@ public class Player : CombatEntities
     {
         if (!isKnockbackActive) return;
 
-        transform.position += knockbackVelocity * Time.deltaTime;
+        transform.position += _knockbackVelocity * Time.deltaTime;
 
-        if (knockbackTimer.Tick(Time.deltaTime))
+        if (_knockbackTimer.Tick(Time.deltaTime))
             isKnockbackActive = false;
     }
 
     private void BlockPlayerDashToRoutine(float duration)
     {
-        if (isDashBlocked) { return; } // já está bloqueado, não chama de novo
+        if (_isDashBlocked) { return; } // já está bloqueado, não chama de novo
         StartCoroutine(BlockDashCoroutine(duration));
     }
 
     private IEnumerator BlockDashCoroutine(float duration)
     {
-        isDashBlocked = true;
+        _isDashBlocked = true;
         // Desativa dash
         yield return stats.ModifyStatCoroutine<bool>(
             Constants.StatsNames.CanDash.ToString(),
@@ -518,7 +521,7 @@ public class Player : CombatEntities
         );
 
         // Depois que o ModifyStatCoroutine terminar, libera de novo
-        isDashBlocked = false;
+        _isDashBlocked = false;
     }
     #endregion
 
@@ -531,12 +534,12 @@ public class Player : CombatEntities
     {
         if (hit.gameObject.CompareTag(Constants.Tags.RunningWall.ToString()))
         {
-            LastWallNormal = hit.normal;
+            _lastWallNormal = hit.normal;
             ActionLayer.PushState(new PlayerActionStateWallSliding(), Context);
         }
         else
         {
-            touchingWall = false;
+            _touchingWall = false;
         }
 
         if (hit.gameObject.TryGetComponent(out Enemies enemy))
@@ -698,7 +701,7 @@ public class PlayerContext : CombatEntityContext
     public CinemachineCamera PlayerCamera { get => player.Cinemachinecamera; }
     public InteractableObject PlayerInteractionReference { get => player.interactableRef; }
     public Animator PlayerAnimator { get => player.animatorComp; }
-    public Transform PlayerModelTransform {get => player.modelTransform;}
+    public Transform PlayerModelTransform {get => player._modelTransform;}
     public PlayerInput PlayerInput { get => player.playerInput;}
     public float PlayerSpeed { get => player.Speed; set => player.Speed = value; }
     public QualityTier PlayerWallSpeedMultiplier { get => player.wallSpeedMultiplier; set => player.wallSpeedMultiplier = value; }
@@ -707,32 +710,35 @@ public class PlayerContext : CombatEntityContext
     public float PlayerJumpForce { get => player.JumpForce; set => player.JumpForce = value; }
     public int PlayerMaxJumpCount { get => player.maxJumpCount; set => player.maxJumpCount = value; }
     public float PlayerGravity { get => player.gravityValue; set => player.gravityValue = value; }
-    public float InitialGravityValue { get => player.initialGravityValue; }
+    public float PlayerGravityUpMultiplier { get => player._gravityUpMultiplier; set => player._gravityUpMultiplier = value;}
+    public float PlayerGravityDownMultiplier { get => player._gravityDownMultiplier; set => player._gravityDownMultiplier = value;}
+    public float PlayerMaxFallSpeed {get => player._maxFallSpeed; set => player._maxFallSpeed = value;}
+    public float InitialGravityValue { get => player._initialGravityValue; }
     public float PlayerDashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
-    public bool IsDashBlocked { get => player.isDashBlocked; set => player.isDashBlocked = value; }
+    public bool IsDashBlocked { get => player._isDashBlocked; set => player._isDashBlocked = value; }
     public float PlayerDashCooldown { get => player.dashCooldown; set => player.dashCooldown = value; }
     public float DashDistance { get => player.dashDistance; }
     public float PlayerAcceleration { get => player.acceleration; set => player.acceleration = value; }
     public float PlayerFriction { get => player.friction; set => player.friction = value; }
     public float PlayerAirFriction { get => player.airFriction; set => player.airFriction = value; }
-    public Vector3 PlayerMovementVector { get => player.MovementVector; set => player.MovementVector = value; }
-    public Vector3 PlayerDirection { get => player.Direction; set => player.Direction = value; }
-    public Vector3 PlayerDashDirection { get => player.DashDirection; set => player.DashDirection = value; }
-    public float PlayerDashCurrent { get => player.dashCurrent; set => player.dashCurrent = value; }
-    public float PlayerDashDuration { get => player.dashDuration; set => player.dashDuration = value; }
-    public Vector2 PlayerMoveInput { get => player.MoveInput; set => player.MoveInput = value; }
-    public Vector3 PlayerLastWallNormal { get => player.LastWallNormal; set => player.LastWallNormal = value; }
-    public int PlayerCurrentJumpCount { get => player.currentJumpCount; set => player.currentJumpCount = value; }
-    public bool PlayerIsGrounded { get => player.isGrounded; set => player.isGrounded = value; }
-    public bool PlayerWallSpeedApplied { get => player.wallSpeedApplied; set => player.wallSpeedApplied = value; }
-    public bool PlayerTouchingWall { get => player.touchingWall; set => player.touchingWall = value; }
+    public Vector3 PlayerMovementVector { get => player._movementVector; set => player._movementVector = value; }
+    public Vector3 PlayerDirection { get => player._direction; set => player._direction = value; }
+    public Vector3 PlayerDashDirection { get => player._dashDirection; set => player._dashDirection = value; }
+    public float PlayerDashCurrent { get => player._dashCurrent; set => player._dashCurrent = value; }
+    public float PlayerDashDuration { get => player._dashDuration; set => player._dashDuration = value; }
+    public Vector2 PlayerMoveInput { get => player._moveInput; set => player._moveInput = value; }
+    public Vector3 PlayerLastWallNormal { get => player._lastWallNormal; set => player._lastWallNormal = value; }
+    public int PlayerCurrentJumpCount { get => player._currentJumpCount; set => player._currentJumpCount = value; }
+    public bool PlayerIsGrounded { get => player._isGrounded; set => player._isGrounded = value; }
+    public bool PlayerWallSpeedApplied { get => player._wallSpeedApplied; set => player._wallSpeedApplied = value; }
+    public bool PlayerTouchingWall { get => player._touchingWall; set => player._touchingWall = value; }
     public bool PlayerCanMove { get => player.CanMove; set => player.CanMove = value; }
-    public bool PlayerCanDash { get => player.canDash; set => player.canDash = value; }
+    public bool PlayerCanDash { get => player._canDash; set => player._canDash = value; }
     public bool PlayerWillAttack { get => player.willAttack; set => player.willAttack = value; }
     public bool PlayerCanAttack { get => player.canAttack; set => player.canAttack = value; }
 
     public ShiftDashScript PlayerDashScript { get => player.dashHUDScript; }
-    public bool PlayerIsDashing { get => player.isDashing; set => player.isDashing = value; }
+    public bool PlayerIsDashing { get => player._isDashing; set => player._isDashing = value; }
     public float PlayerAttackCooldown { get => player.attackCooldown; set => player.attackCooldown = value; }
     public StateMachine<PlayerContext> PlayerHorizontalLayer { get => player.HorizontalLayer; }
     public StateMachine<PlayerContext> PlayerVerticalLayer { get => player.VerticalLayer; }
