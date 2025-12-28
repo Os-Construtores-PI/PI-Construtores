@@ -1,0 +1,273 @@
+{
+	"connections": [
+		{
+			"from": "skewed_bricks",
+			"from_port": 0,
+			"to": "colorize",
+			"to_port": 0
+		},
+		{
+			"from": "colorize",
+			"from_port": 0,
+			"to": "blend2",
+			"to_port": 0
+		},
+		{
+			"from": "colorize_2",
+			"from_port": 0,
+			"to": "blend2",
+			"to_port": 1
+		},
+		{
+			"from": "colorize_2",
+			"from_port": 0,
+			"to": "Material",
+			"to_port": 3
+		},
+		{
+			"from": "blend2",
+			"from_port": 0,
+			"to": "Material",
+			"to_port": 0
+		},
+		{
+			"from": "quantize",
+			"from_port": 0,
+			"to": "colorize_2",
+			"to_port": 0
+		},
+		{
+			"from": "fbm3",
+			"from_port": 0,
+			"to": "quantize",
+			"to_port": 0
+		}
+	],
+	"label": "Graph",
+	"longdesc": "",
+	"name": "_Node_817",
+	"node_position": {
+		"x": 0.0,
+		"y": 0.0
+	},
+	"nodes": [
+		{
+			"export_last_target": "Unity/URP",
+			"export_paths": {
+				"Unity/URP": "C:/Users/acler/Projetos/Desenvolvimento/PI-Construtores/Assets/Modelagens 3D/Modelagem_Cenário/Aclerson/Fase0/materials/tower01/brick"
+			},
+			"name": "Material",
+			"node_position": {
+				"x": 1.49650120735168,
+				"y": -0.665500402450562
+			},
+			"parameters": {
+				"albedo_color": {
+					"a": 1.0,
+					"b": 1.0,
+					"g": 1.0,
+					"r": 1.0,
+					"type": "Color"
+				},
+				"ao": 1.0,
+				"depth_scale": 0.0,
+				"emission_energy": 1.0,
+				"flags_transparent": false,
+				"metallic": 1.0,
+				"normal": 1.0,
+				"roughness": 1.0,
+				"size": 10.0,
+				"sss": 1.0
+			},
+			"seed_int": 0,
+			"type": "material"
+		},
+		{
+			"name": "skewed_bricks",
+			"node_position": {
+				"x": -899.8896484375,
+				"y": -6.45617723464966
+			},
+			"parameters": {
+				"bevel": 0.3,
+				"columns": 20.0,
+				"corner": 1.0,
+				"mortar": -0.1,
+				"offset": 0.5,
+				"randomness": 0.03,
+				"round": 0.4,
+				"rows": 20.0
+			},
+			"seed_int": 0,
+			"type": "skewed_bricks"
+		},
+		{
+			"name": "colorize",
+			"node_position": {
+				"x": -457.288269042969,
+				"y": -118.753471374512
+			},
+			"parameters": {
+				"gradient": {
+					"interpolation": 1,
+					"points": [
+						{
+							"a": 1.0,
+							"b": 0.0,
+							"g": 0.0,
+							"pos": 0.0,
+							"r": 0.0
+						},
+						{
+							"a": 1.0,
+							"b": 0.27734375,
+							"g": 0.27734375,
+							"pos": 1.0,
+							"r": 0.27734375
+						}
+					],
+					"type": "Gradient"
+				}
+			},
+			"seed_int": 0,
+			"shader_model": {
+				"code": "",
+				"global": "",
+				"inputs": [
+					{
+						"default": "$uv.x",
+						"label": "",
+						"longdesc": "The input grayscale image",
+						"name": "input",
+						"shortdesc": "Input",
+						"type": "f"
+					}
+				],
+				"instance": "",
+				"longdesc": "Remaps a grayscale image to a custom gradient",
+				"name": "Colorize",
+				"outputs": [
+					{
+						"longdesc": "The remapped RGBA image",
+						"rgba": "$gradient($input($uv))",
+						"shortdesc": "Output",
+						"type": "rgba"
+					}
+				],
+				"parameters": [
+					{
+						"default": {
+							"interpolation": 1,
+							"points": [
+								{
+									"a": 1.0,
+									"b": 0.0,
+									"g": 0.0,
+									"pos": 0.0,
+									"r": 0.0
+								},
+								{
+									"a": 1.0,
+									"b": 1.0,
+									"g": 1.0,
+									"pos": 1.0,
+									"r": 1.0
+								}
+							],
+							"type": "Gradient"
+						},
+						"label": "",
+						"longdesc": "The gradient to which the input is remapped",
+						"name": "gradient",
+						"shortdesc": "Gradient",
+						"type": "gradient"
+					}
+				],
+				"shortdesc": "Colorize"
+			},
+			"type": "shader"
+		},
+		{
+			"generic_size": 1,
+			"name": "quantize",
+			"node_position": {
+				"x": -648.271850585938,
+				"y": 316.369934082031
+			},
+			"parameters": {
+				"steps": 1.4
+			},
+			"seed_int": 0,
+			"type": "quantize"
+		},
+		{
+			"name": "colorize_2",
+			"node_position": {
+				"x": -430.396209716797,
+				"y": 326.519927978516
+			},
+			"parameters": {
+				"gradient": {
+					"interpolation": 1,
+					"points": [
+						{
+							"a": 0.0,
+							"b": 0.0,
+							"g": 0.0,
+							"pos": 0.0,
+							"r": 0.0
+						},
+						{
+							"a": 1.0,
+							"b": 0.28515625,
+							"g": 0.0724029541015625,
+							"pos": 0.0977829066851667,
+							"r": 0.163820385932922
+						}
+					],
+					"type": "Gradient"
+				}
+			},
+			"seed_int": 0,
+			"type": "colorize"
+		},
+		{
+			"generic_size": 1,
+			"name": "blend2",
+			"node_position": {
+				"x": -280.695037841797,
+				"y": 78.3282852172852
+			},
+			"parameters": {
+				"amount1": 1.0,
+				"blend_type1": 4
+			},
+			"seed_int": 0,
+			"type": "blend2"
+		},
+		{
+			"name": "fbm3",
+			"node_position": {
+				"x": -752.980529785156,
+				"y": 513.079345703125
+			},
+			"parameters": {
+				"folds": 1.0,
+				"iterations": 4.0,
+				"noise": 7,
+				"offset": 0.0,
+				"persistence": 1.0,
+				"scale_x": 7.0,
+				"scale_y": 3.0
+			},
+			"seed_int": 0,
+			"type": "fbm3"
+		}
+	],
+	"parameters": {
+
+	},
+	"seed_int": 0,
+	"shortdesc": "",
+	"type": "graph"
+}
