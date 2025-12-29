@@ -33,7 +33,7 @@ public class HudDirector : MonoBehaviour
         Constants.HudPanelNames.AmethystCounter,
         Constants.HudPanelNames.HealthBar,
         Constants.HudPanelNames.DashIcon,
-        Constants.HudPanelNames.GraplingHookCutscene
+        Constants.HudPanelNames.Cutscene
     };
 
 
@@ -274,7 +274,7 @@ public class HudDirector : MonoBehaviour
     #region Cinematic Bars
     private void TriggerCinematicBars(int playerID, float duration)
     {
-        List<GameObject> holders = GetPanel(playerID, Constants.HudPanelNames.GraplingHookCutscene);
+        List<GameObject> holders = GetPanel(playerID, Constants.HudPanelNames.Cutscene);
         List<GameObject> cinematicPanels = new();
 
         foreach (var holder in holders)
