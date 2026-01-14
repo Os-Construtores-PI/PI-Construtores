@@ -8,14 +8,14 @@ kanban-plugin: board
 
 - [ ] Grapling Hook do Monster Hunter
 - [ ] Mecânica de Deslizar
-- [ ] Sistema de Tick
 - [ ] Etapas com câmera em perspectiva lateral
 - [ ] Multiplayer
-- [ ] Sistema de Ranking
 
 
 ## Planejamento
 
+- [ ] Sistema de Ranking
+- [ ] Sistema de Tick
 
 
 ## Em Produção
@@ -25,6 +25,7 @@ kanban-plugin: board
 - [ ] Sentinela do Abismo
 - [ ] Câmera do Jogador
 - [ ] HUD
+- [ ] Diálogos
 
 
 ## Concluído
