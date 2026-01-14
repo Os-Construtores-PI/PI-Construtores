@@ -9,6 +9,6 @@ jobs:
 
       # https://itch.io/docs/butler/pushing.html
       - name: Push to Itch.io
-        run: butler push directory construtores/pandora:windows
+        run: butler push ./Builds/LatestProduction construtores/pandora:windows
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
