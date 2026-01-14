@@ -1,0 +1,14 @@
+name: Upload to itch.io
+on: push
+jobs:
+  itchio-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup butler
+        uses: remarkablegames/setup-butler@v2
+
+      # https://itch.io/docs/butler/pushing.html
+      - name: Push to Itch.io
+        run: butler push directory user/game:channel
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
