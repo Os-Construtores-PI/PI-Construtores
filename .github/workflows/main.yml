@@ -1,14 +1,20 @@
-name: Upload to itch.io
-on: push
-jobs:
-  itchio-upload:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup butler
-        uses: remarkablegames/setup-butler@v2
-
-      # https://itch.io/docs/butler/pushing.html
-      - name: Push to Itch.io
-        run: butler push "Builds.zip" construtores/pandora:windows
-        env:
-          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+            - name: Itch.io - Publish
+  # You may pin to the exact commit or the version.
+  # uses: KikimoraGames/itch-publish@ea06fdc7e36b34a6c4f88b379a73f3362537b998
+  uses: KikimoraGames/itch-publish@v0.0.3
+  with:
+    # Butler API Key
+    butlerApiKey: secrets.BUTLER_API_KEY
+    # Directory or .zip file of the game data. Zip files are slower to upload.
+    gameData: Builds.zip
+    # Itch.io username of the game owner. e.g. in finji/overland this would be finji.
+    itchUsername: construtores
+    # Itch.io id of the game. e.g. in finji/overland this would be overland.
+    itchGameId: pandora
+    # Channel name of the game: https://itch.io/docs/butler/pushing.html#channel-names
+    buildChannel: windows
+    # Optional build number, use to supply your own build version instead of using itch's versioning
+    buildNumber: # optional
+    # Optional build number file path, use to supply your own build version instead of using itch's versioning. The file should contain a single line with the version or build number, in UTF-8 without BOM.
+    buildNumberFile: # optional
+          
