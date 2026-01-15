@@ -32,6 +32,7 @@ kanban-plugin: board
 - [ ] Tutorias
 - [ ] Torre Faze 0
 - [ ] Lycan Animação e Modelo
+- [ ] Pandora Animações Novo Modelo
 
 
 ## Concluído
