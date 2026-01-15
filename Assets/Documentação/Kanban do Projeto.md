@@ -6,16 +6,19 @@ kanban-plugin: board
 
 ## A Decidir
 
-- [ ] Grapling Hook do Monster Hunter
-- [ ] Mecânica de Deslizar
 - [ ] Etapas com câmera em perspectiva lateral
 - [ ] Multiplayer
+- [ ] Level Design Torre Faze 0
 
 
 ## Planejamento
 
+- [ ] Mecânica de Deslizar
+- [ ] Grapling Hook do Monster Hunter
 - [ ] Sistema de Ranking
 - [ ] Sistema de Tick
+- [ ] Rework Level Design Faze 0
+- [ ] Rework Paleta de Cor Faze 0
 
 
 ## Em Produção
@@ -26,12 +29,16 @@ kanban-plugin: board
 - [ ] Câmera do Jogador
 - [ ] HUD
 - [ ] Diálogos
+- [ ] Tutorias
+- [ ] Torre Faze 0
+- [ ] Lycan Animação e Modelo
 
 
 ## Concluído
 
 - [ ] Pandora
 - [ ] Menu Principal
+- [ ] Pandora Modelo Novo
 
 
 ## Testado
