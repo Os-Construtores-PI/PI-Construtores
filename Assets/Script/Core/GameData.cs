@@ -26,6 +26,7 @@ public class SavedSlotData
 public class SavedLevelData
 {
     public string levelName;
+    public int levelScore;
     public List<SavedPlayerData> savedPlayers = new();
     public List<SavedDroppedItem> savedDroppedItems = new();
     public SavedLevelData(string levelname)
@@ -39,6 +40,7 @@ public class SavedPlayerData
 {
     public int playerId;
     public List<SavedItemEntry> inventory = new();
+    public int amethystsCount;
     public Vector3 position;
     public float health;
 

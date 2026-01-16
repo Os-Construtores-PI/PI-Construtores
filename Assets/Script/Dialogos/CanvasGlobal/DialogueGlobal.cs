@@ -191,7 +191,7 @@ public class DialogueGlobal : MonoBehaviour
             FecharDialogo();
             return;
         }
-        MostrarFala(_falasAtuais[_index]);
+        AtualizarFala();
     }
 
     public void VoltarFala()
@@ -202,7 +202,8 @@ public class DialogueGlobal : MonoBehaviour
 
         if(_index < 0) _index = 0;
 
-        _textoDialogo.text = _falasAtuais[_index];  
+        AtualizarFala();
+       // _textoDialogo.text = _falasAtuais[_index];  
     }
 
     public void FecharDialogo()
@@ -287,6 +288,15 @@ public class DialogueGlobal : MonoBehaviour
     private System.Collections.IEnumerator DelayMostrarFala()
     {
         yield return new WaitForSeconds(_delayAntesdotexto);
+        AtualizarFala();
+    }
+
+
+    private void AtualizarFala()
+    {
+        if (_falasAtuais == null || _falasAtuais.Length == 0)
+            return;
+
         MostrarFala(_falasAtuais[_index]);
     }
 
