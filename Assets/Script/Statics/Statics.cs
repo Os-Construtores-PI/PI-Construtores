@@ -112,6 +112,7 @@ public static class Constants
     public static class AnimatorFloatNames
     {
         public static readonly string VelocityY = "VelocityY";
+        public static readonly string VelocityX = "VelocityX";
     }
     public static class EffectsNames
     {

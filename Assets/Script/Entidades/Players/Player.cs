@@ -103,7 +103,6 @@ public class Player : CombatEntities
     internal bool _canDash = true;
     internal bool _canMove = true;
 
-    private ConditionalGate idleConditional = new();
 
     [Stat(nameof(CanMove))]
     public bool CanMove { get => _canMove; set => _canMove = value; } // nova flag para controle de movimento
@@ -224,7 +223,6 @@ public class Player : CombatEntities
         );
 
         _modelTransform = transform.Find("Pandora.014");
-        idleConditional.Setup(() => animatorComp.SetTrigger(Constants.AnimatorTriggerNames.Idle),() => animatorComp.ResetTrigger(Constants.AnimatorTriggerNames.Idle)); 
     }
 
     public override void Update()
@@ -271,12 +269,8 @@ public class Player : CombatEntities
             return;
         _isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
+        animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityX,Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
-        idleConditional.Check(
-            VerticalLayer.CurrentState.Type == ActionType.Idle &&
-            HorizontalLayer.CurrentState.Type == ActionType.Idle &&
-            ActionLayer.CurrentState.Type == ActionType.Idle
-        );
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
         VerticalLayer.FixedUpdate(Context);
