@@ -23,23 +23,24 @@ kanban-plugin: board
 
 ## Em Produção
 
-- [ ] Sistema de Save
 - [ ] [[Fase 0]]
-- [ ] Sentinela do Abismo
+- [ ] [[Pandora Modelo Novo]]
+- [ ] [[Ametista]]
+- [ ] [[Sentinela do Abismo]]
+- [ ] Lycan Animação e Modelo
+- [ ] Tutorias
 - [ ] Câmera do Jogador
 - [ ] HUD
 - [ ] Diálogos
-- [ ] Tutorias
 - [ ] Torre Faze 0
-- [ ] Lycan Animação e Modelo
 - [ ] Pandora Animações Novo Modelo
+- [ ] Sistema de Save
 
 
 ## Concluído
 
 - [ ] Pandora
 - [ ] Menu Principal
-- [ ] Pandora Modelo Novo
 
 
 ## Testado
