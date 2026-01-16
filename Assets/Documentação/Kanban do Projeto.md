@@ -25,16 +25,15 @@ kanban-plugin: board
 
 - [ ] [[Fase 0]]
 - [ ] [[Pandora Modelo Novo]]
+- [ ] [[Lycan]]
 - [ ] [[Ametista]]
 - [ ] [[Sentinela do Abismo]]
-- [ ] Lycan Animação e Modelo
-- [ ] Tutorias
+- [ ] [[Tutorias 1]]
+- [ ] [[HUD]]
+- [ ] [[Diálogos]]
 - [ ] Câmera do Jogador
-- [ ] HUD
-- [ ] Diálogos
-- [ ] Torre Faze 0
-- [ ] Pandora Animações Novo Modelo
 - [ ] Sistema de Save
+- [ ] Torre Faze 0
 
 
 ## Concluído
