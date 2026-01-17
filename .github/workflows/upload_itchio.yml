@@ -3,7 +3,9 @@ name: Upload to itch.io
 on: 
   push:
     branches:
-      - main  # Ajuste para a sua branch principal
+      - main
+    paths:
+      - 'Builds.zip' # O workflow SÓ inicia se o Builds.zip for alterado
 
 jobs:
   itchio-upload:
@@ -24,7 +26,7 @@ jobs:
             echo "Arquivo Builds.zip encontrado!"
           else
             echo "ERRO: Builds.zip não encontrado na raiz do repo."
-            ls -R # Lista os arquivos para você ver onde ele está
+            ls -R 
             exit 1
           fi
 
