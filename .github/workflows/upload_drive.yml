@@ -1,4 +1,4 @@
-name: Upload Obsidian Files Individual
+name: Sync Obsidian Individual Files
 
 on:
   push:
@@ -6,20 +6,26 @@ on:
       - 'Assets/Documentação/**'
 
 jobs:
-  upload:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Upload Files to Google Drive
-        uses: mohammad-fullstack/google-drive-upload-git-action@v1.0.1
+      # Passo de debug: Lista os arquivos para garantir que o caminho está certo
+      - name: List files for debug
+        run: |
+          echo "Verificando arquivos na pasta Documentação:"
+          ls -R Assets/Documentação
+
+      - name: Upload to Google Drive
+        uses: skick1234/google-drive-upload-git-action@master
         with:
-          # O conteúdo do seu JSON em BASE64 (o que você gerou no PowerShell)
+          # Use o segredo em BASE64 (gerado no PowerShell)
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          # ID da pasta do professor
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-          # O caminho para a pasta que contém as notas
-          # Usamos o curinga '*' para pegar os arquivos dentro dela
-          filename: 'Assets/Documentação/**'
+          # Caminho da pasta de origem
+          filename: 'Assets/Documentação'
           overwrite: "true"
+          # Mantém a estrutura de pastas para o seu professor
+          recursive: "true"
