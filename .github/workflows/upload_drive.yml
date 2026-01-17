@@ -1,31 +1,19 @@
-name: Sync Obsidian Individual Files
-
+name: Upload Obsidian Vault to Drive
 on:
   push:
     paths:
-      - 'Assets/Documentação/**'
+      - 'Assets/Documentação/**' # O workflow só roda se mudar algo no vault
 
 jobs:
-  deploy:
+  upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      # Passo de debug: Lista os arquivos para garantir que o caminho está certo
-      - name: List files for debug
-        run: |
-          echo "Verificando arquivos na pasta Documentação:"
-          ls -R Assets/Documentação
-
-      - name: Upload to Google Drive
-        uses: skick1234/google-drive-upload-git-action@master
+      - name: Upload to Drive
+        uses: adityak74/google-drive-upload-git-action@main
         with:
-          # Use o segredo em BASE64 (gerado no PowerShell)
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          filename: 'Assets/Documentação/**' # Define o que será enviado
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-          # Caminho da pasta de origem
-          filename: 'Assets/Documentação'
           overwrite: "true"
-          # Mantém a estrutura de pastas para o seu professor
-          recursive: "true"
