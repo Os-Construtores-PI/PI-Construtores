@@ -143,7 +143,11 @@ public class Player : CombatEntities
     private Scanner<Ray,(bool, RaycastHit)> objectScanner;
     private Scanner<Vector3,bool> enemyScanner;
     #endregion
-    #region === Inicialização Unity ===
+
+
+
+
+
     #region Coletáveis
 
 
@@ -171,7 +175,9 @@ public class Player : CombatEntities
         SetAmethysts(amethysts - amount);
         return true;
     }
+
     #endregion
+    #region === Inicialização Unity ===
 
 
     public override void Awake()
