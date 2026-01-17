@@ -1,19 +1,22 @@
-name: Upload Obsidian Vault to Drive
+name: Sync Obsidian to Drive
+
 on:
   push:
     paths:
-      - 'Assets/Documentação/**' # O workflow só roda se mudar algo no vault
+      - 'Assets/Documentação/**'
 
 jobs:
-  upload:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Upload to Drive
-        uses: adityak74/google-drive-upload-git-action@main
+      - name: Upload Folder to Google Drive
+        uses: Tofunmi-faro/google-drive-upload-git-action@v3
         with:
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: 'Assets/Documentação/' # Define o que será enviado
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+          # Aqui indicamos a pasta de origem
+          filename: 'Assets/Documentação'
+          # Essa opção garante que ele trate como pasta e não como arquivo único
           overwrite: "true"
