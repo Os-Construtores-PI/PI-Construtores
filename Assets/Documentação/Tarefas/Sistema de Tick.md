@@ -5,3 +5,4 @@ Padronização dos intervalos de run de códigos lógicos do projeto (EX: Scanne
 
 # Subtarefas para conclusão
 - [ ] Script #Padeirinho 
+- [ ] Troca dos scanners #Padeirinho 
