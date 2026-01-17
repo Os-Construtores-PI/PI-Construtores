@@ -175,6 +175,7 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
         player.Charactercontroller.velocity.Set(0,0,0);
         player.Health = pdata.health;
         player.SetAmethysts(pdata.amethystsCount);
+
         // ---- RESTAURAR INVENTÁRIO ----
         player.Inventory.ClearItems();
         foreach (var item in pdata.inventory)

@@ -156,7 +156,7 @@ public class DialogueGlobal : MonoBehaviour
         _dialogoAtivo = true;
 
 
-
+        LimparFala();
         _painelDialogo.SetActive(true);
         _painelDialogo.transform.localScale = Vector3.zero;
         _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
@@ -267,22 +267,20 @@ public class DialogueGlobal : MonoBehaviour
 
     private void MostrarFala(string texto)
     {
-        if (_tweenText != null && _tweenText.IsActive())
-            _tweenText.Kill();
-
-        _textoDialogo.maxVisibleCharacters = 0;
+        LimparFala();
         _textoDialogo.text = texto;
+        _textoDialogo.maxVisibleCharacters = 0;
+        _textoDialogo.ForceMeshUpdate();
 
         float duracao = texto.Length * _tempoPorLetra;
         duracao = Mathf.Clamp(duracao, 0.10f, 1.0f);
 
-        // anima letra por letra
         _tweenText = DOTween.To(
-        () => _textoDialogo.maxVisibleCharacters,
-        v => _textoDialogo.maxVisibleCharacters = v,
-        texto.Length,
-        duracao //velocidade automática baseada no tamanho
-        );
+            () => _textoDialogo.maxVisibleCharacters,
+            v => _textoDialogo.maxVisibleCharacters = v,
+            texto.Length,
+            duracao
+        ).SetEase(Ease.Linear);
     }
 
     private System.Collections.IEnumerator DelayMostrarFala()
@@ -296,10 +294,23 @@ public class DialogueGlobal : MonoBehaviour
     {
         if (_falasAtuais == null || _falasAtuais.Length == 0)
             return;
-
+        StopAllCoroutines();
         MostrarFala(_falasAtuais[_index]);
     }
 
+    private void LimparFala()
+    {
+        if(_tweenText != null)
+        {
+            _tweenText.Kill();
+            _tweenText = null;
+        }
+        _textoDialogo.text = string.Empty;
+        _textoDialogo.maxVisibleCharacters = 0;
+
+        // forçar TMP a atualizar imediatamente
+        _textoDialogo.ForceMeshUpdate();
+    }
     
 
 
