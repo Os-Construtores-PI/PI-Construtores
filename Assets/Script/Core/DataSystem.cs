@@ -104,7 +104,6 @@ public class DataSystem : MonoBehaviour
 
                 var dropZone = go.AddComponent<ItemDropZone>();
                 dropZone.itemData = data;
-                dropZone.quantity = ditemData.quantity;
                 dropZone.SetId(ditemData.ID);
                 dropZone.Initialize();
             }
@@ -254,7 +253,6 @@ public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = 
                 ID = drop.ID,
                 itemName = drop.itemData.itemName,
                 position = drop.transform.position,
-                quantity = drop.quantity
             };
             levelData.savedDroppedItems.Add(ditemData);
         }

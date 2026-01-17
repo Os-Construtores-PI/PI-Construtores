@@ -9553,6 +9553,7 @@ Transform:
   - {fileID: 493231224}
   - {fileID: 447508500}
   - {fileID: 1743236935}
+  - {fileID: 2113228031}
   m_Father: {fileID: 957722227}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &366923364
@@ -21915,6 +21916,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   collectableCountText: {fileID: 0}
+  currentCollectables: 0
 --- !u!1 &993353933
 GameObject:
   m_ObjectHideFlags: 0
@@ -42969,6 +42971,52 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1578227274}
   m_Mesh: {fileID: -1233790791822378289, guid: 10124f84c1f377beaa78ff3a41b8c859, type: 3}
+--- !u!1 &1590308167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1590308168}
+  - component: {fileID: 1590308169}
+  m_Layer: 0
+  m_Name: Ametista.1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1590308168
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590308167}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 17.99, z: 56.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2113228031}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1590308169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590308167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e177518d337c90a4aab4adfb5299cd76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmethystItemDropZone
+  itemData: {fileID: 11400000, guid: c580a6e31ec7cd041b33d2b4aa06d3b4, type: 2}
+  quantity: 5
 --- !u!1 &1600191514
 GameObject:
   m_ObjectHideFlags: 0
@@ -53953,6 +54001,39 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2103863029}
   m_Mesh: {fileID: -6499755149756989109, guid: 501890942f8c1cc42916939253de328c, type: 3}
+--- !u!1 &2113228030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2113228031}
+  m_Layer: 0
+  m_Name: "COLET\xC1VEIS"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2113228031
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2113228030}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1880924204963027606}
+  - {fileID: 1590308168}
+  m_Father: {fileID: 354408984}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2122679697
 GameObject:
   m_ObjectHideFlags: 0
@@ -54498,6 +54579,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7793054625327261987}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &198464118637692558
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1880924204963027606}
+  - component: {fileID: 1880924204963027607}
+  m_Layer: 0
+  m_Name: Ametista
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!114 &240648586606911228
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55944,6 +56042,35 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!4 &1880924204963027606
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198464118637692558}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2.23, z: 17}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2113228031}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1880924204963027607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198464118637692558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e177518d337c90a4aab4adfb5299cd76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmethystItemDropZone
+  itemData: {fileID: 11400000, guid: c580a6e31ec7cd041b33d2b4aa06d3b4, type: 2}
+  quantity: 10
 --- !u!1 &1919764528803857697
 GameObject:
   m_ObjectHideFlags: 0
@@ -57327,7 +57454,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.78, y: 2.88}
+  m_AnchoredPosition: {x: -1.36, y: 2.88}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &3938520430333449118
@@ -59519,7 +59646,7 @@ MonoBehaviour:
   firstPlayerPrefab: {fileID: 7958797620662136170, guid: ea24acccc60d16e928e9941cbc261821, type: 3}
   fallbackPlayerPrefab: {fileID: 7958797620662136170, guid: ea24acccc60d16e928e9941cbc261821, type: 3}
   secondPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
-  hudPrefab: {fileID: 488739853224379904, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
+  hudPrefab: {fileID: 8570821590112259620, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
   hudCanvasParent: Canvas
   mainCameraPrefab: {fileID: 1707261825629555682, guid: b1c4a5d69de25e447af953e1b8ee888b, type: 3}
   freeLookPrefab: {fileID: 1658166362939553594, guid: fdc0c2b74ead6a7499fecbbcf9b83c35, type: 3}

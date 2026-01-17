@@ -153,7 +153,7 @@ public class Player : CombatEntities
 
 
     // === AMETISTAS ===
-    private int amethysts;
+    private int amethysts = 0;
     public int Amethysts => amethysts;
 
     public void SetAmethysts(int value)

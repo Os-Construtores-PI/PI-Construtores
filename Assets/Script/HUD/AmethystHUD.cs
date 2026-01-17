@@ -2,7 +2,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-public class NumeroAmetistasColetadas : MonoBehaviour
+public class AmethystHUD : MonoBehaviour
 {
     [Header("Referência de UI")]
     [SerializeField] private TMP_Text _amethystText;
@@ -11,16 +11,17 @@ public class NumeroAmetistasColetadas : MonoBehaviour
         if (_amethystText == null)
             _amethystText = GetComponentInChildren<TMP_Text>();
 
-        UpdateText(CollectibleManager.Instance.GetCurrentColletables());
-
-        CollectibleManager.Instance.OnColletableCountChanged += UpdateText;
+        GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateText);
+        UpdateText(0);
 
     }
 
     private void OnDestroy()
     {
-        if (CollectibleManager.Instance != null)
-            CollectibleManager.Instance.OnColletableCountChanged -= UpdateText;
+        if (GlobalEventBus.HasInstance)
+        {
+            GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateText);
+        }
     }
 
     private void UpdateText(int newCount)

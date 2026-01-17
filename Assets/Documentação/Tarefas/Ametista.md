@@ -4,6 +4,6 @@
 
 
 # Subtarefas para conclusão
-- [ ] Por no cenário #Padeirinho 
-- [ ] Fazer Prefab #Padeirinho 
-- [ ] Animação de Coleta e Atualização no Contador #Padeirinho 
+- [ ] Por no cenário #Padeirinho
+- [x] Fazer Prefab #Padeirinho
+- [x] Animação de Coleta e Atualização no Contador #Padeirinho
