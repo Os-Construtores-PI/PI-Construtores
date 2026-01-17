@@ -8,6 +8,7 @@
 - [x] Contador de Ametista #Erick
 - [x] Ícone de Dash #Erick
 - [x] Pause #Erick
+- [ ] Ícone Teclado (F e G) #Erick 
 
 # Programação e Implementação
 - [x] Vida #Leonardo
