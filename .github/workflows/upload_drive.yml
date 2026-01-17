@@ -1,4 +1,4 @@
-name: Sync Obsidian to Drive
+name: Upload Obsidian Files Individual
 
 on:
   push:
@@ -6,24 +6,20 @@ on:
       - 'Assets/Documentação/**'
 
 jobs:
-  sync:
+  upload:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Rclone
-        run: sudo apt-get install -y rclone
-
-      - name: Create Rclone Config
-        run: |
-          mkdir -p ~/.config/rclone
-          echo "[gdrive]" > ~/.config/rclone/rclone.conf
-          echo "type = drive" >> ~/.config/rclone/rclone.conf
-          echo "scope = drive" >> ~/.config/rclone/rclone.conf
-          echo "service_account_contents = ${{ secrets.GDRIVE_CREDENTIALS_JSON }}" >> ~/.config/rclone/rclone.conf
-
-      - name: Sync Folder to Drive
-        run: |
-          # O parâmetro --drive-root-folder-id garante que ele vá direto para a pasta certa
-          rclone sync ./Assets/Documentação gdrive: --drive-root-folder-id ${{ secrets.GDRIVE_FOLDER_ID }} -v
+      - name: Upload Files to Google Drive
+        uses: mohammad-fullstack/google-drive-upload-git-action@v1.0.1
+        with:
+          # O conteúdo do seu JSON em BASE64 (o que você gerou no PowerShell)
+          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          # ID da pasta do professor
+          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+          # O caminho para a pasta que contém as notas
+          # Usamos o curinga '*' para pegar os arquivos dentro dela
+          filename: 'Assets/Documentação/**'
+          overwrite: "true"
