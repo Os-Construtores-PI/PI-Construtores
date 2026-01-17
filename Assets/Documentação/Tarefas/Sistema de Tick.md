@@ -1,6 +1,6 @@
 #Participante
 # Resumo
-Padronização dos intervalos de run de códigos lógicos do projeto (ex: Scanner).
+Padronização dos intervalos de run de códigos lógicos do projeto (EX: Scanner).
 
 
 # Subtarefas para conclusão
