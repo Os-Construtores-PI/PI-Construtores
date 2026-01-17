@@ -6,17 +6,27 @@ on:
       - 'Assets/Documentação/**'
 
 jobs:
-  deploy:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Upload Folder to Google Drive
-        uses: Tofunmi-faro/google-drive-upload-git-action@v3
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-          # Aqui indicamos a pasta de origem
-          filename: 'Assets/Documentação'
-          # Essa opção garante que ele trate como pasta e não como arquivo único
-          overwrite: "true"
+      - name: Install Rclone
+        run: sudo apt-get install -y rclone
+
+      - name: Create Rclone Config
+        run: |
+          mkdir -p ~/.config/rclone
+          cat <<EOF > ~/.config/rclone/rclone.conf
+          [gdrive]
+          type = drive
+          service_account_contents = ${{ secrets.GDRIVE_CREDENTIALS_JSON }}
+          team_drive = 
+          EOF
+
+      - name: Sync Folder to Drive
+        run: |
+          # rclone sync [origem] [destino:ID_DA_PASTA]
+          # O comando sync faz a pasta do Drive ficar IDENTICA à do GitHub
+          rclone sync ./Assets/Documentação gdrive:${{ secrets.GDRIVE_FOLDER_ID }} --drive-use-trash
