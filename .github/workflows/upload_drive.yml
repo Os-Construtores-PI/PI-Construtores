@@ -18,15 +18,12 @@ jobs:
       - name: Create Rclone Config
         run: |
           mkdir -p ~/.config/rclone
-          cat <<EOF > ~/.config/rclone/rclone.conf
-          [gdrive]
-          type = drive
-          service_account_contents = ${{ secrets.GDRIVE_CREDENTIALS_JSON }}
-          team_drive = 
-          EOF
+          echo "[gdrive]" > ~/.config/rclone/rclone.conf
+          echo "type = drive" >> ~/.config/rclone/rclone.conf
+          echo "scope = drive" >> ~/.config/rclone/rclone.conf
+          echo "service_account_contents = ${{ secrets.GDRIVE_CREDENTIALS_JSON }}" >> ~/.config/rclone/rclone.conf
 
       - name: Sync Folder to Drive
         run: |
-          # rclone sync [origem] [destino:ID_DA_PASTA]
-          # O comando sync faz a pasta do Drive ficar IDENTICA à do GitHub
-          rclone sync ./Assets/Documentação gdrive:${{ secrets.GDRIVE_FOLDER_ID }} --drive-use-trash
+          # O parâmetro --drive-root-folder-id garante que ele vá direto para a pasta certa
+          rclone sync ./Assets/Documentação gdrive: --drive-root-folder-id ${{ secrets.GDRIVE_FOLDER_ID }} -v
