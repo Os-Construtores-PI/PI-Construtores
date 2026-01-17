@@ -16,7 +16,7 @@ kanban-plugin: board
 - [ ] Mecânica de Deslizar
 - [ ] Grapling Hook do Monster Hunter
 - [ ] Sistema de Ranking
-- [ ] Sistema de Tick
+- [ ] [[Sistema de Tick]]
 - [ ] Rework Level Design Faze 0
 - [ ] Rework Paleta de Cor Faze 0
 
