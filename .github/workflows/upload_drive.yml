@@ -1,19 +1,27 @@
 name: Upload Obsidian Vault to Drive
+
 on:
   push:
     paths:
-      - 'Assets/Documentação/**' # O workflow só roda se mudar algo no vault
+      - 'Assets/Documentação/**'
 
 jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Atualizado para v4 (mais recente)
 
-      - name: Upload to Drive
+      - name: Zip Documentation Folder
+        run: |
+          zip -r documentacao_backup.zip "Assets/Documentação/"
+          # O comando acima cria o arquivo documentacao_backup.zip
+          # contendo tudo dentro do caminho especificado.
+
+      - name: Upload Zip to Drive
         uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: 'Assets/Documentação/**' # Define o que será enviado
+          filename: 'documentacao_backup.zip' # Enviamos o arquivo zip gerado
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
           overwrite: "true"
