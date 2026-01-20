@@ -18,7 +18,7 @@ public class ConsoleComponent : MonoBehaviour
     public GameObject target;
 
     // Propriedade estática que retorna o sistema de dados ativo na cena (gerencia save/load e jogadores)
-    private static DataSystem Data => FindAnyObjectByType<DataSystem>();
+    private static DataDirector Data => FindAnyObjectByType<DataDirector>();
 
     // Propriedade estática que retorna o GameObject alvo atual do console
     private static GameObject Target => FindAnyObjectByType<ConsoleComponent>().target;
@@ -53,7 +53,7 @@ public class ConsoleComponent : MonoBehaviour
     [ConsoleMethod("saveGame", "Salva o estado do jogo para todos os jogadores", "slot")]
     public static void SaveGame(int index)
     {
-        var dataSystem = FindAnyObjectByType<DataSystem>();
+        var dataSystem = FindAnyObjectByType<DataDirector>();
         if (dataSystem == null)
         {
             Debug.LogError("DataSystem não encontrado na cena.");
@@ -67,7 +67,7 @@ public class ConsoleComponent : MonoBehaviour
     [ConsoleMethod("loadGame", "Carrega o estado do jogo para todos os jogadores", "slot")]
     public static void LoadGame(int index)
     {
-        var dataSystem = FindAnyObjectByType<DataSystem>();
+        var dataSystem = FindAnyObjectByType<DataDirector>();
         if (dataSystem == null)
         {
             Debug.LogError("DataSystem não encontrado na cena.");

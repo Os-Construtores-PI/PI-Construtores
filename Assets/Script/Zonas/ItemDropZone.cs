@@ -7,6 +7,39 @@ public class ItemDropZone : Item
     private BoxCollider boxCollider;      // Colisor para detectar entrada de entidades
     private Rigidbody rb;                 // Rigidbody para física (kinemático)
 
+    [SerializeField] protected int quantity;
+
+#if UNITY_EDITOR
+    public void OnDrawGizmos()
+    {
+        if (Application.isPlaying || itemData == null || itemData.item == null) return;
+
+        MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
+        if (mf != null && mf.sharedMesh != null)
+        {
+            // 1. Definimos a escala que queremos visualizar
+            Vector3 visualScale = new(40, 40, 40);
+
+            // 2. Desenha o Mesh
+            Gizmos.color = new Color(1, 1, 1, 0.5f);
+            Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
+            
+            // 3. Desenha o WireCube ajustado
+            // Multiplicamos o tamanho do bounds pela escala visual
+            Vector3 scaledSize = Vector3.Scale(mf.sharedMesh.bounds.size, visualScale);
+            
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(transform.position, scaledSize);
+        }
+    }
+
+    public void OnValidate()
+    {
+        // Força a atualização do Scene View quando você altera variáveis no Inspetor
+        UnityEditor.SceneView.RepaintAll();
+    }
+#endif
+
     public void Initialize()
     {
         // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
@@ -38,8 +71,9 @@ public class ItemDropZone : Item
             }
         }
     }
-    private void Start()
+    public override void Start()
     {
+        base.Start();
         Initialize();
     }
     // Método chamado quando outra colisão entra no trigger
@@ -47,11 +81,13 @@ public class ItemDropZone : Item
     {
         if (other.TryGetComponent(out Player player))
         {
-            if (itemData != null)
+            if(itemData != null)
             {
-                player.Inventory.AddItem(itemData, quantity);
-                Destroy(gameObject); // Remove a zona de drop após o item ser pego
+                AddItem(player);
             }
         }
+    }
+    protected virtual void AddItem(Player player)
+    {
     }
 }

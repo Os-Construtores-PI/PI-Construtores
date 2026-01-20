@@ -16,7 +16,7 @@ kanban-plugin: board
 - [ ] Mecânica de Deslizar
 - [ ] Grapling Hook do Monster Hunter
 - [ ] Sistema de Ranking
-- [ ] Sistema de Tick
+- [ ] [[Sistema de Tick]]
 - [ ] Rework Level Design Faze 0
 - [ ] Rework Paleta de Cor Faze 0
 
@@ -26,7 +26,6 @@ kanban-plugin: board
 - [ ] [[Fase 0]]
 - [ ] [[Pandora Modelo Novo]]
 - [ ] [[Lycan]]
-- [ ] [[Ametista]]
 - [ ] [[Sentinela do Abismo]]
 - [ ] [[Tutorias 1]]
 - [ ] [[HUD]]
@@ -40,6 +39,7 @@ kanban-plugin: board
 
 - [ ] Pandora
 - [ ] Menu Principal
+- [ ] [[Ametista]]
 
 
 ## Testado
@@ -50,6 +50,6 @@ kanban-plugin: board
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","list-collapse":[false,false,false,false,false],"show-checkboxes":false,"new-note-template":"Modelos/Modelo de Tarefa.md","new-note-folder":"Tarefas"}
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false],"show-checkboxes":false,"new-note-template":"Modelos/Modelo de Tarefa.md","new-note-folder":"Tarefas","full-list-lane-width":false}
 ```
 %%

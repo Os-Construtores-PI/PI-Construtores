@@ -153,7 +153,7 @@ public class Player : CombatEntities
 
 
     // === AMETISTAS ===
-    private int amethysts;
+    private int amethysts = 0;
     public int Amethysts => amethysts;
 
     public void SetAmethysts(int value)
@@ -609,43 +609,40 @@ public class Player : CombatEntities
     protected Type interactionObjectType;
 
     // Base
-    protected virtual (bool, RaycastHit) ScanObjects()
+protected virtual (bool success, RaycastHit hit) ScanObjects()
+{
+    if (!selectedcamera)
     {
-        if (!selectedcamera)
-        {
-            SetupCamera();
-            return (false, default);
-        }
-
-        // 1 — Monta o ray
-        var ray = new Ray(
-            selectedcamera.transform.position,
-            selectedcamera.transform.forward
-        );
-
-        // 2 — Usa o scanner genérico
-        var (executed, result) = objectScanner.Scan(Time.deltaTime,ray);
-
-        // 3 — Se o scanner não executou, só retorna "não achou"
-        if (!executed || !result.Item1)
-        {
-            ClearInteractable();
-            return (false, default);
-        }
-
-        // 4 — Tenta pegar o componente de interação
-        if (!result.Item2.collider.TryGetComponent(out interactionObject) && result.Item2.distance > interactionObject.range)
-        {
-            ClearInteractable();
-            return (false, default);
-        }
-
-        // 5 — Sucesso
-        interactionObjectType = interactionObject.GetType();
-        interactableRef = interactionObject;
-
-        return (true, result.Item2);
+        SetupCamera();
+        return (false, default);
     }
+
+    var ray = new Ray(
+        selectedcamera.transform.position,
+        selectedcamera.transform.forward
+    );
+
+    var (executed, scanResult) = objectScanner.Scan(Time.deltaTime, ray);
+
+    if (!executed || !scanResult.Item1)
+        return (false, default);
+
+    var hit = scanResult.Item2;
+
+    // tenta pegar o componente
+    if (!hit.collider.TryGetComponent(out interactionObject))
+        return (false, default);
+
+    // valida range
+    if (hit.distance > interactionObject.range)
+        return (false, default);
+
+    interactionObjectType = interactionObject.GetType();
+    interactableRef = interactionObject;
+
+    return (true, hit);
+}
+
 
 
 

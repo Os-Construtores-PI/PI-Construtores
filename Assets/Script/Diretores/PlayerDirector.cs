@@ -61,7 +61,7 @@ public class PlayerDirector : MonoBehaviour
 
     public void ActivatePlayers()
     {
-        switch (GameContext.GameMode)
+        switch (DataDirector.Instance.GetGameMode())
         {
             case GameMode.SINGLEPLAYER:
                 ActivateSinglePlayer();

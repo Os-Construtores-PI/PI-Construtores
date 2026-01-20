@@ -22,7 +22,4 @@ public class Item : Entities
 {
     // Dados do item representado por esse componente
     public ItemData itemData;
-
-    // Quantidade do item (geralmente 1 para objetos no mundo)
-    public int quantity = 1;
 }
