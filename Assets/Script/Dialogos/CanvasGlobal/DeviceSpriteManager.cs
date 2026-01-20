@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
+using static DeviceSpriteManager;
 
 public class DeviceSpriteManager : MonoBehaviour
 {
@@ -16,6 +17,18 @@ public class DeviceSpriteManager : MonoBehaviour
     [SerializeField] private Sprite _dashKeyboard;
     [SerializeField] private Sprite _dashXbox;
     [SerializeField] private Sprite _dashPlaystation;
+
+    [Header("Sprites Dialogue Buttons - Keyboard")]
+    [SerializeField] private Sprite _dialogueAdvancedKeyboard;
+    [SerializeField] private Sprite _dialogueReturnKeyboard;
+
+    [Header("Sprites Dialogue Buttons - Playstation")]
+    [SerializeField] private Sprite _dialogueAdvancedPlayButton;
+    [SerializeField] private Sprite _dialogueReturnPlayButton;
+
+    [Header("Sprites Dialogue Buttons - Xbox")]
+    [SerializeField] private Sprite _dialogueAdvancedXboxButton;
+    [SerializeField] private Sprite _dialogueReturnXboxButton;
 
     public event Action<string> OnDeviceChanged;
 
@@ -141,12 +154,49 @@ public class DeviceSpriteManager : MonoBehaviour
         };
     }
 
+    public Sprite GetDialogueButtonSprite(DialogueButtonType type)
+    {
+        return _currentDevice switch
+        {
+            "Keyboard" => type switch
+            {
+                DialogueButtonType.Advance => _dialogueAdvancedKeyboard,
+                DialogueButtonType.Back => _dialogueReturnKeyboard,
+                _ => null
+            },
+
+            "Playstation" => type switch
+            {
+                DialogueButtonType.Advance => _dialogueAdvancedPlayButton,
+                DialogueButtonType.Back => _dialogueReturnPlayButton,
+                _ => null
+            },
+
+            "Xbox" => type switch
+            {
+                DialogueButtonType.Advance => _dialogueAdvancedXboxButton,
+                DialogueButtonType.Back => _dialogueReturnXboxButton,
+                _ => null
+            },
+
+            _ => null
+
+        }; 
+    }
+
     public enum InputIconType
     {
         Interact,
         Dash,
         Attack,
-        Jump
+        Jump,
+        
+    }
+
+    public enum DialogueButtonType
+    {
+        Advance,
+        Back
     }
 
     public string GetCurrentDevice()
