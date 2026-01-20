@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class GameDirector : MonoBehaviour
 {
-    private DataSystem dataSystem;
+    private DataDirector dataSystem;
     private bool worldStarted = false; 
 
 
@@ -36,7 +36,7 @@ public class GameDirector : MonoBehaviour
         // 🔹 Garante que o DataSystem exista
         if (!dataSystem)
         {
-            dataSystem = FindAnyObjectByType<DataSystem>();
+            dataSystem = FindAnyObjectByType<DataDirector>();
             if (!dataSystem)
             {
                 Debug.LogError("[GameDirector] Nenhum DataSystem encontrado na cena!");

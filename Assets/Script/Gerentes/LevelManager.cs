@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class LevelManager : MonoBehaviour
 {
-    DataSystem dataSystem;
+    DataDirector dataSystem;
     GameDirector gameDirector;
 
     [SerializeField] private bool startDialogueOnStart = false;
@@ -11,7 +11,7 @@ public class LevelManager : MonoBehaviour
 
     private void Start()
     {
-        dataSystem = FindAnyObjectByType<DataSystem>();
+        dataSystem = FindAnyObjectByType<DataDirector>();
         gameDirector = FindAnyObjectByType<GameDirector>();
         StartLevel();
         GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(PlayerDeathHandler);
@@ -62,7 +62,7 @@ public class LevelManager : MonoBehaviour
         gameDirector.SetPauseWorld(false);
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
-            dataSystem.RespawnPlayer(player, GameContext.CurrentSlot);
+            dataSystem.RespawnPlayer(player, DataDirector.Instance.GetCurrentSlot());
             player.transform.SetParent(null, true); // Remove o pai mantendo a posição mundial
             player.GetComponent<PlayerInput>().ActivateInput();
         }

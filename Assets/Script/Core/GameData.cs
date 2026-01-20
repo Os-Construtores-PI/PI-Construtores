@@ -6,6 +6,7 @@ using UnityEngine;
 public class SavedGameData
 {
     public List<SavedSlotData> savedSlots = new();
+    public SavedConfigData savedConfig = new();
     public SavedGameData(int maxSlots = 3)
     {
         for (int i = 0; i < maxSlots; i++)
@@ -14,6 +15,16 @@ public class SavedGameData
         }
     }
 }
+
+
+[System.Serializable]
+public class SavedConfigData
+{
+    public GameMode GameMode = GameMode.SINGLEPLAYER;
+}
+
+
+
 
 [System.Serializable]
 public class SavedSlotData

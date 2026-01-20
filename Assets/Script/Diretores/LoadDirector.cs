@@ -1,14 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[RequireComponent(typeof(DataSystem))]
+[RequireComponent(typeof(DataDirector))]
 public class LoadDirector : MonoBehaviour
 {
-    private DataSystem dataSystem;
+    private DataDirector dataSystem;
 
     private void Awake()
     {
-        dataSystem = GetComponent<DataSystem>();
+        dataSystem = GetComponent<DataDirector>();
     }
 
     /// <summary>
@@ -19,7 +19,7 @@ public class LoadDirector : MonoBehaviour
     {
         if (index < 0 || index >= dataSystem.GetMaxSlots()) return;
 
-        GameContext.CurrentSlot = index;
+        DataDirector.Instance.SetCurrentSlot(index);
         SavedSlotData savedSlot = dataSystem.GetSlotData(index);
 
         if (savedSlot != null && !string.IsNullOrEmpty(savedSlot.lastLevelName))

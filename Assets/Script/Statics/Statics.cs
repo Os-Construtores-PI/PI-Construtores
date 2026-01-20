@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 public static class Tiers
 {
@@ -220,4 +221,34 @@ public static class ReflectionHelpers
         }
         return null;
     }
+}
+
+
+public static class DataCryptography
+{    
+    public static string Encrypt(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            byte[] data = Encoding.UTF8.GetBytes(input);
+            byte[] key = Encoding.UTF8.GetBytes(Constants.PersistentNames.CryptoKey);
+
+            for (int i = 0; i < data.Length; i++)
+                data[i] ^= key[i % key.Length];
+
+            return Convert.ToBase64String(data);
+        }
+
+    public static string Decrypt(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            byte[] data = Convert.FromBase64String(input);
+            byte[] key = Encoding.UTF8.GetBytes(Constants.PersistentNames.CryptoKey);
+
+            for (int i = 0; i < data.Length; i++)
+                data[i] ^= key[i % key.Length];
+
+            return Encoding.UTF8.GetString(data);
+        }
 }

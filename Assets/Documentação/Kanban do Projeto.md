@@ -26,7 +26,6 @@ kanban-plugin: board
 - [ ] [[Fase 0]]
 - [ ] [[Pandora Modelo Novo]]
 - [ ] [[Lycan]]
-- [ ] [[Ametista]]
 - [ ] [[Sentinela do Abismo]]
 - [ ] [[Tutorias 1]]
 - [ ] [[HUD]]
@@ -40,6 +39,7 @@ kanban-plugin: board
 
 - [ ] Pandora
 - [ ] Menu Principal
+- [ ] [[Ametista]]
 
 
 ## Testado

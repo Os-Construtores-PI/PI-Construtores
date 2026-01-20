@@ -6,25 +6,32 @@ public class Pandora : Player
     bool HasGrapling = true;
     protected override (bool, RaycastHit) ScanObjects()
     {
-        // executa o scan base
         var (hit, info) = base.ScanObjects();
 
         if (!hit)
-            return (false, default);
-
-        // FILTRO FINAL (somente na classe filha)
-        if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType)
-            && (!Constants.PandoraObjects.types.Contains(interactionObjectType) || !HasGrapling))
         {
             ClearInteractable();
             return (false, default);
         }
 
-        // Sucesso
+        // FILTRO FINAL
+        bool valid =
+            Constants.PlayerCommonObjects.types.Contains(interactionObjectType)
+            || (Constants.PandoraObjects.types.Contains(interactionObjectType) && HasGrapling);
+
+        if (!valid)
+        {
+            ClearInteractable();
+            return (false, default);
+        }
+
+        // sucesso final
         interactableRef = interactionObject;
         GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, interactionObject, ID);
+
         return (true, info);
     }
+
 
 
 
