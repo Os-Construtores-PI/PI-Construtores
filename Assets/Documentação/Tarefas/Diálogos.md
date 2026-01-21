@@ -13,5 +13,5 @@
 
 
 # Diálogos de História
-- [ ] Arte #Erick
+- [x] Arte #Erick
 - [ ] Implementar no Jogo #Leonardo 
