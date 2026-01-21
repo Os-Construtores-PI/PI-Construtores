@@ -22,6 +22,11 @@ public class DialogueTrigger : InteractableObject
     private bool _canInteractAgain = true;
 
     private bool _dialogoJaAberto = false;
+
+    [Header("Configuração do Dialogo")]
+    [SerializeField] private bool _dialogoApenasUmaVez;
+
+    private bool _dialogoConsumido = false;
     
     
     
@@ -55,6 +60,9 @@ public class DialogueTrigger : InteractableObject
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player"))
+            return;
+
+        if (_dialogoApenasUmaVez && _dialogoConsumido)
             return;
 
         _playerInput = other.GetComponent<PlayerInput>();
@@ -107,6 +115,9 @@ public class DialogueTrigger : InteractableObject
         if (!_jogadorDentro || _playerInput == null || _dialogoGlobal == null)
             return;
 
+        if (_dialogoApenasUmaVez && _dialogoConsumido)
+            return;
+
         // Não deixa interagir enquanto o diálogo está ativo
         if (_dialogoGlobal.IsDialogueActive)
             return;
@@ -137,6 +148,16 @@ public class DialogueTrigger : InteractableObject
     public void OnDialogoFechado()
     {
         _dialogoJaAberto = false;
+
+        if (_dialogoApenasUmaVez)
+        {
+            _dialogoConsumido = true;
+
+            if (_iconInteracao != null)
+                _iconInteracao.gameObject.SetActive(false);
+
+            return;
+        }
        
         if (_jogadorDentro && _iconInteracao != null)
             _iconInteracao.gameObject.SetActive(true);

@@ -9,17 +9,63 @@ public class ImageTriggerEvent : MonoBehaviour
     public float _rotationSpeed = 90f; 
 
     private Tween _rotationTween;
+
+    private bool playerInside = false;
+
+    private bool dialogueBlocking = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
 
     
-    private void Update()
+    private void Awake()
     {
-        icon.alpha = 1f;
+        icon.alpha = 0f;
 
-        StartSpin();
+        gameObject.SetActive(true);
+       
     }
 
+    private void OnEnable()
+    {
+        if (DialogueGlobal.Instance != null)
+        {
+            DialogueGlobal.Instance.OndialogueStart += OnDialogueStart;
+            DialogueGlobal.Instance.OndialogueEnd += OnDialogueEnd;
+        }
+            
+    }
+
+    /*private void Instance_OndialogueStart()
+    {
+        throw new System.NotImplementedException();
+    }
+    */
+    private void OnDisable()
+    {
+        if (DialogueGlobal.Instance != null)
+        {
+            DialogueGlobal.Instance.OndialogueStart -= OnDialogueStart;
+            DialogueGlobal.Instance.OndialogueEnd -= OnDialogueEnd;
+        }
+            
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
+
+        playerInside = true;
+        ShowIcon();
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
+
+        playerInside = false;
+        HideIconImediate();
+    }
     public void StartSpin()
     {
         _rotationTween?.Kill();
@@ -33,24 +79,47 @@ public class ImageTriggerEvent : MonoBehaviour
     public void StopSpin()
     {
         _rotationTween?.Kill();
+        _rotationTween = null;
     }
 
     public void HideIcon()
     {
         StopSpin();
-        icon.DOFade(0f, _fadeDuration).OnComplete(() =>
-        {
-            gameObject.SetActive(false);
-        });
+        icon.DOKill();
+
+        icon.DOFade(0f, _fadeDuration);
+    }
+
+    private void HideIconImediate()
+    {
+        StopSpin();
+        icon.DOKill();
+        icon.alpha = 0f;
     }
 
     public void ShowIcon()
     {
-        gameObject.SetActive(true);
+        if (!playerInside)
+            return;
+
+        icon.DOKill();
         icon.alpha = 0f;
 
         icon.DOFade(1f, _fadeDuration);
         StartSpin();
+    }
+
+    private void OnDialogueStart()
+    {
+        dialogueBlocking = true;
+        HideIcon();
+    }
+    private void OnDialogueEnd()
+    {
+        dialogueBlocking = false;
+        
+        if (playerInside)
+            ShowIcon();
     }
 
 
