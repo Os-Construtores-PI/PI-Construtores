@@ -33,6 +33,7 @@ kanban-plugin: board
 - [ ] Câmera do Jogador
 - [ ] Sistema de Save
 - [ ] Torre Faze 0
+- [ ] [[Tentáculos Faze Zero]]
 
 
 ## Concluído
