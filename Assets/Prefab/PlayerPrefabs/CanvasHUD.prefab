@@ -294,7 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44701e71e6b404429828bb76ab10b11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonDialogueIconPrefab
-  _iconType: 0
+  _buttonType: 1
 --- !u!1 &664798522911058499
 GameObject:
   m_ObjectHideFlags: 0
@@ -2508,6 +2508,7 @@ GameObject:
   - component: {fileID: 1230782488243294958}
   - component: {fileID: 7665921683520641233}
   - component: {fileID: 8351375336634000175}
+  - component: {fileID: 5976251264635205942}
   m_Layer: 0
   m_Name: Button
   m_TagString: Untagged
@@ -2640,6 +2641,19 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+--- !u!114 &5976251264635205942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4739412563712270301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f44701e71e6b404429828bb76ab10b11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonDialogueIconPrefab
+  _buttonType: 0
 --- !u!1 &4758772501686495299
 GameObject:
   m_ObjectHideFlags: 0
@@ -4281,6 +4295,12 @@ MonoBehaviour:
   _dashKeyboard: {fileID: 1650724312, guid: 04b5697431c23e04fb71b4b0b1951085, type: 3}
   _dashXbox: {fileID: 2135299542, guid: b825a86c6b8378e43a5fbd912f642904, type: 3}
   _dashPlaystation: {fileID: 0}
+  _dialogueAdvancedKeyboard: {fileID: 1063123269, guid: 5fed17daef178934cb67bfd1468fd0e5, type: 3}
+  _dialogueReturnKeyboard: {fileID: 689501750, guid: 4c7598faa9dfc98418152dbffda1d806, type: 3}
+  _dialogueAdvancedPlayButton: {fileID: 0}
+  _dialogueReturnPlayButton: {fileID: 0}
+  _dialogueAdvancedXboxButton: {fileID: -623485918, guid: 94df487946569664f821f0ba1cb55d6a, type: 3}
+  _dialogueReturnXboxButton: {fileID: -1150226930, guid: 8e50e73973cedf24ea1d110ceaeba1b5, type: 3}
 --- !u!1 &8703429745501839660
 GameObject:
   m_ObjectHideFlags: 0
@@ -4450,6 +4470,12 @@ MonoBehaviour:
   _dashKeyboard: {fileID: 1017576776, guid: 5e96fb3aefc0726439db790eae058f64, type: 3}
   _dashXbox: {fileID: -945185059, guid: a9a4cb04d20303945afe359adb57c23f, type: 3}
   _dashPlaystation: {fileID: 0}
+  _dialogueAdvancedKeyboard: {fileID: 0}
+  _dialogueReturnKeyboard: {fileID: 0}
+  _dialogueAdvancedPlayButton: {fileID: 0}
+  _dialogueReturnPlayButton: {fileID: 0}
+  _dialogueAdvancedXboxButton: {fileID: 0}
+  _dialogueReturnXboxButton: {fileID: 0}
 --- !u!1 &8835857967761331164
 GameObject:
   m_ObjectHideFlags: 0
