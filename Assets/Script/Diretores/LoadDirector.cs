@@ -20,12 +20,12 @@ public class LoadDirector : MonoBehaviour
         if (index < 0 || index >= dataSystem.GetMaxSlots()) return;
 
         DataDirector.Instance.SetCurrentSlot(index);
-        SavedSlotData savedSlot = dataSystem.GetSlotData(index);
+        string lastLevelName = DataDirector.Instance.GetLastLevelName(index);
 
-        if (savedSlot != null && !string.IsNullOrEmpty(savedSlot.lastLevelName))
+        if (!string.IsNullOrEmpty(lastLevelName))
         {
-            Debug.Log($"[LoadDirector] Carregando slot {index}: {savedSlot.lastLevelName}");
-            SceneManager.LoadScene(savedSlot.lastLevelName);
+            Debug.Log($"[LoadDirector] Carregando slot {index}: {lastLevelName}");
+            SceneManager.LoadScene(lastLevelName);
         }
         else
         {

@@ -2,33 +2,27 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Sistema de salvamento e carregamento de dados do jogo.
-/// Gerencia múltiplos slots de save, jogadores, inventário e itens dropados.
-/// </summary>
-
 [DefaultExecutionOrder(2)]
-public class DataDirector : MonoBehaviour
+public sealed class DataDirector : MonoBehaviour
 {
-    public static DataDirector Instance {get; private set;}
-    private bool _initialized;
+    public static DataDirector Instance { get; private set; }
 
+    [SerializeField] private int _maxSlots = 3;
+    private int _currentSlot;
 
-    private List<Player> _players = new();
-    private List<ItemDropZone> _droppedItems = new();
-    private int _currentSlot = 0;
-    private readonly int _maxSlots = 3;
-    private bool _loadFromSave = false;
-    private string _savePath => Constants.PersistentNames.DataPath;
+    private SavedGameData _gameData;
+    private readonly List<Player> _players = new();
+    private readonly List<ItemDropZone> _drops = new();
 
-    #region Unity Lifecycle
+    private string SavePath => Constants.PersistentNames.DataPath;
+
+    #region UNITY
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance && Instance != this)
         {
 #if UNITY_EDITOR
             DestroyImmediate(gameObject);
@@ -39,316 +33,255 @@ public class DataDirector : MonoBehaviour
         }
 
         Instance = this;
-        Initialize();
+        DontDestroyOnLoad(gameObject);
+        LoadFromDisk();
     }
     #endregion
 
-    #region Private
-    private void Initialize()
+    #region RAM / DISK
+    private void LoadFromDisk()
     {
-        if (_initialized) return;
-        _initialized = true;
-
-        DontDestroyOnLoad(gameObject); // persistente entre cenas
-    }
-    #endregion
-
-    public void AddReferences()
-    {
-        // encontra todos os players ativos
-        _players.Clear();
-        _players.AddRange(FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
-        _droppedItems.Clear();
-        _droppedItems.AddRange(FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
-        Debug.LogWarning($"[DataSystem] Encontrados {_players.Count} players e {_droppedItems.Count} itens dropados na cena.");
-    }
-
-
-    #region SAVE
-
-    public void SaveCheckpoint(int index)
-    {
-        if (!IsValidSlot(index)) return;
-
-        SavedGameData gameData = GetGameData() ?? new SavedGameData(_maxSlots);
-        EnsureSlotsInitialized(gameData);
-
-        SavePlayersAtCheckpoint(gameData, index);
-        SaveDroppedItems(gameData, index);
-
-        var json = JsonUtility.ToJson(gameData, true);
-        File.WriteAllText(_savePath, DataCryptography.Encrypt(json));
-
-        Debug.Log($"[DataSystem] Checkpoint salvo no slot {index} em {_savePath}.");
-    }
-
-    public void Save(int index)
-    {
-        if (!IsValidSlot(index)) return;
-
-        SavedGameData gameData = GetGameData() ?? new SavedGameData(_maxSlots);
-        EnsureSlotsInitialized(gameData);
-
-        // aqui vão os dados globais (moedas, coletáveis, upgrades etc.)
-
-        var json = JsonUtility.ToJson(gameData, true);
-        File.WriteAllText(_savePath, DataCryptography.Encrypt(json));
-
-        Debug.Log($"[DataSystem] Progresso global salvo no slot {index} em {_savePath}.");
-    }
-
-    #endregion
-
-    #region LOAD
-
-    public void Load(int index)
-    {
-        if (!IsValidSlot(index)) return;
-
-        SavedGameData gameData = GetGameData();
-        if (gameData == null) return;
-
-        var slot = gameData.savedSlots[index];
-        if (slot.savedLevelDatas.Count == 0) return;
-
-        var levelData = slot.savedLevelDatas[^1];
-
-        // restaura players
-        for (int i = 0; i < Mathf.Min(_players.Count, levelData.savedPlayers.Count); i++)
+        if (!File.Exists(SavePath))
         {
-            RespawnPlayer(_players[i], index, levelData.savedPlayers[i]);
+            _gameData = NewGameData();
+            return;
         }
-
-        // restaura dropped items
-        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-            Destroy(drop.gameObject);
-
-        foreach (var ditemData in levelData.savedDroppedItems)
-        {
-            ItemData data = Resources.Load<ItemData>($"Items/{ditemData.itemName}");
-            if (data != null)
-            {
-                GameObject go = new("ItemDrop_" + ditemData.itemName);
-                go.transform.position = ditemData.position;
-
-                var dropZone = go.AddComponent<ItemDropZone>();
-                dropZone.itemData = data;
-                dropZone.SetId(ditemData.ID);
-                dropZone.Initialize();
-            }
-            else
-            {
-                Debug.LogWarning($"[DataSystem] ItemData '{ditemData.itemName}' não encontrado em Resources/Items!");
-            }
-        }
-
-        Debug.Log($"[DataSystem] Checkpoint carregado do slot {index}.");
-    }
-
-    /// <summary>
-    /// Respawn seguro de um player específico usando savedPlayerData.
-    /// </summary>
-public void RespawnPlayer(Player player, int slotIndex, SavedPlayerData pdata = null)
-{
-    StartCoroutine(RespawnRoutine(player, slotIndex, pdata));
-}
-
-    private IEnumerator RespawnRoutine(Player player, int slotIndex, SavedPlayerData pdata)
-    {
-        yield return null; // espera 1 frame
-
-        if (!IsValidSlot(slotIndex))
-        {
-            Debug.LogWarning($"[RespawnRoutine] Slot {slotIndex} não é válido.");
-            yield break;
-        }
-
-        var gameData = GetGameData();
-        if (gameData == null)
-        {
-            Debug.LogWarning($"[RespawnRoutine] Slot {slotIndex} não possui GameData salvo.");
-            yield break;
-        }
-
-        var slot = gameData.savedSlots[slotIndex];
-        if (slot.savedLevelDatas.Count == 0)
-        {
-            Debug.LogWarning($"[RespawnRoutine] Slot {slotIndex} não possui LevelData salvo.");
-            yield break;
-        }
-
-        var levelData = slot.savedLevelDatas[^1];
-
-        if (pdata == null)
-        {
-            int playerIndex = _players.IndexOf(player);
-            if (playerIndex < 0 || playerIndex >= levelData.savedPlayers.Count)
-            {
-                Debug.LogWarning($"[RespawnRoutine] Player não encontrado.");
-                yield break;
-            }
-            pdata = levelData.savedPlayers[playerIndex];
-        }
-
-        // ---- DESATIVAR COMPONENTES QUE PODEM SOBRESCREVER A POSIÇÃO ----
-        if (player.TryGetComponent<CharacterController>(out var controller)) controller.enabled = false;
-        var movementScripts = player.GetComponents<MonoBehaviour>();
-        foreach (var script in movementScripts)
-        {
-            if (script != this) script.enabled = false; // desativa todos os scripts de movimento do player
-        }
-
-        // ---- APLICAR POSIÇÃO E VIDA ----
-        player.transform.position = pdata.position;
-        player.Charactercontroller.velocity.Set(0,0,0);
-        player.Health = pdata.health;
-        player.SetAmethysts(pdata.amethystsCount);
-
-        // ---- RESTAURAR INVENTÁRIO ----
-        player.Inventory.ClearItems();
-        foreach (var item in pdata.inventory)
-        {
-            var itemData = Resources.Load<ItemData>($"Items/{item.savedItemName}");
-            if (itemData != null)
-                player.Inventory.AddItem(itemData, item.savedItemQuantity);
-        }
-
-        // ---- REATIVAR COMPONENTES ----
-        if (controller != null) controller.enabled = true;
-        foreach (var script in movementScripts)
-        {
-            if (script != this) script.enabled = true;
-        }
-    }
-
-
-
-
-
-    #endregion
-
-    #region AUXILIARES
-
-    private void SavePlayersAtCheckpoint(SavedGameData gameData, int index)
-    {
-        var slot = gameData.savedSlots[index];
-        var sceneName = SceneManager.GetActiveScene().name;
-
-        var levelData = slot.savedLevelDatas.Find(l => l.levelName == sceneName);
-        if (levelData == null)
-        {
-            levelData = new SavedLevelData(sceneName);
-            slot.savedLevelDatas.Add(levelData);
-        }
-
-        levelData.savedPlayers.Clear();
-
-        foreach (var p in _players)
-        {
-            var pdata = new SavedPlayerData
-            {
-                position = p.transform.position, // posição real de cada player
-                health = p.Health,
-                amethystsCount = p.Amethysts
-            };
-
-            foreach (InventoryItem item in p.Inventory.GetItems())
-                pdata.inventory.Add(new SavedItemEntry(item.data.itemName, item.quantity));
-
-            levelData.savedPlayers.Add(pdata);
-        }
-    }
-
-    private void SaveDroppedItems(SavedGameData gameData, int index)
-    {
-        var slot = gameData.savedSlots[index];
-        var sceneName = SceneManager.GetActiveScene().name;
-
-        var levelData = slot.savedLevelDatas.Find(l => l.levelName == sceneName);
-        if (levelData == null)
-        {
-            levelData = new SavedLevelData(sceneName);
-            slot.savedLevelDatas.Add(levelData);
-        }
-
-        levelData.savedDroppedItems.Clear();
-
-        foreach (var drop in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-        {
-            if (drop.itemData == null) continue;
-
-            var ditemData = new SavedDroppedItem
-            {
-                ID = drop.ID,
-                itemName = drop.itemData.itemName,
-                position = drop.transform.position,
-            };
-            levelData.savedDroppedItems.Add(ditemData);
-        }
-    }
-
-    private void EnsureSlotsInitialized(SavedGameData gameData)
-    {
-        if (gameData.savedSlots == null) gameData.savedSlots = new List<SavedSlotData>();
-        while (gameData.savedSlots.Count < _maxSlots)
-            gameData.savedSlots.Add(new SavedSlotData());
-    }
-
-    private bool IsValidSlot(int index) => index >= 0 && index < _maxSlots;
-
-    public SavedGameData GetGameData()
-    {
-        if (!File.Exists(_savePath)) return null;
 
         try
         {
-            var encrypted = File.ReadAllText(_savePath);
-            var json = DataCryptography.Decrypt(encrypted);
-            return JsonUtility.FromJson<SavedGameData>(json);
+            var enc = File.ReadAllText(SavePath);
+            var json = DataCryptography.Decrypt(enc);
+            _gameData = JsonUtility.FromJson<SavedGameData>(json) ?? NewGameData();
         }
         catch
         {
-            Debug.LogWarning("[DataSystem] Falha ao carregar save. Arquivo corrompido?");
-            return null;
+            _gameData = NewGameData();
         }
+
+        EnsureInvariants();
     }
 
-    public SavedSlotData GetSlotData(int index)
+    public void Commit()
     {
-        if (!IsValidSlot(index))
+        EnsureInvariants();
+        var json = JsonUtility.ToJson(_gameData, true);
+        File.WriteAllText(SavePath, DataCryptography.Encrypt(json));
+    }
+
+    private SavedGameData NewGameData()
+    {
+        var gd = new SavedGameData(_maxSlots);
+        EnsureInvariants(gd);
+        return gd;
+    }
+    #endregion
+
+    #region INVARIANTS / NORMALIZATION
+    private void EnsureInvariants() => EnsureInvariants(_gameData);
+
+    private void EnsureInvariants(SavedGameData gd)
+    {
+        gd.savedSlots ??= new List<SavedSlotData>();
+        while (gd.savedSlots.Count < _maxSlots)
+            gd.savedSlots.Add(new SavedSlotData());
+
+        foreach (var s in gd.savedSlots)
+            s.savedLevelDatas ??= new List<SavedLevelData>();
+
+        gd.savedConfig ??= new SavedConfigData();
+    }
+
+    private int NormalizeSlot(int index)
+    {
+        if (_maxSlots <= 0) return 0;
+        if (index < 0) return 0;
+        if (index >= _maxSlots) return _maxSlots - 1;
+        return index;
+    }
+
+    private SavedSlotData GetSafeSlot(int index)
+    {
+        EnsureInvariants();
+        return _gameData.savedSlots[NormalizeSlot(index)];
+    }
+
+    private SavedLevelData GetSafeLevel(int slotIndex, string scene)
+    {
+        var slot = GetSafeSlot(slotIndex);
+        var lvl = slot.savedLevelDatas.Find(l => l.levelName == scene);
+
+        if (lvl == null)
         {
-            Debug.LogWarning($"[DataSystem] Slot {index} inválido. Retornando null.");
-            return null;
+            lvl = new SavedLevelData(scene);
+            slot.savedLevelDatas.Add(lvl);
         }
 
-        SavedGameData gameData = GetGameData() ?? new SavedGameData(_maxSlots);
-        EnsureSlotsInitialized(gameData);
-
-        return gameData.savedSlots[index];
+        lvl.savedPlayers ??= new List<SavedPlayerData>();
+        lvl.savedDroppedItems ??= new List<SavedDroppedItem>();
+        return lvl;
     }
+
+    private void EnsurePlayerIndex(List<SavedPlayerData> list, int idx)
+    {
+        if (idx < 0) return;
+        while (list.Count <= idx)
+            list.Add(new SavedPlayerData());
+    }
+    #endregion
+
+    #region SCENE COLLECTION
+    public void CollectScene()
+    {
+        _players.Clear();
+        _players.AddRange(FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
+
+        _drops.Clear();
+        _drops.AddRange(FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
+    }
+    #endregion
+
+    #region COLLECTORS
+    private SavedPlayerData Collect(Player p)
+    {
+        var d = new SavedPlayerData
+        {
+            position = p.transform.position,
+            health = p.Health,
+            amethystsCount = p.Amethysts
+        };
+
+        foreach (var it in p.Inventory.GetItems())
+            d.inventory.Add(new SavedItemEntry(it.data.itemName, it.quantity));
+
+        return d;
+    }
+    #endregion
+
+    #region SAVE (RAM)
+    public void SaveCheckpoint(int slot)
+    {
+        CollectScene();
+        var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+
+        lvl.savedPlayers.Clear();
+        foreach (var p in _players)
+            lvl.savedPlayers.Add(Collect(p));
+
+        lvl.savedDroppedItems.Clear();
+        foreach (var d in _drops)
+        {
+            if (!d || !d.itemData) continue;
+            lvl.savedDroppedItems.Add(new SavedDroppedItem
+            {
+                ID = d.ID,
+                itemName = d.itemData.itemName,
+                position = d.transform.position
+            });
+        }
+
+        Commit();
+    }
+    #endregion
+
+    #region RESPAWN (CHECKPOINT RUNTIME)
+    public void RespawnAllPlayers(int slot)
+    {
+        CollectScene();
+        var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+
+        int count = Mathf.Min(_players.Count, lvl.savedPlayers.Count);
+        for (int i = 0; i < count; i++)
+            StartCoroutine(RespawnRoutine(_players[i], lvl.savedPlayers[i]));
+    }
+
+    public void RespawnPlayer(int slot, int playerIndex)
+    {
+        CollectScene();
+        var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+
+        if (playerIndex < 0 ||
+            playerIndex >= _players.Count ||
+            playerIndex >= lvl.savedPlayers.Count)
+            return;
+
+        StartCoroutine(RespawnRoutine(_players[playerIndex], lvl.savedPlayers[playerIndex]));
+    }
+
+    private IEnumerator RespawnRoutine(Player player, SavedPlayerData data)
+    {
+        yield return null;
+
+        if (player.TryGetComponent<CharacterController>(out var cc))
+            cc.enabled = false;
+
+        var behaviours = player.GetComponents<MonoBehaviour>();
+        foreach (var b in behaviours)
+            b.enabled = false;
+
+        // estado
+        player.transform.position = data.position;
+        player.Health = data.health;
+        player.SetAmethysts(data.amethystsCount);
+
+        // inventário
+        player.Inventory.ClearItems();
+        foreach (var it in data.inventory)
+        {
+            var itemData = Resources.Load<ItemData>($"Items/{it.savedItemName}");
+            if (itemData)
+                player.Inventory.AddItem(itemData, it.savedItemQuantity);
+        }
+
+        if (cc) cc.enabled = true;
+        foreach (var b in behaviours)
+            b.enabled = true;
+    }
+    #endregion
+
+    #region LOAD (FRIO / SCENE)
+    public void LoadDroppedItems(int slot)
+    {
+        var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+
+        foreach (var d in FindObjectsByType<ItemDropZone>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            Destroy(d.gameObject);
+
+        foreach (var sd in lvl.savedDroppedItems)
+        {
+            var data = Resources.Load<ItemData>($"Items/{sd.itemName}");
+            if (!data) continue;
+
+            var go = new GameObject("ItemDrop_" + sd.itemName);
+            go.transform.position = sd.position;
+
+            var dz = go.AddComponent<ItemDropZone>();
+            dz.itemData = data;
+            dz.SetId(sd.ID);
+            dz.Initialize();
+        }
+    }
+    #endregion
+
+    #region READ API
+    public bool HasCheckpoint(int slot, string scene)
+        => GetSafeSlot(slot).savedLevelDatas.Exists(l => l.levelName == scene);
+
+    public IReadOnlyList<SavedPlayerData> GetPlayersData(int slot, string scene)
+        => GetSafeLevel(slot, scene).savedPlayers;
 
     public GameMode GetGameMode()
-    {
-        SavedGameData tmpData = GetGameData();
-        return tmpData.savedConfig.GameMode;
-    }
-    public List<Player> GetPlayers()
-    {
-        return _players;
-    }
-    public int GetMaxSlots()
-    {
-        return _maxSlots;
-    }
-    public int GetCurrentSlot()
-    {
-        return _currentSlot;   
-    }
+        => _gameData.savedConfig.GameMode;
+
+    public SavedGameData GetGameData() => _gameData;
+    public int GetMaxSlots() => _maxSlots;
+    public int GetCurrentSlot() => _currentSlot;
+    public string GetLastLevelName(int index) => GetSafeSlot(index).lastLevelName;
+    #endregion
+
+    #region  WRITE API
     public void SetCurrentSlot(int index)
     {
-        if(!IsValidSlot(index)) return;
-        _currentSlot = index;
+        _currentSlot = NormalizeSlot(index);
     }
     #endregion
 }
-

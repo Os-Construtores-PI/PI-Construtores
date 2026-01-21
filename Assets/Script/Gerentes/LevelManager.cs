@@ -60,9 +60,9 @@ public class LevelManager : MonoBehaviour
     {
         if (!dataSystem) return;
         gameDirector.SetPauseWorld(false);
+        DataDirector.Instance.RespawnAllPlayers(DataDirector.Instance.GetCurrentSlot());
         foreach(Player player in FindObjectsByType<Player>(FindObjectsInactive.Exclude,FindObjectsSortMode.None))
         {
-            dataSystem.RespawnPlayer(player, DataDirector.Instance.GetCurrentSlot());
             player.transform.SetParent(null, true); // Remove o pai mantendo a posição mundial
             player.GetComponent<PlayerInput>().ActivateInput();
         }

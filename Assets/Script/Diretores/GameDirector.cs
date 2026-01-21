@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class GameDirector : MonoBehaviour
 {
-    private DataDirector dataSystem;
     private bool worldStarted = false; 
 
 
@@ -15,7 +14,6 @@ public class GameDirector : MonoBehaviour
     private void Start()
     {
         Debug.Log("GameDirector START rodou!");
-        TryGetComponent(out dataSystem);
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);        
         GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.AddListener(SetLockPlayer);
         // O painel de Start agora é gerenciado por outro script,
@@ -34,14 +32,11 @@ public class GameDirector : MonoBehaviour
         }
         worldStarted = true;
         // 🔹 Garante que o DataSystem exista
-        if (!dataSystem)
+        if (!DataDirector.Instance)
         {
-            dataSystem = FindAnyObjectByType<DataDirector>();
-            if (!dataSystem)
-            {
-                Debug.LogError("[GameDirector] Nenhum DataSystem encontrado na cena!");
-                return; // sem DataSystem não dá para continuar
-            }
+
+            Debug.LogError("[GameDirector] Nenhum DataSystem encontrado na cena!");
+            return; // sem DataSystem não dá para continuar
         }
 
         // 🔹 Garante que o PlayerDirector exista
@@ -73,7 +68,7 @@ public class GameDirector : MonoBehaviour
         {
             backgroundMusic.Play();
         }
-        dataSystem.AddReferences();
+        DataDirector.Instance.CollectScene();
 
         Debug.Log("[GameDirector] StartWorld executado com sucesso!");
     }
