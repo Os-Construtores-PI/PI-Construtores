@@ -32,7 +32,7 @@ public abstract class Entities : BaseRenderedGameObject
         }
         else
         {
-            Debug.LogWarning($"[Entities] CONTAINER NÃO ACHADO \n VÍTIMA : {gameObject.name}");
+            //Debug.LogWarning($"[Entities] CONTAINER NÃO ACHADO \n VÍTIMA : {gameObject.name}");
         }
     }
 

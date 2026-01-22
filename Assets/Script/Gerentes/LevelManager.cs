@@ -28,11 +28,7 @@ public class LevelManager : MonoBehaviour
         gameDirector.StartWorld();
         if(startDialogueOnStart)
          {
-           TutorialDialogos dialogue = FindAnyObjectByType<TutorialDialogos>();
-           if(dialogue)
-            {
-                dialogue.AtivarDialogo();
-            }
+          
         
          }
     }

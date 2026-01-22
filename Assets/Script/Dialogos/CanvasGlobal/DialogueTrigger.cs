@@ -27,6 +27,9 @@ public class DialogueTrigger : InteractableObject
     [SerializeField] private bool _dialogoApenasUmaVez;
 
     private bool _dialogoConsumido = false;
+
+    [Header("Icone de Interação (Animado")]
+    [SerializeField] private ImageTriggerEvent _imageTriggerEvent;
     
     
     
@@ -140,6 +143,9 @@ public class DialogueTrigger : InteractableObject
         if (_iconInteracao != null)
             _iconInteracao.gameObject.SetActive(false);
 
+        if (_imageTriggerEvent != null)
+            _imageTriggerEvent.Hide();
+
         _dialogoGlobal.SetTrigger(this);
         _dialogoGlobal.IniciarDialogo(_dialogo);
     }
@@ -161,6 +167,9 @@ public class DialogueTrigger : InteractableObject
        
         if (_jogadorDentro && _iconInteracao != null)
             _iconInteracao.gameObject.SetActive(true);
+
+        if (_jogadorDentro && _imageTriggerEvent != null)
+            _imageTriggerEvent.Show();
         
         BloquearInteracao();
     }
