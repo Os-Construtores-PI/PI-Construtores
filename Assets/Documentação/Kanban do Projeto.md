@@ -29,7 +29,6 @@ kanban-plugin: board
 - [ ] [[Sentinela do Abismo]]
 - [ ] [[Tutorias 1]]
 - [ ] [[HUD]]
-- [ ] [[Diálogos]]
 - [ ] Câmera do Jogador
 - [ ] Sistema de Save
 - [ ] Torre Faze 0
@@ -40,6 +39,7 @@ kanban-plugin: board
 - [ ] Pandora
 - [ ] Menu Principal
 - [ ] [[Ametista]]
+- [ ] [[Diálogos]]
 
 
 ## Testado
