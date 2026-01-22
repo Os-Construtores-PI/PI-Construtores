@@ -8,4 +8,9 @@
 - [x] Tentáculo 2 #Charles
 - [x] Tentáculo 3 #Charles
 - [x] Tentáculo 4 #Charles
-- [ ] Tentáculo 5 #Charles 
+- [x] Tentáculo 5 #Charles
+
+# Tentáculos para o Cenário Faze 0
+- [ ]  Animação Tentáculo Idle #Charles 
+- [ ] Animação Tentáculo Ataque #Charles
+
