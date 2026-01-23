@@ -4,13 +4,9 @@
 
 
 # Tentáculos para o Cenário Faze 0
-- [x] Tentáculo 1 #Charles
-- [x] Tentáculo 2 #Charles
-- [x] Tentáculo 3 #Charles
-- [x] Tentáculo 4 #Charles
-- [x] Tentáculo 5 #Charles
+- [x] Tentáculo Faze 0 #Charles 
 
 # Tentáculos para o Cenário Faze 0
 - [ ]  Animação Tentáculo Idle #Charles 
 - [ ] Animação Tentáculo Ataque #Charles
-
+- [ ] Implementar na Faze 0 #Padeirinho 

@@ -7,3 +7,4 @@
 - [x] Modelo #Marcelo
 - [x] Rigging #Marcelo
 - [ ] Animação #Marcelo
+- [ ] Implementar na Faze 0 #Marcelo 
