@@ -42,7 +42,7 @@ public class TutorialTrigger : MonoBehaviour
             interactionSprite.gameObject.SetActive(true);
 
         if (interactionIcon != null)
-            interactionIcon.Show();
+            interactionIcon.Hide();
     }
 
     private void OnTriggerExit(Collider other)
@@ -55,7 +55,7 @@ public class TutorialTrigger : MonoBehaviour
             interactionSprite.gameObject.SetActive(false);
 
         if(interactionIcon != null)
-            interactionIcon.Hide();
+            interactionIcon.Show();
     }
 
 
@@ -64,6 +64,7 @@ public class TutorialTrigger : MonoBehaviour
     void Update()
     {
         if (!jogadorDentro || playerInput == null) return;
+        if (TutorialGlobal.Instance == null) return;
         if (TutorialGlobal.Instance.IsTutorialActive) return;
 
         if (playerInput.actions["Interaction"].WasPerformedThisFrame())
