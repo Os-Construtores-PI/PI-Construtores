@@ -8,10 +8,17 @@
 - [x] Tutorial de Pulo e Dash #Erick
 
 # Tutoriais Programação
-- [ ] Tutorial  de Movimentação #Leonardo 
-- [ ] Tutorial de Pulo e Dash #Leonardo 
+- [x] Tutorial  de Movimentação #Leonardo
+- [x] Tutorial de Pulo e Dash #Leonardo
 
+# Tutoriais Programação Implementação
+
+- [ ] Implementar na Faze 0 [#Leonardo](app://obsidian.md/index.html#Leonardo)
+- [ ] Pausar o Jogo
+- [ ] Botar Paineis Correspondentes com o Input
+
+# Diálogos de História
 
 # Diálogos de História
 - [x] Arte #Erick
-- [ ] Implementar no Jogo #Leonardo 
+- [x] Implementar no Jogo #Leonardo
