@@ -47,10 +47,15 @@ kanban-plugin: board
 
 
 
+## Correções
+
+- [ ] [[Correções Faze 0]]
+
+
 
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","list-collapse":[false,false,false,false,false],"show-checkboxes":false,"new-note-template":"Modelos/Modelo de Tarefa.md","new-note-folder":"Tarefas","full-list-lane-width":false}
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false,false],"show-checkboxes":false,"new-note-template":"Modelos/Modelo de Tarefa.md","new-note-folder":"Tarefas","full-list-lane-width":false}
 ```
 %%

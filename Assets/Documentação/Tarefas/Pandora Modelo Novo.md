@@ -14,7 +14,7 @@
 - [x] Animação de Pulo #Erick
 - [x] Animação de Pulo Duplo #Erick 
 - [x] Animação de Cair #Erick
-- [ ] Animação de Morte #Erick 
+- [x] Animação de Morte #Erick
 - [ ] Animação de Dano #Erick 
 - [ ] Animação Grappling Hook #Erick 
 - [ ] Animação Deslizar #Erick 
