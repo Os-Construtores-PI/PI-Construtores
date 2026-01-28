@@ -7,6 +7,7 @@ public class TutorialGlobal : MonoBehaviour
 
     [Header("Ui")]
     [SerializeField] private GameObject tutorialHUD;
+    public event System.Action<bool> OnTutorialStateChanged;
 
     
     public bool IsTutorialActive { get; private set; }
@@ -35,6 +36,10 @@ public class TutorialGlobal : MonoBehaviour
         IsTutorialActive = true;
 
         tutorialHUD.SetActive(true);
+
+        DeviceSpriteManager.Instance?.ForceRefresh();
+
+        OnTutorialStateChanged?.Invoke(true);
     }
 
     public void FecharTutorial()
@@ -43,5 +48,7 @@ public class TutorialGlobal : MonoBehaviour
 
         IsTutorialActive = false;
         tutorialHUD.SetActive(false);
+        DeviceSpriteManager.Instance?.ForceRefresh();
+        OnTutorialStateChanged?.Invoke(false);
     }
 }

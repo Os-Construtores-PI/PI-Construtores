@@ -6,6 +6,7 @@ using DG.Tweening;
 
 public class DialogueGlobal : MonoBehaviour
 {
+    private Tween _tweenPainel;
     public static DialogueGlobal Instance;
 
     [Header("UI")]
@@ -159,14 +160,20 @@ public class DialogueGlobal : MonoBehaviour
         LimparFala();
         _painelDialogo.SetActive(true);
         _painelDialogo.transform.localScale = Vector3.zero;
-        _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
+       // _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
         if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
         if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
 
-        _painelDialogo.transform.DOScale(1f, 0.30f)
+        _tweenPainel?.Kill();
+
+        _tweenPainel = _painelDialogo.transform
+            .DOScale(1f, 0.30f)
             .SetEase(Ease.OutBack)
             .OnComplete(() =>
             {
+                if (!gameObject.activeInHierarchy) return;
+                if (!_dialogoAtivo) return;
+
                 StartCoroutine(DelayMostrarFala());
             });
 
@@ -208,12 +215,22 @@ public class DialogueGlobal : MonoBehaviour
 
     public void FecharDialogo()
     {
+        if (!_dialogoAtivo) return;
 
-        
-         OndialogueEnd?.Invoke();
+
+        OndialogueEnd?.Invoke();
         _dialogoAtivo = false;
+        
+        StopCoroutine(DelayMostrarFala());
         //_falasAtuais = null;
+        _tweenPainel?.Kill();
+        _tweenPainel = null;
 
+        if(_tweenPainel != null)
+        {
+            _tweenPainel.Kill();
+            _tweenPainel = null;
+        }
 
         if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
         if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
@@ -311,7 +328,12 @@ public class DialogueGlobal : MonoBehaviour
         // forçar TMP a atualizar imediatamente
         _textoDialogo.ForceMeshUpdate();
     }
-    
 
+    private void OnDisable()
+    {
+        StopCoroutine(DelayMostrarFala());
+        _tweenPainel?.Kill();
+        _tweenText?.Kill();
+    }
 
 }

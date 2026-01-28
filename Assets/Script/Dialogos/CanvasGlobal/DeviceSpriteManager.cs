@@ -203,5 +203,10 @@ public class DeviceSpriteManager : MonoBehaviour
     {
         return _currentDevice;
     }
+
+    public void ForceRefresh()
+    {
+        OnDeviceChanged?.Invoke(_currentDevice);
+    }
 }
 
