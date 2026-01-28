@@ -17,5 +17,4 @@
 - [x] Animação de Morte #Erick
 - [x] Animação de Dano #Erick
 - [x] Animação de quando a Pandora for Lançada #Erick
-- [ ] Animação Grappling Hook #Erick 
 - [x] Animação Deslizar #Erick
