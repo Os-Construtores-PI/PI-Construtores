@@ -15,6 +15,7 @@
 - [x] Animação de Pulo Duplo #Erick 
 - [x] Animação de Cair #Erick
 - [x] Animação de Morte #Erick
-- [ ] Animação de Dano #Erick 
+- [x] Animação de Dano #Erick
+- [x] Animação de quando a Pandora for Lançada #Erick
 - [ ] Animação Grappling Hook #Erick 
-- [ ] Animação Deslizar #Erick 
+- [x] Animação Deslizar #Erick

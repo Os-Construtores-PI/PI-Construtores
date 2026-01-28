@@ -43,13 +43,13 @@ kanban-plugin: board
 - [ ] [[Diálogos]]
 
 
-## Testado
-
-
-
 ## Correções
 
 - [ ] [[Correções Faze 0]]
+
+
+## Testado
+
 
 
 
