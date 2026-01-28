@@ -11,8 +11,10 @@
 - [x] Animação de Andar #Erick
 - [x] Animação de Correr #Erick
 - [x] Animação de Dash #Erick
-- [ ] Animação de Pulo #Erick 
-- [ ] Animação de Cair #Erick 
+- [x] Animação de Pulo #Erick
+- [x] Animação de Pulo Duplo #Erick 
+- [x] Animação de Cair #Erick
 - [ ] Animação de Morte #Erick 
+- [ ] Animação de Dano #Erick 
 - [ ] Animação Grappling Hook #Erick 
 - [ ] Animação Deslizar #Erick 
