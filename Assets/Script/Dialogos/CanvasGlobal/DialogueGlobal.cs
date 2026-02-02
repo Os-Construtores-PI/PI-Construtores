@@ -25,6 +25,7 @@ public class DialogueGlobal : MonoBehaviour
     private PlayerDirector playerDirectoor;
     private GameDirector _gameDirector;
     private PlayerContext _playerContext;
+    private PlayerContext _lockedPlayer;
 
     public GameObject _botoesDialogo; // grupo de botões que aparecem no diálogo
     public GameObject _botoesGameplay; // grupo de botões da HUD que somem no diálogo
@@ -41,6 +42,8 @@ public class DialogueGlobal : MonoBehaviour
 
     [SerializeField] private float _delayAntesdotexto = 0.25f;
     [SerializeField] private float _tempoPorLetra = 0.015f;
+
+    private bool _dialogoPronto = false;
 
     
 
@@ -117,6 +120,8 @@ public class DialogueGlobal : MonoBehaviour
     public void IniciarDialogo(string[] falas)
     {
 
+        _dialogoAtivo = true;
+        _dialogoPronto = false;
         if(_openCooldown) return;
         _openCooldown = true;
         Invoke(nameof(ResetCoolDown), 0.1f);
@@ -171,16 +176,18 @@ public class DialogueGlobal : MonoBehaviour
             .SetEase(Ease.OutBack)
             .OnComplete(() =>
             {
-                if (!gameObject.activeInHierarchy) return;
                 if (!_dialogoAtivo) return;
+
+                _dialogoPronto = true;
 
                 StartCoroutine(DelayMostrarFala());
             });
 
 
-
-        if (_gameDirector != null && _playerContext != null)
-            _gameDirector.SetLockPlayer(_playerContext, true);
+        _lockedPlayer = _playerContext;
+        
+        if (_gameDirector != null && _lockedPlayer != null)
+            _gameDirector.SetLockPlayer(_lockedPlayer, true);
        
     }
     private void ResetCoolDown()
@@ -216,29 +223,40 @@ public class DialogueGlobal : MonoBehaviour
     public void FecharDialogo()
     {
         if (!_dialogoAtivo) return;
-
-
-        OndialogueEnd?.Invoke();
         _dialogoAtivo = false;
-        
-        StopCoroutine(DelayMostrarFala());
+        _dialogoPronto = false;
+
+        StopAllCoroutines();
+
+        _dialogoAtivo = false;
+
         //_falasAtuais = null;
         _tweenPainel?.Kill();
         _tweenPainel = null;
 
+        OndialogueEnd?.Invoke();
+       
+        if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
+        if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
+        
+        if (_gameDirector != null && _lockedPlayer != null)
+            _gameDirector.SetLockPlayer(_lockedPlayer, false);
+        
+        _lockedPlayer = null;
+        _playerContext = null;
+        
         if(_tweenPainel != null)
         {
             _tweenPainel.Kill();
             _tweenPainel = null;
         }
 
-        if (_botoesDialogo != null) _botoesDialogo.SetActive(false);
-        if(_botoesGameplay != null) _botoesGameplay.SetActive(true);
         
 
 
         if(_currentTrigger != null)
           _currentTrigger.OnDialogoFechado();
+        
         _painelDialogo.transform.DOScale(0f, 0.2f)
     .SetEase(Ease.InBack)
     .OnComplete(() =>
@@ -248,15 +266,11 @@ public class DialogueGlobal : MonoBehaviour
 
 
 
-        if (_gameDirector != null && _playerContext != null)
-            _gameDirector.SetLockPlayer(_playerContext, false);
-
-        _playerContext = null;
     }
 
     private void Update()
     {
-        if (!_dialogoAtivo) return;
+        if (!_dialogoAtivo || !_dialogoPronto) return;
         if(_Interactable == null) return;
 
         if (_Interactable.actions["AdvanceDialogue"].WasPerformedThisFrame())
@@ -331,7 +345,7 @@ public class DialogueGlobal : MonoBehaviour
 
     private void OnDisable()
     {
-        StopCoroutine(DelayMostrarFala());
+        StopAllCoroutines();
         _tweenPainel?.Kill();
         _tweenText?.Kill();
     }
