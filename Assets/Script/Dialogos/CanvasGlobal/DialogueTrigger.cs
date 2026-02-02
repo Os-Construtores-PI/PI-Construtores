@@ -21,7 +21,7 @@ public class DialogueTrigger : InteractableObject
 
     private bool _canInteractAgain = true;
 
-    private bool _dialogoJaAberto = false;
+    
 
     [Header("Configuração do Dialogo")]
     [SerializeField] private bool _dialogoApenasUmaVez;
@@ -134,8 +134,7 @@ public class DialogueTrigger : InteractableObject
 
     public void AbrirDialogo()
     {
-        if (_dialogoJaAberto) return;
-        _dialogoJaAberto = true;
+        
 
         try {_playerInput.actions["Interaction"]?.Reset();} catch { }
 
@@ -153,7 +152,7 @@ public class DialogueTrigger : InteractableObject
 
     public void OnDialogoFechado()
     {
-        _dialogoJaAberto = false;
+        
 
         if (_dialogoApenasUmaVez)
         {
