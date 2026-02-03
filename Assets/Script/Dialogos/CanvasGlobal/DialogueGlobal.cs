@@ -120,13 +120,13 @@ public class DialogueGlobal : MonoBehaviour
     public void IniciarDialogo(string[] falas)
     {
 
-        _dialogoAtivo = true;
-        _dialogoPronto = false;
+        if (_dialogoAtivo) return;
         if(_openCooldown) return;
         _openCooldown = true;
         Invoke(nameof(ResetCoolDown), 0.1f);
 
-
+        _dialogoAtivo = true;
+        _dialogoPronto = false;
 
         if (_currentTrigger != null)
             _Interactable = _currentTrigger._playerInput;
