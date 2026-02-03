@@ -22,3 +22,4 @@
 # Diálogos de História
 - [x] Arte #Erick
 - [x] Implementar no Jogo #Leonardo
+- [ ] Diálogo Final Implementado no Jogo #Leonardo 
