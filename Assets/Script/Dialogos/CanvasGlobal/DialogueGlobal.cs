@@ -6,6 +6,18 @@ using DG.Tweening;
 
 public class DialogueGlobal : MonoBehaviour
 {
+
+    private enum DialogueState
+    {
+        Closed,
+        Opening,
+        Open,
+        Closing
+    }
+
+
+    private DialogueState _state = DialogueState.Closed;
+
     private Tween _tweenPainel;
     public static DialogueGlobal Instance;
 
@@ -37,8 +49,9 @@ public class DialogueGlobal : MonoBehaviour
     public UnityEngine.UI.Button _botaoRetornar;
 
     private PlayerInput _Interactable;
+    private PlayerInput _defaultPlayerInput;
 
-    private bool _openCooldown = false;
+    
 
     [SerializeField] private float _delayAntesdotexto = 0.25f;
     [SerializeField] private float _tempoPorLetra = 0.015f;
@@ -57,30 +70,39 @@ public class DialogueGlobal : MonoBehaviour
         }
         Instance = this;
 
-        if(_painelDialogo != null)
-            _painelDialogo.SetActive(false);
-       // _painelDialogo.SetActive(false);
-
-        
-
         playerDirectoor = FindAnyObjectByType<PlayerDirector>();
         
         _gameDirector = FindAnyObjectByType<GameDirector>();
 
-        
-
         if (playerDirectoor != null)
             _playerContext = playerDirectoor.FirstPlayerContext;
+
+
+        if (_playerContext != null)
+            _defaultPlayerInput = _playerContext.PlayerInput;
+
+
+        if(_painelDialogo != null)
+            _painelDialogo.SetActive(false);
         
 
-      //_painelDialogo?.SetActive(false);
+            
+        if (playerDirectoor != null)
+            _playerContext = playerDirectoor.FirstPlayerContext;
+
+
         
-      
       if (_painelDialogo == null) Debug.LogWarning("[DialogueGlobal] _painelDialogo NÃO atribuído!");
       if (_textoDialogo == null) Debug.LogWarning("[DialogueGlobal] _textoDialogo NÃO atribuído!");
 
         
     }
+
+        
+
+      
+        
+      
 
     public void SetTrigger(DialogueTrigger trigger)
     {
@@ -120,64 +142,76 @@ public class DialogueGlobal : MonoBehaviour
     public void IniciarDialogo(string[] falas)
     {
 
-        if (_dialogoAtivo) return;
-        if(_openCooldown) return;
-        _openCooldown = true;
-        Invoke(nameof(ResetCoolDown), 0.1f);
-
+        if (_state != DialogueState.Closed)
+            return;
+        
+        _state = DialogueState.Opening;
         _dialogoAtivo = true;
         _dialogoPronto = false;
 
-        if (_currentTrigger != null)
-            _Interactable = _currentTrigger._playerInput;
+        if (falas == null || falas.Length == 0) return;
 
-        
+        if(_currentTrigger != null && _currentTrigger._playerInput != null)
+        {
+            _Interactable = _currentTrigger._playerInput;
+        }
+        else if (_defaultPlayerInput != null)
+        {
+            _Interactable = _defaultPlayerInput;
+        }
+        else
+        {
+            Debug.LogError("[DialogueGlobal] Nenhum PlayerInput disponível para o diálogo!");
+            return;
+        }
+
         if(_Interactable != null)
         {
-            try
-            {
-                _Interactable.actions["AdvanceDialogue"]?.Reset();
-                _Interactable.actions["ReturnDialogue"]?.Reset();
-            }
-            catch{}
+            _Interactable = _playerContext.PlayerInput;
         }
 
-        if (falas == null || falas.Length == 0)
-            return;
-        _playerContext = null;
-        if (_currentTrigger != null && _currentTrigger._playerInput != null)
+        if(_Interactable != null)
         {
-            var playerGO = _currentTrigger._playerInput.gameObject;
-            if (playerGO != null)
-            {
-                var playerComp = playerGO.GetComponent<Player>();
-                if (playerComp != null)
-                    _playerContext = playerComp.Context;
-            }
-        }
-        OndialogueStart?.Invoke();
 
+            var actions = _Interactable.actions;
+
+            actions.Enable(); // garante que o asset está ativo
+
+            actions["AdvanceDialogue"]?.Enable();
+            actions["ReturnDialogue"]?.Enable();
+
+            // opcional: bloquear ações de gameplay durante diálogo
+            actions["Move"]?.Disable();
+            actions["Attack"]?.Disable();
+            actions["Dash"]?.Disable();
+        }
+
+        OndialogueStart?.Invoke();
+        
         _falasAtuais = falas;
         _index = 0;
-        _dialogoAtivo = true;
-
-
+        
         LimparFala();
+        
         _painelDialogo.SetActive(true);
         _painelDialogo.transform.localScale = Vector3.zero;
-       // _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
+        
         if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
         if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
 
-        _tweenPainel?.Kill();
-
+        _tweenPainel?.Kill(true);
+        _tweenText?.Kill(true);
+        StopAllCoroutines();
+       
         _tweenPainel = _painelDialogo.transform
             .DOScale(1f, 0.30f)
             .SetEase(Ease.OutBack)
             .OnComplete(() =>
             {
-                if (!_dialogoAtivo) return;
+                if (_state != DialogueState.Opening)
+                    return;
 
+                _state = DialogueState.Open;
                 _dialogoPronto = true;
 
                 StartCoroutine(DelayMostrarFala());
@@ -188,33 +222,42 @@ public class DialogueGlobal : MonoBehaviour
         
         if (_gameDirector != null && _lockedPlayer != null)
             _gameDirector.SetLockPlayer(_lockedPlayer, true);
+        
+       
+
+
+
+       // _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
+
        
     }
-    private void ResetCoolDown()
-    {
-        _openCooldown = false;
-    }
+    
 
     public void ProximaFala()
     {
-        if (!_dialogoAtivo) return;
+        if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open) 
+            return;
         
-        _index++;
-        if (_index >= _falasAtuais.Length)
+        if (_index >= _falasAtuais.Length - 1)
         {
             FecharDialogo();
             return;
         }
+        
+        _index++;
         AtualizarFala();
     }
 
     public void VoltarFala()
     {
-        if (!_dialogoAtivo) return;
+        if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open) 
+            return;
+
+        if (_index <= 0)
+            return;
 
         _index--;
 
-        if(_index < 0) _index = 0;
 
         AtualizarFala();
        // _textoDialogo.text = _falasAtuais[_index];  
@@ -222,7 +265,24 @@ public class DialogueGlobal : MonoBehaviour
 
     public void FecharDialogo()
     {
-        if (!_dialogoAtivo) return;
+        if (_Interactable != null)
+        {
+            var actions = _Interactable.actions;
+
+            actions["AdvanceDialogue"]?.Disable();
+            actions["ReturnDialogue"]?.Disable();
+
+            // reativa gameplay
+            actions["Move"]?.Enable();
+            actions["Attack"]?.Enable();
+            actions["Dash"]?.Enable();
+        }   
+
+        if (_state == DialogueState.Closed || _state == DialogueState.Closing)
+            return;
+
+        _state = DialogueState.Closing;
+        
         _dialogoAtivo = false;
         _dialogoPronto = false;
 
@@ -231,7 +291,7 @@ public class DialogueGlobal : MonoBehaviour
         _dialogoAtivo = false;
 
         //_falasAtuais = null;
-        _tweenPainel?.Kill();
+        _tweenPainel?.Kill(true);
         _tweenPainel = null;
 
         OndialogueEnd?.Invoke();
@@ -243,7 +303,7 @@ public class DialogueGlobal : MonoBehaviour
             _gameDirector.SetLockPlayer(_lockedPlayer, false);
         
         _lockedPlayer = null;
-        _playerContext = null;
+        
         
         if(_tweenPainel != null)
         {
@@ -262,6 +322,7 @@ public class DialogueGlobal : MonoBehaviour
     .OnComplete(() =>
     {
         _painelDialogo.SetActive(false);
+        _state = DialogueState.Closed;
     });
 
 
@@ -270,8 +331,18 @@ public class DialogueGlobal : MonoBehaviour
 
     private void Update()
     {
-        if (!_dialogoAtivo || !_dialogoPronto) return;
-        if(_Interactable == null) return;
+        if (_Interactable == null)
+        {
+            Debug.LogWarning("[DialogueGlobal] Interactable NULL – diálogo sem PlayerInput");
+            return;
+        }
+
+        if (_state != DialogueState.Open)
+            return;
+
+        if(_Interactable == null) 
+            return;
+        
 
         if (_Interactable.actions["AdvanceDialogue"].WasPerformedThisFrame())
     {
@@ -325,6 +396,12 @@ public class DialogueGlobal : MonoBehaviour
     {
         if (_falasAtuais == null || _falasAtuais.Length == 0)
             return;
+        if (_index < 0 || _index >= _falasAtuais.Length)
+        {
+            Debug.LogWarning($"[DialogueGlobal] Índice inválido: {_index}");
+            return;
+        }
+
         StopAllCoroutines();
         MostrarFala(_falasAtuais[_index]);
     }

@@ -10,12 +10,15 @@ public class GameDirector : MonoBehaviour
 
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private PlayerDirector playerDirector;
+    [SerializeField] private DialogueTrigger introDialogue;
 
     private void Start()
     {
         Debug.Log("GameDirector START rodou!");
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);        
         GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.AddListener(SetLockPlayer);
+
+        StartCoroutine(FluxoIntro());
         // O painel de Start agora é gerenciado por outro script,
         // então não precisamos fazer nada aqui.
     }
@@ -48,6 +51,10 @@ public class GameDirector : MonoBehaviour
                 Debug.LogError("[GameDirector] Nenhum PlayerDirector encontrado. Cena Debug pode continuar sem jogadores.");
             }
         }
+
+        
+
+        
 
         // 🔹 Garante que a música de fundo exista
         if (!backgroundMusic)
@@ -111,5 +118,27 @@ public class GameDirector : MonoBehaviour
         playerContext.CameraLocked = set;
         playerContext.IsHardLocked = set;
 
+    }
+
+    private IEnumerator FluxoIntro()
+    {
+        yield return new WaitUntil(() => DialogueGlobal.Instance != null);
+
+        yield return new WaitUntil(() => DialogueGlobal.Instance._painelDialogo != null);
+
+
+        yield return null;
+
+        if(!playerDirector)
+            playerDirector = FindAnyObjectByType<PlayerDirector>();
+
+        if (playerDirector && playerDirector.FirstPlayerContext != null)
+            SetLockPlayer(playerDirector.FirstPlayerContext, true);
+
+        if(introDialogue != null)
+        {
+            DialogueGlobal.Instance.SetTrigger(introDialogue);
+            DialogueGlobal.Instance.IniciarDialogo(introDialogue._dialogo);
+        }
     }
 }
