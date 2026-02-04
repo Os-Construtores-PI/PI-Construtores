@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(ManualPlayersSpawner))]
 public class PlayerDirector : MonoBehaviour
@@ -158,4 +159,6 @@ public class PlayerDirector : MonoBehaviour
             return null;
         }
     }
+
+    
 }
