@@ -18,9 +18,27 @@ public class GameDirector : MonoBehaviour
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);        
         GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.AddListener(SetLockPlayer);
 
+        if (TutorialGlobal.Instance != null)
+            TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
+
+
         StartCoroutine(FluxoIntro());
         // O painel de Start agora é gerenciado por outro script,
         // então não precisamos fazer nada aqui.
+    }
+
+    private void OnDestroy()
+    {
+        if(TutorialGlobal.Instance != null)
+            TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
+    }
+
+    private void OnTutorialStateChanged(bool ativo)
+    {
+        if (!playerDirector || playerDirector.FirstPlayerContext == null)
+            return;
+
+        SetLockPlayer(playerDirector.FirstPlayerContext, ativo);
     }
 
     /// <summary>
