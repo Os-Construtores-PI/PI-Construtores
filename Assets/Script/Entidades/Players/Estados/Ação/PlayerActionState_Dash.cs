@@ -14,9 +14,7 @@ public class PlayerActionStateDash : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
-
-        if (context.IsHardLocked)
-            return;
+        if (context.IsHardLocked) return;
         
         context.OverrideGlobal = true;
 
@@ -31,7 +29,7 @@ public class PlayerActionStateDash : IState<PlayerContext>
         context.PlayerDashCurrent += 1;
         context.PlayerCanMove = false;
         context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.Dash);
-        PlayDashVisual(context.PlayerModelTransform,context.PlayerDashDuration);
+        //PlayDashVisual(context.PlayerModelTransform,context.PlayerDashDuration);
 
         if (context.PlayerDashScript != null)
         {
@@ -74,10 +72,11 @@ public class PlayerActionStateDash : IState<PlayerContext>
         float initialYScale = transform.localScale.y;
         DOTween
             .Sequence()
-            .Append(transform.DOScaleY(initialYScale*0.65f, duration * 0.6f))
+            .Append(transform.DOScaleY(initialYScale*0.5f, duration * 0.6f))
             .Append(transform.DOScaleY(initialYScale*1f, duration * 0.4f))
             .SetEase(Ease.InOutSine)
-            .SetUpdate(UpdateType.Fixed);
+            .SetUpdate(UpdateType.Fixed)
+            .Play();
     }
 
     private void ExitTimer(PlayerContext context)
