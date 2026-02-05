@@ -11,6 +11,9 @@ public class TutorialTrigger : MonoBehaviour
     [Header("Config")]
     [SerializeField] private bool apenasUmaVez;
 
+    [Header("Tutorial")]
+
+
     private PlayerInput playerInput;
     private bool jogadorDentro;
     private bool tutorialConsumido;
@@ -92,5 +95,13 @@ public class TutorialTrigger : MonoBehaviour
 
         interactionSprite.sprite =
             DeviceSpriteManager.Instance.GetSprite(DeviceSpriteManager.InputIconType.Interact);
+    }
+
+    public enum TutorialType
+    {
+        Movimento,
+        Combate,
+        Dash,
+        WallRun
     }
 }
