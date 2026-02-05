@@ -746,5 +746,7 @@ public class PlayerContext : CombatEntityContext
     public GameObject PlayerObject => player.gameObject;
     public bool CameraLocked { get; set; } = false;
     public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
+
+    public bool IgnoreGameplayInputThisFrame;
     
 }

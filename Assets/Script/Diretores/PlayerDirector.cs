@@ -37,6 +37,8 @@ public class PlayerDirector : MonoBehaviour
 
     
 
+    
+
     private void Awake()
     {
         playersSpawner = GetComponent<ManualPlayersSpawner>();
