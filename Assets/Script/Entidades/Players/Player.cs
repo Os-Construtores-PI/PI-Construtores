@@ -278,6 +278,7 @@ public class Player : CombatEntities
         _isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityX,Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
+        print(Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
