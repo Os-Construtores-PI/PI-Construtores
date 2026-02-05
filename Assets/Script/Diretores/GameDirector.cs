@@ -38,7 +38,26 @@ public class GameDirector : MonoBehaviour
         if (!playerDirector || playerDirector.FirstPlayerContext == null)
             return;
 
-        SetLockPlayer(playerDirector.FirstPlayerContext, ativo);
+        var ctx = playerDirector.FirstPlayerContext; 
+
+        if (ativo)
+        {
+            SetLockPlayer(ctx, true);
+        }
+        else
+        {
+            ctx.IgnoreGameplayInputThisFrame = true;
+            StartCoroutine(DestravarPlayerNextFrame(ctx));
+        }
+    }
+
+    private IEnumerator DestravarPlayerNextFrame(PlayerContext ctx)
+    {
+        yield return null;
+
+        SetLockPlayer(ctx, false);
+
+        ctx.IgnoreGameplayInputThisFrame = false;
     }
 
     /// <summary>

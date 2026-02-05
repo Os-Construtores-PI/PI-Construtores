@@ -12,8 +12,8 @@ public class Player : CombatEntities
 {
     #region === Configurações de Movimento ===
     [Header("Movimento")]
-     private float speed = 10f;
-     internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
+    private float speed = 10f;
+    internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
 
     [HideInInspector]
     [Stat(nameof(Speed))]
@@ -228,7 +228,7 @@ public class Player : CombatEntities
             ScanEnemies // <-- injeta o método diretamente
         );
 
-        _modelTransform = transform.Find("Pandora.014");
+        _modelTransform = transform.Find("Model");
     }
 
     public override void Update()
@@ -746,5 +746,7 @@ public class PlayerContext : CombatEntityContext
     public GameObject PlayerObject => player.gameObject;
     public bool CameraLocked { get; set; } = false;
     public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
+
+    public bool IgnoreGameplayInputThisFrame;
     
 }
