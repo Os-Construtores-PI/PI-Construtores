@@ -267,6 +267,8 @@ public class Player : CombatEntities
         // print($"WILLATTACK: {willAttack}");
 #endif
         TryToSkipDialogue();
+
+        
     }
 
     private void FixedUpdate()
@@ -307,6 +309,9 @@ public class Player : CombatEntities
 
     public void OnMove(InputAction.CallbackContext context)
     {
+       // if (Context.IsHardLocked) return;
+        if(Context.IgnoreGameplayInputThisFrame) return;
+
         _moveInput = context.ReadValue<Vector2>();
          
         Move();
@@ -378,6 +383,18 @@ public class Player : CombatEntities
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (Context.IsHardLocked) return;
+        if(Context.IgnoreGameplayInputThisFrame) return;
+        
+        if (Context.BlockJumpByDialogue)
+            return;
+
+        if (Context.WaitForJumpRelease)
+        {
+            if(context.canceled)
+                Context.WaitForJumpRelease = false;
+            return;
+        }
         if (context.started)
             Jump();
     }
@@ -747,6 +764,10 @@ public class PlayerContext : CombatEntityContext
     public bool CameraLocked { get; set; } = false;
     public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
 
-    public bool IgnoreGameplayInputThisFrame;
+    public bool IgnoreGameplayInputThisFrame { get; set; }
+
+    public bool WaitForJumpRelease;
+
+    public bool BlockJumpByDialogue = false;
     
 }

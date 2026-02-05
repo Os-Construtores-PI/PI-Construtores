@@ -55,9 +55,13 @@ public class GameDirector : MonoBehaviour
     {
         yield return null;
 
+        ctx.PlayerInput.actions.Disable();
+        ctx.PlayerInput.actions.Enable();
+
         SetLockPlayer(ctx, false);
 
         ctx.IgnoreGameplayInputThisFrame = false;
+        ctx.WaitForJumpRelease = true;
     }
 
     /// <summary>
