@@ -12,6 +12,7 @@ public class TutorialTrigger : MonoBehaviour
     [SerializeField] private bool apenasUmaVez;
 
     [Header("Tutorial")]
+    [SerializeField] private TutorialType tutorialType;
 
 
     private PlayerInput playerInput;
@@ -25,6 +26,8 @@ public class TutorialTrigger : MonoBehaviour
 
         if (DeviceSpriteManager.Instance != null)
             DeviceSpriteManager.Instance.OnDeviceChanged += AtualizarSprite;
+
+        Debug.Log($"[TutorialTrigger] Start ativo em {gameObject.name}");
     }
     private void OnDestroy()
     {
@@ -72,6 +75,7 @@ public class TutorialTrigger : MonoBehaviour
 
         if (playerInput.actions["Interaction"].WasPerformedThisFrame())
         {
+            Debug.Log("[TutorialTrigger] Interaction triggered");
             AbrirTutorial();
         }
     }
@@ -86,7 +90,7 @@ public class TutorialTrigger : MonoBehaviour
         if(interactionIcon != null)
             interactionIcon.Hide();
 
-        TutorialGlobal.Instance.AbrirTutorial(playerInput);
+        TutorialGlobal.Instance.AbrirTutorial(tutorialType);
     }
 
     private void AtualizarSprite(string device)

@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,12 +8,19 @@ public class TutorialGlobal : MonoBehaviour
 
     [Header("Ui")]
     [SerializeField] private GameObject tutorialHUD;
+
+    [Header("Tutoriais")]
+    [SerializeField] private GameObject movimentoTutorial;
+    [SerializeField] private GameObject dashTutorial;
+    
     public event System.Action<bool> OnTutorialStateChanged;
 
     
     public bool IsTutorialActive { get; private set; }
 
     private PlayerInput _playerInput;
+
+    private Tween currentTween;
 
 
     private void Awake()
@@ -25,21 +33,32 @@ public class TutorialGlobal : MonoBehaviour
 
         Instance = this;
 
-        if (tutorialHUD != null)
-            tutorialHUD.SetActive(false);
+        //tutorialHUD.SetActive(false);
+        DesativarTodos();
+
+    }
+    private void Start()
+    {
+        tutorialHUD.SetActive(false);
     }
 
-    public void AbrirTutorial(PlayerInput input)
+    public void AbrirTutorial(TutorialTrigger.TutorialType tipo)
     {
         if (IsTutorialActive) return;
         
         IsTutorialActive = true;
 
-        tutorialHUD.SetActive(true);
 
         DeviceSpriteManager.Instance?.ForceRefresh();
 
+        DesativarTodos();
+        AtivarTutorial(tipo);
+        
+        tutorialHUD.SetActive(true);
+
         OnTutorialStateChanged?.Invoke(true);
+
+        
     }
 
     public void FecharTutorial()
@@ -50,5 +69,30 @@ public class TutorialGlobal : MonoBehaviour
         tutorialHUD.SetActive(false);
         DeviceSpriteManager.Instance?.ForceRefresh();
         OnTutorialStateChanged?.Invoke(false);
+    }
+
+    
+
+    private void DesativarTodos()
+    {
+        if(movimentoTutorial != null) movimentoTutorial.SetActive(false);
+        if(dashTutorial != null) dashTutorial.SetActive(false);
+
+    }
+    private void AtivarTutorial(TutorialTrigger.TutorialType tipo)
+    {
+        
+        
+        switch (tipo)
+        {
+            case TutorialTrigger.TutorialType.Movimento:
+                movimentoTutorial.SetActive(true);
+                break;
+            case TutorialTrigger.TutorialType.Dash:
+                dashTutorial.SetActive(true);
+                break;
+            
+            
+        }
     }
 }
