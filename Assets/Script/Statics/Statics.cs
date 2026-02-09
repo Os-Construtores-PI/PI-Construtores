@@ -194,30 +194,50 @@ public static class QualityOfLife
     {
         return Mathf.Lerp(from, to, 1f - Mathf.Exp(-smoothing * Time.deltaTime));
     }
-    public static float Hermite(float from, float to, float t) 
-    {
-        return Mathf.Lerp(from, to, t * t * (3.0f - 2.0f * t));
+    public static float SmoothStepLerp(float from, float to, float smoothing)
+    {   
+        float t = 1f - Mathf.Exp(-smoothing * Time.fixedDeltaTime);
+        // 3t^2 - 2t^3 -> Curva perfeita para controle de personagem
+        float smoothT = t * t * (3f - 2f * t);
+        return Mathf.Lerp(from, to, smoothT);
     }
-    public static float SmoothCubicLerp(float from, float to, float smoothing)
+    public static float SmoothCubicIn(float from, float to, float smoothing)
     {
         float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
-        // Equação clássica de Smoothstep: 3t^2 - 2t^3
-        float cubicT = t * t * (3f - 2f * t);
+        float cubicIn = t * t * t; // t ao cubo
+        return Mathf.Lerp(from, to, cubicIn);
+    }
+    public static float SmoothCubicOut(float from, float to, float smoothing)
+    {
+        float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
+        float invT = t - 1f;
+        // Formula Cubic Out: (t-1)^3 + 1
+        float cubicT = invT * invT * invT + 1f;
         return Mathf.Lerp(from, to, cubicT);
     }
-    public static float SmoothQuadLerp(float from, float to, float smoothing)
+    public static float SmoothQuadIn(float from, float to, float smoothing)
     {
         float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
-        // Formula: t * t (Ease In) ou t * (2 - t) (Ease Out)
-        float quadT = t * t * (3f - 2f * t); // Versão Smoothstep simplificada
+        float quadIn = t * t; // Eleva o peso do tempo ao quadrado
+        return Mathf.Lerp(from, to, quadIn);
+    }
+    public static float SmoothQuadOut(float from, float to, float smoothing)
+    {
+        float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
+        // Aplica a curvatura Quad Out: t * (2 - t)
+        float quadT = t * (2f - t);
         return Mathf.Lerp(from, to, quadT);
     }
+
     public static float PlayerFriction(float value, float frictionAmount, Vector2 intention)
     {
-        if (intention == Vector2.zero)
-            return SmoothLerp(value, 0f, frictionAmount);
-        return value;
+        // Se não há intenção, aplica fricção cúbica para uma parada mais natural
+        return (intention == Vector2.zero) 
+            ? SmoothCubicOut(value, 0f, frictionAmount) 
+            : value;
     }
+
+
     public static bool IsValidIndex<T>(List<T> list, int index)
     {
         return index == (list.Count - 1) && index >= 0;

@@ -44,13 +44,13 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
         context.PlayerDirection = playerDirection;
 
         playerMovementVector = new(
-            QualityOfLife.SmoothQuadLerp(
+            QualityOfLife.SmoothStepLerp(
                 playerMovementVector.x,
                 playerDirection.x * playerSpeed,
                 playerAcceleration
             ),
             playerMovementVector.y,
-            QualityOfLife.SmoothQuadLerp(
+            QualityOfLife.SmoothStepLerp(
                 playerMovementVector.z,
                 playerDirection.z * playerSpeed,
                 playerAcceleration

@@ -11,16 +11,16 @@ protected override (bool, RaycastHit) ScanObjects()
         return (false, default);
 
     // 2 — Filtro final da classe filha
-    if (!Constants.PlayerCommonObjects.types.Contains(interactionObjectType) &&
-        !Constants.PandoraObjects.types.Contains(interactionObjectType))
+    if (!Constants.PlayerCommonObjects.types.Contains(_interactionObjectType) &&
+        !Constants.PandoraObjects.types.Contains(_interactionObjectType))
     {
         ClearInteractable();
         return (false, default);
     }
 
     // 3 — Sucesso
-    interactableRef = interactionObject;
-    GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, interactionObject, ID);
+    interactableRef = _interactionObject;
+    GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, _interactionObject, ID);
 
     return (true, info);
 }

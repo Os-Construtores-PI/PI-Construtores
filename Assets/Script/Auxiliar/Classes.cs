@@ -90,7 +90,7 @@ public class Scanner<TInput, TOutput>
     private readonly Func<TInput, TOutput> scanFunc;
     private readonly float interval;
 
-    private Timer timer = new Timer();
+    private readonly Timer timer = new();
 
     public Scanner(float interval, Func<TInput, TOutput> scanFunc)
     {
@@ -99,10 +99,6 @@ public class Scanner<TInput, TOutput>
         timer.Start(interval);
     }
 
-    /// <summary>
-    /// Executa o scan somente quando o tempo expira.
-    /// Caso contrário, retorna default(TOutput).
-    /// </summary>
     public (bool executed, TOutput result) Scan(float deltaTime, TInput input)
     {
         if (timer.Tick(deltaTime))
