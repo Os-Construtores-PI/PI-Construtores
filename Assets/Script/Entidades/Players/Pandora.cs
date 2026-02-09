@@ -3,33 +3,31 @@ using UnityEngine;
 public class Pandora : Player
 {
     #region --- OBJETOS ---
+
     bool HasGrapling = true;
     protected override (bool, RaycastHit) ScanObjects()
     {
-        var (hit, info) = base.ScanObjects();
+        var (success, hit) = base.ScanObjects();
 
-        if (!hit)
-        {
-            ClearInteractable();
-            return (false, default);
-        }
-
-        // FILTRO FINAL
-        bool valid =
-            Constants.PlayerCommonObjects.types.Contains(interactionObjectType)
-            || (Constants.PandoraObjects.types.Contains(interactionObjectType) && HasGrapling);
-
+        bool valid = success && (Constants.PlayerCommonObjects.types.Contains(_interactionObjectType) || Constants.PandoraObjects.types.Contains(_interactionObjectType)) ;
         if (!valid)
         {
-            ClearInteractable();
+            if (_lastInteractionObject != null)
+            {
+                ClearInteractable(); // Dispara evento false
+                _lastInteractionObject = null;
+            }
             return (false, default);
         }
 
-        // sucesso final
-        interactableRef = interactionObject;
-        GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, interactionObject, ID);
+        // SÓ dispara o evento se mudou a instância do objeto
+        if (_interactionObject != _lastInteractionObject)
+        {
+            _lastInteractionObject = _interactionObject;
+            GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, _interactionObject, ID);
+        }
 
-        return (true, info);
+        return (true, hit);
     }
 
 
