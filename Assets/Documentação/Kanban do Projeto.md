@@ -33,6 +33,7 @@ kanban-plugin: board
 - [ ] Sistema de Save
 - [ ] Torre Faze 0
 - [ ] [[Tentáculos Fase Zero]]
+- [ ] [[Correção  Pandora]]
 
 
 ## Concluído
