@@ -46,6 +46,7 @@ kanban-plugin: board
 ## Correções
 
 - [ ] [[Correções Faze 0]]
+- [ ] [[Correção Bone Pandora]]
 
 
 ## Testado
