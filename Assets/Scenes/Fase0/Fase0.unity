@@ -1169,7 +1169,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 48902951}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10.98}
+  m_LocalPosition: {x: 0, y: 0, z: 7.24}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -58397,7 +58397,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4.1, y: 3.44, z: 2.49}
+  m_Size: {x: 33.94, y: 3.44, z: 2.49}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!224 &2170636618515136317
 RectTransform:
@@ -60230,7 +60230,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8585888697104694786}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10.25}
+  m_LocalPosition: {x: 0, y: 0, z: 10.73}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -60240,7 +60240,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.91, y: 2.73}
+  m_AnchoredPosition: {x: -1.18, y: 2.73}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &4731341713344928860
@@ -60533,6 +60533,7 @@ GameObject:
   - component: {fileID: 3410176097148355578}
   - component: {fileID: 2153711063313277059}
   - component: {fileID: 5411445106229217025}
+  - component: {fileID: 5486508982808559912}
   m_Layer: 0
   m_Name: Trigger
   m_TagString: Untagged
@@ -60540,6 +60541,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &5486508982808559912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5486508982808559911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4ff0462e65bcf54d92075ab5fc570e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueAutoActivator
+  targetTrigger: {fileID: 5411445106229217025}
+  onlyOnce: 1
 --- !u!137 &5487419270704782629
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 0
@@ -61079,6 +61094,7 @@ GameObject:
   - component: {fileID: 4369809908303973861}
   - component: {fileID: 3477902335065856202}
   - component: {fileID: 9149273643412217278}
+  - component: {fileID: 9149273643412217279}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -61131,6 +61147,7 @@ GameObject:
   - component: {fileID: 3901953247968857624}
   - component: {fileID: 330557264002690401}
   - component: {fileID: 5939320464957655779}
+  - component: {fileID: 6149130930504633542}
   m_Layer: 0
   m_Name: Trigger
   m_TagString: Untagged
@@ -61138,6 +61155,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &6149130930504633542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6149130930504633541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4ff0462e65bcf54d92075ab5fc570e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueAutoActivator
+  targetTrigger: {fileID: 5939320464957655779}
+  onlyOnce: 1
 --- !u!4 &6211545969876031472
 Transform:
   m_ObjectHideFlags: 0
@@ -61276,7 +61307,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4023273212112795554}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 7.9155946}
+  m_LocalPosition: {x: 0, y: 0, z: 5.18}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -61285,7 +61316,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2.35, y: -1.754}
+  m_AnchoredPosition: {x: -0.96, y: -1.754}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &6677615813019848166
@@ -63299,6 +63330,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImageTriggerEvent
   rotationDuration: 4
+--- !u!114 &9149273643412217279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6056073120140321577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4ff0462e65bcf54d92075ab5fc570e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueAutoActivator
+  targetTrigger: {fileID: 5939320464957655779}
+  onlyOnce: 1
 --- !u!1 &9156936644790738404
 GameObject:
   m_ObjectHideFlags: 0

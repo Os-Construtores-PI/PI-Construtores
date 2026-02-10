@@ -76,11 +76,11 @@ public class TutorialTrigger : MonoBehaviour
         if (playerInput.actions["Interaction"].WasPerformedThisFrame())
         {
             Debug.Log("[TutorialTrigger] Interaction triggered");
-            AbrirTutorial();
+            AbriirTutorial();
         }
     }
 
-    private void AbrirTutorial()
+    public void AbriirTutorial()
     {
         tutorialConsumido = true;
 

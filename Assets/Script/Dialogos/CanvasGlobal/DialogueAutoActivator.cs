@@ -3,7 +3,7 @@ using UnityEngine;
 public class DialogueAutoActivator : MonoBehaviour
 {
     [Header("Configurações")]
-    public DialogueTrigger targetTrigger; 
+    public TutorialTrigger targetTrigger; 
     public bool onlyOnce = true;      // Executa só uma vez
     private bool alreadyTriggered = false;
 
@@ -17,7 +17,7 @@ public class DialogueAutoActivator : MonoBehaviour
 
         if (targetTrigger != null)
         {
-            targetTrigger.AbrirDialogo();
+            targetTrigger.AbriirTutorial();
             alreadyTriggered = true;
         }
         else
