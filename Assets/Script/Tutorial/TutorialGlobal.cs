@@ -49,7 +49,7 @@ public class TutorialGlobal : MonoBehaviour
         IsTutorialActive = true;
 
 
-       // DeviceSpriteManager.Instance?.ForceRefresh();
+        DeviceSpriteManager.Instance?.ForceRefresh();
 
         DesativarTodos();
         //AtivarTutorial(tipo);
@@ -74,7 +74,7 @@ public class TutorialGlobal : MonoBehaviour
         GameObject painelAtivo = GetPainelAtivo();
         if(painelAtivo != null)
             AnimarSaida(painelAtivo);
-       // DeviceSpriteManager.Instance?.ForceRefresh();
+        DeviceSpriteManager.Instance?.ForceRefresh();
         OnTutorialStateChanged?.Invoke(false);
     }
 
