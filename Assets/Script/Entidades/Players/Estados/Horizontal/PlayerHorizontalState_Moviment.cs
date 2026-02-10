@@ -12,17 +12,16 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 
     public void Enter(PlayerContext context)
     {
-        context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.Walk);
     }
 
     public void Exit(PlayerContext context)
     {
-        context.PlayerAnimator.ResetTrigger(Constants.AnimatorTriggerNames.Walk);
     }
 
     public void FixedUpdate(PlayerContext context)
     {
         if(context.PlayerMoveInput == Vector2.zero) { context.PlayerHorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);};
+
         CinemachineCamera playerCamera = context.PlayerCamera;
         Transform playerTransform = context.EntityTransform;
         Vector3 playerMovementVector = context.PlayerMovementVector;
@@ -45,13 +44,13 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
         context.PlayerDirection = playerDirection;
 
         playerMovementVector = new(
-            QualityOfLife.SmoothLerp(
+            QualityOfLife.SmoothStepLerp(
                 playerMovementVector.x,
                 playerDirection.x * playerSpeed,
                 playerAcceleration
             ),
             playerMovementVector.y,
-            QualityOfLife.SmoothLerp(
+            QualityOfLife.SmoothStepLerp(
                 playerMovementVector.z,
                 playerDirection.z * playerSpeed,
                 playerAcceleration

@@ -12,8 +12,8 @@ public class Player : CombatEntities
 {
     #region === Configurações de Movimento ===
     [Header("Movimento")]
-     private float speed = 10f;
-     internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
+    private float speed = 10f;
+    internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
 
     [HideInInspector]
     [Stat(nameof(Speed))]
@@ -127,8 +127,7 @@ public class Player : CombatEntities
     #region === Interação ===
     [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
     
-    private float interactionScanCooldown = .1f;
-    private readonly Timer interactionScanTimer = new();
+    private readonly float interactionScanCooldown = .1f;
     internal protected InteractableObject interactableRef;
     private Camera selectedcamera = null;
     #endregion
@@ -219,7 +218,7 @@ public class Player : CombatEntities
             interactionScanCooldown,
             r =>
             {
-                bool hit = Physics.SphereCast(r, radius:1.25f, out RaycastHit info,40f,layerMask:LayerMask.GetMask("Object"));
+                bool hit = Physics.SphereCast(r, radius:1.25f, out RaycastHit info,40f, layerMask:LayerMask.GetMask("Object"));
                 return (hit, info);
             }
         );
@@ -228,7 +227,7 @@ public class Player : CombatEntities
             ScanEnemies // <-- injeta o método diretamente
         );
 
-        _modelTransform = transform.Find("Pandora.014");
+        _modelTransform = transform.Find("Model");
     }
 
     public override void Update()
@@ -267,6 +266,8 @@ public class Player : CombatEntities
         // print($"WILLATTACK: {willAttack}");
 #endif
         TryToSkipDialogue();
+
+        
     }
 
     private void FixedUpdate()
@@ -276,6 +277,7 @@ public class Player : CombatEntities
         _isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityX,Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
+        //print(Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
@@ -307,6 +309,9 @@ public class Player : CombatEntities
 
     public void OnMove(InputAction.CallbackContext context)
     {
+       // if (Context.IsHardLocked) return;
+        if(Context.IgnoreGameplayInputThisFrame) return;
+
         _moveInput = context.ReadValue<Vector2>();
          
         Move();
@@ -378,6 +383,18 @@ public class Player : CombatEntities
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (Context.IsHardLocked) return;
+        if(Context.IgnoreGameplayInputThisFrame) return;
+        
+        if (Context.BlockJumpByDialogue)
+            return;
+
+        if (Context.WaitForJumpRelease)
+        {
+            if(context.canceled)
+                Context.WaitForJumpRelease = false;
+            return;
+        }
         if (context.started)
             Jump();
     }
@@ -532,16 +549,6 @@ public class Player : CombatEntities
     #endregion
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if (hit.gameObject.CompareTag(Constants.Tags.RunningWall.ToString()))
-        {
-            _lastWallNormal = hit.normal;
-            ActionLayer.PushState(new PlayerActionStateWallSliding(), Context);
-        }
-        else
-        {
-            _touchingWall = false;
-        }
-
         if (hit.gameObject.TryGetComponent(out Enemies enemy))
         {
             Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
@@ -604,9 +611,11 @@ public class Player : CombatEntities
         return true; // só para cumprir TOutput
     }
 
-    protected RaycastHit playerRayHit;
-    protected InteractableObject interactionObject;
-    protected Type interactionObjectType;
+    protected RaycastHit _playerRayHit;
+    protected InteractableObject _interactionObject;
+    protected InteractableObject _lastInteractionObject = null;
+    protected Type _interactionObjectType;
+    protected (bool success, RaycastHit hit) _lastValidResult;
 
     // Base
 protected virtual (bool success, RaycastHit hit) ScanObjects()
@@ -617,30 +626,35 @@ protected virtual (bool success, RaycastHit hit) ScanObjects()
         return (false, default);
     }
 
-    var ray = new Ray(
-        selectedcamera.transform.position,
-        selectedcamera.transform.forward
-    );
+    Ray ray = new(selectedcamera.transform.position,selectedcamera.transform.forward);
 
     var (executed, scanResult) = objectScanner.Scan(Time.deltaTime, ray);
 
-    if (!executed || !scanResult.Item1)
-        return (false, default);
+    // Se NÃO executou (devido ao cooldown), retorna o último estado conhecido
+    if (!executed)
+    {
+        return _lastValidResult;
+    }
+
+    // Se executou mas não bateu em nada
+    if (!scanResult.Item1)
+    {
+        _lastValidResult = (false, default);
+        return _lastValidResult;
+    }
 
     var hit = scanResult.Item2;
 
-    // tenta pegar o componente
-    if (!hit.collider.TryGetComponent(out interactionObject))
-        return (false, default);
+    if (!hit.collider.TryGetComponent(out _interactionObject) || hit.distance > _interactionObject.range)
+    {
+        _lastValidResult = (false, default);
+        return _lastValidResult;
+    }
 
-    // valida range
-    if (hit.distance > interactionObject.range)
-        return (false, default);
-
-    interactionObjectType = interactionObject.GetType();
-    interactableRef = interactionObject;
-
-    return (true, hit);
+    _interactionObjectType = _interactionObject.GetType();
+    interactableRef = _interactionObject;
+    _lastValidResult = (true, hit);
+    return _lastValidResult;
 }
 
 
@@ -746,5 +760,11 @@ public class PlayerContext : CombatEntityContext
     public GameObject PlayerObject => player.gameObject;
     public bool CameraLocked { get; set; } = false;
     public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
+
+    public bool IgnoreGameplayInputThisFrame { get; set; }
+
+    public bool WaitForJumpRelease;
+
+    public bool BlockJumpByDialogue = false;
     
 }

@@ -8,7 +8,7 @@ kanban-plugin: board
 
 - [ ] Etapas com câmera em perspectiva lateral
 - [ ] Multiplayer
-- [ ] Level Design Torre Faze 0
+- [ ] Level Design Torre Fase 0
 
 
 ## Planejamento
@@ -16,9 +16,7 @@ kanban-plugin: board
 - [ ] Mecânica de Deslizar
 - [ ] Grapling Hook do Monster Hunter
 - [ ] Sistema de Ranking
-- [ ] [[Sistema de Tick]]
-- [ ] Rework Level Design Faze 0
-- [ ] Rework Paleta de Cor Faze 0
+- [ ] Rework Level Design Fase 0
 
 
 ## Em Produção
@@ -27,12 +25,15 @@ kanban-plugin: board
 - [ ] [[Pandora Modelo Novo]]
 - [ ] [[Lycan]]
 - [ ] [[Sentinela do Abismo]]
+- [ ] [[Sistema de Tick]]
 - [ ] [[Tutorias 1]]
 - [ ] [[HUD]]
+- [ ] Rework Paleta de Cor Fase 0
 - [ ] Câmera do Jogador
 - [ ] Sistema de Save
 - [ ] Torre Faze 0
-- [ ] [[Tentáculos Faze Zero]]
+- [ ] [[Tentáculos Fase Zero]]
+- [ ] [[Correção  Pandora]]
 
 
 ## Concluído
@@ -41,11 +42,12 @@ kanban-plugin: board
 - [ ] Menu Principal
 - [ ] [[Ametista]]
 - [ ] [[Diálogos]]
+- [ ] [[Paleta]]
 
 
 ## Correções
 
-- [ ] [[Correções Faze 0]]
+- [ ] [[Correções Fase 0]]
 
 
 ## Testado

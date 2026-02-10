@@ -16,7 +16,7 @@ public class PlayerJumpingState : IState<PlayerContext>
         if (context.PlayerCurrentJumpCount < context.PlayerMaxJumpCount)
         {
             Vector3 move = context.PlayerMovementVector;
-            float multiplier = Mathf.Max(1f - 0.3f * context.PlayerCurrentJumpCount, 0.2f);
+            float multiplier = 1+(context.PlayerCurrentJumpCount*0.35f);
             if (context.PlayerTouchingWall) // se estiver na parede → usa vetor mais horizontal
             {
                 float horizontalBias = 6.5f; // quanto maior, mais horizontal
