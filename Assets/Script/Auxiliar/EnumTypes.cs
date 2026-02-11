@@ -62,3 +62,10 @@ public enum ActionType
     Slide,
     Interact
 }
+
+public enum InputType
+{
+    Keyboard,
+    JoystickXbox,
+    JoystickPlaystation
+}

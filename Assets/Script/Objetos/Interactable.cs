@@ -24,9 +24,9 @@ public abstract class InteractableObject : MonoBehaviour
 
     return player._ultimoDispositivo switch
     {
-        "Keyboard" => _keyboardSprites,
-        "Playstation" => _playstationSprites,
-        "Xbox" => _xboxSprites,
+        InputType.Keyboard => _keyboardSprites,
+        InputType.JoystickPlaystation => _playstationSprites,
+        InputType.JoystickXbox => _xboxSprites,
         _ => _keyboardSprites
     };
    }

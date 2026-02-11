@@ -10,8 +10,15 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 
     public HashSet<ActionType> IncompatibleActions => new() {};
 
+    private Dictionary<bool, float> _speeds = new();
+    private Dictionary<bool, float> _accelerations = new();
+
     public void Enter(PlayerContext context)
     {
+        _speeds[false] = context.PlayerSpeed;
+        _speeds[true] = context.PlayerRunningSpeed;
+        _accelerations[false] = context.PlayerAcceleration;
+        _accelerations[true] = context.PlayerRunningAcceleration;
     }
 
     public void Exit(PlayerContext context)
@@ -25,8 +32,8 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
         CinemachineCamera playerCamera = context.PlayerCamera;
         Transform playerTransform = context.EntityTransform;
         Vector3 playerMovementVector = context.PlayerMovementVector;
-        float playerSpeed = context.PlayerSpeed;
-        float playerAcceleration = context.PlayerAcceleration;
+        float playerSpeed = _speeds[context.PlayerIsRunning];
+        float playerAcceleration = _accelerations[context.PlayerIsRunning];
         Vector3 moveInput = context.PlayerMoveInput;
 
         Vector3 forward = playerCamera.transform.forward;
