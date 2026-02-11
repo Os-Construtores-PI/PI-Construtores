@@ -37,20 +37,6 @@ public class DeviceSpriteManager : MonoBehaviour
     private PlayerInput[] _playerInputs = Array.Empty<PlayerInput>();
 
     
-    private void Awake()
-    {
-        if(Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            DontDestroyOnLoad (gameObject);
-            return;
-        }
-    }
-
     private void Start()
     {
         _playerInputs = UnityEngine.Object.FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
@@ -65,6 +51,20 @@ public class DeviceSpriteManager : MonoBehaviour
         if (_playerInputs.Length > 0)
             DetectarDevice(_playerInputs[0]);
     }
+    private void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            DontDestroyOnLoad (gameObject);
+            return;
+        }
+    }
+
 
     private void OnDestroy()
     {
