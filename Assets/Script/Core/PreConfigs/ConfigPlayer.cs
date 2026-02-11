@@ -17,7 +17,9 @@ public class ConfigPlayer : ScriptableObject
 
     [Header("Movimento [ANDAR]")]
     [SerializeField] private float velocidade;
+    [SerializeField] private float velocidadeCorrida;
     [SerializeField] private float aceleracao;
+    [SerializeField] private float aceleracaoCorrida;
     [SerializeField] private float friccaoTerra;
     [SerializeField] private float friccaoAr;
 
@@ -53,7 +55,9 @@ public class ConfigPlayer : ScriptableObject
         playerContext.CombatEntityEnableRegen = habilitarRegeneracao;
         playerContext.CombatEntityRegenInterval = intervaloRegeneracao;
         playerContext.PlayerSpeed = velocidade;
+        playerContext.PlayerRunningSpeed = velocidadeCorrida;
         playerContext.PlayerAcceleration = aceleracao;
+        playerContext.PlayerRunningAcceleration = aceleracaoCorrida;
         playerContext.PlayerFriction = friccaoTerra;
         playerContext.PlayerAirFriction = friccaoAr;
         playerContext.PlayerJumpForce = forcaPulo;

@@ -408,11 +408,8 @@ public class DialogueGlobal : MonoBehaviour
 
     private void LimparFala()
     {
-        if(_tweenText != null)
-        {
-            _tweenText.Kill();
-            _tweenText = null;
-        }
+        _tweenText?.Kill();
+        _tweenText = null;
         _textoDialogo.text = string.Empty;
         _textoDialogo.maxVisibleCharacters = 0;
 

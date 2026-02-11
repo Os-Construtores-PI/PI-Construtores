@@ -11,31 +11,36 @@ using UnityEngine.InputSystem;
 public class Player : CombatEntities
 {
     #region === Configurações de Movimento ===
-    [Header("Movimento")]
-    private float speed = 10f;
+    private float _speed = 10f;
+    private float _runningSpeed = 20;
     internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
 
     [HideInInspector]
     [Stat(nameof(Speed))]
-    public float Speed { get => speed; set => speed = value; }
-    internal float acceleration = 5f;
-    internal float friction = 2f;
-    internal float airFriction = 2f;
+    public float Speed { get => _speed; set => _speed = value; }
+
+    [HideInInspector]
+    [Stat(nameof(RunningSpeed))]
+    public float RunningSpeed { get => _runningSpeed; set => _runningSpeed = value; }
+    internal float _acceleration = 5f;
+    internal float _accelerationRunning = 10;
+    internal float _friction = 2f;
+    internal float _airFriction = 2f;
 
     
 
 
     [Header("Pulo")]
-     private float jumpForce = 10f;
-    internal float wallJumpMultiplier = 5;
+     private float _jumpForce = 10f;
+    internal float _wallJumpMultiplier = 5;
 
     [HideInInspector]
     [Stat(nameof(JumpForce))]
-    public float JumpForce { get => jumpForce; set => jumpForce = value; }
+    public float JumpForce { get => _jumpForce; set => _jumpForce = value; }
 
     
-    internal int maxJumpCount = 2;
-    internal float gravityValue = -16.62f;
+    internal int _maxJumpCount = 2;
+    internal float _gravityValue = -16.62f;
     internal float _gravityUpMultiplier   = 2.2f; // sobe rápido, perde força cedo
     internal float _gravityDownMultiplier = 0.6f; // cai mais lento
     internal float _maxFallSpeed          = -26f; // limite da queda
@@ -43,7 +48,7 @@ public class Player : CombatEntities
 
     [Header("Dash")] 
     internal float DashSpeed = 30f;
-     internal float dashDistance = 5f;
+     internal float _dashDistance = 5f;
      internal float dashCooldown = 1f;
      internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
@@ -62,7 +67,7 @@ public class Player : CombatEntities
     protected internal Animator animatorComp;
     
     internal PlayerInput playerInput;
-    public string _ultimoDispositivo = "Keyboard";
+    public InputType _ultimoDispositivo = InputType.Keyboard;
     
 
     #endregion
@@ -92,6 +97,7 @@ public class Player : CombatEntities
     internal Vector3 _direction;
     internal Vector3 _dashDirection;
     internal Vector2 _moveInput;
+    internal bool _isRunning;
     internal Vector3 _lastWallNormal;
     internal Transform _modelTransform;
 
@@ -183,14 +189,12 @@ public class Player : CombatEntities
     {
         base.Awake();
         canPulse = false;
-        _initialGravityValue = gravityValue;
-        _initialGravityValue = gravityValue;
+        _initialGravityValue = _gravityValue;
         Context = new(this);
 
         characterController = GetComponent<CharacterController>();
         animatorComp = GetComponent<Animator>();
         playerInput = GetComponent<PlayerInput>();
-        //_playerIinpuut = playerInput;
         DetectarDispositivo(playerInput);
 
         VerticalLayer = new(new PlayerFallingState(),Context);
@@ -238,46 +242,18 @@ public class Player : CombatEntities
         KnockbackTimer();
         //ChangeCharacterTimer();
 
-        if (_moveInput.sqrMagnitude < 0.0001f)
-    {
-        var gp = Gamepad.current;
-        if (gp != null)
-        {
-            Vector2 stick = gp.leftStick.ReadValue();
-            // deadzone pequena
-            if (Mathf.Abs(stick.x) > 0.09f || Mathf.Abs(stick.y) > 0.09f)
-            {
-                _moveInput = stick;
-                // opcional: log para ver que o fallback está pegando a entrada
-                Debug.Log($"[Fallback] Gamepad stick read: {stick}");
-                Move(); // chama Move() como se viesse por callback
-            }
-        }
-    }
-
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
-#if DEBUG
-        // print(@$"[STATEMACHINE HORIZONTAL - CURRENT STATE : ] {HorizontalLayer.CurrentState}
-        // //[STATEMACHINE VERTICAL - CURRENT STATE : ] {VerticalLayer.CurrentState}
-        // //[STATEMACHINE ACTIONLAYER - CURRENT STATE : ] {ActionLayer.CurrentState}");
-        // print($"CANATTACK: {canAttack}");
-        // print($"WILLATTACK: {willAttack}");
-#endif
-        TryToSkipDialogue();
-
-        
     }
 
     private void FixedUpdate()
     {
-        if (!characterController.enabled)
-            return;
+        if (!characterController.enabled) return;
+
         _isGrounded = characterController.isGrounded;
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY,characterController.velocity.y);
         animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityX,Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
-        //print(Vector2.SqrMagnitude(new(characterController.velocity.x,characterController.velocity.z)));
         animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
         KnockbackTimer();
         HorizontalLayer.FixedUpdate(Context);
@@ -293,16 +269,6 @@ public class Player : CombatEntities
     #endregion
 
     #region  === Dialogue ===
-
-    
-
-    private void TryToSkipDialogue()
-    {
-        if(Input.GetKeyDown(KeyCode.F))
-        {
-            GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(Context);
-        }
-    }
 
     #endregion
     #region === Input Callbacks ===
@@ -325,7 +291,21 @@ public class Player : CombatEntities
     public void OnDash(InputAction.CallbackContext context)
     {
         if (context.started && _canDash && _dashCurrent < _dashCount)
+        {
             StartDash();
+        }
+    }
+
+    public void OnRunning(InputAction.CallbackContext context)
+    {
+    if (context.performed) 
+        {
+            _isRunning = true; 
+        }
+        else if (context.canceled) 
+        {
+            _isRunning = false;
+        }
     }
 
     private void OnEnable()
@@ -351,43 +331,38 @@ public class Player : CombatEntities
 
         switch (last)
         {
-            case "Keyboard&Mouse":
-                _ultimoDispositivo = "Keyboard";
+            case "Keyboard&Mouse" :
+                _ultimoDispositivo = InputType.Keyboard;
                 break;
 
             case "Gamepad":
                 var gp = Gamepad.current;
 
                 if (gp == null)
-                {
-                    _ultimoDispositivo = "Keyboard";
+                {                    
                     break;
                 }
 
                 if (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-                    _ultimoDispositivo = "Playstation";
+                    _ultimoDispositivo = InputType.JoystickPlaystation;
                 else
-                    _ultimoDispositivo = "Xbox";
+                    _ultimoDispositivo = InputType.JoystickXbox;
 
                 break;
 
             default:
-                _ultimoDispositivo = "Keyboard";
+                _ultimoDispositivo = InputType.Keyboard;
                 break;
         }
 
-        
-
-        GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo);
+        GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo.ToString());
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
         if (Context.IsHardLocked) return;
         if(Context.IgnoreGameplayInputThisFrame) return;
-        
-        if (Context.BlockJumpByDialogue)
-            return;
+        if (Context.BlockJumpByDialogue) return;
 
         if (Context.WaitForJumpRelease)
         {
@@ -405,6 +380,7 @@ public class Player : CombatEntities
         {
             ActionLayer.PushState(new PlayerActionStateInteraction(), Context);
         }
+        GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(Context);
     }
 
     public void OnAttack(InputAction.CallbackContext context)
@@ -448,6 +424,7 @@ public class Player : CombatEntities
     //     changeCharTimer.Start(changeCharacterCooldown);
     // } 
     // } 
+
     #endregion
 
     #region === Movimento & Pulo ===
@@ -473,7 +450,7 @@ public class Player : CombatEntities
 
 
         if (OverrideVertical) return;
-        if (!(_isGrounded || _currentJumpCount < maxJumpCount)) return;
+        if (!(_isGrounded || _currentJumpCount < _maxJumpCount)) return;
         VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
 
 
@@ -715,12 +692,15 @@ public class PlayerContext : CombatEntityContext
     public Transform PlayerModelTransform {get => player._modelTransform;}
     public PlayerInput PlayerInput { get => player.playerInput;}
     public float PlayerSpeed { get => player.Speed; set => player.Speed = value; }
+    public float PlayerRunningSpeed { get => player.RunningSpeed; set => player.RunningSpeed = value; }
+    public float PlayerRunningAcceleration { get => player._accelerationRunning; set => player._accelerationRunning = value; }
     public QualityTier PlayerWallSpeedMultiplier { get => player.wallSpeedMultiplier; set => player.wallSpeedMultiplier = value; }
-    public float PlayerWallJumpMultiplier { get => player.wallJumpMultiplier; set => player.wallJumpMultiplier = value; }
+    public float PlayerWallJumpMultiplier { get => player._wallJumpMultiplier; set => player._wallJumpMultiplier = value; }
     public float PlayerWallExitDuration { get => player.wallExitDuration; set => player.wallExitDuration = value; }
     public float PlayerJumpForce { get => player.JumpForce; set => player.JumpForce = value; }
-    public int PlayerMaxJumpCount { get => player.maxJumpCount; set => player.maxJumpCount = value; }
-    public float PlayerGravity { get => player.gravityValue; set => player.gravityValue = value; }
+    public bool PlayerIsRunning { get => player._isRunning; }
+    public int PlayerMaxJumpCount { get => player._maxJumpCount; set => player._maxJumpCount = value; }
+    public float PlayerGravity { get => player._gravityValue; set => player._gravityValue = value; }
     public float PlayerGravityUpMultiplier { get => player._gravityUpMultiplier; set => player._gravityUpMultiplier = value;}
     public float PlayerGravityDownMultiplier { get => player._gravityDownMultiplier; set => player._gravityDownMultiplier = value;}
     public float PlayerMaxFallSpeed {get => player._maxFallSpeed; set => player._maxFallSpeed = value;}
@@ -728,10 +708,10 @@ public class PlayerContext : CombatEntityContext
     public float PlayerDashSpeed { get => player.DashSpeed; set => player.DashSpeed = value; }
     public bool IsDashBlocked { get => player._isDashBlocked; set => player._isDashBlocked = value; }
     public float PlayerDashCooldown { get => player.dashCooldown; set => player.dashCooldown = value; }
-    public float DashDistance { get => player.dashDistance; }
-    public float PlayerAcceleration { get => player.acceleration; set => player.acceleration = value; }
-    public float PlayerFriction { get => player.friction; set => player.friction = value; }
-    public float PlayerAirFriction { get => player.airFriction; set => player.airFriction = value; }
+    public float DashDistance { get => player._dashDistance; }
+    public float PlayerAcceleration { get => player._acceleration; set => player._acceleration = value; }
+    public float PlayerFriction { get => player._friction; set => player._friction = value; }
+    public float PlayerAirFriction { get => player._airFriction; set => player._airFriction = value; }
     public Vector3 PlayerMovementVector { get => player._movementVector; set => player._movementVector = value; }
     public Vector3 PlayerDirection { get => player._direction; set => player._direction = value; }
     public Vector3 PlayerDashDirection { get => player._dashDirection; set => player._dashDirection = value; }
