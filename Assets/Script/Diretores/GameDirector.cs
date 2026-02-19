@@ -9,9 +9,10 @@ public class GameDirector : MonoBehaviour
 
 
     [SerializeField] private AudioSource backgroundMusic;
-    [SerializeField] private PlayerDirector playerDirector;
+    [SerializeField] public PlayerDirector playerDirector;
     [SerializeField] private DialogueTrigger introDialogue;
     [SerializeField] private FinalSequenceDialogue finalSequence;
+    [SerializeField] private DialogueTrigger finalDialogueTrigger;
 
     private void Start()
     {
@@ -195,6 +196,6 @@ public class GameDirector : MonoBehaviour
             return;
         }
 
-        finalSequence.StartFinalSequence();
+        finalSequence.StartFinalSequence(finalDialogueTrigger);
     }
 }

@@ -1,75 +1,37 @@
 using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 
 public class FinalSequenceDialogue : MonoBehaviour
 {
-    public static FinalSequenceDialogue Instance;
+    [SerializeField] private DialogueTrigger finalDialogueTrigger;
 
-    [Header("Dialogo Final")]
-    [SerializeField] private DialogueTrigger finalDialogue;
-
-    [Header("Painel Final")]
-    [SerializeField] private GameObject painelFinalMenu;
-
-    private bool _finalStarted;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void Awake()
+    public void StartFinalSequence(DialogueTrigger trigger)
     {
-        Instance = this;
-        painelFinalMenu.SetActive(false);
+        if (trigger == null) return;
+
+        DialogueGlobal.Instance.SetTrigger(trigger);
+        DialogueGlobal.Instance.IniciarDialogo(trigger._dialogo);
     }
 
-    private void OnEnable()
+    private IEnumerator FinalFlow()
     {
-        if (DialogueGlobal.Instance != null)
-            DialogueGlobal.Instance.OndialogueEnd += OnFinalDialogueEnd;
-    }
+        GameDirector director = FindAnyObjectByType<GameDirector>();
 
-    private void OnDisable()
-    {
-        if(DialogueGlobal.Instance != null)
-            DialogueGlobal.Instance.OndialogueEnd -= OnFinalDialogueEnd;
-    }
-
-    // Update is called once per frame
-    
-
-    /// <summary>
-    /// Chamado quando a fase termina
-    /// </summary>
-    /// 
-    public void StartFinalSequence()
-    {
-        if (_finalStarted) return;
-        _finalStarted = true;
-
-        if(finalDialogue == null)
+        if(director != null && director.playerDirector != null)
         {
-            Debug.LogError("[FinalSequence] DialogueTrigger final não atribuido!");
-            return;
+            director.SetLockPlayer(
+                director.playerDirector.FirstPlayerContext,
+                true );
         }
-        DialogueGlobal.Instance.SetTrigger(finalDialogue);
-        DialogueGlobal.Instance.IniciarDialogo(finalDialogue._dialogo);
 
-    }
+        DialogueGlobal.Instance.SetTrigger(finalDialogueTrigger);
+        DialogueGlobal.Instance.IniciarDialogo(finalDialogueTrigger._dialogo);
 
-    private void OnFinalDialogueEnd()
-    {
-        if (!_finalStarted) return;
+        yield return new WaitUntil(() =>
+        !DialogueGlobal.Instance._painelDialogo.activeSelf
+        );
 
-        AbrirPainelFinal();
-    }
-
-    private void AbrirPainelFinal()
-    {
-        painelFinalMenu.SetActive(true);
-
-        Transform t = painelFinalMenu.transform;
-        t.localScale = Vector3.zero;
-
-        t.DOScale(1f, 0.4f)
-         .SetEase(Ease.OutBack)
-         .SetUpdate(true);
+        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.Invoke();
     }
 }

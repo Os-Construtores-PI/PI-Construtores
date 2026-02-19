@@ -437,7 +437,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -877931889, guid: 8f543030c1b4cb748ba767c668dd02a4, type: 3}
+  m_Sprite: {fileID: -760255773, guid: e2fad883d5a7c81458ec8bf2df60befb, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -3869,7 +3869,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7535539503742696611}
-  - component: {fileID: 776835865554186694}
   m_Layer: 5
   m_Name: FinalDialogueTrigger
   m_TagString: Untagged
@@ -3897,20 +3896,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &776835865554186694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6427773737002137939}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8299a9cb526824749a20c4bf0640db44, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FinalSequenceDialogue
-  finalDialogue: {fileID: 0}
-  painelFinalMenu: {fileID: 0}
 --- !u!1 &6848622261157368308
 GameObject:
   m_ObjectHideFlags: 0
@@ -4200,7 +4185,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1935997931, guid: 8ef20d101aa4d9540ad919a633c6f51e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4296,13 +4281,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4699409382303426581}
+  - component: {fileID: 6048779698755990229}
   m_Layer: 5
   m_Name: FinalSequenceDialogue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4699409382303426581
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4323,6 +4309,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6048779698755990229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7278352245545598140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8299a9cb526824749a20c4bf0640db44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalSequenceDialogue
+  finalDialogueTrigger: {fileID: 0}
 --- !u!1 &7787135310184739610
 GameObject:
   m_ObjectHideFlags: 0
