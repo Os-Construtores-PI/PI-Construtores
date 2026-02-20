@@ -9,6 +9,7 @@ kanban-plugin: board
 - [ ] Etapas com câmera em perspectiva lateral
 - [ ] Multiplayer
 - [ ] Level Design Torre Fase 0
+- [ ] Torre Faze 0
 
 
 ## Planejamento
@@ -31,7 +32,6 @@ kanban-plugin: board
 - [ ] Rework Paleta de Cor Fase 0
 - [ ] Câmera do Jogador
 - [ ] Sistema de Save
-- [ ] Torre Faze 0
 - [ ] [[Tentáculos Fase Zero]]
 - [ ] [[Correção  Pandora]]
 
