@@ -39,7 +39,9 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
     private void UnBlockPlayerDash(PlayerContext context)
     {
         if (!context.IsDashBlocked)
+        {
             return;
+        }
         context.IsDashBlocked = false;
         context.LiveEntityStats.ModifyStatImmediate<bool>(
             Constants.StatsNames.CanDash.ToString(),
@@ -52,6 +54,7 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
     {
         context.OverrideHorizontal = true;
         context.PlayerCurrentJumpCount = 1;
+        context.PlayerTouchingWall = true;
         // só reseta se já estava fora da parede
         if (wallExitTimer.IsActive)
         {
@@ -69,7 +72,7 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
             context.PlayerWallSpeedApplied = true;
             BlockPlayerDash(context);
         }
-        context.PlayerGravity = -2f;
+        context.PlayerGravity = -1.5f;
     }
     public void Exit(PlayerContext context)
     {

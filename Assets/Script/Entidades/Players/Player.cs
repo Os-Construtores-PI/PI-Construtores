@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using DG.Tweening;
 using Unity.Cinemachine;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -139,20 +140,22 @@ public class Player : CombatEntities
     #endregion
 
     #region === Inventário ===
-    private readonly Inventory inventory = new();
-    public Inventory Inventory => inventory;
+    private readonly Inventory _inventory = new();
+    public Inventory Inventory => _inventory;
     
     #endregion
 
     #region  === Scanner ===
-    private Scanner<Ray,(bool, RaycastHit)> objectScanner;
-    private Scanner<Vector3,bool> enemyScanner;
+    private Scanner<Ray,(bool, RaycastHit)> _objectScanner;
+    private Scanner<Vector3,bool> _enemyScanner;
+    private Scanner<(Ray,Ray),RaycastHit?> _wallScanner;
     #endregion
 
+    #region === WallSlide ===
+    private readonly float wallScanInterval = .05f;
 
 
-
-
+    #endregion
     #region Coletáveis
 
 
@@ -164,9 +167,9 @@ public class Player : CombatEntities
     public void SetAmethysts(int value)
     {
         if (amethysts == value)
+        {
             return;
-        int oldValue = amethysts;
-
+        }
         amethysts = Mathf.Max(0, value); // evita negativo
         GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts);
     }
@@ -176,7 +179,9 @@ public class Player : CombatEntities
     public bool SpendAmethysts(int amount)
     {
         if (amount <= 0 || amethysts < amount)
+        {
             return false;
+        }
         SetAmethysts(amethysts - amount);
         return true;
     }
@@ -218,7 +223,7 @@ public class Player : CombatEntities
             );
         }
 
-        objectScanner = new Scanner<Ray, (bool, RaycastHit)>(
+        _objectScanner = new Scanner<Ray, (bool, RaycastHit)>(
             interactionScanCooldown,
             r =>
             {
@@ -226,9 +231,34 @@ public class Player : CombatEntities
                 return (hit, info);
             }
         );
-        enemyScanner = new Scanner<Vector3, bool>(
+        _enemyScanner = new Scanner<Vector3, bool>(
             enemyScanInterval,
             ScanEnemies // <-- injeta o método diretamente
+        );
+
+        _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(
+            wallScanInterval,
+            rays =>
+            {
+              float distance = 5f;
+              int mask = LayerMask.GetMask("RunningWall");
+                var interaction = QueryTriggerInteraction.Ignore;
+
+                // Tenta o primeiro raio (ex: Direita)
+                if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
+                {
+                    return hit;
+                }
+                
+                // Se o primeiro falhar, tenta o segundo (ex: Esquerda)
+                if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
+                {
+                    return hit;
+                }
+
+                // Se nenhum bater, retorna null
+                return null;
+            }
         );
 
         _modelTransform = transform.Find("Model");
@@ -237,7 +267,8 @@ public class Player : CombatEntities
     public override void Update()
     {
         base.Update();
-        ScanEnemies(transform.position);
+        _enemyScanner.Scan(Time.deltaTime,transform.position);
+        ScanWalls();
         ScanObjects();
         KnockbackTimer();
         //ChangeCharacterTimer();
@@ -245,6 +276,7 @@ public class Player : CombatEntities
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
+        print(ActionLayer.Current);
     }
 
     private void FixedUpdate()
@@ -524,6 +556,8 @@ public class Player : CombatEntities
      internal float wallExitDuration = .2f; // duração do tempo fora da parede
 
     #endregion
+
+
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.gameObject.TryGetComponent(out Enemies enemy))
@@ -567,6 +601,24 @@ public class Player : CombatEntities
     #endregion
 
     #region Scan
+    private void ScanWalls()
+    {
+        (bool executed, RaycastHit? hit) =_wallScanner.Scan(Time.deltaTime,(new Ray(transform.position,transform.right),new(transform.position,-transform.right)));
+        if(executed)
+        {
+            if(hit.HasValue)
+            {
+                ActionLayer.PushState(new PlayerActionStateWallSliding(), Context);
+                _lastWallNormal = hit.Value.normal;
+            }
+            else
+            {
+                _touchingWall = false;
+            }
+        }
+    }
+
+
     private bool ScanEnemies(Vector3 playerPos)
     {
         int amount = EnemySpawner.enemySpawner.GetAmountPool();
@@ -595,44 +647,42 @@ public class Player : CombatEntities
     protected (bool success, RaycastHit hit) _lastValidResult;
 
     // Base
-protected virtual (bool success, RaycastHit hit) ScanObjects()
-{
-    if (!selectedcamera)
+    protected virtual (bool success, RaycastHit hit) ScanObjects()
     {
-        SetupCamera();
-        return (false, default);
-    }
+        if (!selectedcamera)
+        {
+            SetupCamera();
+            return (false, default);
+        }
+        Ray ray = new(selectedcamera.transform.position,selectedcamera.transform.forward);
+        var (executed, scanResult) = _objectScanner.Scan(Time.deltaTime, ray);
 
-    Ray ray = new(selectedcamera.transform.position,selectedcamera.transform.forward);
+        // Se NÃO executou (devido ao cooldown), retorna o último estado conhecido
+        if (!executed)
+        {
+            return _lastValidResult;
+        }
 
-    var (executed, scanResult) = objectScanner.Scan(Time.deltaTime, ray);
+        // Se executou mas não bateu em nada
+        if (!scanResult.Item1)
+        {
+            _lastValidResult = (false, default);
+            return _lastValidResult;
+        }
 
-    // Se NÃO executou (devido ao cooldown), retorna o último estado conhecido
-    if (!executed)
-    {
+        var hit = scanResult.Item2;
+
+        if (!hit.collider.TryGetComponent(out _interactionObject) || hit.distance > _interactionObject.range)
+        {
+            _lastValidResult = (false, default);
+            return _lastValidResult;
+        }
+
+        _interactionObjectType = _interactionObject.GetType();
+        interactableRef = _interactionObject;
+        _lastValidResult = (true, hit);
         return _lastValidResult;
     }
-
-    // Se executou mas não bateu em nada
-    if (!scanResult.Item1)
-    {
-        _lastValidResult = (false, default);
-        return _lastValidResult;
-    }
-
-    var hit = scanResult.Item2;
-
-    if (!hit.collider.TryGetComponent(out _interactionObject) || hit.distance > _interactionObject.range)
-    {
-        _lastValidResult = (false, default);
-        return _lastValidResult;
-    }
-
-    _interactionObjectType = _interactionObject.GetType();
-    interactableRef = _interactionObject;
-    _lastValidResult = (true, hit);
-    return _lastValidResult;
-}
 
 
 
