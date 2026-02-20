@@ -11,8 +11,7 @@ public class GameDirector : MonoBehaviour
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] public PlayerDirector playerDirector;
     [SerializeField] private DialogueTrigger introDialogue;
-    [SerializeField] private FinalSequenceDialogue finalSequence;
-    [SerializeField] private DialogueTrigger finalDialogueTrigger;
+    
 
     private void Start()
     {
@@ -185,17 +184,5 @@ public class GameDirector : MonoBehaviour
         }
     }
 
-    public void FinalizarFase()
-    {
-        if(finalSequence == null)
-            finalSequence = FindAnyObjectByType<FinalSequenceDialogue>();
-
-        if(finalSequence == null)
-        {
-            Debug.LogError("[GameDirector] FinalSequenceDialogue não encontrando");
-            return;
-        }
-
-        finalSequence.StartFinalSequence(finalDialogueTrigger);
-    }
+    
 }

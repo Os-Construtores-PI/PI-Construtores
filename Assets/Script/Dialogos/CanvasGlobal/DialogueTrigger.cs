@@ -30,8 +30,9 @@ public class DialogueTrigger : InteractableObject
 
     [Header("Icone de Interação (Animado")]
     [SerializeField] private ImageTriggerEvent _imageTriggerEvent;
-    
-    
+
+    [Header("Layout do Dialogo")]
+    public DialogueLayoutType _layoutType = DialogueLayoutType.Pandora;
     
 
 
@@ -207,6 +208,12 @@ public class DialogueTrigger : InteractableObject
         _canInteractAgain = true;
     }
 
+
+    public enum DialogueLayoutType
+    {
+        Pandora,
+        Enemy
+    }
     
     
 }

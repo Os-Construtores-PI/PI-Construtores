@@ -2,24 +2,23 @@ using UnityEngine;
 
 public class End_Portal : BasePortal
 {
+    [SerializeField] private DialogueTrigger finalDialogueTrigger;
     private bool actived = false;
     private void OnTriggerEnter(Collider other)
     {
-        if (actived)
-            return;
-
-        if (!other.CompareTag("Player"))
-            return;
+        if (actived) return;
+        if (!other.CompareTag("Player")) return;
 
         actived = true;
 
-        GameDirector director = FindAnyObjectByType<GameDirector>();
-        if(director != null)
+        FinalSequenceDialogue sequence = FindAnyObjectByType<FinalSequenceDialogue>();
+
+        if(sequence != null)
         {
-            director.FinalizarFase();
+            sequence.StartFinalSequence(finalDialogueTrigger);
         }
 
-        gameObject.SetActive(false);
+       // gameObject.SetActive(false);
 
         //TriggerEndGame();
     }
