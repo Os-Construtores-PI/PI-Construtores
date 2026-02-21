@@ -13,7 +13,7 @@ public class FinalSequenceDialogue : MonoBehaviour
         if (isRunning) return;
         if (trigger == null)
         {
-            Debug.LogError("trigger passado é null");
+            Debug.LogError("trigger passado ï¿½ null");
             return;
         }
 

@@ -23,6 +23,9 @@ public class DialogueGlobal : MonoBehaviour
 
     [Header("UI")]
     public GameObject _painelDialogo;
+
+    [SerializeField] private TMP_Text _textoPandora;
+    [SerializeField] private TMP_Text _textoEnemy;
     public TMP_Text _textoDialogo;
     private Tween _tweenText;
 
@@ -57,6 +60,9 @@ public class DialogueGlobal : MonoBehaviour
     [SerializeField] private float _tempoPorLetra = 0.015f;
 
     private bool _dialogoPronto = false;
+
+    [SerializeField] private GameObject pandoraLayout;
+    [SerializeField] private GameObject enemyLayout;
 
     
 
@@ -107,6 +113,8 @@ public class DialogueGlobal : MonoBehaviour
     public void SetTrigger(DialogueTrigger trigger)
     {
         _currentTrigger = trigger;
+
+        ApplyLayout(trigger._layoutType);
     }
 
     
@@ -422,6 +430,25 @@ public class DialogueGlobal : MonoBehaviour
         StopAllCoroutines();
         _tweenPainel?.Kill();
         _tweenText?.Kill();
+    }
+
+    private void ApplyLayout(DialogueTrigger.DialogueLayoutType type)
+    {
+        pandoraLayout.SetActive(false);
+        enemyLayout.SetActive(false);
+
+        switch (type)
+        {
+            case DialogueTrigger.DialogueLayoutType.Pandora:
+                 pandoraLayout.SetActive(true);
+                 _textoDialogo = _textoPandora;
+                 break;
+            
+            case DialogueTrigger.DialogueLayoutType.Enemy:
+                 enemyLayout.SetActive(true);
+                 _textoDialogo = _textoEnemy;
+                 break;
+        }
     }
 
 }

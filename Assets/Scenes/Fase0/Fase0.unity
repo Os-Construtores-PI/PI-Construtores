@@ -1766,6 +1766,110 @@ Transform:
   - {fileID: 421191933}
   m_Father: {fileID: 385546429}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &116293062
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 116293063}
+  - component: {fileID: 116293066}
+  - component: {fileID: 116293065}
+  - component: {fileID: 116293064}
+  m_Layer: 0
+  m_Name: DialogoEnemy
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &116293063
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116293062}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.83, y: 0.53, z: 0.71}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 788413476}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &116293064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116293062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8299a9cb526824749a20c4bf0640db44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalSequenceDialogue
+  finalDialogueTrigger: {fileID: 116293065}
+--- !u!114 &116293065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116293062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueTrigger
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
+  range: 10
+  _dialogo:
+  - "Foram tuas m\xE3os, infanta, que tornaram poss\xEDvel \r\no meu retorno e o
+    teu aprisionamento. Agora teus \r\np\xE9s correm em minha dire\xE7\xE3o"
+  - "Ignoraste da corros\xE3o do solo natal... \r\nTeus olhos amedrontados reconhecem
+    o erro de \r\nfitar o profano, alcan\xE7ando a f\xFAnebre \r\nverdade escondida
+    nas sombras."
+  - "Como chegaste aqui? Que tormentosa coragem te \r\ntrouxe at\xE9 aqui? N\xE3o
+    h\xE1 retorno para ti, infanta. N\xE3o h\xE1 \r\ncomo voltar para as ilus\xF5es
+    que agraciavam \r\ntua alma. DESISTA."
+  - Mas... Caso queira continuar, caso contemplar o fim seja seu desejo...
+  - "As mais soberbas quimeras, os mais longos pesadelos, \r\nos mais tormentosos
+    devaneios... \r\nMinha estimada divers\xE3o... \r\n\xC9 o que vos ofere\xE7o
+    te observando no vazio."
+  _TextoTutor: {fileID: 0}
+  _dialogoGlobal: {fileID: 0}
+  _iconInteracao: {fileID: 0}
+  _playerInput: {fileID: 0}
+  _dialogoApenasUmaVez: 0
+  _imageTriggerEvent: {fileID: 0}
+  _layoutType: 1
+--- !u!65 &116293066
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116293062}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &120246897
 GameObject:
   m_ObjectHideFlags: 0
@@ -16550,6 +16654,38 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &788413475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 788413476}
+  m_Layer: 0
+  m_Name: TriggerFinal
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &788413476
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 788413475}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.092295945, y: -0.092295915, z: 0.7010574, w: -0.7010574}
+  m_LocalPosition: {x: -0.00356, y: 0, z: 0.0196}
+  m_LocalScale: {x: 0.0040746476, y: 0.0031581984, z: 0.00865398}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 116293063}
+  m_Father: {fileID: 3938520430333449118}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &793483881
 GameObject:
   m_ObjectHideFlags: 0
@@ -43349,6 +43485,7 @@ MonoBehaviour:
   _playerInput: {fileID: 0}
   _dialogoApenasUmaVez: 0
   _imageTriggerEvent: {fileID: 493686442}
+  _layoutType: 0
 --- !u!222 &1463309480
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -53908,6 +54045,7 @@ MonoBehaviour:
   _playerInput: {fileID: 0}
   _dialogoApenasUmaVez: 0
   _imageTriggerEvent: {fileID: 752177625}
+  _layoutType: 0
 --- !u!222 &1866569630
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -54285,6 +54423,7 @@ MonoBehaviour:
   _playerInput: {fileID: 0}
   _dialogoApenasUmaVez: 0
   _imageTriggerEvent: {fileID: 1156121082}
+  _layoutType: 0
 --- !u!222 &1892390236
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -58360,6 +58499,8 @@ MonoBehaviour:
   outerColor: {r: 0, g: 0.7291813, b: 1, a: 0}
   midColor: {r: 0.0914087, g: 0, b: 0.8207547, a: 0}
   centerColor: {r: 0.5532739, g: 0, b: 0.9056604, a: 0}
+  finalSequence: {fileID: 0}
+  enemyFinalTrigger: {fileID: 0}
 --- !u!33 &2908156213666443991
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -59142,6 +59283,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7904434607885577625}
+  - {fileID: 788413476}
   m_Father: {fileID: 566107594988005082}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3991615978450827813
@@ -59670,6 +59812,7 @@ MonoBehaviour:
   _playerInput: {fileID: 0}
   _dialogoApenasUmaVez: 0
   _imageTriggerEvent: {fileID: 8116903700548354167}
+  _layoutType: 0
 --- !u!114 &5411445106229217025
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60279,6 +60422,8 @@ MonoBehaviour:
   outerColor: {r: 0, g: 0.7291813, b: 1, a: 1}
   midColor: {r: 0.0914087, g: 0, b: 0.8207547, a: 1}
   centerColor: {r: 0.5532739, g: 0, b: 0.9056604, a: 1}
+  finalSequence: {fileID: 116293064}
+  enemyFinalTrigger: {fileID: 116293065}
 --- !u!224 &6460413828802339311
 RectTransform:
   m_ObjectHideFlags: 0
@@ -61151,8 +61296,6 @@ MonoBehaviour:
   backgroundMusic: {fileID: 627442847}
   playerDirector: {fileID: 7858331929547110770}
   introDialogue: {fileID: 1463309479}
-  finalSequence: {fileID: 0}
-  finalDialogueTrigger: {fileID: 0}
 --- !u!4 &7904434607885577625
 Transform:
   m_ObjectHideFlags: 0

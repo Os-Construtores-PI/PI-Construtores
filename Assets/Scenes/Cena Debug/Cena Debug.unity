@@ -421,91 +421,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 51532393}
   m_CullTransparentMesh: 1
---- !u!1 &52158099
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 52158102}
-  - component: {fileID: 52158101}
-  - component: {fileID: 52158100}
-  m_Layer: 0
-  m_Name: dialogoo.1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &52158100
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 52158099}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
-  m_ReferencePixelsPerUnit: 100
-  m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
-  m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
-  m_PhysicalUnit: 3
-  m_FallbackScreenDPI: 96
-  m_DefaultSpriteDPI: 96
-  m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
---- !u!223 &52158101
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 52158099}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 0
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
-  m_TargetDisplay: 0
---- !u!224 &52158102
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 52158099}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -16.519005}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1878976309}
-  - {fileID: 1153199729}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -106.09, y: 7.79}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &55811136
 GameObject:
   m_ObjectHideFlags: 0
@@ -3777,6 +3692,7 @@ GameObject:
   - component: {fileID: 1097117691}
   - component: {fileID: 1097117693}
   - component: {fileID: 1097117692}
+  - component: {fileID: 1097117694}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -3816,16 +3732,25 @@ MonoBehaviour:
   _xboxSprites: {fileID: 0}
   range: 10
   _dialogo:
-  - 'Finalmente seu animal
-
-'
+  - "Foram tuas m\xE3os, infanta, que tornaram poss\xEDvel \no meu retorno e o teu
+    aprisionamento. Agora teus \np\xE9s correm em minha dire\xE7\xE3o"
+  - "Ignoraste da corros\xE3o do solo natal... \nTeus olhos amedrontados reconhecem
+    o erro de \nfitar o profano, alcan\xE7ando a f\xFAnebre \nverdade escondida nas
+    sombras."
+  - "Como chegaste aqui? Que tormentosa coragem te \ntrouxe at\xE9 aqui? N\xE3o h\xE1
+    retorno para ti, infanta. N\xE3o h\xE1 \ncomo voltar para as ilus\xF5es que agraciavam
+    \ntua alma. DESISTA."
+  - Mas... Caso queira continuar, caso contemplar o fim seja seu desejo...
+  - "As mais soberbas quimeras, os mais longos pesadelos, \nos mais tormentosos devaneios...
+    \nMinha estimada divers\xE3o... \n\xC9 o que vos ofere\xE7o te observando no
+    vazio."
   _TextoTutor: {fileID: 0}
   _dialogoGlobal: {fileID: 0}
   _iconInteracao: {fileID: 0}
   _playerInput: {fileID: 0}
   _dialogoApenasUmaVez: 0
   _imageTriggerEvent: {fileID: 0}
-  _layoutType: 0
+  _layoutType: 1
 --- !u!65 &1097117693
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3847,6 +3772,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1097117694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1097117690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8299a9cb526824749a20c4bf0640db44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FinalSequenceDialogue
+  finalDialogueTrigger: {fileID: 1097117692}
 --- !u!1 &1103273052
 GameObject:
   m_ObjectHideFlags: 0
@@ -4027,128 +3965,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135821586}
   m_Mesh: {fileID: 2212876000968039641, guid: 408c542652b793e4e919996c0a0856f2, type: 3}
---- !u!1 &1153199728
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1153199729}
-  - component: {fileID: 1153199732}
-  - component: {fileID: 1153199731}
-  - component: {fileID: 1153199730}
-  m_Layer: 0
-  m_Name: Circle
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1153199729
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153199728}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -11.869999}
-  m_LocalScale: {x: 2.42, y: 2.28, z: 8.28}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 52158102}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.6600026, y: -2.88}
-  m_SizeDelta: {x: 1, y: 1}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1153199730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153199728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79ca9094a0a80cc419cd32b3d3ec10ad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rotationDuration: 4
---- !u!225 &1153199731
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153199728}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
---- !u!212 &1153199732
-SpriteRenderer:
-  serializedVersion: 2
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1153199728}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_Sprite: {fileID: 1362011162, guid: ebdb8a9d6d91f474f8ef28b706c4ce3d, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
 --- !u!1 &1195260519
 GameObject:
   m_ObjectHideFlags: 0
@@ -6939,153 +6755,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1878976308
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1878976309}
-  - component: {fileID: 1878976313}
-  - component: {fileID: 1878976312}
-  - component: {fileID: 1878976311}
-  - component: {fileID: 1878976310}
-  m_Layer: 0
-  m_Name: DialogueTriger
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1878976309
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878976308}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -11.843674}
-  m_LocalScale: {x: 3, y: 3, z: 3}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 52158102}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -5.33}
-  m_SizeDelta: {x: 364, y: 360}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1878976310
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878976308}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _keyboardSprites: {fileID: 0}
-  _playstationSprites: {fileID: 0}
-  _xboxSprites: {fileID: 0}
-  range: 10
-  _dialogo:
-  - Funcional duas vezes??
-  - "Vamos dar inicio aqui ao cen\xE1rio \nde di\xE1logos do jogo\t"
-  - Ok?
-  - 'kkkkkkkkk
-
-'
-  _TextoTutor: {fileID: 8756355306593871453}
-  _dialogoGlobal: {fileID: 4320910792515013991}
-  _iconInteracao: {fileID: 5210450894648498120}
-  _playerInput: {fileID: 0}
-  _dialogoApenasUmaVez: 0
-  _imageTriggerEvent: {fileID: 0}
-  _layoutType: 0
---- !u!222 &1878976311
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878976308}
-  m_CullTransparentMesh: 1
---- !u!23 &1878976312
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878976308}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: -9140512969687513639, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1878976313
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878976308}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1880476327
 GameObject:
   m_ObjectHideFlags: 0
@@ -7790,7 +7459,8 @@ MonoBehaviour:
   outerColor: {r: 0, g: 0, b: 0, a: 0}
   midColor: {r: 0, g: 0, b: 0, a: 0}
   centerColor: {r: 0, g: 0, b: 0, a: 0}
-  finalDialogueTrigger: {fileID: 1097117692}
+  finalSequence: {fileID: 1097117694}
+  enemyFinalTrigger: {fileID: 1097117692}
 --- !u!65 &2024687560
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10751,6 +10421,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _painelDialogo: {fileID: 322344990984429507}
+  _textoPandora: {fileID: 0}
+  _textoEnemy: {fileID: 0}
   _textoDialogo: {fileID: 8756355306593871453}
   _currentTrigger: {fileID: 0}
   _botoesDialogo: {fileID: 5760321129330353057}
@@ -10759,6 +10431,8 @@ MonoBehaviour:
   _botaoRetornar: {fileID: 5547083270956293816}
   _delayAntesdotexto: 0.25
   _tempoPorLetra: 0.015
+  pandoraLayout: {fileID: 0}
+  enemyLayout: {fileID: 0}
 --- !u!1 &4323994112721394544
 GameObject:
   m_ObjectHideFlags: 0
@@ -15270,7 +14944,6 @@ SceneRoots:
   - {fileID: 1973629835}
   - {fileID: 9026504989613309532}
   - {fileID: 5513526653346023635}
-  - {fileID: 52158102}
   - {fileID: 1587966160}
   - {fileID: 5906231956043770371}
   - {fileID: 4404509993468398219}

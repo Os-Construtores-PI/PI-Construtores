@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class End_Portal : BasePortal
 {
-    [SerializeField] private DialogueTrigger finalDialogueTrigger;
+    [SerializeField] private FinalSequenceDialogue finalSequence;
+    [SerializeField] private DialogueTrigger enemyFinalTrigger;
+    
     private bool actived = false;
     private void OnTriggerEnter(Collider other)
     {
@@ -15,7 +17,7 @@ public class End_Portal : BasePortal
 
         if(sequence != null)
         {
-            sequence.StartFinalSequence(finalDialogueTrigger);
+            sequence.StartFinalSequence(enemyFinalTrigger);
         }
 
        // gameObject.SetActive(false);
