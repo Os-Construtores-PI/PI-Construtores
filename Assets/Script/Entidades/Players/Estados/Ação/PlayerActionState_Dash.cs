@@ -89,6 +89,7 @@ public class PlayerActionStateDash : IState<PlayerContext>
         else
         {
             context.PlayerActionLayer.PopStateDeferred(context);
+            timeToExitWalker = 0f;
         }
     }
 }

@@ -13,7 +13,8 @@ using UnityEngine.UI;
 public class HudDirector : MonoBehaviour
 {
     private static readonly WaitForSecondsRealtime WAITTELEPORTFADE = new(1f);
-    private static readonly WaitForSecondsRealtime WAITSHAKECAM = new(.25f);
+    private const float WAITSHAKECAM = .25f;
+    private const float WAITRUNNINGSHAKECAM = .5f;
 
     [SerializeField] private List<IconImage> icons = new();
 
@@ -22,6 +23,8 @@ public class HudDirector : MonoBehaviour
     private readonly Dictionary<int, Image> interactionImages = new();
     private readonly Dictionary<int, Sprite> ogSprites = new();
 
+    private readonly Dictionary<int, CameraLogic> playerCameras = new();
+    public CameraLogic GetCameraScript(int id) => playerCameras[id];
     private static readonly HashSet<string> ValidPanelNames = new()
     {
         Constants.HudPanelNames.InteractionPopup,
@@ -125,6 +128,10 @@ public class HudDirector : MonoBehaviour
         HideAllPanels(playerID);
         return hudInstance;
     }
+    public void InitializeCamera(int playerID,CameraLogic camera)
+    {
+      playerCameras[playerID] = camera;
+    }
 
     private void HideAllPanels(int playerID)
     {
@@ -206,20 +213,41 @@ public class HudDirector : MonoBehaviour
     #endregion
 
     #region Camera Shake
-    public void ShakeCamera()
+    public void DamageShakeCamera()
     {
-        if (GameObject.FindWithTag("CinemachineCamera1")
+        if (GameObject.FindWithTag("CinemachineCamera")
             .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise))
         {
             noise.AmplitudeGain = 1;
-            StartCoroutine(StopShaking(noise));
+            noise.FrequencyGain = 1;
+            StartCoroutine(StopShaking(noise,WAITSHAKECAM));
         }
     }
 
-    private IEnumerator StopShaking(CinemachineBasicMultiChannelPerlin noise)
+    public void RunningLogic()
     {
-        yield return WAITSHAKECAM;
-        noise.AmplitudeGain = 0;
+        if (GameObject.FindWithTag("CinemachineCamera")
+            .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise))
+        {
+          noise.AmplitudeGain = 0.1f;
+          noise.FrequencyGain = 0.7f;
+        }
+    }
+
+    public void StopRunningLogic()
+    {
+        if (GameObject.FindWithTag("CinemachineCamera")
+            .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise))
+        {
+          StartCoroutine(StopShaking(noise,WAITRUNNINGSHAKECAM));
+        }
+    }
+
+    private IEnumerator StopShaking(CinemachineBasicMultiChannelPerlin noise, float waitTime)
+    {
+      yield return new WaitForSeconds(waitTime);
+      noise.AmplitudeGain = 0;
+      noise.FrequencyGain = 0;
     }
     #endregion
 
@@ -248,19 +276,20 @@ public class HudDirector : MonoBehaviour
         switch (obj)
         {
             case PuzzleColorButton pcb:
-                text.DOColor(pcb.buttonCode.color, duration);
-                text.text = interactionBind;
-                break;
-
+              text.DOColor(pcb.buttonCode.color, duration);
+              text.text = interactionBind;
+              break;
 
             case GraplingHookTarget:
-                if (GetIcon("GHOOK") is IconImage validIcon)
-                    image.sprite = validIcon.sprite;
-                break;
+              if (GetIcon("GHOOK") is IconImage validIcon)
+              {
+                image.sprite = validIcon.sprite;
+              }
+              break;
 
             default:
-                text.text = interactionBind;
-                break;
+              text.text = interactionBind;
+              break;
         }
 
         ShowPanel(Constants.HudPanelNames.InteractionPopup, playerID,independent:true);

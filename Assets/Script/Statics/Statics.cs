@@ -112,15 +112,19 @@ public static class Constants
     }
     public static class AnimatorFloatNames
     {
-        public static readonly string VelocityY = "VelocityY";
-        public static readonly string VelocityX = "VelocityX";
+        public const string VelocityY = "VelocityY";
+        public const string VelocityX = "VelocityX";
     }
     public static class EffectsNames
     {
         public static class Player
         {
-            public static readonly string Dash = "Dash";
+            public const string Dash = "Dash";
             public const string Jump = "Jump";
+        }
+        public static class Interface
+        {
+          public const string Running = "Running";
         }
     }
     public static class Values

@@ -29,11 +29,11 @@ public class PlayerDirector : MonoBehaviour
     #endregion
 
 
-    private List<Player> allPlayers = new List<Player>();
+    private readonly List<Player> allPlayers = new();
 
     // Referências instanciadas
-    private Dictionary<int, GameObject> playerHUDInstances = new();
-    private Dictionary<int, GameObject> playerCameras = new();
+    private readonly Dictionary<int, GameObject> playerHUDInstances = new();
+    private readonly Dictionary<int, GameObject> playerCameras = new();
 
     
 
@@ -113,6 +113,7 @@ public class PlayerDirector : MonoBehaviour
             GameObject camObj = Instantiate(mainCameraPrefab);
             Camera unityCam = camObj.GetComponent<Camera>();
             CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
+            hudDirector.InitializeCamera(playerID, camLogic);
             unityCam.rect = viewport;
 
             GameObject freeLookObj = Instantiate(freeLookPrefab);
@@ -122,23 +123,10 @@ public class PlayerDirector : MonoBehaviour
                 player.SetCinemachineCamera(freeLook);
             }
             playerCameras[playerID] = camObj;
-            LinkCanvasToCamera(unityCam, playerID);
-
         }
         player.gameObject.SetActive(true);
         player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
         ConfigPlayer(player);
-    }
-    private void LinkCanvasToCamera(Camera camera, int playerID)
-    {
-        if (playerHUDInstances.TryGetValue(playerID, out var hudInstance))
-        {
-            if (hudInstance.TryGetComponent<Canvas>(out var canvas))
-            {
-                canvas.worldCamera = camera;
-                canvas.planeDistance = .4f;
-            }
-        }
     }
     private void ConfigPlayer(Player player)
     {

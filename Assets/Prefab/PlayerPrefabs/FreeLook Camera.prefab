@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 1261544610205373193}
   m_Layer: 0
   m_Name: FreeLook Camera
-  m_TagString: CinemachineCamera1
+  m_TagString: CinemachineCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -31,8 +31,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1658166362939553594}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17485593, y: -0.000000011435376, z: 0.0000000020308302, w: 0.98459405}
-  m_LocalPosition: {x: 36.45, y: 5.1832585, z: 19.592339}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -115,7 +115,7 @@ MonoBehaviour:
     SplineCurvature: 0.5
   RecenteringTarget: 2
   HorizontalAxis:
-    Value: 0
+    Value: -166.28175
     Center: 0
     Range: {x: -180, y: 180}
     Wrap: 1
@@ -125,7 +125,7 @@ MonoBehaviour:
       Time: 2
     Restrictions: 0
   VerticalAxis:
-    Value: 9
+    Value: -45
     Center: 17.5
     Range: {x: -45, y: 45}
     Wrap: 0
@@ -229,7 +229,7 @@ MonoBehaviour:
         LegacyInput: 
         LegacyGain: 1
         CancelDeltaTime: 0
-      InputValue: 0
+      InputValue: -0
       Driver:
         AccelTime: 0.2
         DecelTime: 0.2
@@ -242,7 +242,7 @@ MonoBehaviour:
         LegacyInput: 
         LegacyGain: 1
         CancelDeltaTime: 0
-      InputValue: 0
+      InputValue: -0
       Driver:
         AccelTime: 0
         DecelTime: 0
@@ -263,8 +263,8 @@ MonoBehaviour:
   NoiseProfile: {fileID: 11400000, guid: d6249f9d1ce5ea44b84d5f8896259f1f, type: 2}
   PivotOffset: {x: 0, y: 0, z: 0}
   AmplitudeGain: 0
-  FrequencyGain: 1
-  m_NoiseOffsets: {x: 0, y: 0, z: 0}
+  FrequencyGain: 0
+  m_NoiseOffsets: {x: -409.8171, y: -324.93747, z: 840.9939}
 --- !u!114 &1261544610205373193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,7 +279,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CameraRadius: 0.4
   Decollision:
-    Enabled: 1
+    Enabled: 0
     ObstacleLayers:
       serializedVersion: 2
       m_Bits: 1

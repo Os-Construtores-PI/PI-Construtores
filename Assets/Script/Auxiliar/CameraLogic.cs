@@ -1,5 +1,7 @@
 using UnityEngine;
 using Unity.Cinemachine;
+using System.Collections.Generic;
+using System.Collections;
 
 public class CameraLogic : Entities
 {
@@ -8,6 +10,7 @@ public class CameraLogic : Entities
 
     private CinemachineCamera currentCamera;
     private CinemachineInputAxisController inputAxisController;
+    private readonly Dictionary<string,ParticleSystem> effects = new();
 
     public override void Awake()
     {
@@ -15,6 +18,11 @@ public class CameraLogic : Entities
         if (playerTarget != null)
             SetTarget(playerTarget);
         SetDistanceCulling();
+    }
+    public override void Start()
+    {
+      base.Start();
+      GatherEffects();
     }
 
     private void Update()
@@ -39,7 +47,28 @@ public class CameraLogic : Entities
         if (inputAxisController != null && !inputAxisController.enabled)
             inputAxisController.enabled = true;
     }
+    private void GatherEffects()
+    {
+      foreach(ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())
+      {
+        effects.Add(particle.name,particle);
+      }
+    }
 
+
+    public void RunningFX()
+    {
+      effects[Constants.EffectsNames.Interface.Running].Play();
+    }
+    public void StopRunningFX()
+    {
+      StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Running,0.5f));
+    }
+    private IEnumerator StopEffectsRoutine(string effect,float waitTime)
+    {
+      yield return new WaitForSeconds(waitTime);
+      effects[effect].Stop();
+    }
 
     private void SetDistanceCulling()
     {

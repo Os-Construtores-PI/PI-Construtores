@@ -4,6 +4,7 @@ using DG.Tweening;
 using Unity.Cinemachine;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
@@ -80,7 +81,6 @@ public class Player : CombatEntities
 
     // === HORIZONTAL ===
     public bool OverrideHorizontal { get; set; } = false;
-    public float HorizontalOverride { get; set; } = 0f;
 
     // === VERTICAL ===
     public bool OverrideVertical { get; set; } = false;
@@ -91,6 +91,21 @@ public class Player : CombatEntities
     internal StateMachine<PlayerContext> HorizontalLayer;
     internal StateMachine<PlayerContext> VerticalLayer;
     internal StackStateMachine<PlayerContext> ActionLayer;
+
+    //!: Action 
+    internal PlayerActionStateIdle _idleActionS = new();
+    internal PlayerActionStateDash _dashActionS = new();
+    internal PlayerActionStateInteraction _interactionActionS = new();
+    internal PlayerActionStateWallSliding _wallSlidingActionS = new();
+
+    //!:Horizontal
+    internal PlayerHorizontalStateIdle _idleHorizontalS = new();
+    internal PlayerHorizontalStateMoviment _movementHorizontalS = new();
+
+    //!:Vertical
+    internal PlayerGroundedState _groundedVerticalS = new();
+    internal PlayerFallingState _fallingVerticalS = new();
+    internal PlayerJumpingState _jumpingVerticalS = new();
 
     public PlayerContext Context { get; internal set; }
 
@@ -156,6 +171,11 @@ public class Player : CombatEntities
 
 
     #endregion
+
+    #region === Events ===
+    public readonly UnityEvent IsRunning = new();
+    public readonly UnityEvent StoppedRunning = new();
+    #endregion
     #region Coletáveis
 
 
@@ -202,9 +222,9 @@ public class Player : CombatEntities
         playerInput = GetComponent<PlayerInput>();
         DetectarDispositivo(playerInput);
 
-        VerticalLayer = new(new PlayerFallingState(),Context);
-        HorizontalLayer = new(new PlayerHorizontalStateIdle(), Context);
-        ActionLayer = new(new PlayerActionStateIdle(), Context);
+        VerticalLayer = new(_fallingVerticalS,Context);
+        HorizontalLayer = new(_idleHorizontalS, Context);
+        ActionLayer = new(_idleActionS, Context);
         SetupCamera();
     }
 
@@ -233,7 +253,7 @@ public class Player : CombatEntities
         );
         _enemyScanner = new Scanner<Vector3, bool>(
             enemyScanInterval,
-            ScanEnemies // <-- injeta o método diretamente
+            ScanEnemies
         );
 
         _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(
@@ -244,7 +264,6 @@ public class Player : CombatEntities
               int mask = LayerMask.GetMask("RunningWall");
                 var interaction = QueryTriggerInteraction.Ignore;
 
-                // Tenta o primeiro raio (ex: Direita)
                 if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
                 {
                     return hit;
@@ -276,7 +295,7 @@ public class Player : CombatEntities
         VerticalLayer.Update(Context);
         HorizontalLayer.Update(Context);
         ActionLayer.Update(Context);
-        print(ActionLayer.Current);
+        
     }
 
     private void FixedUpdate()
@@ -330,14 +349,16 @@ public class Player : CombatEntities
 
     public void OnRunning(InputAction.CallbackContext context)
     {
-    if (context.performed) 
-        {
-            _isRunning = true; 
-        }
-        else if (context.canceled) 
-        {
-            _isRunning = false;
-        }
+      if (context.performed) 
+      {
+        _isRunning = true; 
+        IsRunning.Invoke();
+      }
+      else if (context.canceled) 
+      {
+        _isRunning = false;
+        StoppedRunning.Invoke();
+      }
     }
 
     private void OnEnable()
@@ -410,7 +431,7 @@ public class Player : CombatEntities
     {
         if (interactableRef && context.started)
         {
-            ActionLayer.PushState(new PlayerActionStateInteraction(), Context);
+            ActionLayer.PushState(_interactionActionS, Context);
         }
         GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(Context);
     }
@@ -463,7 +484,7 @@ public class Player : CombatEntities
     private void Move()
     {
         if (Cinemachinecamera == null || OverrideGlobal || OverrideHorizontal || HorizontalLayer.CurrentState is PlayerActionStateDash) { return; }
-        HorizontalLayer.ChangeState(new PlayerHorizontalStateMoviment(), Context);
+        HorizontalLayer.ChangeState(_movementHorizontalS, Context);
     }
 
     private void Jump()
@@ -471,19 +492,16 @@ public class Player : CombatEntities
         if (OverrideGlobal) return;
 
         if (_touchingWall)
-            if (OverrideGlobal) return;
-
-        if (_touchingWall)
         {
             // wall-jump permitido — segue pra VerticalLayer.ChangeState(...)
-            VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
+            VerticalLayer.ChangeState(_jumpingVerticalS, Context);
             return;
         }
 
 
         if (OverrideVertical) return;
         if (!(_isGrounded || _currentJumpCount < _maxJumpCount)) return;
-        VerticalLayer.ChangeState(new PlayerJumpingState(), Context);
+        VerticalLayer.ChangeState(_jumpingVerticalS, Context);
 
 
     }
@@ -500,14 +518,14 @@ public class Player : CombatEntities
     private void StartDash()
     {
         if (_isDashBlocked) { return; }
-        ActionLayer.PushState(new PlayerActionStateDash(), Context);
+        ActionLayer.PushState(_dashActionS, Context);
     }
     #endregion
 
     #region === KNOCKBACK ===
     private Vector3 _knockbackVelocity;
     private readonly float _knockbackDuration = 0.2f;
-    private Timer _knockbackTimer = new();
+    private readonly Timer _knockbackTimer = new();
     private bool isKnockbackActive;
     internal bool _isDashBlocked;
 
@@ -594,7 +612,12 @@ public class Player : CombatEntities
 
         if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir) == true)
         {
-            _OnDamage.AddListener(hudDir.ShakeCamera);
+          print("TESTE");
+          _OnDamage.AddListener(hudDir.DamageShakeCamera);
+          IsRunning.AddListener(hudDir.RunningLogic);
+          IsRunning.AddListener(hudDir.GetCameraScript(ID).RunningFX);
+          StoppedRunning.AddListener(hudDir.StopRunningLogic);
+          StoppedRunning.AddListener(hudDir.GetCameraScript(ID).StopRunningFX);
         }
     }
 
@@ -603,18 +626,22 @@ public class Player : CombatEntities
     #region Scan
     private void ScanWalls()
     {
-        (bool executed, RaycastHit? hit) =_wallScanner.Scan(Time.deltaTime,(new Ray(transform.position,transform.right),new(transform.position,-transform.right)));
+        (bool executed, RaycastHit? hit) =_wallScanner.Scan(Time.deltaTime,
+          (new Ray(transform.position,transform.right),
+          new(transform.position,-transform.right))
+        );
+
         if(executed)
         {
-            if(hit.HasValue)
-            {
-                ActionLayer.PushState(new PlayerActionStateWallSliding(), Context);
-                _lastWallNormal = hit.Value.normal;
-            }
-            else
-            {
-                _touchingWall = false;
-            }
+          if(hit.HasValue)
+          {
+            ActionLayer.PushState(_wallSlidingActionS, Context);
+            _lastWallNormal = hit.Value.normal;
+          }
+          else
+          {
+            _touchingWall = false;
+          }
         }
     }
 
