@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using DG.Tweening;
 using Unity.Cinemachine;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -613,11 +612,11 @@ public class Player : CombatEntities
         if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir) == true)
         {
           print("TESTE");
-          _OnDamage.AddListener(hudDir.DamageShakeCamera);
-          IsRunning.AddListener(hudDir.RunningLogic);
-          IsRunning.AddListener(hudDir.GetCameraScript(ID).RunningFX);
-          StoppedRunning.AddListener(hudDir.StopRunningLogic);
-          StoppedRunning.AddListener(hudDir.GetCameraScript(ID).StopRunningFX);
+          _OnDamage.AddListener(hudDir.DamageShake);
+          IsRunning.AddListener(hudDir.RunningShake);
+          IsRunning.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
+          StoppedRunning.AddListener(hudDir.StopRunningShake);
+          StoppedRunning.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
         }
     }
 

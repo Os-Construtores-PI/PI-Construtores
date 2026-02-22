@@ -7,7 +7,6 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HudDirector : MonoBehaviour
@@ -213,7 +212,7 @@ public class HudDirector : MonoBehaviour
     #endregion
 
     #region Camera Shake
-    public void DamageShakeCamera()
+    public void DamageShake()
     {
         if (GameObject.FindWithTag("CinemachineCamera")
             .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise))
@@ -224,7 +223,7 @@ public class HudDirector : MonoBehaviour
         }
     }
 
-    public void RunningLogic()
+    public void RunningShake()
     {
         if (GameObject.FindWithTag("CinemachineCamera")
             .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise))
@@ -234,7 +233,7 @@ public class HudDirector : MonoBehaviour
         }
     }
 
-    public void StopRunningLogic()
+    public void StopRunningShake()
     {
         if (GameObject.FindWithTag("CinemachineCamera")
             .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise))

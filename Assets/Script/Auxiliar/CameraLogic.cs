@@ -56,11 +56,11 @@ public class CameraLogic : Entities
     }
 
 
-    public void RunningFX()
+    public void SpeedFX()
     {
       effects[Constants.EffectsNames.Interface.Running].Play();
     }
-    public void StopRunningFX()
+    public void StopSpeedFX()
     {
       StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Running,0.5f));
     }
