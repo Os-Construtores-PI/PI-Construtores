@@ -14,13 +14,13 @@
 # Tutoriais Programação Implementação
 
 - [x] Implementar na Faze Debug #Leonardo
-- [ ] Implementar na Faze 0 [#Leonardo](app://obsidian.md/index.html#Leonardo)
-- [ ] Pausar o Jogo #Leonardo 
-- [ ] Botar Paineis Correspondentes com o Input #Leonardo 
+- [x] Implementar na Faze 0 [#Leonardo](app://obsidian.md/index.html#Leonardo)
+- [x] Pausar o Jogo #Leonardo
+- [x] Botar Paineis Correspondentes com o Input #Leonardo
 
 # Diálogos de História
 
 # Diálogos de História
 - [x] Arte #Erick
 - [x] Implementar no Jogo #Leonardo
-- [ ] Diálogo Final Implementado no Jogo #Leonardo 
+- [x] Diálogo Final Implementado no Jogo #Leonardo

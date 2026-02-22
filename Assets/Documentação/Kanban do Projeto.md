@@ -27,7 +27,6 @@ kanban-plugin: board
 - [ ] [[Lycan]]
 - [ ] [[Sentinela do Abismo]]
 - [ ] [[Sistema de Tick]]
-- [ ] [[Tutorias 1]]
 - [ ] [[HUD]]
 - [ ] Rework Paleta de Cor Fase 0
 - [ ] Câmera do Jogador
@@ -48,6 +47,7 @@ kanban-plugin: board
 ## Correções
 
 - [ ] [[Correções Fase 0]]
+- [ ] [[Tutorias 1 1 1]]
 
 
 ## Testado
