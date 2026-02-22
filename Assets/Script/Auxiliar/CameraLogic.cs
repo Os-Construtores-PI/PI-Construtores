@@ -58,11 +58,11 @@ public class CameraLogic : Entities
 
     public void SpeedFX()
     {
-      effects[Constants.EffectsNames.Interface.Running].Play();
+      effects[Constants.EffectsNames.Interface.Speed].Play();
     }
     public void StopSpeedFX()
     {
-      StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Running,0.5f));
+      StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Speed,0.5f));
     }
     private IEnumerator StopEffectsRoutine(string effect,float waitTime)
     {

@@ -124,7 +124,7 @@ public static class Constants
         }
         public static class Interface
         {
-          public const string Running = "Running";
+          public const string Speed = "Speed";
         }
     }
     public static class Values
