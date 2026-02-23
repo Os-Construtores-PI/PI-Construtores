@@ -1,6 +1,3 @@
 using UnityEngine;
 
-public class DialogueManager : MonoBehaviour
-{
-    
-}
+public class DialogueManager : MonoBehaviour { }

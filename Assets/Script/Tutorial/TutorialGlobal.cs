@@ -4,154 +4,162 @@ using UnityEngine.InputSystem;
 
 public class TutorialGlobal : MonoBehaviour
 {
-    public static TutorialGlobal Instance;
+  public static TutorialGlobal Instance;
 
-    [Header("Ui")]
-    [SerializeField] private GameObject tutorialHUD;
+  [Header("Ui")]
+  [SerializeField]
+  private GameObject tutorialHUD;
 
-    [Header("Tutoriais")]
-    [SerializeField] private GameObject movimentoTutorial;
-    [SerializeField] private GameObject dashTutorial;
-    
-    public event System.Action<bool> OnTutorialStateChanged;
+  [Header("Tutoriais")]
+  [SerializeField]
+  private GameObject movimentoTutorial;
 
-    
-    public bool IsTutorialActive { get; private set; }
+  [SerializeField]
+  private GameObject dashTutorial;
 
-    private PlayerInput _playerInput;
+  public event System.Action<bool> OnTutorialStateChanged;
 
-    private Tween currentTween;
+  public bool IsTutorialActive { get; private set; }
 
+  private PlayerInput _playerInput;
 
-    private void Awake()
+  private Tween currentTween;
+
+  private void Awake()
+  {
+    if (Instance != null && Instance != this)
     {
-        if(Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-
-        //tutorialHUD.SetActive(false);
-        DesativarTodos();
-        Instance = this;
-
+      Destroy(gameObject);
+      return;
     }
-    private void Start()
-    {
+
+    //tutorialHUD.SetActive(false);
+    DesativarTodos();
+    Instance = this;
+  }
+
+  private void Start()
+  {
+    tutorialHUD.SetActive(false);
+  }
+
+  public void AbrirTutorial(TutorialTrigger.TutorialType tipo)
+  {
+    if (IsTutorialActive)
+      return;
+
+    IsTutorialActive = true;
+
+    DeviceSpriteManager.Instance?.ForceRefresh();
+
+    DesativarTodos();
+    //AtivarTutorial(tipo);
+
+    tutorialHUD.SetActive(true);
+
+    GameObject painel = GetPainel(tipo);
+    if (painel != null)
+      AnimarEntrada(painel);
+
+    OnTutorialStateChanged?.Invoke(true);
+  }
+
+  public void FecharTutorial()
+  {
+    if (!IsTutorialActive)
+      return;
+
+    IsTutorialActive = false;
+    tutorialHUD.SetActive(false);
+    GameObject painelAtivo = GetPainelAtivo();
+    if (painelAtivo != null)
+      AnimarSaida(painelAtivo);
+    DeviceSpriteManager.Instance?.ForceRefresh();
+    OnTutorialStateChanged?.Invoke(false);
+  }
+
+  private void AnimarEntrada(GameObject painel)
+  {
+    currentTween?.Kill();
+
+    Time.timeScale = 0;
+    painel.SetActive(true);
+
+    CanvasGroup cg = painel.GetComponent<CanvasGroup>();
+    RectTransform rt = painel.GetComponent<RectTransform>();
+
+    cg.alpha = 0f;
+    rt.localScale = Vector3.one * 0.9f;
+
+    currentTween = DOTween
+      .Sequence()
+      .Append(cg.DOFade(1f, 0.25f))
+      .Join(rt.DOScale(1f, 0.25f))
+      .SetEase(Ease.OutBack)
+      .SetUpdate(UpdateType.Normal, true);
+  }
+
+  private void AnimarSaida(GameObject painel)
+  {
+    currentTween?.Kill();
+
+    CanvasGroup cg = painel.GetComponent<CanvasGroup>();
+    RectTransform rt = painel.GetComponent<RectTransform>();
+    Time.timeScale = 1;
+    currentTween = DOTween
+      .Sequence()
+      .Append(cg.DOFade(0f, 0.2f))
+      .Join(rt.DOScale(0.9f, 0.2f))
+      .SetEase(Ease.InBack)
+      .SetUpdate(UpdateType.Normal, true)
+      .OnComplete(() =>
+      {
+        painel.SetActive(false);
         tutorialHUD.SetActive(false);
-    }
+      });
+  }
 
-    public void AbrirTutorial(TutorialTrigger.TutorialType tipo)
+  private void DesativarTodos()
+  {
+    if (movimentoTutorial != null)
+      movimentoTutorial.SetActive(false);
+    if (dashTutorial != null)
+      dashTutorial.SetActive(false);
+  }
+
+  private GameObject GetPainel(TutorialTrigger.TutorialType tipo)
+  {
+    return tipo switch
     {
-        if (IsTutorialActive) return;
-        
-        IsTutorialActive = true;
+      TutorialTrigger.TutorialType.Movimento => movimentoTutorial,
+      TutorialTrigger.TutorialType.Dash => dashTutorial,
+      _ => null,
+    };
+  }
 
-
-        DeviceSpriteManager.Instance?.ForceRefresh();
-
-        DesativarTodos();
-        //AtivarTutorial(tipo);
-        
-        tutorialHUD.SetActive(true);
-
-        GameObject painel = GetPainel(tipo);
-        if(painel != null )
-            AnimarEntrada(painel);
-
-        OnTutorialStateChanged?.Invoke(true);
-
-        
-    }
-
-    public void FecharTutorial()
-    {
-        if (!IsTutorialActive) return;
-
-        IsTutorialActive = false;
-        tutorialHUD.SetActive(false);
-        GameObject painelAtivo = GetPainelAtivo();
-        if(painelAtivo != null)
-            AnimarSaida(painelAtivo);
-        DeviceSpriteManager.Instance?.ForceRefresh();
-        OnTutorialStateChanged?.Invoke(false);
-    }
-
-    private void AnimarEntrada(GameObject painel)
-    {
-        currentTween?.Kill();
-
-        painel.SetActive(true);
-
-        CanvasGroup cg = painel.GetComponent<CanvasGroup>();
-        RectTransform rt = painel.GetComponent<RectTransform>();
-
-        cg.alpha = 0f;
-        rt.localScale = Vector3.one * 0.9f;
-
-        currentTween = DOTween.Sequence()
-            .Append(cg.DOFade(1f, 0.25f))
-            .Join(rt.DOScale(1f, 0.25f)).SetEase(Ease.OutBack);
-    }
-
-    private void AnimarSaida(GameObject painel)
-    {
-        currentTween?.Kill();
-
-        CanvasGroup cg = painel.GetComponent<CanvasGroup>();
-        RectTransform rt = painel.GetComponent <RectTransform>();
-
-        currentTween = DOTween.Sequence()
-            .Append(cg.DOFade(0f, 0.2f))
-            .Join(rt.DOScale(0.9f, 0.2f)).SetEase(Ease.InBack)
-            .OnComplete(() =>
-            {
-                painel.SetActive(false);
-                tutorialHUD.SetActive(false);
-            });
-    }
-
-    
-
-    private void DesativarTodos()
-    {
-        if(movimentoTutorial != null) movimentoTutorial.SetActive(false);
-        if(dashTutorial != null) dashTutorial.SetActive(false);
-
-    }
-
-    private GameObject GetPainel(TutorialTrigger.TutorialType tipo)
-    {
-        return tipo switch
-        {
-            TutorialTrigger.TutorialType.Movimento => movimentoTutorial,
-            TutorialTrigger.TutorialType.Dash => dashTutorial,
-            _ => null,
-        };
-    }
-
-    private GameObject GetPainelAtivo()
-    {
-        if (movimentoTutorial != null && movimentoTutorial.activeSelf) return movimentoTutorial;
-        if(dashTutorial != null && dashTutorial.activeSelf) return dashTutorial;
-        return null;
-    }
-   /* private void AtivarTutorial(TutorialTrigger.TutorialType tipo)
-    {
-        
-        
-        switch (tipo)
-        {
-            case TutorialTrigger.TutorialType.Movimento:
-                movimentoTutorial.SetActive(true);
-                break;
-            case TutorialTrigger.TutorialType.Dash:
-                dashTutorial.SetActive(true);
-                break;
-            
-            
-        }
-    }
-   */
+  private GameObject GetPainelAtivo()
+  {
+    if (movimentoTutorial != null && movimentoTutorial.activeSelf)
+      return movimentoTutorial;
+    if (dashTutorial != null && dashTutorial.activeSelf)
+      return dashTutorial;
+    return null;
+  }
+  /* private void AtivarTutorial(TutorialTrigger.TutorialType tipo)
+   {
+       
+       
+       switch (tipo)
+       {
+           case TutorialTrigger.TutorialType.Movimento:
+               movimentoTutorial.SetActive(true);
+               break;
+           case TutorialTrigger.TutorialType.Dash:
+               dashTutorial.SetActive(true);
+               break;
+           
+           
+       }
+   }
+  */
 }
