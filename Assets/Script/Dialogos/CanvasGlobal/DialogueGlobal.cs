@@ -231,8 +231,145 @@ public class DialogueGlobal : MonoBehaviour
 
     if (_index >= _falasAtuais.Length - 1)
     {
+<<<<<<< HEAD
       FecharDialogo();
       return;
+=======
+        if (value)
+        {
+            dialogoAtivo++;
+        }
+        else
+        {
+            dialogoAtivo--;
+        }
+
+        if (dialogoAtivo < 0)
+        {
+            dialogoAtivo = 0;
+        }
+       
+       
+
+        if (dialogoAtivo >= _currentTrigger._dialogo.Length)
+        {
+            dialogoAtivo = _currentTrigger._dialogo.Length-1;
+            FecharDialogo();
+            return;
+        }
+
+        _textoDialogo.text = _currentTrigger._dialogo[dialogoAtivo];
+    }*/
+
+    public void IniciarDialogo(string[] falas)
+    {
+
+        if (_state != DialogueState.Closed)
+            return;
+        
+        _state = DialogueState.Opening;
+        _dialogoAtivo = true;
+        _dialogoPronto = false;
+
+        if (falas == null || falas.Length == 0) return;
+
+        if(_currentTrigger != null && _currentTrigger._playerInput != null)
+        {
+            _Interactable = _currentTrigger._playerInput;
+        }
+        else if (_defaultPlayerInput != null)
+        {
+            _Interactable = _defaultPlayerInput;
+        }
+        else
+        {
+            Debug.LogError("[DialogueGlobal] Nenhum PlayerInput disponível para o diálogo!");
+            return;
+        }
+
+        if(_Interactable != null)
+        {
+            _Interactable = _playerContext.PlayerInput;
+        }
+
+        if(_Interactable != null)
+        {
+
+            var actions = _Interactable.actions;
+
+            actions.Enable(); // garante que o asset está ativo
+
+            actions["AdvanceDialogue"]?.Enable();
+            actions["ReturnDialogue"]?.Enable();
+
+            // opcional: bloquear ações de gameplay durante diálogo
+            actions["Move"]?.Disable();
+            actions["Attack"]?.Disable();
+            actions["Dash"]?.Disable();
+        }
+
+        OndialogueStart?.Invoke();
+        
+        _falasAtuais = falas;
+        _index = 0;
+        AtualizarVisibilidadedosBotoes();
+        
+        LimparFala();
+        
+        _painelDialogo.SetActive(true);
+        _painelDialogo.transform.localScale = Vector3.zero;
+        
+        if (_botoesDialogo != null) _botoesDialogo.SetActive(true);
+        if (_botoesGameplay != null) _botoesGameplay.SetActive(false);
+
+        _tweenPainel?.Kill(true);
+        _tweenText?.Kill(true);
+        StopAllCoroutines();
+       
+        _tweenPainel = _painelDialogo.transform
+            .DOScale(1f, 0.30f)
+            .SetEase(Ease.OutBack)
+            .OnComplete(() =>
+            {
+                if (_state != DialogueState.Opening)
+                    return;
+
+                _state = DialogueState.Open;
+                _dialogoPronto = true;
+
+                StartCoroutine(DelayMostrarFala());
+            });
+
+
+        _lockedPlayer = _playerContext;
+        
+        if (_gameDirector != null && _lockedPlayer != null)
+            _gameDirector.SetLockPlayer(_lockedPlayer, true);
+        
+       
+
+
+
+       // _painelDialogo.transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack);
+
+       
+    }
+    
+
+    public void ProximaFala()
+    {
+        if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open) 
+            return;
+        
+        if (_index >= _falasAtuais.Length - 1)
+        {
+            FecharDialogo();
+            return;
+        }
+        
+        _index++;
+        AtualizarFala();
+>>>>>>> f73627afe4345fc3dadf7ae80b9bdb2bc5e6d311
     }
 
     _index++;
@@ -424,5 +561,72 @@ public class DialogueGlobal : MonoBehaviour
         _textoDialogo = _textoEnemy;
         break;
     }
+<<<<<<< HEAD
   }
+=======
+
+
+    private void AtualizarFala()
+    {
+        if (_falasAtuais == null || _falasAtuais.Length == 0)
+            return;
+        if (_index < 0 || _index >= _falasAtuais.Length)
+        {
+            Debug.LogWarning($"[DialogueGlobal] Índice inválido: {_index}");
+            return;
+        }
+
+        StopAllCoroutines();
+        MostrarFala(_falasAtuais[_index]);
+
+       AtualizarVisibilidadedosBotoes();
+    }
+
+    private void LimparFala()
+    {
+        _tweenText?.Kill();
+        _tweenText = null;
+        _textoDialogo.text = string.Empty;
+        _textoDialogo.maxVisibleCharacters = 0;
+
+        // forçar TMP a atualizar imediatamente
+        _textoDialogo.ForceMeshUpdate();
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+        _tweenPainel?.Kill();
+        _tweenText?.Kill();
+    }
+
+    private void ApplyLayout(DialogueTrigger.DialogueLayoutType type)
+    {
+        pandoraLayout.SetActive(false);
+        enemyLayout.SetActive(false);
+
+        switch (type)
+        {
+            case DialogueTrigger.DialogueLayoutType.Pandora:
+                 pandoraLayout.SetActive(true);
+                 _textoDialogo = _textoPandora;
+                 break;
+            
+            case DialogueTrigger.DialogueLayoutType.Enemy:
+                 enemyLayout.SetActive(true);
+                 _textoDialogo = _textoEnemy;
+                 break;
+        }
+    }
+    
+    private void AtualizarVisibilidadedosBotoes()
+  {
+    if (_botaoRetornar != null)
+      _botaoRetornar.gameObject.SetActive(_index > 0);
+
+    if (_botaoAvancar != null)
+      _botaoAvancar.gameObject.SetActive(true);
+  }
+
+>>>>>>> f73627afe4345fc3dadf7ae80b9bdb2bc5e6d311
 }
