@@ -198,6 +198,7 @@ public class DialogueGlobal : MonoBehaviour
         
         _falasAtuais = falas;
         _index = 0;
+        AtualizarVisibilidadedosBotoes();
         
         LimparFala();
         
@@ -412,6 +413,8 @@ public class DialogueGlobal : MonoBehaviour
 
         StopAllCoroutines();
         MostrarFala(_falasAtuais[_index]);
+
+       AtualizarVisibilidadedosBotoes();
     }
 
     private void LimparFala()
@@ -450,5 +453,14 @@ public class DialogueGlobal : MonoBehaviour
                  break;
         }
     }
+    
+    private void AtualizarVisibilidadedosBotoes()
+  {
+    if (_botaoRetornar != null)
+      _botaoRetornar.gameObject.SetActive(_index > 0);
+
+    if (_botaoAvancar != null)
+      _botaoAvancar.gameObject.SetActive(true);
+  }
 
 }
