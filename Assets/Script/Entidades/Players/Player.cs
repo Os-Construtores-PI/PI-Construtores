@@ -64,12 +64,14 @@ public class Player : CombatEntities
   [Header("Componentes")]
   protected CharacterController characterController;
   public CharacterController Charactercontroller => characterController;
-  protected CinemachineCamera cinemachineCamera;
-  public CinemachineCamera Cinemachinecamera => cinemachineCamera;
+  protected CinemachineCamera _cinemachineCamera;
+  public CinemachineCamera Cinemachinecamera => _cinemachineCamera;
+  protected Camera _myCamera;
 
-  public void SetCinemachineCamera(CinemachineCamera cam)
+  public void SetCamera(CinemachineCamera cincam, Camera camera)
   {
-    cinemachineCamera = cam;
+    _cinemachineCamera = cincam;
+    _myCamera = camera;
   }
 
   protected internal Animator animatorComp;
@@ -195,17 +197,25 @@ public class Player : CombatEntities
   private int amethysts = 0;
   public int Amethysts => amethysts;
 
-  public void SetAmethysts(int value)
+  public void SetAmethysts(int value, Vector3? amethystPos = null)
   {
     if (amethysts == value)
     {
       return;
     }
+    Vector3 positionInCamera = default;
+    if (amethystPos != null)
+    {
+      positionInCamera = _myCamera.WorldToScreenPoint((Vector3)amethystPos);
+    }
     amethysts = Mathf.Max(0, value); // evita negativo
-    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts);
+    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
   }
 
-  public void AddAmethysts(int amount) => SetAmethysts(amethysts + amount);
+  public void AddAmethysts(int amount, Vector3 amethystPos)
+  {
+    SetAmethysts(amethysts + amount, amethystPos);
+  }
 
   public bool SpendAmethysts(int amount)
   {
