@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -52,6 +53,7 @@ public class DialogueGlobal : MonoBehaviour
   private int _index = 0;
   private bool _dialogoAtivo = false;
   private bool _dialogoPronto = false;
+  public bool _bloquearJumpTemporariamente;
 
   private PlayerDirector playerDirectoor;
   private GameDirector _gameDirector;
@@ -96,6 +98,7 @@ public class DialogueGlobal : MonoBehaviour
 
   public void IniciarDialogo(string[] falas)
   {
+
     if (_state != DialogueState.Closed || falas == null || falas.Length == 0)
       return;
 
@@ -103,21 +106,25 @@ public class DialogueGlobal : MonoBehaviour
     _dialogoAtivo = true;
     _dialogoPronto = false;
     Time.timeScale = 0;
+    
 
     SetupInput(true);
 
     OndialogueStart?.Invoke();
     _falasAtuais = falas;
     _index = 0;
-
+    AtualizarVisibilidadedosBotoes();
     LimparFala();
     _painelDialogo.SetActive(true);
     _painelDialogo.transform.localScale = Vector3.zero;
 
-    if (_botoesDialogo != null)
-      _botoesDialogo.SetActive(true);
     if (_botoesGameplay != null)
       _botoesGameplay.SetActive(false);
+    
+    if (_botoesDialogo != null)
+      _botoesDialogo.SetActive(true);
+
+    
 
     _tweenPainel?.Kill();
     _tweenText?.Kill();
@@ -135,6 +142,10 @@ public class DialogueGlobal : MonoBehaviour
       });
 
     _lockedPlayer = _playerContext;
+
+    if (_lockedPlayer != null)
+      _lockedPlayer.BlockJumpByDialogue = true;
+
     if (_gameDirector != null && _lockedPlayer != null)
       _gameDirector.SetLockPlayer(_lockedPlayer, true);
   }
@@ -145,26 +156,20 @@ public class DialogueGlobal : MonoBehaviour
     if (_Interactable == null)
       return;
 
-    var actions = _Interactable.actions;
-    actions.Enable();
-
     if (isDialogue)
     {
-      actions["AdvanceDialogue"]?.Enable();
-      actions["ReturnDialogue"]?.Enable();
-      actions["Move"]?.Disable();
-      actions["Attack"]?.Disable();
-      actions["Dash"]?.Disable();
+      _Interactable.SwitchCurrentActionMap("Dialogue");
     }
     else
     {
-      actions["AdvanceDialogue"]?.Disable();
-      actions["ReturnDialogue"]?.Disable();
-      actions["Move"]?.Enable();
-      actions["Attack"]?.Enable();
-      actions["Dash"]?.Enable();
+
+      _Interactable.SwitchCurrentActionMap("Player");
+
+      
     }
   }
+
+
 
   public void ProximaFala()
   {
@@ -192,15 +197,22 @@ public class DialogueGlobal : MonoBehaviour
 
   public void FecharDialogo()
   {
+
     if (_state == DialogueState.Closed || _state == DialogueState.Closing)
       return;
 
     _state = DialogueState.Closing;
-    SetupInput(false);
+    StopAllCoroutines();
+
+    if(_Interactable != null)
+    {
+      _Interactable.actions["AdvanceDialogue"]?.Reset();
+    }
+
+    
 
     _dialogoAtivo = false;
     _dialogoPronto = false;
-    StopAllCoroutines();
 
     OndialogueEnd?.Invoke();
 
@@ -212,8 +224,12 @@ public class DialogueGlobal : MonoBehaviour
     if (_gameDirector != null && _lockedPlayer != null)
       _gameDirector.SetLockPlayer(_lockedPlayer, false);
 
-    _lockedPlayer = null;
+    if (_lockedPlayer != null)
+      _lockedPlayer.BlockJumpByDialogue = false;
+
     _currentTrigger?.OnDialogoFechado();
+
+    StartCoroutine(FechaDialogoSeguro());
 
     _painelDialogo
       .transform.DOScale(0f, 0.2f)
@@ -305,4 +321,30 @@ public class DialogueGlobal : MonoBehaviour
     _tweenPainel?.Kill();
     _tweenText?.Kill();
   }
+
+  private IEnumerator FechaDialogoSeguro()
+  {
+    var dialogueAction = _Interactable.currentActionMap.FindAction("AdvanceDialogue");
+
+    while(dialogueAction != null && dialogueAction.IsPressed())
+      yield return null;
+
+    yield return null;
+
+    _Interactable.SwitchCurrentActionMap("Player");
+
+    yield return null;
+
+    _painelDialogo.transform
+      .DOScale(0f, 0.2f)
+      .SetEase(Ease.InBack)
+      .OnComplete(() =>
+      {
+        _painelDialogo.SetActive(false);
+        _state = DialogueState.Closed;
+        Time.timeScale = 1f;
+      });
+  }
+
+  
 }

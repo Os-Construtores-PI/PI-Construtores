@@ -525,6 +525,15 @@ public class Player : CombatEntities
 
   private void Jump()
   {
+    if(DialogueGlobal.Instance != null)
+    {
+      if (DialogueGlobal.Instance.IsDialogueActive)
+        return;
+
+      if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
+        return;
+    }
+
     if (OverrideGlobal)
       return;
 
@@ -540,6 +549,8 @@ public class Player : CombatEntities
     if (!(_isGrounded || _currentJumpCount < _maxJumpCount))
       return;
     VerticalLayer.ChangeState(_jumpingVerticalS, Context);
+
+    
   }
   #endregion
 
