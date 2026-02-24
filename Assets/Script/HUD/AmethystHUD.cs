@@ -19,6 +19,19 @@ public class AmethystHUD : MonoBehaviour
   private GameObject _amethyst;
   private RectTransform _amethystTransform;
 
+  [Header("Config")]
+  [SerializeField]
+  private float _translationDuration = .7f;
+
+  [SerializeField]
+  private Ease _scaleEasing = Ease.InSine;
+
+  [SerializeField]
+  private Ease _rotationEasing = Ease.InSine;
+
+  [SerializeField]
+  private Ease _translationEasing = Ease.InSine;
+
   //a
   void Start()
   {
@@ -56,9 +69,22 @@ public class AmethystHUD : MonoBehaviour
     {
       Sequence sequence = DOTween.Sequence();
       _amethystTransform.position = (Vector3)position;
-      sequence.Append(_amethystTransform.DOScale(new Vector3(1.25f, 1.25f, 1.25f), .5f));
+      sequence.Append(
+        _amethystTransform
+          .DOScale(new Vector3(1.25f, 1.25f, 1.25f), _translationDuration)
+          .SetEase(_scaleEasing)
+      );
+      sequence.Join(
+        _amethystTransform
+          .DOLocalMove(Vector3.zero, _translationDuration)
+          .SetEase(_translationEasing)
+      );
+      sequence.Join(
+        _amethystTransform
+          .DORotate(new Vector3(0, 0, 10), _translationDuration)
+          .SetEase(_rotationEasing)
+      );
       sequence.Append(_amethystTransform.DOScale(Vector3.one, .25f));
-      sequence.Append(_amethystTransform.DOLocalMove(Vector3.zero, .5f));
       sequence.Append(_amethystTransform.DOScale(Vector3.zero, .25f));
       sequence.Play();
     }
