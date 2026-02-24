@@ -34,7 +34,6 @@ public class CameraLogic : Entities
     {
       foreach (KeyValuePair<string, ParticleSystem> pair in effects)
       {
-        print(pair.Key + " : Parado");
         pair.Value.Stop();
       }
     }

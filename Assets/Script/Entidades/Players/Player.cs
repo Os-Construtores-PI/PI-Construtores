@@ -197,13 +197,13 @@ public class Player : CombatEntities
   private int amethysts = 0;
   public int Amethysts => amethysts;
 
-  public void SetAmethysts(int value, Vector3? amethystPos = null)
+  public void SetAmethysts(int value, Vector3? amethystPos)
   {
     if (amethysts == value)
     {
       return;
     }
-    Vector3 positionInCamera = default;
+    Vector3? positionInCamera = null;
     if (amethystPos != null)
     {
       positionInCamera = _myCamera.WorldToScreenPoint((Vector3)amethystPos);
@@ -212,7 +212,7 @@ public class Player : CombatEntities
     GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
   }
 
-  public void AddAmethysts(int amount, Vector3 amethystPos)
+  public void AddAmethysts(int amount, Vector3? amethystPos)
   {
     SetAmethysts(amethysts + amount, amethystPos);
   }
@@ -223,7 +223,7 @@ public class Player : CombatEntities
     {
       return false;
     }
-    SetAmethysts(amethysts - amount);
+    SetAmethysts(amethysts - amount, null);
     return true;
   }
 
@@ -525,6 +525,15 @@ public class Player : CombatEntities
 
   private void Jump()
   {
+    if(DialogueGlobal.Instance != null)
+    {
+      if (DialogueGlobal.Instance.IsDialogueActive)
+        return;
+
+      if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
+        return;
+    }
+
     if (OverrideGlobal)
       return;
 
@@ -540,6 +549,8 @@ public class Player : CombatEntities
     if (!(_isGrounded || _currentJumpCount < _maxJumpCount))
       return;
     VerticalLayer.ChangeState(_jumpingVerticalS, Context);
+
+    
   }
   #endregion
 

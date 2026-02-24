@@ -10,13 +10,29 @@ public class AmethystHUD : MonoBehaviour
   private TMP_Text _amethystText;
 
   [SerializeField]
-  private Transform _amethystCounter;
+  private Transform _amethystContainer;
 
   [SerializeField]
   private Sprite _amethystSprite;
 
+  [SerializeField]
   private GameObject _amethyst;
-  private Transform _amethystTransform;
+  private RectTransform _amethystTransform;
+
+  [Header("Config")]
+  [SerializeField]
+  private float _translationDuration = .7f;
+
+  [SerializeField]
+  private Ease _scaleEasing = Ease.InSine;
+
+  [SerializeField]
+  private Ease _rotationEasing = Ease.InSine;
+
+  [SerializeField]
+  private Ease _translationEasing = Ease.InSine;
+
+  //a
   void Start()
   {
     if (_amethystText == null)
@@ -37,11 +53,8 @@ public class AmethystHUD : MonoBehaviour
 
   private void SetupAmethyst()
   {
-    _amethyst = new();
-    _amethystTransform = _amethyst.transform;
-    _amethystTransform.parent = _amethystCounter;
-    Image tmpImage = _amethyst.AddComponent<Image>();
-    tmpImage.sprite = _amethystSprite;
+    _amethystTransform = _amethyst.GetComponent<RectTransform>();
+    _amethystTransform.parent = _amethystContainer;
     _amethystTransform.localScale = Vector3.zero;
   }
 
@@ -52,14 +65,28 @@ public class AmethystHUD : MonoBehaviour
       return;
     }
 
-    if (position != null || position == default)
+    if (position != null)
     {
       Sequence sequence = DOTween.Sequence();
-      sequence.Append(_amethystTransform.DOScale(new Vector3(1.25f, 1.25f, 1.25f), .5f));
+      _amethystTransform.position = (Vector3)position;
+      sequence.Append(
+        _amethystTransform
+          .DOScale(new Vector3(1.25f, 1.25f, 1.25f), _translationDuration)
+          .SetEase(_scaleEasing)
+      );
+      sequence.Join(
+        _amethystTransform
+          .DOLocalMove(Vector3.zero, _translationDuration)
+          .SetEase(_translationEasing)
+      );
+      sequence.Join(
+        _amethystTransform
+          .DORotate(new Vector3(0, 0, 10), _translationDuration)
+          .SetEase(_rotationEasing)
+      );
       sequence.Append(_amethystTransform.DOScale(Vector3.one, .25f));
-      sequence.Append(_amethystTransform.DOMove((Vector3)position, 1f));
-      sequence.Append(_amethystTransform.DOMove(Vector3.zero, .5f));
       sequence.Append(_amethystTransform.DOScale(Vector3.zero, .25f));
+      sequence.Play();
     }
 
     _amethystText.text = newCount.ToString("00");
