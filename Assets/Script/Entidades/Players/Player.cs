@@ -439,6 +439,8 @@ public class Player : CombatEntities
 
   public void OnJump(InputAction.CallbackContext context)
   {
+    
+
     if (Context.IsHardLocked)
       return;
     if (Context.IgnoreGameplayInputThisFrame)
@@ -446,7 +448,7 @@ public class Player : CombatEntities
     if (Context.BlockJumpByDialogue)
       return;
 
-    if (Context.WaitForJumpRelease)
+    if (Context.WaitForJumpRelease) // segura o input do pulo do tutorial
     {
       if (context.canceled)
         Context.WaitForJumpRelease = false;
@@ -455,6 +457,7 @@ public class Player : CombatEntities
     if (context.started)
       Jump();
   }
+
 
   public void OnInteract(InputAction.CallbackContext context)
   {
@@ -525,7 +528,7 @@ public class Player : CombatEntities
 
   private void Jump()
   {
-    if(DialogueGlobal.Instance != null)
+    if (DialogueGlobal.Instance != null)
     {
       if (DialogueGlobal.Instance.IsDialogueActive)
         return;

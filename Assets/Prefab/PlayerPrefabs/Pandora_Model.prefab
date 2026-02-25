@@ -22371,14 +22371,6 @@ MonoBehaviour:
     m_ActionName: 'Player/Pause[/Keyboard/tab]'
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 04743eba-8f91-458f-9e36-e36faa6fb0eb
-    m_ActionName: Player/AdvanceDialogue
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 724e6473-c134-4302-956f-5ac571b223a1
-    m_ActionName: Player/ReturnDialogue
-  - m_PersistentCalls:
-      m_Calls: []
     m_ActionId: c95b2375-e6d9-4b88-9c4c-c5e76515df4b
     m_ActionName: 'UI/Navigate[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]'
   - m_PersistentCalls:
@@ -22417,6 +22409,46 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 218e88e8-de6a-479a-bd53-3ea64a00264e
+    m_ActionName: 'Player/Run[/Keyboard/shift,/XInputControllerWindows/leftStickPress]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 88f0e360-0e26-4d92-ba66-1f2a6f3026da
+    m_ActionName: 'Player/Confirm[/Keyboard/f,/XInputControllerWindows/buttonSouth]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3681957853963885611}
+        m_TargetAssemblyTypeName: Pandora, Assembly-CSharp
+        m_MethodName: OnJump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: f5a5065c-8a9a-4150-ad82-dfc7a0f4daf8
+    m_ActionName: 'Dialogue/AdvanceDialogue[/XInputControllerWindows/buttonSouth,/Keyboard/f]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3681957853963885611}
+        m_TargetAssemblyTypeName: Pandora, Assembly-CSharp
+        m_MethodName: OnJump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: ca1a9979-cb51-44a7-8e84-9663d7e39d3d
+    m_ActionName: 'Dialogue/ReturnDialogue[/XInputControllerWindows/buttonEast,/Keyboard/g]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -22471,7 +22503,7 @@ MonoBehaviour:
   _enableRegen: 1
   regenerationInterval: 5
   Damaged: 0
-  _ultimoDispositivo: Keyboard
+  _ultimoDispositivo: 0
   _isGrounded: 0
   enemyScanRadius: 10
   enemyScanInterval: 2
