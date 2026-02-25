@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -16,8 +18,9 @@ public class AmethystHUD : MonoBehaviour
   private Sprite _amethystSprite;
 
   [SerializeField]
-  private GameObject _amethyst;
-  private RectTransform _amethystTransform;
+  private ManualSingleSpawner _amethystSpawner;
+
+  private Stack<GameObject> _amethysts;
 
   [Header("Config")]
   [SerializeField]
@@ -39,7 +42,7 @@ public class AmethystHUD : MonoBehaviour
       _amethystText = GetComponentInChildren<TMP_Text>();
 
     GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateText);
-    SetupAmethyst();
+    _amethystSpawner.FinishedInstancing.AddListener(SetupAmethysts);
     UpdateText(0, null);
   }
 
@@ -51,11 +54,9 @@ public class AmethystHUD : MonoBehaviour
     }
   }
 
-  private void SetupAmethyst()
+  private void SetupAmethysts(List<GameObject> objects)
   {
-    _amethystTransform = _amethyst.GetComponent<RectTransform>();
-    _amethystTransform.parent = _amethystContainer;
-    _amethystTransform.localScale = Vector3.zero;
+    _amethysts = new Stack<GameObject>(objects);
   }
 
   private void UpdateText(int newCount, Vector3? position = null)
@@ -65,28 +66,9 @@ public class AmethystHUD : MonoBehaviour
       return;
     }
 
-    if (position != null)
+    if (position != null && _amethysts.Count != 0)
     {
-      Sequence sequence = DOTween.Sequence();
-      _amethystTransform.position = (Vector3)position;
-      sequence.Append(
-        _amethystTransform
-          .DOScale(new Vector3(1.25f, 1.25f, 1.25f), _translationDuration)
-          .SetEase(_scaleEasing)
-      );
-      sequence.Join(
-        _amethystTransform
-          .DOLocalMove(Vector3.zero, _translationDuration)
-          .SetEase(_translationEasing)
-      );
-      sequence.Join(
-        _amethystTransform
-          .DORotate(new Vector3(0, 0, 10), _translationDuration)
-          .SetEase(_rotationEasing)
-      );
-      sequence.Append(_amethystTransform.DOScale(Vector3.one, .25f));
-      sequence.Append(_amethystTransform.DOScale(Vector3.zero, .25f));
-      sequence.Play();
+      VisualAmethyst((Vector3)position);
     }
 
     _amethystText.text = newCount.ToString("00");
@@ -94,5 +76,41 @@ public class AmethystHUD : MonoBehaviour
     _amethystText.transform.DOKill();
     _amethystText.transform.localScale = Vector3.one;
     _amethystText.transform.DOPunchScale(Vector3.one * 0.3f, 0.3f, 5, 1);
+  }
+
+  private void VisualAmethyst(Vector3 position)
+  {
+    GameObject amethyst = _amethysts.Pop();
+    RectTransform rect = amethyst.GetComponent<RectTransform>();
+
+    Sequence sequence = DOTween.Sequence();
+
+    sequence.AppendCallback(() =>
+    {
+      amethyst.SetActive(true);
+      rect.position = position;
+      rect.localScale = Vector3.zero;
+      rect.localRotation = Quaternion.identity;
+    });
+
+    sequence.Append(
+      rect.DOScale(new Vector3(1.25f, 1.25f, 1.25f), _translationDuration).SetEase(_scaleEasing)
+    );
+    sequence.Join(rect.DOLocalMove(Vector3.zero, _translationDuration).SetEase(_translationEasing));
+    sequence.Join(
+      rect.DORotate(new Vector3(0, 0, 10), _translationDuration).SetEase(_rotationEasing)
+    );
+
+    sequence.Append(rect.DOScale(Vector3.one, .25f));
+    sequence.Append(rect.DOScale(Vector3.zero, .25f));
+
+    // Callback de Finalização: Limpa e devolve para a stack
+    sequence.OnComplete(() =>
+    {
+      amethyst.SetActive(false);
+      _amethysts.Push(amethyst);
+    });
+
+    sequence.Play();
   }
 }

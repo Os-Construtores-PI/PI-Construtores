@@ -3460,6 +3460,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7204869610484786590}
+  - component: {fileID: 1583450739935485501}
   m_Layer: 0
   m_Name: AmethystContainer
   m_TagString: Untagged
@@ -3478,8 +3479,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4965656733780089093}
+  m_Children: []
   m_Father: {fileID: 2777628990315604128}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -3487,6 +3487,22 @@ RectTransform:
   m_AnchoredPosition: {x: -170.1, y: 3}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1583450739935485501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4809692004995601774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 335623eb458c28242a97c4350cbeac09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ManualSingleSpawner
+  _deactivatedObjects: []
+  _amount: 10
+  _parent: {fileID: 7204869610484786590}
+  objectToPool: {fileID: 2780598921457071657, guid: 464ab654b32b2f53bb39fa270be0649b, type: 3}
 --- !u!1 &4972823705227797154
 GameObject:
   m_ObjectHideFlags: 0
@@ -4143,6 +4159,7 @@ MonoBehaviour:
   _botaoAvancar: {fileID: 8351375336634000175}
   _botaoRetornar: {fileID: 8245341386694886058}
   _textoDialogo: {fileID: 0}
+  _bloquearJumpTemporariamente: 0
   _currentTrigger: {fileID: 0}
 --- !u!1 &5883359456576219754
 GameObject:
@@ -5272,7 +5289,7 @@ MonoBehaviour:
   _amethystText: {fileID: 1625168339469772839}
   _amethystContainer: {fileID: 7204869610484786590}
   _amethystSprite: {fileID: -6019821000861472939, guid: fe3a50788e5e78640bd92ed3601e3393, type: 3}
-  _amethyst: {fileID: 8425662566617370015}
+  _amethystSpawner: {fileID: 1583450739935485501}
   _translationDuration: 0.7
   _scaleEasing: 2
   _rotationEasing: 17
@@ -5313,81 +5330,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &8425662566617370015
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4965656733780089093}
-  - component: {fileID: 7399422551019670247}
-  - component: {fileID: 3465574810010563546}
-  m_Layer: 0
-  m_Name: Amethyst
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &4965656733780089093
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8425662566617370015}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7204869610484786590}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &7399422551019670247
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8425662566617370015}
-  m_CullTransparentMesh: 1
---- !u!114 &3465574810010563546
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8425662566617370015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: -6019821000861472939, guid: fe3a50788e5e78640bd92ed3601e3393, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &8458558145543125182
 GameObject:
   m_ObjectHideFlags: 0
