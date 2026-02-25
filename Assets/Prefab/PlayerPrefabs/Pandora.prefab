@@ -17372,14 +17372,6 @@ MonoBehaviour:
     m_ActionName: 'Player/Pause[/Keyboard/tab]'
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 04743eba-8f91-458f-9e36-e36faa6fb0eb
-    m_ActionName: Player/AdvanceDialogue
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 724e6473-c134-4302-956f-5ac571b223a1
-    m_ActionName: Player/ReturnDialogue
-  - m_PersistentCalls:
-      m_Calls: []
     m_ActionId: c95b2375-e6d9-4b88-9c4c-c5e76515df4b
     m_ActionName: 'UI/Navigate[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]'
   - m_PersistentCalls:
@@ -17438,6 +17430,14 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 218e88e8-de6a-479a-bd53-3ea64a00264e
     m_ActionName: 'Player/Run[/Keyboard/ctrl]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: f5a5065c-8a9a-4150-ad82-dfc7a0f4daf8
+    m_ActionName: 'Dialogue/AdvanceDialogue[/Keyboard/f]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ca1a9979-cb51-44a7-8e84-9663d7e39d3d
+    m_ActionName: 'Dialogue/ReturnDialogue[/Keyboard/g]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -22445,7 +22445,7 @@ ParticleSystem:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4330289490467253336}
   serializedVersion: 8
-  lengthInSec: 5
+  lengthInSec: 1
   simulationSpeed: 1
   stopAction: 0
   cullingMode: 0
@@ -22510,7 +22510,7 @@ ParticleSystem:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  moveWithTransform: 0
+  moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
   randomSeed: 0
@@ -22573,7 +22573,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 7
+      scalar: 3
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -23274,7 +23274,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 10
       minScalar: 10
       maxCurve:
         serializedVersion: 2

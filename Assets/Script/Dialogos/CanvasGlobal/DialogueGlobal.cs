@@ -156,16 +156,27 @@ public class DialogueGlobal : MonoBehaviour
     if (_Interactable == null)
       return;
 
+    var actions = _Interactable.actions;
+    actions.Enable();
+
     if (isDialogue)
     {
+      actions["AdvanceDialogue"]?.Enable();
+      actions["ReturnDialogue"]?.Enable();
+      actions["Move"]?.Disable();
+      actions["Attack"]?.Disable();
+      actions["Dash"]?.Disable();
       _Interactable.SwitchCurrentActionMap("Dialogue");
     }
     else
     {
+      actions["AdvanceDialogue"]?.Disable();
+      actions["ReturnDialogue"]?.Disable();
+      actions["Move"]?.Enable();
+      actions["Attack"]?.Enable();
+      actions["Dash"]?.Enable();
 
       _Interactable.SwitchCurrentActionMap("Player");
-
-      
     }
   }
 
@@ -230,17 +241,8 @@ public class DialogueGlobal : MonoBehaviour
     _currentTrigger?.OnDialogoFechado();
 
     StartCoroutine(FechaDialogoSeguro());
+      
 
-    _painelDialogo
-      .transform.DOScale(0f, 0.2f)
-      .SetEase(Ease.InBack)
-      .SetUpdate(true)
-      .OnComplete(() =>
-      {
-        _painelDialogo.SetActive(false);
-        _state = DialogueState.Closed;
-        Time.timeScale = 1f;
-      });
   }
 
   private void Update()
@@ -333,17 +335,23 @@ public class DialogueGlobal : MonoBehaviour
 
     _Interactable.SwitchCurrentActionMap("Player");
 
-    yield return null;
 
-    _painelDialogo.transform
-      .DOScale(0f, 0.2f)
+    if(_lockedPlayer != null)
+    {
+      _lockedPlayer.WaitForJumpRelease = true;
+    }
+
+    _painelDialogo
+      .transform.DOScale(0f, 0.2f)
       .SetEase(Ease.InBack)
+      .SetUpdate(true)
       .OnComplete(() =>
       {
         _painelDialogo.SetActive(false);
         _state = DialogueState.Closed;
         Time.timeScale = 1f;
       });
+   
   }
 
   

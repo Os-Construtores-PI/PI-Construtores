@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class DialogueTrigger : InteractableObject
+public class DialogueTrigger : MonoBehaviour
 {
   [TextArea(2, 4)]
   public string[] _dialogo = new string[] { };
@@ -53,10 +53,6 @@ public class DialogueTrigger : InteractableObject
     if (!other.CompareTag("Player"))
       return;
 
-    /*var ctx = other.GetComponent<PlayerContext>();
-    if (ctx != null)
-        ctx.BlockJumpByDialogue = true;
-    */
     if (_dialogoApenasUmaVez && _dialogoConsumido)
       return;
 
@@ -85,10 +81,7 @@ public class DialogueTrigger : InteractableObject
     if (!other.CompareTag("Player"))
       return;
 
-    /*  var ctx = other.GetComponent<PlayerContext>();
-      if (ctx != null)
-          ctx.BlockJumpByDialogue = false;
-    */
+    
     _jogadorDentro = false;
 
     if (_iconInteracao != null)

@@ -381,11 +381,13 @@ public class Player : CombatEntities
     {
       _isRunning = true;
       IsRunning.Invoke();
+      effectsWorker.PlayEffect(Constants.EffectsNames.Player.Run);
     }
     else if (context.canceled)
     {
       _isRunning = false;
       StoppedRunning.Invoke();
+      effectsWorker.StopEffect(Constants.EffectsNames.Player.Run);
     }
   }
 
@@ -439,6 +441,8 @@ public class Player : CombatEntities
 
   public void OnJump(InputAction.CallbackContext context)
   {
+    
+
     if (Context.IsHardLocked)
       return;
     if (Context.IgnoreGameplayInputThisFrame)
@@ -446,7 +450,7 @@ public class Player : CombatEntities
     if (Context.BlockJumpByDialogue)
       return;
 
-    if (Context.WaitForJumpRelease)
+    if (Context.WaitForJumpRelease) // segura o input do pulo do tutorial
     {
       if (context.canceled)
         Context.WaitForJumpRelease = false;
@@ -455,6 +459,7 @@ public class Player : CombatEntities
     if (context.started)
       Jump();
   }
+
 
   public void OnInteract(InputAction.CallbackContext context)
   {
@@ -525,7 +530,7 @@ public class Player : CombatEntities
 
   private void Jump()
   {
-    if(DialogueGlobal.Instance != null)
+    if (DialogueGlobal.Instance != null)
     {
       if (DialogueGlobal.Instance.IsDialogueActive)
         return;
@@ -549,8 +554,6 @@ public class Player : CombatEntities
     if (!(_isGrounded || _currentJumpCount < _maxJumpCount))
       return;
     VerticalLayer.ChangeState(_jumpingVerticalS, Context);
-
-    
   }
   #endregion
 
