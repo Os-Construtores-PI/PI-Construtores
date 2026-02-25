@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class AmethystItemDropZone : ItemDropZone
 {
-  private float _scaleMultiplier = 1.5f;
-  private float _durationScale = .25f;
+  private readonly float _scaleMultiplier = 1.5f;
+  private readonly float _durationScale = .25f;
 
   protected override void AddItem(Player player)
   {

@@ -381,11 +381,13 @@ public class Player : CombatEntities
     {
       _isRunning = true;
       IsRunning.Invoke();
+      effectsWorker.PlayEffect(Constants.EffectsNames.Player.Run);
     }
     else if (context.canceled)
     {
       _isRunning = false;
       StoppedRunning.Invoke();
+      effectsWorker.StopEffect(Constants.EffectsNames.Player.Run);
     }
   }
 
@@ -552,8 +554,6 @@ public class Player : CombatEntities
     if (!(_isGrounded || _currentJumpCount < _maxJumpCount))
       return;
     VerticalLayer.ChangeState(_jumpingVerticalS, Context);
-
-    
   }
   #endregion
 

@@ -85,12 +85,12 @@ public class CameraLogic : Entities
   private void SetDistanceCulling()
   {
     float[] layersDistance = new float[32];
-    layersDistance[0] = 40;
-    layersDistance[6] = 40;
-    layersDistance[7] = 40;
-    layersDistance[8] = 40;
-    layersDistance[9] = 40;
-    layersDistance[12] = 100;
+    layersDistance[0] = 200;
+    layersDistance[6] = 200;
+    layersDistance[7] = 200;
+    layersDistance[8] = 200;
+    layersDistance[9] = 200;
+    layersDistance[12] = 200;
     layersDistance[13] = 200;
     if (TryGetComponent(out Camera cam))
     {

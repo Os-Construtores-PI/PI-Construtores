@@ -3,91 +3,93 @@ using UnityEngine;
 // Classe que representa uma zona onde um item pode ser pego (drop zone)
 public class ItemDropZone : Item
 {
-    private GameObject visualInstance;    // Instância visual do item
-    private BoxCollider boxCollider;      // Colisor para detectar entrada de entidades
-    private Rigidbody rb;                 // Rigidbody para física (kinemático)
+  private GameObject visualInstance; // Instância visual do item
+  private BoxCollider boxCollider; // Colisor para detectar entrada de entidades
+  private Rigidbody rb; // Rigidbody para física (kinemático)
 
-    [SerializeField] protected int quantity;
+  [SerializeField]
+  protected int quantity;
 
 #if UNITY_EDITOR
-    public void OnDrawGizmos()
+  public void OnDrawGizmos()
+  {
+    if (Application.isPlaying || itemData == null || itemData.item == null)
+      return;
+
+    MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
+    if (mf != null && mf.sharedMesh != null)
     {
-        if (Application.isPlaying || itemData == null || itemData.item == null) return;
+      // 1. Definimos a escala que queremos visualizar
+      Vector3 visualScale = new(40, 40, 40);
 
-        MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
-        if (mf != null && mf.sharedMesh != null)
-        {
-            // 1. Definimos a escala que queremos visualizar
-            Vector3 visualScale = new(40, 40, 40);
+      // 2. Desenha o Mesh
+      Gizmos.color = new Color(1, 1, 1, 0.5f);
+      Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
 
-            // 2. Desenha o Mesh
-            Gizmos.color = new Color(1, 1, 1, 0.5f);
-            Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
-            
-            // 3. Desenha o WireCube ajustado
-            // Multiplicamos o tamanho do bounds pela escala visual
-            Vector3 scaledSize = Vector3.Scale(mf.sharedMesh.bounds.size, visualScale);
-            
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(transform.position, scaledSize);
-        }
+      // 3. Desenha o WireCube ajustado
+      // Multiplicamos o tamanho do bounds pela escala visual
+      Vector3 scaledSize = Vector3.Scale(mf.sharedMesh.bounds.size, visualScale);
+
+      Gizmos.color = Color.green;
+      Gizmos.DrawWireCube(transform.position, scaledSize);
     }
+  }
 
-    public void OnValidate()
-    {
-        // Força a atualização do Scene View quando você altera variáveis no Inspetor
-        UnityEditor.SceneView.RepaintAll();
-    }
+  public void OnValidate()
+  {
+    // Força a atualização do Scene View quando você altera variáveis no Inspetor
+    UnityEditor.SceneView.RepaintAll();
+  }
 #endif
 
-    public void Initialize()
+  public void Initialize()
+  {
+    // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
+    if (boxCollider == null)
     {
-        // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
-        if (boxCollider == null)
-        {
-            boxCollider = gameObject.AddComponent<BoxCollider>();
-            boxCollider.isTrigger = true;
-        }
-        if (rb == null)
-        {
-            // Rigidbody kinemático para interagir com física sem ser afetado por forças
-            rb = gameObject.AddComponent<Rigidbody>();
-
-            rb.isKinematic = true;
-        }
-
-
-        // Instancia o modelo visual do item se definido no ScriptableObject
-        if (itemData != null && itemData.item != null && transform.childCount < 1)
-        {
-            visualInstance = Instantiate(itemData.item, transform);
-            visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-
-            // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
-            if (visualInstance.TryGetComponent<MeshRenderer>(out var mesh))
-            {
-                boxCollider.size = mesh.bounds.size;
-                boxCollider.center = Vector3.zero;
-            }
-        }
+      boxCollider = gameObject.AddComponent<BoxCollider>();
+      boxCollider.isTrigger = true;
     }
-    public override void Start()
+    if (rb == null)
     {
-        base.Start();
-        Initialize();
+      // Rigidbody kinemático para interagir com física sem ser afetado por forças
+      rb = gameObject.AddComponent<Rigidbody>();
+
+      rb.isKinematic = true;
     }
-    // Método chamado quando outra colisão entra no trigger
-    public void OnTriggerEnter(Collider other)
+
+    // Instancia o modelo visual do item se definido no ScriptableObject
+    if (itemData != null && itemData.item != null && transform.childCount < 1)
     {
-        if (other.TryGetComponent(out Player player))
-        {
-            if(itemData != null)
-            {
-                AddItem(player);
-            }
-        }
+      visualInstance = Instantiate(itemData.item, transform);
+      visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+      // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
+      if (visualInstance.TryGetComponent<MeshRenderer>(out var mesh))
+      {
+        boxCollider.size = mesh.bounds.size;
+        boxCollider.center = Vector3.zero;
+      }
     }
-    protected virtual void AddItem(Player player)
+  }
+
+  public override void Start()
+  {
+    base.Start();
+    Initialize();
+  }
+
+  // Método chamado quando outra colisão entra no trigger
+  public void OnTriggerEnter(Collider other)
+  {
+    if (other.TryGetComponent(out Player player))
     {
+      if (itemData != null)
+      {
+        AddItem(player);
+      }
     }
+  }
+
+  protected virtual void AddItem(Player player) { }
 }
