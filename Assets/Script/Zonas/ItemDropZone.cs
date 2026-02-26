@@ -19,15 +19,11 @@ public class ItemDropZone : Item
     MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
     if (mf != null && mf.sharedMesh != null)
     {
-      // 1. Definimos a escala que queremos visualizar
-      Vector3 visualScale = new(40, 40, 40);
+      Vector3 visualScale = itemData.item.transform.localScale;
 
-      // 2. Desenha o Mesh
-      Gizmos.color = new Color(1, 1, 1, 0.5f);
+      Gizmos.color = new Color(1, 1, 1, 0.3f);
       Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
 
-      // 3. Desenha o WireCube ajustado
-      // Multiplicamos o tamanho do bounds pela escala visual
       Vector3 scaledSize = Vector3.Scale(mf.sharedMesh.bounds.size, visualScale);
 
       Gizmos.color = Color.green;
