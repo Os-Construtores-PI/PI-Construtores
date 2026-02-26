@@ -19,6 +19,10 @@ public class End_Portal : BasePortal
         {
             sequence.StartFinalSequence(enemyFinalTrigger);
         }
+        else
+        {
+          Debug.LogError("FinalSequenceDialogue não atribuído no Inspector!");
+        }
 
        // gameObject.SetActive(false);
 

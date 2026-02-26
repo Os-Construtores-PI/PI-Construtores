@@ -1859,6 +1859,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FinalSequenceDialogue
   finalDialogueTrigger: {fileID: 116293065}
+  _continueScreen: {fileID: 2035615612}
+  _continueDuration: 5
+  _continueCanvasGroup: {fileID: 2035615616}
+  _fadeDuration: 1
 --- !u!114 &116293065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1871,10 +1875,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueTrigger
-  _keyboardSprites: {fileID: 0}
-  _playstationSprites: {fileID: 0}
-  _xboxSprites: {fileID: 0}
-  range: 10
   _dialogo:
   - "Foram tuas m\xE3os, infanta, que tornaram poss\xEDvel o meu \nretorno e o teu
     aprisionamento. \nAgora teus p\xE9s correm em minha dire\xE7\xE3o"
@@ -1887,7 +1887,6 @@ MonoBehaviour:
   - Mas... Caso queira continuar, caso contemplar o fim seja seu desejo...
   - "As mais soberbas quimeras, os mais longos pesadelos, os \nmais tormentosos devaneios...
     Minha estimada divers\xE3o... \n\xC9 o que vos ofere\xE7o te observando no vazio."
-  - Continua...
   _TextoTutor: {fileID: 0}
   _dialogoGlobal: {fileID: 0}
   _iconInteracao: {fileID: 0}
@@ -12190,6 +12189,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 298306377}
+  - {fileID: 667831616}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &491900686
@@ -15568,6 +15568,108 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 661820186}
   m_Mesh: {fileID: 3184421084202846395, guid: a038439b35de3db5ea8b88ff359fb8be, type: 3}
+--- !u!1 &667831615
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 667831616}
+  - component: {fileID: 667831619}
+  - component: {fileID: 667831618}
+  - component: {fileID: 667831617}
+  m_Layer: 5
+  m_Name: Canvas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &667831616
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667831615}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2035615613}
+  m_Father: {fileID: 488936649}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 0}
+--- !u!114 &667831617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667831615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &667831618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667831615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
+  m_UiScaleMode: 0
+  m_ReferencePixelsPerUnit: 100
+  m_ScaleFactor: 1
+  m_ReferenceResolution: {x: 800, y: 600}
+  m_ScreenMatchMode: 0
+  m_MatchWidthOrHeight: 0
+  m_PhysicalUnit: 3
+  m_FallbackScreenDPI: 96
+  m_DefaultSpriteDPI: 96
+  m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 0
+--- !u!223 &667831619
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667831615}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 0
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
 --- !u!1 &670101939
 GameObject:
   m_ObjectHideFlags: 0
@@ -53733,10 +53835,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyboardSprites: {fileID: 0}
-  _playstationSprites: {fileID: 0}
-  _xboxSprites: {fileID: 0}
-  range: 10
   _dialogo:
   - "Argh... Minha cabe\xE7a...\r                                        \naquela
     <color=orange>caixa</color>... mas que...?"
@@ -64424,10 +64522,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyboardSprites: {fileID: 0}
-  _playstationSprites: {fileID: 0}
-  _xboxSprites: {fileID: 0}
-  range: 10
   _dialogo:
   - "Um... <color=orange>portal</color>... n\xE3o sei se devo atravessar...\nmas
     \xE9 melhor do eu ficar parada aqui..."
@@ -64803,10 +64897,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyboardSprites: {fileID: 0}
-  _playstationSprites: {fileID: 0}
-  _xboxSprites: {fileID: 0}
-  range: 10
   _dialogo:
   - "Droga... o que era aquela caixa...?\nque lugar \xE9 esse...?"
   _TextoTutor: {fileID: 0}
@@ -66182,6 +66272,94 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &2035615612
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2035615613}
+  - component: {fileID: 2035615615}
+  - component: {fileID: 2035615614}
+  - component: {fileID: 2035615616}
+  m_Layer: 5
+  m_Name: ContinuaImage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &2035615613
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2035615612}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 667831616}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1920, y: 1080}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2035615614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2035615612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: -2005480088, guid: 1f92accf45d486f4dbe3c2f2a8a272ba, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &2035615615
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2035615612}
+  m_CullTransparentMesh: 1
+--- !u!225 &2035615616
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2035615612}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2036721323
 GameObject:
   m_ObjectHideFlags: 0
@@ -70375,10 +70553,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _keyboardSprites: {fileID: 0}
-  _playstationSprites: {fileID: 0}
-  _xboxSprites: {fileID: 0}
-  range: 10
   _dialogo:
   - "O que \xE9... aquela coisa...?"
   - "Melhor eu desviar \ndaquelas <color=orange>coisas</color>, n\xE3o parecem \nnada
