@@ -4,7 +4,7 @@
 
 
 # Bone
-- [ ] refazer os bones #Erick 
-- [ ] refazer o weight paint #Erick 
-- [ ] gerar o ik #Erick 
-- [ ] refazer as animações #Erick 
+- [x] refazer os bones #Erick
+- [x] refazer o weight paint #Erick
+- [x] gerar o ik #Erick
+- [x] refazer as animações #Erick
