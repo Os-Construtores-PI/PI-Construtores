@@ -303,4 +303,58 @@ public sealed class DataDirector : MonoBehaviour
     _currentSlot = NormalizeSlot(index);
   }
   #endregion
+
+  public bool IsSlotCompleted(int slotIndex)
+  {
+    var slot = GetSafeSlot(slotIndex);
+    return slot.gameCompleted;
+  }
+
+  public void SetSlotsCompleted(int slotIndex, bool value)
+  {
+    var slot = GetSafeSlot(slotIndex);
+    slot.gameCompleted = value;
+    Commit();
+  }
+
+  public bool AnySlotCompleted()
+  {
+    foreach(var slot in _gameData.savedSlots)
+    {
+      if(slot.gameCompleted)
+      return true;
+    }
+    return false;
+  }
+
+  public void ResetRunTimeState()
+  {
+    _currentSlot = -1;
+
+    Time.timeScale = -1;
+    GameContext.IsPaused = false;
+
+    var huds = FindObjectsByType<HudDirector>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    foreach (var h in huds)
+        Destroy(h.gameObject);
+    
+    var cams = FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    foreach (var cam in cams)
+    {
+      if (cam.gameObject.scene.name == "DontDestroyOnLoad")
+          Destroy(cam.gameObject);
+    }
+
+    var finalDialogue = FindObjectsByType<FinalSequenceDialogue>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    foreach(var f in finalDialogue)
+       Destroy(f.gameObject);
+  }
+
+  public void ClearSlot(int slotIndex)
+  {
+    slotIndex = NormalizeSlot(slotIndex);
+
+    _gameData.savedSlots[slotIndex] = new SavedSlotData();
+    Commit();
+  }
 }

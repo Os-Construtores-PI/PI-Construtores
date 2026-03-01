@@ -9,6 +9,7 @@ public class MenuDirector : MonoBehaviour
 {
     [Header("Canvas Roots")]
     [SerializeField] private Transform[] canvasRoots;
+    [SerializeField] private GameObject _continueButton;
 
     private readonly Dictionary<string, List<GameObject>> panels = new();
 
@@ -26,11 +27,20 @@ public class MenuDirector : MonoBehaviour
     private void Start()
     {
         InitMenu();
+        UptadeContinueButton();
     }
 
     private void InitMenu()
     {
         ShowPanel(Constants.MenuPanelNames.Menu);
+    }
+
+    private void UptadeContinueButton()
+    {
+        if(_continueButton == null) return;
+
+        bool show = DataDirector.Instance.AnySlotCompleted();
+        _continueButton.SetActive(show);
     }
 
     #endregion
@@ -102,6 +112,11 @@ public class MenuDirector : MonoBehaviour
                     pulse.Play();
                  }
             }
+        }
+
+        if(panelName == Constants.MenuPanelNames.Menu)
+        {
+            UptadeContinueButton();
         }
     }
 

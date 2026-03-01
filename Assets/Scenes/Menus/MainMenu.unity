@@ -1527,6 +1527,7 @@ RectTransform:
   - {fileID: 1456803981}
   - {fileID: 1222559385}
   - {fileID: 603115526}
+  - {fileID: 879841994}
   m_Father: {fileID: 1249940994}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1774,6 +1775,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 849340479}
   m_CullTransparentMesh: 1
+--- !u!1 &879841993
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 879841994}
+  - component: {fileID: 879841995}
+  m_Layer: 5
+  m_Name: SaveMenuController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &879841994
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879841993}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 778696757}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &879841995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879841993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c7f9570e61558c42b189a5c2d8c5936, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SaveMenuControl
 --- !u!1 &886349289
 GameObject:
   m_ObjectHideFlags: 0
@@ -2166,9 +2215,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1832037184}
-        m_TargetAssemblyTypeName: LoadDirector, Assembly-CSharp
-        m_MethodName: OnNewSlotButton
+      - m_Target: {fileID: 879841995}
+        m_TargetAssemblyTypeName: SaveMenuControl, Assembly-CSharp
+        m_MethodName: StartNewGame
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2269,7 +2318,7 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 603115527}
+    m_SelectOnUp: {fileID: 1227975241}
     m_SelectOnDown: {fileID: 1456803982}
     m_SelectOnLeft: {fileID: 603115527}
     m_SelectOnRight: {fileID: 1456803982}
@@ -2298,9 +2347,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1832037184}
-        m_TargetAssemblyTypeName: LoadDirector, Assembly-CSharp
-        m_MethodName: OnNewSlotButton
+      - m_Target: {fileID: 879841995}
+        m_TargetAssemblyTypeName: SaveMenuControl, Assembly-CSharp
+        m_MethodName: StartNewGame
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2500,6 +2549,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canvasRoots:
   - {fileID: 1249940994}
+  _continueButton: {fileID: 701426438}
 --- !u!1 &1361720183
 GameObject:
   m_ObjectHideFlags: 0
@@ -2731,9 +2781,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1832037184}
-        m_TargetAssemblyTypeName: LoadDirector, Assembly-CSharp
-        m_MethodName: OnNewSlotButton
+      - m_Target: {fileID: 879841995}
+        m_TargetAssemblyTypeName: SaveMenuControl, Assembly-CSharp
+        m_MethodName: StartNewGame
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -32,6 +32,9 @@ public class BasicMenuLogic : MonoBehaviour
     {
         Time.timeScale = 1f;
         GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+
+        if(DataDirector.Instance != null)
+           DataDirector.Instance.ResetRunTimeState();
         SceneManager.LoadScene(Constants.SceneNames.MainMenu);
     }
     #endregion

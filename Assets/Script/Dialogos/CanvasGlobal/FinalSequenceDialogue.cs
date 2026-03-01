@@ -18,9 +18,14 @@ public class FinalSequenceDialogue : MonoBehaviour
   {
     if(_continueScreen != null)
       _continueScreen.SetActive(true);
+
+      if(_continueCanvasGroup != null)
+    {
+      
       _continueCanvasGroup.alpha = 0f;
       _continueCanvasGroup.interactable = false;
       _continueCanvasGroup.blocksRaycasts = false;  
+    }
   }
 
   public void StartFinalSequence(DialogueTrigger trigger)
@@ -69,6 +74,10 @@ public class FinalSequenceDialogue : MonoBehaviour
     private void GoToMainMenu()
     {
       Time.timeScale = 1f;
+      GameContext.IsPaused = false;
+
+      if(DataDirector.Instance != null)
+         DataDirector.Instance.ResetRunTimeState();
       SceneManager.LoadScene("MainMenu");
     }
 }
