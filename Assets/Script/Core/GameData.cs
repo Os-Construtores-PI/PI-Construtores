@@ -30,6 +30,7 @@ public class SavedConfigData
 public class SavedSlotData
 {
     public string lastLevelName;
+    public bool gameCompleted;
     public List<SavedLevelData> savedLevelDatas = new();
 }
 
