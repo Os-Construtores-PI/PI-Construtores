@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using static TutorialGlobal;
 
 public class TutorialTrigger : MonoBehaviour
 {
@@ -83,6 +84,8 @@ public class TutorialTrigger : MonoBehaviour
       return;
     if (TutorialGlobal.Instance.IsTutorialActive)
       return;
+    if (GameState.IsPaused)
+      return;
 
     if (playerInput.actions["Interaction"].WasPerformedThisFrame())
     {
@@ -93,6 +96,13 @@ public class TutorialTrigger : MonoBehaviour
 
   public void AbriirTutorial()
   {
+    if (GameState.IsPaused)
+      return;
+
+    if (TutorialGlobal.Instance == null)
+      return;
+
+    if(TutorialGlobal.Instance.IsTutorialActive)
     tutorialConsumido = true;
 
     if (interactionSprite != null)

@@ -17,6 +17,7 @@ public class DialogueTrigger : MonoBehaviour
 
   private bool _canInteractAgain = true;
 
+  private bool _isPaused = false;
   [Header("Configuração do Dialogo")]
   [SerializeField]
   private bool _dialogoApenasUmaVez;
@@ -42,10 +43,47 @@ public class DialogueTrigger : MonoBehaviour
       DeviceSpriteManager.Instance.OnDeviceChanged += OnDeviceChanged;
   }
 
+  private void OnEnable()
+  {
+    if (GlobalEventBus.Instance != null)
+      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(OnPauseChangedOn);
+  }
+
+  private void OnDisable()
+  {
+    if(GlobalEventBus.Instance != null)
+     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(OnPauseChangedOn);
+
+  }
+
   private void OnDestroy()
   {
     if (DeviceSpriteManager.Instance != null)
       DeviceSpriteManager.Instance.OnDeviceChanged -= OnDeviceChanged;
+  }
+
+  private void OnPauseChangedOn(bool isPaused)
+  {
+    _isPaused = isPaused;
+
+    if (_iconInteracao == null)
+      return;
+
+    if (isPaused)
+    {
+      _iconInteracao.gameObject.SetActive(false);
+
+      if(_playerInput != null)
+        _playerInput.actions["Interaction"]?.Disable();
+    }
+    else
+    {
+      if(_playerInput != null)
+        _playerInput.actions["Interaction"]?.Enable();
+
+      if (_jogadorDentro && !_dialogoConsumido)
+        _iconInteracao.gameObject.SetActive(true);
+    }
   }
 
   private void OnTriggerEnter(Collider other)
@@ -94,6 +132,9 @@ public class DialogueTrigger : MonoBehaviour
 
   private void Update()
   {
+    if (_isPaused)
+      return;
+
     if (_dialogoGlobal == null)
     {
       _dialogoGlobal = DialogueGlobal.Instance;

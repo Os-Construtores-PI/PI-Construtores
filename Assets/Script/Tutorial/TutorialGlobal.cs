@@ -49,6 +49,7 @@ public class TutorialGlobal : MonoBehaviour
       return;
 
     IsTutorialActive = true;
+    GameState.IsTutorialActive = true;
 
     DeviceSpriteManager.Instance?.ForceRefresh();
 
@@ -70,6 +71,7 @@ public class TutorialGlobal : MonoBehaviour
       return;
 
     IsTutorialActive = false;
+    GameState.IsTutorialActive = false;
     tutorialHUD.SetActive(false);
     GameObject painelAtivo = GetPainelAtivo();
     if (painelAtivo != null)
@@ -145,21 +147,19 @@ public class TutorialGlobal : MonoBehaviour
       return dashTutorial;
     return null;
   }
-  /* private void AtivarTutorial(TutorialTrigger.TutorialType tipo)
-   {
-       
-       
-       switch (tipo)
-       {
-           case TutorialTrigger.TutorialType.Movimento:
-               movimentoTutorial.SetActive(true);
-               break;
-           case TutorialTrigger.TutorialType.Dash:
-               dashTutorial.SetActive(true);
-               break;
-           
-           
-       }
-   }
-  */
+
+  public static class GameState
+  {
+    public static bool IsTutorialActive;
+    public static bool IsDialogueActive;
+    public static bool IsPaused;
+
+    public static bool CanPause()
+    {
+      if (IsTutorialActive) return false;
+      if (IsDialogueActive) return false;
+      return true;
+    }
+  }
+  
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using static TutorialGlobal;
 
 public class GameDirector : MonoBehaviour
 {
@@ -128,8 +129,11 @@ public class GameDirector : MonoBehaviour
 
   public void SetPauseWorld(bool setPause)
   {
+    if (setPause && !GameState.CanPause())
+      return;
+
     Time.timeScale = setPause ? 0f : 1f;
-    GameContext.IsPaused = setPause;
+    GameState.IsPaused = setPause;
   }
 
   public void ShutdownWorld()
