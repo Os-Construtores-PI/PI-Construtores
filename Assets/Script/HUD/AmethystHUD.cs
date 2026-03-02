@@ -27,6 +27,12 @@ public class AmethystHUD : MonoBehaviour
   private float _translationDuration = .7f;
 
   [SerializeField]
+  private float _rotationDuration = .5f;
+
+  [SerializeField]
+  private float _scaleDuration = .5f;
+
+  [SerializeField]
   private Ease _scaleEasing = Ease.InSine;
 
   [SerializeField]
@@ -38,12 +44,12 @@ public class AmethystHUD : MonoBehaviour
   //a
   void Start()
   {
+    DOTween.Init();
     if (_amethystText == null)
       _amethystText = GetComponentInChildren<TMP_Text>();
 
     GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateText);
     _amethystSpawner.FinishedInstancing.AddListener(SetupAmethysts);
-    UpdateText(0, null);
   }
 
   private void OnDestroy()
@@ -57,6 +63,7 @@ public class AmethystHUD : MonoBehaviour
   private void SetupAmethysts(List<GameObject> objects)
   {
     _amethysts = new Stack<GameObject>(objects);
+    UpdateText(0, transform.position);
   }
 
   private void UpdateText(int newCount, Vector3? position = null)
@@ -66,19 +73,13 @@ public class AmethystHUD : MonoBehaviour
       return;
     }
 
-    if (position != null && _amethysts.Count != 0)
+    if (position != null)
     {
-      VisualAmethyst((Vector3)position);
+      VisualAmethyst((Vector3)position, newCount);
     }
-
-    _amethystText.text = newCount.ToString("00");
-
-    _amethystText.transform.DOKill();
-    _amethystText.transform.localScale = Vector3.one;
-    _amethystText.transform.DOPunchScale(Vector3.one * 0.3f, 0.3f, 5, 1);
   }
 
-  private void VisualAmethyst(Vector3 position)
+  private void VisualAmethyst(Vector3 position, int newCount)
   {
     GameObject amethyst = _amethysts.Pop();
     RectTransform rect = amethyst.GetComponent<RectTransform>();
@@ -88,18 +89,23 @@ public class AmethystHUD : MonoBehaviour
     sequence.AppendCallback(() =>
     {
       amethyst.SetActive(true);
-      rect.position = position;
+      rect.position = position + new Vector3(Random.Range(-30f, 30f), Random.Range(-30f, 30f));
       rect.localScale = Vector3.zero;
       rect.localRotation = Quaternion.identity;
     });
 
     sequence.Append(
-      rect.DOScale(new Vector3(1.25f, 1.25f, 1.25f), _translationDuration).SetEase(_scaleEasing)
+      rect.DOScale(new Vector3(1.5f, 1.5f, 1.5f), _scaleDuration).SetEase(_scaleEasing)
     );
     sequence.Join(rect.DOLocalMove(Vector3.zero, _translationDuration).SetEase(_translationEasing));
-    sequence.Join(
-      rect.DORotate(new Vector3(0, 0, 10), _translationDuration).SetEase(_rotationEasing)
-    );
+    sequence.Join(rect.DORotate(new Vector3(0, 0, 10), _rotationDuration).SetEase(_rotationEasing));
+    sequence.JoinCallback(() =>
+    {
+      _amethystText.transform.DOKill();
+      _amethystText.text = newCount.ToString("00");
+      _amethystText.transform.localScale = Vector3.one;
+      _amethystText.transform.DOPunchScale(Vector3.one * 2f, _scaleDuration, 1, 1);
+    });
 
     sequence.Append(rect.DOScale(Vector3.one, .25f));
     sequence.Append(rect.DOScale(Vector3.zero, .25f));

@@ -441,8 +441,6 @@ public class Player : CombatEntities
 
   public void OnJump(InputAction.CallbackContext context)
   {
-    
-
     if (Context.IsHardLocked)
       return;
     if (Context.IgnoreGameplayInputThisFrame)
@@ -459,7 +457,6 @@ public class Player : CombatEntities
     if (context.started)
       Jump();
   }
-
 
   public void OnInteract(InputAction.CallbackContext context)
   {
