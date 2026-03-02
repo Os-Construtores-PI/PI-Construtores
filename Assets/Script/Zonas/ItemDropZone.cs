@@ -21,13 +21,8 @@ public class ItemDropZone : Item
     {
       Vector3 visualScale = itemData.item.transform.localScale;
 
-      Gizmos.color = new Color(1, 1, 1, 0.3f);
-      Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
-
-      Vector3 scaledSize = Vector3.Scale(mf.sharedMesh.bounds.size, visualScale);
-
-      Gizmos.color = Color.green;
-      Gizmos.DrawWireCube(transform.position, scaledSize);
+      Gizmos.color = Color.white;
+      Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
     }
   }
 
@@ -61,7 +56,7 @@ public class ItemDropZone : Item
       visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
       // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
-      if (visualInstance.TryGetComponent<MeshRenderer>(out var mesh))
+      if (itemData.item.TryGetComponent<MeshRenderer>(out var mesh))
       {
         boxCollider.size = mesh.bounds.size;
         boxCollider.center = Vector3.zero;
