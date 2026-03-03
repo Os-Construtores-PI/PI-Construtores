@@ -134,6 +134,13 @@ public class GameDirector : MonoBehaviour
 
     Time.timeScale = setPause ? 0f : 1f;
     GameState.IsPaused = setPause;
+
+    if(!setPause && playerDirector?.FirstPlayerContext != null)
+    {
+      var ctx = playerDirector?.FirstPlayerContext;
+      ctx.IgnoreGameplayInputThisFrame = true;
+      StartCoroutine(CLearIgnoreInputNextFrame(ctx));
+    }
   }
 
   public void ShutdownWorld()
@@ -143,24 +150,14 @@ public class GameDirector : MonoBehaviour
 
   public void SetLockPlayer(PlayerContext playerContext, bool set)
   {
-    /*if(set)
-    {
-        playerContext.PlayerInput.ActivateInput();
-        playerContext.PlayerController.enabled = false;
-    }
-    else
-    {
-        playerContext.PlayerInput.DeactivateInput();
-        playerContext.PlayerController.enabled = true;
-    }
-    */
+   
 
     if (playerContext == null)
       return;
 
     if (playerContext.PlayerController != null)
       playerContext.PlayerController.enabled = !set;
-    //playerContext.PlayerController.enabled = set;
+   
 
     playerContext.CameraLocked = set;
     playerContext.IsHardLocked = set;
@@ -185,5 +182,11 @@ public class GameDirector : MonoBehaviour
       DialogueGlobal.Instance.SetTrigger(introDialogue);
       DialogueGlobal.Instance.IniciarDialogo(introDialogue._dialogo);
     }
+  }
+
+  private IEnumerator CLearIgnoreInputNextFrame(PlayerContext ctx)
+  {
+    yield return null;
+    ctx.IgnoreGameplayInputThisFrame = false;
   }
 }
