@@ -87,6 +87,11 @@ public class TutorialTrigger : MonoBehaviour
     if (GameState.IsPaused)
       return;
 
+    var ctx = playerInput.GetComponent<Player>()?.Context;
+
+    if (ctx != null && ctx.IgnoreGameplayInputThisFrame)
+      return;
+
     if (playerInput.actions["Interaction"].WasPerformedThisFrame())
     {
       Debug.Log("[TutorialTrigger] Interaction triggered");
