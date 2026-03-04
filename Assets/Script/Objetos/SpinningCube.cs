@@ -33,7 +33,7 @@ public class RotatingCube : BaseRenderedGameObject
     rotatingSequence.Append(
       transform
         .DORotate(rotationStep, _rotationDuration, RotateMode.WorldAxisAdd)
-        .SetEase(Ease.Linear)
+        .SetEase(Ease.InExpo)
     );
 
     rotatingSequence.AppendInterval(_rotationInterval);

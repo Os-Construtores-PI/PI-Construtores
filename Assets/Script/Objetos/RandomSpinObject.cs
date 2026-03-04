@@ -16,6 +16,9 @@ public class RandomSpinObject : BaseRenderedGameObject
   [SerializeField]
   private float _rotationDuration = 5f;
 
+  [SerializeField]
+  private float _intervalDuration = 2f;
+
   public override void Start()
   {
     if (_transitionListener != null)
@@ -32,7 +35,9 @@ public class RandomSpinObject : BaseRenderedGameObject
     Sequence animationSequence = DOTween.Sequence();
     animationSequence.AppendInterval(3f);
     animationSequence.Append(
-      transform.DORotate(angleVector, _rotationDuration, RotateMode.FastBeyond360)
+      transform
+        .DORotate(angleVector, _rotationDuration, RotateMode.FastBeyond360)
+        .SetEase(Ease.OutExpo)
     );
     animationSequence.Play();
   }
