@@ -83,7 +83,7 @@ MonoBehaviour:
     m_Value: 65472
   tint:
     m_OverrideState: 1
-    m_Value: {r: 0.48584908, g: 0.85918766, b: 1, a: 1}
+    m_Value: {r: 0.5709772, g: 0.84484255, b: 0.8584906, a: 1}
   highQualityFiltering:
     m_OverrideState: 1
     m_Value: 1
@@ -103,22 +103,6 @@ MonoBehaviour:
   dirtIntensity:
     m_OverrideState: 1
     m_Value: 0
---- !u!114 &-616051019848661359
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81180773991d8724ab7f2d216912b564, type: 3}
-  m_Name: ChromaticAberration
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.ChromaticAberration
-  active: 0
-  intensity:
-    m_OverrideState: 1
-    m_Value: 0.47
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,7 +121,6 @@ MonoBehaviour:
   - {fileID: -7282601406023015806}
   - {fileID: 2930102982164936616}
   - {fileID: 5526402020435911300}
-  - {fileID: -616051019848661359}
   - {fileID: 4736819482057629908}
 --- !u!114 &2930102982164936616
 MonoBehaviour:
@@ -221,7 +204,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1}
   samples:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 2
   sampleDimmer:
     m_OverrideState: 0
     m_Value: 0.5
@@ -233,19 +216,19 @@ MonoBehaviour:
     m_Value: 1.25
   scale:
     m_OverrideState: 0
-    m_Value: 1.5
+    m_Value: 1.06
   streaksIntensity:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1.44
   streaksLength:
-    m_OverrideState: 0
-    m_Value: 0.5
+    m_OverrideState: 1
+    m_Value: 0.324
   streaksOrientation:
     m_OverrideState: 0
     m_Value: 0
   streaksThreshold:
-    m_OverrideState: 0
-    m_Value: 0.25
+    m_OverrideState: 1
+    m_Value: 1
   resolution:
     m_OverrideState: 0
     m_Value: 4
@@ -267,10 +250,10 @@ MonoBehaviour:
   active: 1
   shadows:
     m_OverrideState: 1
-    m_Value: {x: 0.28774303, y: 0.88663435, z: 1, w: 0.12259187}
+    m_Value: {x: 0.2538712, y: 0.8866815, z: 1, w: 0.052539334}
   midtones:
     m_OverrideState: 0
-    m_Value: {x: 1, y: 0.095810056, z: 0.3135247, w: 0.26269698}
+    m_Value: {x: 1, y: 0.095810056, z: 0.3135247, w: 0.07005252}
   highlights:
     m_OverrideState: 0
     m_Value: {x: 0.75425243, y: 1, z: 0, w: 0.8406304}
