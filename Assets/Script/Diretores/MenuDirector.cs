@@ -35,12 +35,16 @@ public class MenuDirector : MonoBehaviour
         ShowPanel(Constants.MenuPanelNames.Menu);
     }
 
-    private void UptadeContinueButton()
+    public void UptadeContinueButton()
     {
         if(_continueButton == null) return;
 
-        bool show = DataDirector.Instance.AnySlotCompleted();
-        _continueButton.SetActive(show);
+        bool show =
+             DataDirector.Instance.AnySlotHasCheckpoint() ||
+             DataDirector.Instance.AnySlotCompleted();
+        
+           _continueButton.SetActive(show);
+      
     }
 
     #endregion
@@ -169,6 +173,16 @@ public class MenuDirector : MonoBehaviour
         SwitchPanel(Constants.MenuPanelNames.Menu,Constants.MenuPanelNames.OptionsMenu);
     }
 
+    public void ContinueGame()
+    {
+       int slot = DataDirector.Instance.GetCurrentSlot();
+
+       if (DataDirector.Instance.IsSlotCompleted(slot))
+       {
+           
+       }
+    }
+
     public void ExitOptions()
     {
         SwitchPanel(Constants.MenuPanelNames.OptionsMenu,Constants.MenuPanelNames.Menu);
@@ -192,7 +206,7 @@ public class MenuDirector : MonoBehaviour
     public void ExitSaveMenu()
     {
         SwitchPanel(Constants.MenuPanelNames.SaveMenu,Constants.MenuPanelNames.Menu);
-    }
+    } 
 
     public void LoadScene(string sceneName)
     {
@@ -206,6 +220,8 @@ public class MenuDirector : MonoBehaviour
         Debug.Log("Quit Game");
 #endif
     }
+
+    
 
     #endregion
 }
