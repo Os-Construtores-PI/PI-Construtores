@@ -327,6 +327,17 @@ public sealed class DataDirector : MonoBehaviour
     return false;
   }
 
+  public bool AnySlotHasCheckpoint()
+  {
+    foreach (var slot in _gameData.savedSlots)
+    {
+      if(slot.savedLevelDatas != null && slot.savedLevelDatas.Count > 0)
+        return true;
+    }
+
+    return false;
+  }
+
   public void ResetRunTimeState()
   {
     _currentSlot = -1;
