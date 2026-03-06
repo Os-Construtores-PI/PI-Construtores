@@ -170,6 +170,9 @@ public sealed class DataDirector : MonoBehaviour
   public void SaveCheckpoint(int slot)
   {
     CollectScene();
+    var slotData = GetSafeSlot(slot);
+    slotData.lastLevelName = SceneManager.GetActiveScene().name;
+
     var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
 
     lvl.savedPlayers.Clear();
@@ -192,6 +195,8 @@ public sealed class DataDirector : MonoBehaviour
     }
 
     Commit();
+
+    
   }
   #endregion
 
@@ -340,7 +345,7 @@ public sealed class DataDirector : MonoBehaviour
 
   public void ResetRunTimeState()
   {
-    _currentSlot = -1;
+    //_currentSlot = -1;
 
     Time.timeScale = -1;
     GameContext.IsPaused = false;

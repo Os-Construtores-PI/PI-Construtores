@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -179,7 +180,12 @@ public class MenuDirector : MonoBehaviour
 
        if (DataDirector.Instance.IsSlotCompleted(slot))
        {
-           
+           StartCoroutine(StartNewGamePlus(slot));
+       }
+       else
+       {
+         string level = DataDirector.Instance.GetLastLevelName(slot);
+         SceneManager.LoadScene(level);
        }
     }
 
@@ -219,6 +225,31 @@ public class MenuDirector : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log("Quit Game");
 #endif
+    }
+
+     private IEnumerator StartNewGamePlus(int slot)
+    {
+      SceneManager.LoadScene(Constants.SceneNames.Fase0);
+      yield return null;
+
+     var players = DataDirector.Instance.GetPlayersData(
+       slot,
+       DataDirector.Instance.GetLastLevelName(slot)
+       );
+
+      var player = FindAnyObjectByType<Player>();
+      
+      if( player == null || players.Count == 0 )
+       yield break;
+       
+       player.Inventory.ClearItems();
+
+      foreach (var item in players[0].inventory)
+      {
+        var data = Resources.Load<ItemData>($"Items/{item.savedItemName}");
+      if (data)
+         player.Inventory.AddItem(data, item.savedItemQuantity);
+      }
     }
 
     
