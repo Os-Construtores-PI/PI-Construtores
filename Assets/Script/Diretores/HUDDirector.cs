@@ -336,14 +336,14 @@ public class HudDirector : MonoBehaviour
     switch (obj)
     {
       case PuzzleColorButton pcb:
-        text.DOColor(pcb.buttonCode.color, duration);
+        text.DOColor(pcb.buttonCode.Color, duration);
         text.text = interactionBind;
         break;
 
       case GraplingHookTarget:
         if (GetIcon("GHOOK") is IconImage validIcon)
         {
-          image.sprite = validIcon.sprite;
+          image.sprite = validIcon.Sprite;
         }
         break;
 
@@ -518,7 +518,7 @@ public class HudDirector : MonoBehaviour
   #endregion
 
   #region Helpers
-  private IconImage? GetIcon(string destiny) => icons.Find(icon => icon.destiny == destiny);
+  private IconImage? GetIcon(string destiny) => icons.Find(icon => icon.Destiny == destiny);
 
   private List<GameObject> GetPanel(int playerID, string panelName) =>
     canvasMap.TryGetValue(playerID, out var dict) && dict.TryGetValue(panelName, out var result)

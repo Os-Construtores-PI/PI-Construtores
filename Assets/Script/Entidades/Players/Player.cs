@@ -346,9 +346,6 @@ public class Player : CombatEntities
 
   #endregion
 
-  #region  === Dialogue ===
-
-  #endregion
   #region === Input Callbacks ===
 
   public void OnMove(InputAction.CallbackContext context)
@@ -381,13 +378,11 @@ public class Player : CombatEntities
     {
       _isRunning = true;
       IsRunning.Invoke();
-      effectsWorker.PlayEffect(Constants.EffectsNames.Player.Run);
     }
     else if (context.canceled)
     {
       _isRunning = false;
       StoppedRunning.Invoke();
-      effectsWorker.StopEffect(Constants.EffectsNames.Player.Run);
     }
   }
 

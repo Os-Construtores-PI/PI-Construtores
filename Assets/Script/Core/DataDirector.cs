@@ -109,6 +109,7 @@ public sealed class DataDirector : MonoBehaviour
     return _gameData.savedSlots[NormalizeSlot(index)];
   }
 
+  // Cria o nível se não existir — usar apenas em métodos de ESCRITA
   private SavedLevelData GetSafeLevel(int slotIndex, string scene)
   {
     var slot = GetSafeSlot(slotIndex);
@@ -123,6 +124,13 @@ public sealed class DataDirector : MonoBehaviour
     lvl.savedPlayers ??= new List<SavedPlayerData>();
     lvl.savedDroppedItems ??= new List<SavedDroppedItem>();
     return lvl;
+  }
+
+  // Apenas leitura — não cria entrada se não existir
+  private SavedLevelData FindLevel(int slotIndex, string scene)
+  {
+    var slot = GetSafeSlot(slotIndex);
+    return slot.savedLevelDatas.Find(l => l.levelName == scene);
   }
 
   private void EnsurePlayerIndex(List<SavedPlayerData> list, int idx)
@@ -170,17 +178,20 @@ public sealed class DataDirector : MonoBehaviour
   public void SaveCheckpoint(int slot)
   {
     CollectScene();
-    var slotData = GetSafeSlot(slot);
+    SavedSlotData slotData = GetSafeSlot(slot);
     slotData.lastLevelName = SceneManager.GetActiveScene().name;
 
-    var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+    SavedLevelData lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
 
     lvl.savedPlayers.Clear();
-    foreach (var p in _players)
+
+    foreach (Player p in _players)
+    {
       lvl.savedPlayers.Add(Collect(p));
+    }
 
     lvl.savedDroppedItems.Clear();
-    foreach (var d in _drops)
+    foreach (ItemDropZone d in _drops)
     {
       if (!d || !d.itemData)
         continue;
@@ -195,10 +206,20 @@ public sealed class DataDirector : MonoBehaviour
     }
 
     Commit();
+  }
 
-    
+  // FIX: Removido CollectScene desnecessário — SaveLastPath só salva o path
+  public void SaveLastPath(int slot, LevelPathType lastPath)
+  {
+    SavedSlotData slotData = GetSafeSlot(slot);
+    slotData.lastLevelName = SceneManager.GetActiveScene().name;
+
+    SavedLevelData lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+    lvl.lastPath = lastPath;
+    Commit();
   }
   #endregion
+
 
   #region RESPAWN (CHECKPOINT RUNTIME)
   public void RespawnAllPlayers(int slot)
@@ -257,7 +278,10 @@ public sealed class DataDirector : MonoBehaviour
   #region LOAD (FRIO / SCENE)
   public void LoadDroppedItems(int slot)
   {
-    var lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
+    // FIX: Usando FindLevel (somente leitura) para não criar entrada vazia
+    var lvl = FindLevel(slot, SceneManager.GetActiveScene().name);
+    if (lvl == null)
+      return;
 
     foreach (
       var d in FindObjectsByType<ItemDropZone>(
@@ -285,11 +309,14 @@ public sealed class DataDirector : MonoBehaviour
   #endregion
 
   #region READ API
-  public bool HasCheckpoint(int slot, string scene) =>
-    GetSafeSlot(slot).savedLevelDatas.Exists(l => l.levelName == scene);
+  // FIX: Usando FindLevel para não criar entradas vazias ao apenas verificar
+  public bool HasCheckpoint(int slot, string scene) => FindLevel(slot, scene) != null;
 
-  public IReadOnlyList<SavedPlayerData> GetPlayersData(int slot, string scene) =>
-    GetSafeLevel(slot, scene).savedPlayers;
+  public IReadOnlyList<SavedPlayerData> GetPlayersData(int slot, string scene)
+  {
+    var lvl = FindLevel(slot, scene);
+    return lvl?.savedPlayers ?? new List<SavedPlayerData>();
+  }
 
   public GameMode GetGameMode() => _gameData.savedConfig.GameMode;
 
@@ -299,10 +326,17 @@ public sealed class DataDirector : MonoBehaviour
 
   public int GetCurrentSlot() => _currentSlot;
 
+  // FIX: Usando FindLevel para não criar entrada vazia ao ler o lastPath
+  public LevelPathType GetLastPath(int slot, string scene)
+  {
+    var lvl = FindLevel(slot, scene);
+    return lvl != null ? lvl.lastPath : default;
+  }
+
   public string GetLastLevelName(int index) => GetSafeSlot(index).lastLevelName;
   #endregion
 
-  #region  WRITE API
+  #region WRITE API
   public void SetCurrentSlot(int index)
   {
     _currentSlot = NormalizeSlot(index);
@@ -324,10 +358,10 @@ public sealed class DataDirector : MonoBehaviour
 
   public bool AnySlotCompleted()
   {
-    foreach(var slot in _gameData.savedSlots)
+    foreach (var slot in _gameData.savedSlots)
     {
-      if(slot.gameCompleted)
-      return true;
+      if (slot.gameCompleted)
+        return true;
     }
     return false;
   }
@@ -336,7 +370,7 @@ public sealed class DataDirector : MonoBehaviour
   {
     foreach (var slot in _gameData.savedSlots)
     {
-      if(slot.savedLevelDatas != null && slot.savedLevelDatas.Count > 0)
+      if (slot.savedLevelDatas != null && slot.savedLevelDatas.Count > 0)
         return true;
     }
 
@@ -345,25 +379,30 @@ public sealed class DataDirector : MonoBehaviour
 
   public void ResetRunTimeState()
   {
-    //_currentSlot = -1;
-
-    Time.timeScale = -1;
+    // FIX: timeScale = 1 para retomar o tempo corretamente (era -1, valor inválido)
+    Time.timeScale = 1;
     GameContext.IsPaused = false;
 
-    var huds = FindObjectsByType<HudDirector>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    var huds = FindObjectsByType<HudDirector>(
+      FindObjectsInactive.Include,
+      FindObjectsSortMode.None
+    );
     foreach (var h in huds)
-        Destroy(h.gameObject);
-    
+      Destroy(h.gameObject);
+
     var cams = FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
     foreach (var cam in cams)
     {
       if (cam.gameObject.scene.name == "DontDestroyOnLoad")
-          Destroy(cam.gameObject);
+        Destroy(cam.gameObject);
     }
 
-    var finalDialogue = FindObjectsByType<FinalSequenceDialogue>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-    foreach(var f in finalDialogue)
-       Destroy(f.gameObject);
+    var finalDialogue = FindObjectsByType<FinalSequenceDialogue>(
+      FindObjectsInactive.Include,
+      FindObjectsSortMode.None
+    );
+    foreach (var f in finalDialogue)
+      Destroy(f.gameObject);
   }
 
   public void ClearSlot(int slotIndex)
