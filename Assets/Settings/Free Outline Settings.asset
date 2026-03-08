@@ -13,23 +13,59 @@ MonoBehaviour:
   m_Name: Outline
   m_EditorClassIdentifier: LineworkLite::LineworkLite.FreeOutline.Outline
   material: {fileID: 0}
-  isActive: 0
+  isActive: 1
   RenderingLayer:
     serializedVersion: 0
     m_Bits: 1
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 114687
   renderQueue: 0
   occlusion: 2
   maskingStrategy: 0
-  color: {r: 0, g: 1, b: 0, a: 1}
+  color: {r: 0.9622642, g: 0, b: 0.62720025, a: 1}
+  enableOcclusion: 0
+  occludedColor: {r: 1, g: 0, b: 0, a: 1}
+  blendMode: 2
+  extrusionMethod: 0
+  scaling: 0
+  width: 3.2
+  minWidth: 0
+  scaleWithResolution: 0
+  referenceResolution: 0
+  customResolution: 0
+  materialType: 0
+  customMaterial: {fileID: 0}
+--- !u!114 &-1094600249353740646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca2cb9e9790a941d3b51ae2615e6e1bd, type: 3}
+  m_Name: Outline
+  m_EditorClassIdentifier: LineworkLite::LineworkLite.FreeOutline.Outline
+  material: {fileID: 0}
+  isActive: 1
+  RenderingLayer:
+    serializedVersion: 0
+    m_Bits: 1
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 16384
+  renderQueue: 2
+  occlusion: 2
+  maskingStrategy: 0
+  color: {r: 1, g: 0, b: 0.43492365, a: 1}
   enableOcclusion: 0
   occludedColor: {r: 1, g: 0, b: 0, a: 1}
   blendMode: 0
   extrusionMethod: 4
   scaling: 0
-  width: 20
+  width: 4.3
   minWidth: 0
   scaleWithResolution: 0
   referenceResolution: 0
@@ -52,3 +88,4 @@ MonoBehaviour:
   showInSceneView: 1
   outlines:
   - {fileID: -7927678325055821389}
+  - {fileID: -1094600249353740646}
