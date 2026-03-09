@@ -552,13 +552,14 @@ public class Player : CombatEntities
   #region  === PAUSE ===
   private void Pause()
   {
+    
     if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
       return;
 
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameContext.IsPaused);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(true);
   }
   #endregion
 
