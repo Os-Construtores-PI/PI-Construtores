@@ -5,6 +5,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator))]
@@ -559,7 +560,7 @@ public class Player : CombatEntities
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(true);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
   }
   #endregion
 
