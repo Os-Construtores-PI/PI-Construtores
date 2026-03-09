@@ -92,6 +92,25 @@ public class HudDirector : MonoBehaviour
   }
   #endregion
 
+  private void Update()
+  {
+    if (EventSystem.current.currentSelectedGameObject != null)
+        return;
+
+    if (Gamepad.current != null)
+    {
+        if (Gamepad.current.dpad.ReadValue() != Vector2.zero ||
+            Gamepad.current.leftStick.ReadValue() != Vector2.zero)
+        {
+            SelectFirstButton();
+        }
+    }
+
+    if (Keyboard.current.anyKey.wasPressedThisFrame)
+    {
+        SelectFirstButton();
+    }
+  }
   #region Initialization
   public GameObject InitializeHUD(Player player, Transform hudParent, GameObject hudPrefab)
   {
@@ -238,26 +257,39 @@ public class HudDirector : MonoBehaviour
 
   public void ShowPanel(string panelName, int playerID, bool independent, bool fade = false)
   {
-    bool firstButtonSelected = false;
-    foreach (var go in GetPanelObjects(playerID, panelName))
+   foreach(var go in GetPanelObjects(playerID, panelName))
     {
-      if (go.TryGetComponent(out Button button))
+      if(go.TryGetComponent(out Button button))
       {
         button.interactable = true;
-        if (!firstButtonSelected)
-        {
-          button.Select();
-          firstButtonSelected = true;
-        }
       }
-      if (fade && go.TryGetComponent(out Image image))
+      if(fade && go.TryGetComponent(out Image image))
       {
         image.DOFade(.8f, .25f).SetUpdate(UpdateType.Normal, independent);
         image.raycastTarget = true;
       }
-
       go.transform.DOScale(Vector3.one, .25f).SetUpdate(UpdateType.Normal, independent);
     }
+
+   EventSystem.current.SetSelectedGameObject(null);
+  }
+
+  private void SelectFirstButton()
+  {
+    var buttons = FindObjectsByType<Button>(
+        FindObjectsInactive.Exclude,
+        FindObjectsSortMode.None
+    );
+
+    foreach (var button in buttons)
+    {
+      if (button.interactable)
+      {
+        EventSystem.current.SetSelectedGameObject(button.gameObject);
+        break;
+      }
+    }
+
   }
   #endregion
 

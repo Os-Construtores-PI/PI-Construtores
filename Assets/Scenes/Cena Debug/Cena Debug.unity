@@ -9963,6 +9963,7 @@ GameObject:
   - component: {fileID: 4308793626584961004}
   - component: {fileID: 6130118085628135436}
   - component: {fileID: 6727117098894901407}
+  - component: {fileID: 7786661638903789145}
   m_Layer: 0
   m_Name: GameDirector
   m_TagString: GameController
@@ -12225,8 +12226,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   icons:
-  - destiny: GHOOK
-    sprite: {fileID: -1749272443, guid: 5f99838dce6784043ae3bcd12c47ca6b, type: 3}
+  - Destiny: 
+    Sprite: {fileID: 0}
 --- !u!33 &6727378006888555760
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -12879,6 +12880,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7820756989911984689}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7786661638903789145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3633868483738888215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2328ad006dbd6541e862483c36de8c3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseManagerOnAndOff
 --- !u!4 &7820756989911984689
 Transform:
   m_ObjectHideFlags: 0
@@ -13359,6 +13372,7 @@ MonoBehaviour:
   flashDuration: 0.1
   flashColor: {r: 1, g: 1, b: 1, a: 1}
   flashEmission: {r: 1, g: 1, b: 1, a: 1}
+  _willRotate: 0
   tipoPath: 0
   modoPath: 1
   tipoAnimacao: 1
