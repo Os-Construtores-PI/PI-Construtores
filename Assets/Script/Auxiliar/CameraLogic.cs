@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -85,13 +86,10 @@ public class CameraLogic : Entities
   private void SetDistanceCulling()
   {
     float[] layersDistance = new float[32];
-    layersDistance[0] = 200;
-    layersDistance[6] = 200;
-    layersDistance[7] = 200;
-    layersDistance[8] = 200;
-    layersDistance[9] = 200;
-    layersDistance[12] = 200;
-    layersDistance[13] = 200;
+    for (int i = 0; i < layersDistance.Count(); i++)
+    {
+      layersDistance[i] = 200;
+    }
     if (TryGetComponent(out Camera cam))
     {
       cam.layerCullDistances = layersDistance;

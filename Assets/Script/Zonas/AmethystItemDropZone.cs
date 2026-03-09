@@ -11,26 +11,26 @@ public class AmethystItemDropZone : ItemDropZone
     Vector3 initialScale = transform.localScale;
 
     player.AddAmethysts(quantity, transform.position);
+    _boxCollider.enabled = false;
 
     Sequence sequence = DOTween.Sequence();
 
-    // 🔥 Pequena sacudida antes de crescer
-    sequence.Append(transform.DOShakePosition(
+    sequence.Append(
+      transform.DOShakePosition(
         duration: 0.15f,
         strength: 0.3f,
         vibrato: 20,
         randomness: 45,
         snapping: false,
         fadeOut: true
-    ));
+      )
+    );
 
-    // 💎 Cresce rápido
-    sequence.Append(transform.DOScale(initialScale * _scaleMultiplier, _durationScale / 2)
-        .SetEase(Ease.OutBack));
+    sequence.Append(
+      transform.DOScale(initialScale * _scaleMultiplier, _durationScale / 2).SetEase(Ease.OutBack)
+    );
 
-    // ✨ Encolhe sumindo
-    sequence.Append(transform.DOScale(0, _durationScale / 2)
-        .SetEase(Ease.InBack));
+    sequence.Append(transform.DOScale(0, _durationScale / 2).SetEase(Ease.InBack));
 
     sequence.AppendCallback(() => gameObject.SetActive(false));
 

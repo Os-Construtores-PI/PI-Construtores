@@ -3,9 +3,9 @@ using UnityEngine;
 // Classe que representa uma zona onde um item pode ser pego (drop zone)
 public class ItemDropZone : Item
 {
-  private GameObject visualInstance; // Instância visual do item
-  private BoxCollider boxCollider; // Colisor para detectar entrada de entidades
-  private Rigidbody rb; // Rigidbody para física (kinemático)
+  protected GameObject _visualInstance;
+  protected BoxCollider _boxCollider;
+  protected Rigidbody _rb;
 
   [SerializeField]
   protected int quantity;
@@ -36,30 +36,30 @@ public class ItemDropZone : Item
   public void Initialize()
   {
     // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
-    if (boxCollider == null)
+    if (_boxCollider == null)
     {
-      boxCollider = gameObject.AddComponent<BoxCollider>();
-      boxCollider.isTrigger = true;
+      _boxCollider = gameObject.AddComponent<BoxCollider>();
+      _boxCollider.isTrigger = true;
     }
-    if (rb == null)
+    if (_rb == null)
     {
       // Rigidbody kinemático para interagir com física sem ser afetado por forças
-      rb = gameObject.AddComponent<Rigidbody>();
+      _rb = gameObject.AddComponent<Rigidbody>();
 
-      rb.isKinematic = true;
+      _rb.isKinematic = true;
     }
 
     // Instancia o modelo visual do item se definido no ScriptableObject
     if (itemData != null && itemData.item != null && transform.childCount < 1)
     {
-      visualInstance = Instantiate(itemData.item, transform);
-      visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+      _visualInstance = Instantiate(itemData.item, transform);
+      _visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
       // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
       if (itemData.item.TryGetComponent<MeshRenderer>(out var mesh))
       {
-        boxCollider.size = mesh.bounds.size;
-        boxCollider.center = Vector3.zero;
+        _boxCollider.size = mesh.bounds.size;
+        _boxCollider.center = Vector3.zero;
       }
     }
   }
