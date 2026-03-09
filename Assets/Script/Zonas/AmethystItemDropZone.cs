@@ -26,12 +26,10 @@ public class AmethystItemDropZone : ItemDropZone
       )
     );
 
-    // 💎 Cresce rápido
     sequence.Append(
       transform.DOScale(initialScale * _scaleMultiplier, _durationScale / 2).SetEase(Ease.OutBack)
     );
 
-    // ✨ Encolhe sumindo
     sequence.Append(transform.DOScale(0, _durationScale / 2).SetEase(Ease.InBack));
 
     sequence.AppendCallback(() => gameObject.SetActive(false));
