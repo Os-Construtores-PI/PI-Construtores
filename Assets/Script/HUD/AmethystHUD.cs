@@ -20,7 +20,8 @@ public class AmethystHUD : MonoBehaviour
   [SerializeField]
   private ManualSingleSpawner _amethystSpawner;
 
-  private Stack<GameObject> _amethysts;
+  private List<GameObject> _amethysts;
+  private HashSet<GameObject> _inUse = new();
 
   [Header("Config")]
   [SerializeField]
@@ -60,36 +61,54 @@ public class AmethystHUD : MonoBehaviour
     }
   }
 
-  private void SetupAmethysts(List<GameObject> objects)
+  private GameObject GetAvailable()
   {
-    _amethysts = new Stack<GameObject>(objects);
-    UpdateText(0, transform.position);
+    foreach (var obj in _amethysts)
+    {
+      if (!_inUse.Contains(obj))
+        return obj;
+    }
+    return null; // todos em uso
   }
 
   private void UpdateText(int newCount, Vector3? position = null)
   {
     if (_amethystText == null)
-    {
       return;
-    }
 
     if (position != null)
     {
-      VisualAmethyst((Vector3)position, newCount);
+      // Guarda o count atual para não usar valor desatualizado depois
+      int countSnapshot = newCount;
+      VisualAmethyst((Vector3)position, countSnapshot);
     }
   }
 
   private void VisualAmethyst(Vector3 position, int newCount)
   {
-    GameObject amethyst = _amethysts.Pop();
+    GameObject amethyst = GetAvailable();
+
+    if (amethyst == null)
+    {
+      _amethystText.text = newCount.ToString("00");
+      return;
+    }
+
+    _inUse.Add(amethyst);
     RectTransform rect = amethyst.GetComponent<RectTransform>();
 
-    Sequence sequence = DOTween.Sequence();
+    // Mata tweens anteriores SEM completar (evita callbacks velhos)
+    rect.DOKill(complete: false);
+    amethyst.SetActive(false);
+
+    Vector3 worldTarget = _amethystContainer.position; // alvo em world space
+
+    Sequence sequence = DOTween.Sequence().SetLink(amethyst);
 
     sequence.AppendCallback(() =>
     {
       amethyst.SetActive(true);
-      rect.position = position + new Vector3(Random.Range(-30f, 30f), Random.Range(-30f, 30f));
+      rect.position = position + new Vector3(Random.Range(-30f, 30f), Random.Range(-30f, 30f), 0f);
       rect.localScale = Vector3.zero;
       rect.localRotation = Quaternion.identity;
     });
@@ -97,26 +116,35 @@ public class AmethystHUD : MonoBehaviour
     sequence.Append(
       rect.DOScale(new Vector3(1.5f, 1.5f, 1.5f), _scaleDuration).SetEase(_scaleEasing)
     );
-    sequence.Join(rect.DOLocalMove(Vector3.zero, _translationDuration).SetEase(_translationEasing));
+    sequence.Join(rect.DOMove(worldTarget, _translationDuration).SetEase(_translationEasing));
     sequence.Join(rect.DORotate(new Vector3(0, 0, 10), _rotationDuration).SetEase(_rotationEasing));
+
     sequence.AppendCallback(() =>
     {
-      _amethystText.transform.DOKill();
+      _amethystText.transform.DOKill(complete: false);
       _amethystText.text = newCount.ToString("00");
       _amethystText.transform.localScale = Vector3.one;
-      _amethystText.transform.DOPunchScale(Vector3.one * 2f, _scaleDuration, 1, 1);
+      _amethystText
+        .transform.DOPunchScale(Vector3.one * 2f, _scaleDuration, 1, 1)
+        .SetLink(_amethystText.gameObject);
     });
 
     sequence.Append(rect.DOScale(Vector3.one, .25f));
     sequence.Append(rect.DOScale(Vector3.zero, .25f));
 
-    // Callback de Finalização: Limpa e devolve para a stack
     sequence.OnComplete(() =>
     {
       amethyst.SetActive(false);
-      _amethysts.Push(amethyst);
+      _inUse.Remove(amethyst);
     });
 
     sequence.Play();
+  }
+
+  private void SetupAmethysts(List<GameObject> objects)
+  {
+    _amethysts = new List<GameObject>(objects);
+    _inUse = new HashSet<GameObject>();
+    UpdateText(0, transform.position);
   }
 }

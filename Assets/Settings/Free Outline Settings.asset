@@ -29,7 +29,7 @@ MonoBehaviour:
   blendMode: 2
   extrusionMethod: 0
   scaling: 0
-  width: 6
+  width: 9.7
   minWidth: 0
   scaleWithResolution: 1
   referenceResolution: 2
@@ -60,12 +60,12 @@ MonoBehaviour:
   occlusion: 2
   maskingStrategy: 1
   color: {r: 0.7294118, g: 0.09019608, b: 0.5137255, a: 1}
-  enableOcclusion: 0
-  occludedColor: {r: 1, g: 0, b: 0, a: 1}
-  blendMode: 2
+  enableOcclusion: 1
+  occludedColor: {r: 0, g: 0, b: 0, a: 1}
+  blendMode: 0
   extrusionMethod: 4
   scaling: 0
-  width: 5
+  width: 6
   minWidth: 3.2
   scaleWithResolution: 1
   referenceResolution: 2
@@ -105,6 +105,42 @@ MonoBehaviour:
   minWidth: 0
   scaleWithResolution: 1
   referenceResolution: 2
+  customResolution: 0
+  materialType: 0
+  customMaterial: {fileID: 0}
+--- !u!114 &-4215244583636281212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca2cb9e9790a941d3b51ae2615e6e1bd, type: 3}
+  m_Name: Outline
+  m_EditorClassIdentifier: LineworkLite::LineworkLite.FreeOutline.Outline
+  material: {fileID: 0}
+  isActive: 0
+  RenderingLayer:
+    serializedVersion: 0
+    m_Bits: 1
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  renderQueue: 0
+  occlusion: 2
+  maskingStrategy: 0
+  color: {r: 0, g: 0, b: 0, a: 1}
+  enableOcclusion: 0
+  occludedColor: {r: 1, g: 0, b: 0, a: 1}
+  blendMode: 0
+  extrusionMethod: 4
+  scaling: 0
+  width: 2.4
+  minWidth: 0
+  scaleWithResolution: 0
+  referenceResolution: 0
   customResolution: 0
   materialType: 0
   customMaterial: {fileID: 0}
@@ -164,6 +200,7 @@ MonoBehaviour:
   - {fileID: -9211962299148151504}
   - {fileID: -5789297941129444972}
   - {fileID: 6156928187654043059}
+  - {fileID: -4215244583636281212}
 --- !u!114 &6156928187654043059
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,7 +230,7 @@ MonoBehaviour:
   blendMode: 0
   extrusionMethod: 4
   scaling: 0
-  width: 2.7
+  width: 4.3
   minWidth: 0
   scaleWithResolution: 1
   referenceResolution: 2
