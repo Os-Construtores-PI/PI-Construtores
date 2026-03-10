@@ -90,21 +90,25 @@ public class AmethystHUD : MonoBehaviour
 
     if (amethyst == null)
     {
-      // Todos ocupados: atualiza texto direto sem animação
       _amethystText.text = newCount.ToString("00");
       return;
     }
 
-    _inUse.Add(amethyst); // ← marca como ocupado IMEDIATAMENTE
+    _inUse.Add(amethyst);
     RectTransform rect = amethyst.GetComponent<RectTransform>();
+
+    // Mata tweens anteriores SEM completar (evita callbacks velhos)
     rect.DOKill(complete: false);
+    amethyst.SetActive(false);
+
+    Vector3 worldTarget = _amethystContainer.position; // alvo em world space
 
     Sequence sequence = DOTween.Sequence().SetLink(amethyst);
 
     sequence.AppendCallback(() =>
     {
       amethyst.SetActive(true);
-      rect.position = position + new Vector3(Random.Range(-30f, 30f), Random.Range(-30f, 30f));
+      rect.position = position + new Vector3(Random.Range(-30f, 30f), Random.Range(-30f, 30f), 0f);
       rect.localScale = Vector3.zero;
       rect.localRotation = Quaternion.identity;
     });
@@ -112,7 +116,7 @@ public class AmethystHUD : MonoBehaviour
     sequence.Append(
       rect.DOScale(new Vector3(1.5f, 1.5f, 1.5f), _scaleDuration).SetEase(_scaleEasing)
     );
-    sequence.Join(rect.DOLocalMove(Vector3.zero, _translationDuration).SetEase(_translationEasing));
+    sequence.Join(rect.DOMove(worldTarget, _translationDuration).SetEase(_translationEasing));
     sequence.Join(rect.DORotate(new Vector3(0, 0, 10), _rotationDuration).SetEase(_rotationEasing));
 
     sequence.AppendCallback(() =>
@@ -131,7 +135,7 @@ public class AmethystHUD : MonoBehaviour
     sequence.OnComplete(() =>
     {
       amethyst.SetActive(false);
-      _inUse.Remove(amethyst); // ← libera só quando realmente terminou
+      _inUse.Remove(amethyst);
     });
 
     sequence.Play();
