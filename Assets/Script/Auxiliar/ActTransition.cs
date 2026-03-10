@@ -1,16 +1,24 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class ActTransition : MonoBehaviour
 {
-    [SerializeField] AudioSource backgroundMusic;
-    [SerializeField] float pitchIncrease = .1f;
+  public readonly UnityEvent Transition = new();
 
-    private bool triggeredTransition = false;
-    private void OnTriggerEnter(Collider other)
-    {
-        if(triggeredTransition) return;
-        triggeredTransition = true;
-        backgroundMusic.pitch += pitchIncrease;
+  [SerializeField]
+  AudioSource backgroundMusic;
 
-    }
+  [SerializeField]
+  float pitchIncrease = .1f;
+
+  private bool triggeredTransition = false;
+
+  private void OnTriggerEnter(Collider other)
+  {
+    if (triggeredTransition)
+      return;
+    triggeredTransition = true;
+    Transition.Invoke();
+    backgroundMusic.pitch += pitchIncrease;
+  }
 }

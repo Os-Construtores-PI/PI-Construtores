@@ -5,6 +5,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator))]
@@ -346,9 +347,6 @@ public class Player : CombatEntities
 
   #endregion
 
-  #region  === Dialogue ===
-
-  #endregion
   #region === Input Callbacks ===
 
   public void OnMove(InputAction.CallbackContext context)
@@ -381,13 +379,11 @@ public class Player : CombatEntities
     {
       _isRunning = true;
       IsRunning.Invoke();
-      effectsWorker.PlayEffect(Constants.EffectsNames.Player.Run);
     }
     else if (context.canceled)
     {
       _isRunning = false;
       StoppedRunning.Invoke();
-      effectsWorker.StopEffect(Constants.EffectsNames.Player.Run);
     }
   }
 
@@ -557,13 +553,14 @@ public class Player : CombatEntities
   #region  === PAUSE ===
   private void Pause()
   {
+    
     if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
       return;
 
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameContext.IsPaused);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
   }
   #endregion
 

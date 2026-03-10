@@ -70,17 +70,18 @@ MonoBehaviour:
   - {fileID: 7833122117494664109}
   - {fileID: 3107308481957255507}
   - {fileID: -5361799758431467429}
-  m_RendererFeatureMap: ad6b866f10d7b46c53d99ee299601f2b5bc8ea19870f97b5
+  - {fileID: 9118192844068057314}
+  m_RendererFeatureMap: ad6b866f10d7b46c53d99ee299601f2b5bc8ea19870f97b5e2702fd814548a7e
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:
     serializedVersion: 2
-    m_Bits: 32703
+    m_Bits: 4294967295
   m_OpaqueLayerMask:
     serializedVersion: 2
-    m_Bits: 65471
+    m_Bits: 4294967295
   m_TransparentLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -94,7 +95,7 @@ MonoBehaviour:
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 2
   m_DepthPrimingMode: 0
-  m_CopyDepthMode: 0
+  m_CopyDepthMode: 1
   m_DepthAttachmentFormat: 0
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
@@ -167,3 +168,21 @@ MonoBehaviour:
     BlurQuality: 0
     Falloff: 100
     SampleCount: -1
+--- !u!114 &9118192844068057314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 312420e7960934bbaa47d364e225cd0c, type: 3}
+  m_Name: FreeOutline
+  m_EditorClassIdentifier: LineworkLite::LineworkLite.FreeOutline.FreeOutline
+  m_Active: 1
+  settings: {fileID: 11400000, guid: 1fff7512dc203c592821d0b532e20ea4, type: 2}
+  shaders:
+    mask: {fileID: 4800000, guid: 19ae7b440d27f4f9990007afdc74ddaf, type: 3}
+    outline: {fileID: 4800000, guid: fb375234a1509436fa2a7d37f08912f8, type: 3}
+    clear: {fileID: 4800000, guid: b854aa374420b4b47992044f7c9a0719, type: 3}

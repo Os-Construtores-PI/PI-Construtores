@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -35,12 +36,16 @@ public class MenuDirector : MonoBehaviour
         ShowPanel(Constants.MenuPanelNames.Menu);
     }
 
-    private void UptadeContinueButton()
+    public void UptadeContinueButton()
     {
         if(_continueButton == null) return;
 
-        bool show = DataDirector.Instance.AnySlotCompleted();
-        _continueButton.SetActive(show);
+        bool show =
+             DataDirector.Instance.AnySlotHasCheckpoint() ||
+             DataDirector.Instance.AnySlotCompleted();
+        
+           _continueButton.SetActive(show);
+      
     }
 
     #endregion
@@ -169,6 +174,21 @@ public class MenuDirector : MonoBehaviour
         SwitchPanel(Constants.MenuPanelNames.Menu,Constants.MenuPanelNames.OptionsMenu);
     }
 
+    public void ContinueGame()
+    {
+       int slot = DataDirector.Instance.GetCurrentSlot();
+
+       if (DataDirector.Instance.IsSlotCompleted(slot))
+       {
+           StartCoroutine(StartNewGamePlus(slot));
+       }
+       else
+       {
+         string level = DataDirector.Instance.GetLastLevelName(slot);
+         SceneManager.LoadScene(level);
+       }
+    }
+
     public void ExitOptions()
     {
         SwitchPanel(Constants.MenuPanelNames.OptionsMenu,Constants.MenuPanelNames.Menu);
@@ -192,7 +212,7 @@ public class MenuDirector : MonoBehaviour
     public void ExitSaveMenu()
     {
         SwitchPanel(Constants.MenuPanelNames.SaveMenu,Constants.MenuPanelNames.Menu);
-    }
+    } 
 
     public void LoadScene(string sceneName)
     {
@@ -206,6 +226,33 @@ public class MenuDirector : MonoBehaviour
         Debug.Log("Quit Game");
 #endif
     }
+
+     private IEnumerator StartNewGamePlus(int slot)
+    {
+      SceneManager.LoadScene(Constants.SceneNames.Fase0);
+      yield return null;
+
+     var players = DataDirector.Instance.GetPlayersData(
+       slot,
+       DataDirector.Instance.GetLastLevelName(slot)
+       );
+
+      var player = FindAnyObjectByType<Player>();
+      
+      if( player == null || players.Count == 0 )
+       yield break;
+       
+       player.Inventory.ClearItems();
+
+      foreach (var item in players[0].inventory)
+      {
+        var data = Resources.Load<ItemData>($"Items/{item.savedItemName}");
+      if (data)
+         player.Inventory.AddItem(data, item.savedItemQuantity);
+      }
+    }
+
+    
 
     #endregion
 }

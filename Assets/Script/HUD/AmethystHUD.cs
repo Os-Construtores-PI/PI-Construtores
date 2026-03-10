@@ -99,7 +99,7 @@ public class AmethystHUD : MonoBehaviour
     );
     sequence.Join(rect.DOLocalMove(Vector3.zero, _translationDuration).SetEase(_translationEasing));
     sequence.Join(rect.DORotate(new Vector3(0, 0, 10), _rotationDuration).SetEase(_rotationEasing));
-    sequence.JoinCallback(() =>
+    sequence.AppendCallback(() =>
     {
       _amethystText.transform.DOKill();
       _amethystText.text = newCount.ToString("00");

@@ -20,4 +20,6 @@ public class CheckpointZone : MonoBehaviour
             //Debug.Log($"Checkpoint salvo na posição {checkpointPosition} para todos os players.");
         }
     }
+
+  
 }
