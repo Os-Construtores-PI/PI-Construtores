@@ -26,8 +26,8 @@ Material:
   m_ModifiedSerializedProperties: 22
   m_ValidKeywords:
   - _ALPHAPREMULTIPLY_ON
+  - _ALPHATEST_ON
   - _RECEIVE_SHADOWS_OFF
-  - _SPECULAR_SETUP
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 1
@@ -39,27 +39,29 @@ Material:
   disabledShaderPasses:
   - MOTIONVECTORS
   - DepthOnly
+  - SHADOWCASTER
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _AlphaClip: 0
+    - _AlphaClip: 1
     - _AlphaToMask: 0
+    - _CastShadows: 0
     - _Cull: 1
     - _DstBlend: 10
     - _DstBlendAlpha: 10
-    - _EmissionValue: 3.88
+    - _EmissionValue: 1.72
     - _QueueControl: 0
     - _RotationSpeed: 0.1
-    - _ScaleFirstBend: 3.95
-    - _ScaleSecondBend: 0.29
-    - _ScaleUV: 2
-    - _WorkflowMode: 0
+    - _ScaleFirstBend: -2.33
+    - _ScaleSecondBend: -1.03
+    - _ScaleUV: 1
+    - _WorkflowMode: 1
     m_Colors:
-    - _PortalColor: {r: 0, g: 0.4014075, b: 0.5566038, a: 1}
-    - _PortalColor2: {r: 0.63242626, g: 0.4575472, b: 1, a: 1}
+    - _PortalColor: {r: 0.2486682, g: 0, b: 1, a: 1}
+    - _PortalColor2: {r: 0.11151934, g: 0, b: 1, a: 1}
     - _PortalColor3: {r: 1, g: 0, b: 0.8976784, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
