@@ -5,12 +5,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using System.Globalization;
 
 public class MenuDirector : MonoBehaviour
 {
     [Header("Canvas Roots")]
     [SerializeField] private Transform[] canvasRoots;
     [SerializeField] private GameObject _continueButton;
+
+  private string _currentPanel;
+
+  private List<Button> currentButtons = new();
 
     private readonly Dictionary<string, List<GameObject>> panels = new();
 
@@ -31,7 +37,42 @@ public class MenuDirector : MonoBehaviour
         UptadeContinueButton();
     }
 
-    private void InitMenu()
+  private void Update()
+  {
+    if (EventSystem.current.currentSelectedGameObject != null)
+      return;
+
+    if(Gamepad.current != null)
+    {
+      if(Gamepad.current.dpad.ReadValue() != Vector2.zero ||
+        Gamepad.current.leftStick.ReadValue()!= Vector2.zero)
+      {
+        SelectFirstButton();
+      }
+    }
+
+    if (Keyboard.current.anyKey.wasPressedThisFrame)
+    {
+      SelectFirstButton();
+    }
+  }
+
+  private void SelectFirstButton()
+  {
+    if (currentButtons.Count == 0)
+      return;
+
+    foreach (var btn in currentButtons)
+    {
+      if(btn != null && btn.gameObject.activeInHierarchy && btn.interactable)
+      {
+        EventSystem.current.SetSelectedGameObject(btn.gameObject);
+        break;
+      }
+    }
+  }
+
+  private void InitMenu()
     {
         ShowPanel(Constants.MenuPanelNames.Menu);
     }
@@ -79,84 +120,60 @@ public class MenuDirector : MonoBehaviour
 
     private void ShowPanel(string panelName, bool fade = false)
     {
-        if (!panels.TryGetValue(panelName, out var roots))
-            return;
+    if (!panels.TryGetValue(panelName, out var roots))
+      return;
 
-        bool firstButtonSelected = false;
+    _currentPanel = panelName;
+    currentButtons.Clear();
 
-        foreach (var root in roots)
+    //bool firstButtonSelected = false;
+
+    foreach (var root in roots)
+    {
+      root.SetActive(true);
+
+      root.transform.DOKill();
+      root.transform.localScale = Vector3.zero;
+
+      root.transform
+          .DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
+          .OnComplete(() => root.transform.DOScale(Vector3.one, .15f));
+
+      foreach (var t in root.GetComponentsInChildren<Transform>(true))
+      {
+        if (t.TryGetComponent(out Button btn))
         {
-            foreach (var t in root.GetComponentsInChildren<Transform>(true))
-            {
-                var go = t.gameObject;
-                go.SetActive(true);
-                t.DOKill();
-
-                t.localScale = Vector3.zero;
-                t.DOScale(new Vector3(1.15f,1.15f,1.15f), .35f).OnComplete(() => t.DOScale(Vector3.one,.15f));
-
-                if (t.TryGetComponent(out Image img) && fade)
-                {
-                    img.DOFade(1f, .25f);
-                    img.raycastTarget = true;
-                }
-
-                if (t.TryGetComponent(out Button btn))
-                {
-                    btn.interactable = true;
-
-                    if (!firstButtonSelected)
-                    {
-                        btn.Select();
-                        firstButtonSelected = true;
-                    }
-                }
-
-                if (t.TryGetComponent(out UIPulse pulse))
-                 {
-                    pulse.Play();
-                 }
-            }
+          btn.interactable = true;
+          currentButtons.Add(btn);
         }
+        
 
-        if(panelName == Constants.MenuPanelNames.Menu)
-        {
-            UptadeContinueButton();
-        }
+        if (t.TryGetComponent(out UIPulse pulse))
+          pulse.Play();
+      }
     }
+    
+    EventSystem.current.SetSelectedGameObject(null);
+
+    if (panelName == Constants.MenuPanelNames.Menu)
+      UptadeContinueButton();
+
+  }
 
     private void HidePanel(string panelName, bool fade = false)
     {
-        if (!panels.TryGetValue(panelName, out var roots))
-            return;
+    if (!panels.TryGetValue(panelName, out var roots))
+        return;
 
-        EventSystem.current.SetSelectedGameObject(null);
+     EventSystem.current.SetSelectedGameObject(null);
 
-        foreach (var root in roots)
-        {
-            foreach (var t in root.GetComponentsInChildren<Transform>(true))
-            {
-                var go = t.gameObject;
-                t.DOKill();
+    foreach(var root in roots)
+    {
+      root.transform.DOKill();
 
-                if (t.TryGetComponent(out Button btn))
-                    btn.interactable = false;
-
-                if (t.TryGetComponent(out Image img) && fade)
-                {
-                    img.DOFade(0f, .25f);
-                    img.raycastTarget = false;
-                }
-
-                 if (t.TryGetComponent(out UIPulse pulse))
-                 {
-                    pulse.Stop();
-                 }
-
-                t.DOScale(Vector3.zero, .25f)
-                 .OnComplete(() => go.SetActive(false));
-            }
-        }
+      root.transform.DOScale(Vector3.zero, .25f)
+        .OnComplete(() => root.SetActive(false));
+    }
     }
 
     private void SwitchPanel(string from, string to, bool fade = false)
