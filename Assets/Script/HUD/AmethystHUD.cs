@@ -45,7 +45,7 @@ public class AmethystHUD : MonoBehaviour
   //a
   void Start()
   {
-    DOTween.Init();
+    DOTween.Init(logBehaviour: LogBehaviour.Verbose, recycleAllByDefault: true);
     if (_amethystText == null)
       _amethystText = GetComponentInChildren<TMP_Text>();
 
@@ -68,7 +68,7 @@ public class AmethystHUD : MonoBehaviour
       if (!_inUse.Contains(obj))
         return obj;
     }
-    return null; // todos em uso
+    return null;
   }
 
   private void UpdateText(int newCount, Vector3? position = null)
@@ -97,13 +97,12 @@ public class AmethystHUD : MonoBehaviour
     _inUse.Add(amethyst);
     RectTransform rect = amethyst.GetComponent<RectTransform>();
 
-    // Mata tweens anteriores SEM completar (evita callbacks velhos)
-    rect.DOKill(complete: false);
     amethyst.SetActive(false);
 
     Vector3 worldTarget = _amethystContainer.position; // alvo em world space
 
-    Sequence sequence = DOTween.Sequence().SetLink(amethyst);
+    rect.DOKill(complete: true);
+    Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(rect);
 
     sequence.AppendCallback(() =>
     {
@@ -121,7 +120,7 @@ public class AmethystHUD : MonoBehaviour
 
     sequence.AppendCallback(() =>
     {
-      _amethystText.transform.DOKill(complete: false);
+      _amethystText.transform.DOKill(complete: true);
       _amethystText.text = newCount.ToString("00");
       _amethystText.transform.localScale = Vector3.one;
       _amethystText
