@@ -5,6 +5,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
@@ -324,6 +325,11 @@ public class Player : CombatEntities
 
   private void FixedUpdate()
   {
+    if (Input.GetKeyDown(KeyCode.F1))
+    {
+      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     if (!characterController.enabled)
       return;
 
@@ -553,7 +559,6 @@ public class Player : CombatEntities
   #region  === PAUSE ===
   private void Pause()
   {
-    
     if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
       return;
 

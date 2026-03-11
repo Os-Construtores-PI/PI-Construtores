@@ -28,7 +28,7 @@ public class RotatingCube : BaseRenderedGameObject
   {
     Vector3 rotationStep = new(_xRotateSpeed, _yRotateSpeed, _zRotateSpeed);
 
-    Sequence rotatingSequence = DOTween.Sequence();
+    Sequence rotatingSequence = DOTween.Sequence().SetUpdate(UpdateType.Fixed, false);
 
     rotatingSequence.Append(
       transform

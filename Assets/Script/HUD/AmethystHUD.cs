@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -42,10 +41,10 @@ public class AmethystHUD : MonoBehaviour
   [SerializeField]
   private Ease _translationEasing = Ease.InSine;
 
-  //a
   void Start()
   {
     DOTween.Init(logBehaviour: LogBehaviour.Verbose, recycleAllByDefault: true);
+
     if (_amethystText == null)
       _amethystText = GetComponentInChildren<TMP_Text>();
 
@@ -56,13 +55,39 @@ public class AmethystHUD : MonoBehaviour
   private void OnDestroy()
   {
     if (GlobalEventBus.HasInstance)
-    {
       GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateText);
+
+    // Libera todos os objetos em uso ao destruir o HUD
+    ForceReleaseAll();
+  }
+
+  private void OnDisable()
+  {
+    // Garante liberação também quando o objeto é desativado
+    ForceReleaseAll();
+  }
+
+  private void ForceReleaseAll()
+  {
+    if (_amethysts == null)
+      return;
+
+    foreach (var obj in _amethysts)
+    {
+      if (obj == null)
+        continue;
+      obj.GetComponent<RectTransform>()?.DOKill(complete: false);
+      obj.SetActive(false);
     }
+
+    _inUse.Clear();
   }
 
   private GameObject GetAvailable()
   {
+    if (_amethysts == null)
+      return null;
+
     foreach (var obj in _amethysts)
     {
       if (!_inUse.Contains(obj))
@@ -76,12 +101,11 @@ public class AmethystHUD : MonoBehaviour
     if (_amethystText == null)
       return;
 
+    // FIX: Atualiza o texto IMEDIATAMENTE, sem depender da animação completar
+    _amethystText.text = newCount.ToString("00");
+
     if (position != null)
-    {
-      // Guarda o count atual para não usar valor desatualizado depois
-      int countSnapshot = newCount;
-      VisualAmethyst((Vector3)position, countSnapshot);
-    }
+      VisualAmethyst((Vector3)position, newCount);
   }
 
   private void VisualAmethyst(Vector3 position, int newCount)
@@ -89,19 +113,18 @@ public class AmethystHUD : MonoBehaviour
     GameObject amethyst = GetAvailable();
 
     if (amethyst == null)
-    {
-      _amethystText.text = newCount.ToString("00");
-      return;
-    }
+      return; // Texto já foi atualizado no UpdateText, não precisa fazer nada aqui
 
     _inUse.Add(amethyst);
+
     RectTransform rect = amethyst.GetComponent<RectTransform>();
 
     amethyst.SetActive(false);
+    rect.DOKill(complete: false);
 
-    Vector3 worldTarget = _amethystContainer.position; // alvo em world space
+    Vector3 worldTarget = _amethystContainer.position;
 
-    rect.DOKill(complete: true);
+    // FIX: SetUpdate(true) em toda a Sequence para ignorar Time.timeScale (pausa do jogo)
     Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(rect);
 
     sequence.AppendCallback(() =>
@@ -112,29 +135,54 @@ public class AmethystHUD : MonoBehaviour
       rect.localRotation = Quaternion.identity;
     });
 
+    // FIX: SetUpdate(true) em cada tween filho também
     sequence.Append(
-      rect.DOScale(new Vector3(1.5f, 1.5f, 1.5f), _scaleDuration).SetEase(_scaleEasing)
+      rect.DOScale(new Vector3(1.5f, 1.5f, 1.5f), _scaleDuration)
+        .SetEase(_scaleEasing)
+        .SetUpdate(true)
     );
-    sequence.Join(rect.DOMove(worldTarget, _translationDuration).SetEase(_translationEasing));
-    sequence.Join(rect.DORotate(new Vector3(0, 0, 10), _rotationDuration).SetEase(_rotationEasing));
 
+    sequence.Join(
+      rect.DOMove(worldTarget, _translationDuration).SetEase(_translationEasing).SetUpdate(true)
+    );
+
+    sequence.Join(
+      rect.DORotate(new Vector3(0, 0, 10), _rotationDuration)
+        .SetEase(_rotationEasing)
+        .SetUpdate(true)
+    );
+
+    // FIX: Só faz o punch agora, o texto já foi atualizado no UpdateText
     sequence.AppendCallback(() =>
     {
-      _amethystText.transform.DOKill(complete: true);
-      _amethystText.text = newCount.ToString("00");
+      _amethystText.transform.DOKill(complete: false);
       _amethystText.transform.localScale = Vector3.one;
       _amethystText
         .transform.DOPunchScale(Vector3.one * 2f, _scaleDuration, 1, 1)
+        .SetUpdate(true)
         .SetLink(_amethystText.gameObject);
     });
 
-    sequence.Append(rect.DOScale(Vector3.one, .25f));
-    sequence.Append(rect.DOScale(Vector3.zero, .25f));
+    sequence.Append(rect.DOScale(Vector3.one, .25f).SetUpdate(true));
 
+    sequence.Append(rect.DOScale(Vector3.zero, .25f).SetUpdate(true));
+
+    // FIX: OnComplete para o caminho feliz
     sequence.OnComplete(() =>
     {
       amethyst.SetActive(false);
       _inUse.Remove(amethyst);
+    });
+
+    // FIX: OnKill garante liberação se a sequência for interrompida por qualquer motivo
+    // (pausa, cena recarregada, objeto destruído, DOKill externo, etc.)
+    sequence.OnKill(() =>
+    {
+      if (_inUse.Contains(amethyst))
+      {
+        amethyst.SetActive(false);
+        _inUse.Remove(amethyst);
+      }
     });
 
     sequence.Play();
