@@ -166,7 +166,6 @@ public class GameDirector : MonoBehaviour
   private IEnumerator FluxoIntro()
   {
     yield return new WaitUntil(() => DialogueGlobal.Instance != null);
-
     yield return new WaitUntil(() => DialogueGlobal.Instance._painelDialogo != null);
 
     yield return null;
@@ -180,7 +179,31 @@ public class GameDirector : MonoBehaviour
     if (introDialogue != null)
     {
       DialogueGlobal.Instance.SetTrigger(introDialogue);
+
+      yield return null;
+
+      bool dialogueFinished = false;
+
+      DialogueGlobal.Instance.OndialogueEnd += () =>
+      {
+        dialogueFinished = true;
+      };
+
       DialogueGlobal.Instance.IniciarDialogo(introDialogue._dialogo);
+
+      // 👇 ESPERA O DIÁLOGO TERMINAR
+      yield return new WaitUntil(() => dialogueFinished);
+    }
+
+    // 👇 depois que o diálogo acabar o jogo continua
+    if (playerDirector && playerDirector.FirstPlayerContext != null)
+    {
+      var ctx = playerDirector.FirstPlayerContext;
+
+      ctx.PlayerInput.actions.Disable();
+      ctx.PlayerInput.actions.Enable();
+
+      SetLockPlayer(ctx, false);
     }
   }
 

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -57,12 +58,22 @@ public class FinalSequenceDialogue : MonoBehaviour
         DialogueGlobal.Instance.IniciarDialogo(trigger._dialogo);
 
 
-        yield return new WaitUntil(() =>
-           !DialogueGlobal.Instance._painelDialogo.activeSelf
-        );
-       // yield return new WaitForSecondsRealtime(0.2f);
 
-       _continueCanvasGroup
+    bool dialogueFinished = false;
+
+    Action handler = null;
+
+    handler = () =>
+    {
+      dialogueFinished = true;
+      DialogueGlobal.Instance.OndialogueEnd -= handler;
+    };
+
+    DialogueGlobal.Instance.OndialogueEnd += handler;
+
+    yield return new WaitUntil(() => dialogueFinished);
+
+    _continueCanvasGroup
       .DOFade(1f, _fadeDuration)
       .SetUpdate(true);
     

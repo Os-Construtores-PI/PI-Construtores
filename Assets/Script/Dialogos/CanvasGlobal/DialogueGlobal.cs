@@ -68,6 +68,13 @@ public class DialogueGlobal : MonoBehaviour
   public event Action OndialogueStart;
   public event Action OndialogueEnd;
 
+  private bool _blockAdvanceInput = false;
+
+  private float _nextInputTime = 0f;
+  private float _inputDelay = 0.15f;
+
+  private bool _waitingForButtonRelease = false;
+
   void Awake()
   {
     if (Instance != null && Instance != this)
@@ -99,6 +106,7 @@ public class DialogueGlobal : MonoBehaviour
   public void IniciarDialogo(string[] falas)
   {
 
+    _blockAdvanceInput = true;
     if (_state != DialogueState.Closed || falas == null || falas.Length == 0)
       return;
 
@@ -109,6 +117,12 @@ public class DialogueGlobal : MonoBehaviour
     
 
     SetupInput(true);
+
+    _waitingForButtonRelease = true;
+
+    _Interactable.actions["AdvanceDialogue"]?.Reset();
+    _Interactable.actions["ReturnDialogue"]?.Reset();
+
 
     OndialogueStart?.Invoke();
     _falasAtuais = falas;
@@ -138,6 +152,7 @@ public class DialogueGlobal : MonoBehaviour
       {
         _state = DialogueState.Open;
         _dialogoPronto = true;
+        _blockAdvanceInput = false;
         StartCoroutine(DelayMostrarFala());
       });
 
@@ -213,17 +228,13 @@ public class DialogueGlobal : MonoBehaviour
       return;
 
     _state = DialogueState.Closing;
-    StopAllCoroutines();
-
-    if(_Interactable != null)
-    {
-      _Interactable.actions["AdvanceDialogue"]?.Reset();
-    }
+    //StopAllCoroutines();
 
     
 
     _dialogoAtivo = false;
     _dialogoPronto = false;
+    AtualizarVisibilidadedosBotoes();
 
     OndialogueEnd?.Invoke();
 
@@ -247,14 +258,36 @@ public class DialogueGlobal : MonoBehaviour
 
   private void Update()
   {
-    if (_state != DialogueState.Open || _Interactable == null)
+    if (_state != DialogueState.Open || !_dialogoPronto || _Interactable == null)
       return;
 
-    if (_Interactable.actions["AdvanceDialogue"].WasPerformedThisFrame())
-      ProximaFala();
+    var advanceAction = _Interactable.actions["AdvanceDialogue"];
+    var returnAction = _Interactable.actions["ReturnDialogue"];
 
-    if (_Interactable.actions["ReturnDialogue"].WasPerformedThisFrame())
+    if (_waitingForButtonRelease)
+    {
+      if(!advanceAction.IsPressed())
+        _waitingForButtonRelease = false;
+
+      return;
+    }
+
+    if (Time.unscaledTime < _nextInputTime)
+      return;
+
+    if (!_blockAdvanceInput && advanceAction.WasPressedThisFrame())
+    {
+      _nextInputTime = Time.unscaledTime + _inputDelay;
+      ProximaFala();
+      return;
+    }
+
+    if (returnAction.WasPressedThisFrame())
+    {
+      _nextInputTime = Time.unscaledTime + _inputDelay;
       VoltarFala();
+
+    }
   }
 
   private void AtualizarFala()
@@ -262,7 +295,7 @@ public class DialogueGlobal : MonoBehaviour
     if (_falasAtuais == null || _index < 0 || _index >= _falasAtuais.Length)
       return;
 
-    StopAllCoroutines();
+    //StopAllCoroutines();
     MostrarFala(_falasAtuais[_index]);
     AtualizarVisibilidadedosBotoes();
   }
@@ -333,6 +366,7 @@ public class DialogueGlobal : MonoBehaviour
 
     yield return null;
 
+
     _Interactable.SwitchCurrentActionMap("Player");
 
 
@@ -353,6 +387,7 @@ public class DialogueGlobal : MonoBehaviour
       });
    
   }
+  
 
   
 }
