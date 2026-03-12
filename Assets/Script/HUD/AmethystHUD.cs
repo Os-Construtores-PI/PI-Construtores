@@ -101,11 +101,13 @@ public class AmethystHUD : MonoBehaviour
     if (_amethystText == null)
       return;
 
-    // FIX: Atualiza o texto IMEDIATAMENTE, sem depender da animação completar
-    _amethystText.text = newCount.ToString("00");
-
     if (position != null)
+    {
       VisualAmethyst((Vector3)position, newCount);
+      return;
+    }
+
+    _amethystText.text = newCount.ToString("00");
   }
 
   private void VisualAmethyst(Vector3 position, int newCount)
@@ -161,6 +163,7 @@ public class AmethystHUD : MonoBehaviour
         .transform.DOPunchScale(Vector3.one * 2f, _scaleDuration, 1, 1)
         .SetUpdate(true)
         .SetLink(_amethystText.gameObject);
+      _amethystText.text = newCount.ToString("00");
     });
 
     sequence.Append(rect.DOScale(Vector3.one, .25f).SetUpdate(true));
