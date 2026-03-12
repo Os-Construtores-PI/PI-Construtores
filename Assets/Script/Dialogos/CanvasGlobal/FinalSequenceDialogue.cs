@@ -2,6 +2,7 @@ using DG.Tweening;
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class FinalSequenceDialogue : MonoBehaviour
@@ -11,6 +12,7 @@ public class FinalSequenceDialogue : MonoBehaviour
   [SerializeField] private float _continueDuration = 5f;
   [SerializeField] private CanvasGroup _continueCanvasGroup;
   [SerializeField] private float _fadeDuration = 1f;
+
 
     private bool isRunning = false;
 
@@ -53,6 +55,24 @@ public class FinalSequenceDialogue : MonoBehaviour
                 director.playerDirector.FirstPlayerContext,
                 true);
         }
+
+        PlayerInput playerInput = trigger._playerInput;
+        if(playerInput != null)
+        {
+          playerInput.actions["AdvanceDialogue"]?.Reset();
+          playerInput.actions["Jump"]?.Reset();
+        }
+
+        yield return new WaitUntil(() =>
+        {
+           if(playerInput == null) return true;
+
+           var jump = playerInput.actions["Jump"];
+           var advance = playerInput.actions["AdvanceDialogue"];
+
+           return (jump == null || !jump.IsPressed()) &&
+           (advance == null || !advance.IsPressed());
+        });
 
         DialogueGlobal.Instance.SetTrigger(trigger);
         DialogueGlobal.Instance.IniciarDialogo(trigger._dialogo);
