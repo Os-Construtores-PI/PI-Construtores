@@ -19,3 +19,4 @@
 - [ ] Menos plataforming com o abismo, botar mais sessões com corridas sem risco de cair no abismo
 - [ ] Mais variedades nas rotas da segunda parte da faze 
 - [ ] Mudança nos Paineis de tutorial para descrições melhores de como se joga o jogo 
+- [ ] Fazer mudanças na camera do jogo, afastar mais da pandora, botar a camera acompanhando o player.
