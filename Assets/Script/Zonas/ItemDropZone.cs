@@ -58,7 +58,7 @@ public class ItemDropZone : Item
       // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
       if (itemData.item.TryGetComponent<MeshRenderer>(out var mesh))
       {
-        _boxCollider.size = mesh.bounds.size;
+        _boxCollider.size = mesh.bounds.size * 3;
         _boxCollider.center = Vector3.zero;
       }
     }
