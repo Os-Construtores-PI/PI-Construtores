@@ -50,8 +50,9 @@ kanban-plugin: board
 - [ ] [[Tutorias 1 1 1]]
 
 
-## Testado
+## Feedbacks
 
+- [ ] [[Evento Dia 12 Build 0.0.2]]
 
 
 
