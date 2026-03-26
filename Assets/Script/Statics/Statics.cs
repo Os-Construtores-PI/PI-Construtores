@@ -171,6 +171,7 @@ public static class Constants
       typeof(BasicButton),
       typeof(PuzzleColorButton),
       typeof(DialogueArea),
+      typeof(SwingObject)
     };
   }
 

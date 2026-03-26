@@ -762,7 +762,7 @@ public class Player : CombatEntities
 
     if (
       !hit.collider.TryGetComponent(out _interactionObject)
-      || hit.distance > _interactionObject.range
+      || hit.distance > _interactionObject.Range
     )
     {
       _lastValidResult = (false, default);

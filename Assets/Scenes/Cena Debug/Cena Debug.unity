@@ -189,7 +189,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  range: 20
+  Range: 10
   buttonColorEnum: 1
   targetobject: {fileID: 1980088070}
 --- !u!1 &39335537
@@ -2916,7 +2916,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  range: 10
+  Range: 10
 --- !u!1 &561886157
 GameObject:
   m_ObjectHideFlags: 0
@@ -4700,6 +4700,84 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1338073286}
   m_Mesh: {fileID: -2658775886456779865, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+--- !u!1 &1351337979
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1351337980}
+  - component: {fileID: 1351337981}
+  - component: {fileID: 1351337982}
+  m_Layer: 9
+  m_Name: SwingObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1351337980
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1351337979}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -38, y: 7, z: -34}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1493542271}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &1351337981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1351337979}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57fa6b17a0818f8fc90fe07df93cc5b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
+  Range: 30
+  _parentOfPlayer: {fileID: 2124928401}
+  _approachDuration: 0.5
+  _approachEase: 3
+  _spinObjectTransform: {fileID: 1493542271}
+  _spinEase: 17
+  _spinAngle: {x: 180, y: 0, z: 0}
+  _spinDuration: 2
+--- !u!65 &1351337982
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1351337979}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1379121048
 GameObject:
   m_ObjectHideFlags: 0
@@ -5231,6 +5309,38 @@ RectTransform:
   m_AnchoredPosition: {x: -9.32, y: 2.51}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1493542270
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1493542271}
+  m_Layer: 9
+  m_Name: Spin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1493542271
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1493542270}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2124928401}
+  m_Father: {fileID: 1351337980}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1509546793
 GameObject:
   m_ObjectHideFlags: 0
@@ -5391,7 +5501,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  range: 20
+  Range: 10
   buttonColorEnum: 0
   targetobject: {fileID: 1980088070}
 --- !u!1 &1522114772
@@ -7605,7 +7715,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  range: 20
+  Range: 10
   buttonColorEnum: 2
   targetobject: {fileID: 1980088070}
 --- !u!1 &2024687557
@@ -7777,6 +7887,37 @@ Transform:
   - {fileID: 988456051}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2124928400
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2124928401}
+  m_Layer: 9
+  m_Name: SpinSeat
+  m_TagString: Untagged
+  m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2124928401
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124928400}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 4, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1493542271}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2126879759
 GameObject:
   m_ObjectHideFlags: 0
@@ -7847,7 +7988,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  range: 20
+  Range: 10
   buttonColorEnum: 3
   targetobject: {fileID: 1980088070}
 --- !u!1 &2129302935
@@ -12996,7 +13137,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  range: 10
+  Range: 10
   targetobject: {fileID: 5876957179906853768}
 --- !u!33 &7919734597472066636
 MeshFilter:
@@ -14196,3 +14337,4 @@ SceneRoots:
   - {fileID: 1493304131}
   - {fileID: 1880476328}
   - {fileID: 1580422038}
+  - {fileID: 1351337980}
