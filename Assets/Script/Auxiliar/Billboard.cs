@@ -2,16 +2,26 @@ using UnityEngine;
 
 public class Billboard : MonoBehaviour
 {
-    [SerializeField] private BillboardType billboardType;
+    [SerializeField]
+    private BillboardType billboardType;
 
     [Header("Lock Rotation")]
-    [SerializeField] private bool lockX;
-    [SerializeField] private bool lockY;
-    [SerializeField] private bool lockZ;
+    [SerializeField]
+    private bool lockX;
+
+    [SerializeField]
+    private bool lockY;
+
+    [SerializeField]
+    private bool lockZ;
 
     private Vector3 originalRotation;
 
-    public enum BillboardType { LookAtCamera, CameraForward };
+    public enum BillboardType
+    {
+        LookAtCamera,
+        CameraForward,
+    };
 
     private void Awake()
     {
@@ -35,9 +45,18 @@ public class Billboard : MonoBehaviour
         }
         // Modify the rotation in Euler space to lock certain dimensions.
         Vector3 rotation = transform.rotation.eulerAngles;
-        if (lockX) { rotation.x = originalRotation.x; }
-        if (lockY) { rotation.y = originalRotation.y; }
-        if (lockZ) { rotation.z = originalRotation.z; }
+        if (lockX)
+        {
+            rotation.x = originalRotation.x;
+        }
+        if (lockY)
+        {
+            rotation.y = originalRotation.y;
+        }
+        if (lockZ)
+        {
+            rotation.z = originalRotation.z;
+        }
         transform.rotation = Quaternion.Euler(rotation);
     }
 }

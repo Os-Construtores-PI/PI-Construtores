@@ -5,6 +5,7 @@ public class EyeWolf : MonoBehaviour
     [Header("Config do Campo de Vis�o")]
     public float _visionRange = 10f; // alcance de vis�o
     public float _visionAngle = 120f; // angulo de vis�o
+
     [Header("Camadas de Detecção")]
     public LayerMask _targetMask; // layer do player ou entities
     public LayerMask _obstacleMask; // layer de obstáculos
@@ -26,7 +27,6 @@ public class EyeWolf : MonoBehaviour
 
         if (playerObj != null)
             target = playerObj.transform;
-
         else
             Debug.LogWarning("Player não encontrado! Verifique a Tag do Player");
     }
@@ -36,13 +36,19 @@ public class EyeWolf : MonoBehaviour
         _encontrouPlayer = false;
         _playerDetectado = null;
 
-
-        Collider[] targetsInArea = Physics.OverlapSphere(transform.position, _visionRange, _targetMask);
+        Collider[] targetsInArea = Physics.OverlapSphere(
+            transform.position,
+            _visionRange,
+            _targetMask
+        );
 
         foreach (var col in targetsInArea)
         {
             Transform t = col.transform;
-            if (_playerDetectado != null && Vector3.Distance(transform.position, t.position) <= _visionRange)
+            if (
+                _playerDetectado != null
+                && Vector3.Distance(transform.position, t.position) <= _visionRange
+            )
             {
                 _encontrouPlayer = true;
                 _playerDetectado = t;
@@ -59,9 +65,10 @@ public class EyeWolf : MonoBehaviour
 
     public bool CanSeeTarget(Transform target)
     {
-        Vector3 dirToTarget = ((target.position + Vector3.up * 1.5f) - transform.position).normalized;
+        Vector3 dirToTarget = (
+            (target.position + Vector3.up * 1.5f) - transform.position
+        ).normalized;
         float dist = Vector3.Distance(transform.position, target.position);
-
 
         // Angulo
         if (Vector3.Angle(transform.forward, dirToTarget) < _visionAngle / 2)
@@ -104,11 +111,3 @@ public class EyeWolf : MonoBehaviour
         _encontrouPlayer = t != null;
     }
 }
-
-
-
-
-
-
-
-

@@ -9,8 +9,8 @@ public class HealthHUDComponent : MonoBehaviour
     public int IdHealth = 0;
 
     [Header("Sliders")]
-    public Slider _slider;          // ===> BARRA DE VIDA REAL
-    public Slider _damageSlider;    // ===> BARRA DE DANO / FADE
+    public Slider _slider; // ===> BARRA DE VIDA REAL
+    public Slider _damageSlider; // ===> BARRA DE DANO / FADE
 
     public Transform EnemyTarget { get; set; }
     private CombatEntities _boundEntity;
@@ -25,7 +25,8 @@ public class HealthHUDComponent : MonoBehaviour
 
     public void BindToPlayer(Player player)
     {
-        if (player == null) return;
+        if (player == null)
+            return;
 
         if (_boundPlayer != null)
             _boundPlayer._OnHealthChanged.RemoveListener(UpdateSlider);
@@ -34,7 +35,8 @@ public class HealthHUDComponent : MonoBehaviour
         _boundPlayer._OnHealthChanged.AddListener(UpdateSlider);
 
         // Inicializa sliders imediatamente
-        float percent = _boundPlayer.MaxHealth > 0 ? _boundPlayer.Health / _boundPlayer.MaxHealth : 1f;
+        float percent =
+            _boundPlayer.MaxHealth > 0 ? _boundPlayer.Health / _boundPlayer.MaxHealth : 1f;
         _slider.value = percent;
         if (_damageSlider != null)
             _damageSlider.value = percent;
@@ -47,20 +49,20 @@ public class HealthHUDComponent : MonoBehaviour
                 // Salva o tamanho original
                 float originalWidth = sliderRect.sizeDelta.x;
 
-                // Começa com largura zero 
+                // Começa com largura zero
                 sliderRect.sizeDelta = new Vector2(0f, sliderRect.sizeDelta.y);
 
-                sliderRect.DOSizeDelta(new Vector2(originalWidth, sliderRect.sizeDelta.y), 1f)
-                     .SetEase(Ease.OutQuart);
+                sliderRect
+                    .DOSizeDelta(new Vector2(originalWidth, sliderRect.sizeDelta.y), 1f)
+                    .SetEase(Ease.OutQuart);
             }
         }
     }
 
-    
-
     private void UpdateSlider(float normalizedHealth)
     {
-        if (_slider == null) return;
+        if (_slider == null)
+            return;
 
         normalizedHealth = Mathf.Clamp01(normalizedHealth);
 
@@ -85,7 +87,12 @@ public class HealthHUDComponent : MonoBehaviour
                 if (fillImage != null)
                 {
                     fillImage.DOKill();
-                    fillImage.color = new Color(fillImage.color.r, fillImage.color.g, fillImage.color.b, 1f); // reseta alpha
+                    fillImage.color = new Color(
+                        fillImage.color.r,
+                        fillImage.color.g,
+                        fillImage.color.b,
+                        1f
+                    ); // reseta alpha
                     fillImage.DOFade(0f, 0.5f).SetDelay(0.2f);
                 }
             }
@@ -96,8 +103,6 @@ public class HealthHUDComponent : MonoBehaviour
             _damageSlider.value = normalizedHealth;
         }
     }
-
-
 
     private void LateUpdate()
     {

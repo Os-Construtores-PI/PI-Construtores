@@ -21,8 +21,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 namespace Kino
 {
@@ -34,11 +34,11 @@ namespace Kino
         // Update internal state with a given bloom instance.
         public void Prepare(Bloom bloom)
         {
-            #if UNITY_5_6_OR_NEWER
+#if UNITY_5_6_OR_NEWER
             if (bloom.GetComponent<Camera>().allowHDR)
-            #else
+#else
             if (bloom.GetComponent<Camera>().hdr)
-            #endif
+#endif
             {
                 _rangeX = 6;
                 _rangeY = 1.5f;
@@ -78,7 +78,8 @@ namespace Kino
             // Label
             Handles.Label(
                 PointInRect(0, _rangeY) + Vector3.right,
-                "Brightness Response (linear)", EditorStyles.miniLabel
+                "Brightness Response (linear)",
+                EditorStyles.miniLabel
             );
 
             // Threshold line

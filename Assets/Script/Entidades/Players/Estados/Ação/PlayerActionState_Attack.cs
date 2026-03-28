@@ -4,7 +4,7 @@ public class PlayerActionPandoraAttackState : IState<PlayerContext>
 {
     public ActionType Type => ActionType.Attack;
 
-    public HashSet<ActionType> IncompatibleActions => new() {ActionType.Slide};
+    public HashSet<ActionType> IncompatibleActions => new() { ActionType.Slide };
 
     public void Enter(PlayerContext context)
     {
@@ -12,40 +12,27 @@ public class PlayerActionPandoraAttackState : IState<PlayerContext>
         context.PlayerActionLayer.PopStateDeferred(context);
     }
 
-    public void Exit(PlayerContext context)
-    {
-    }
+    public void Exit(PlayerContext context) { }
 
-    public void FixedUpdate(PlayerContext context)
-    {
-    }
+    public void FixedUpdate(PlayerContext context) { }
 
-    public void Update(PlayerContext context)
-    {
-    }
+    public void Update(PlayerContext context) { }
 }
-
 
 public class PlayerActionRuskaAttackState : IState<PlayerContext>
 {
     public ActionType Type => ActionType.Attack;
 
-    public HashSet<ActionType> IncompatibleActions => new() {};
+    public HashSet<ActionType> IncompatibleActions => new() { };
 
     public void Enter(PlayerContext context)
     {
         context.PlayerActionLayer.PopStateDeferred(context);
     }
 
-    public void Exit(PlayerContext context)
-    {
-    }
+    public void Exit(PlayerContext context) { }
 
-    public void FixedUpdate(PlayerContext context)
-    {
-    }
+    public void FixedUpdate(PlayerContext context) { }
 
-    public void Update(PlayerContext context)
-    {
-    }
+    public void Update(PlayerContext context) { }
 }

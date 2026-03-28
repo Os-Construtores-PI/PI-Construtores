@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class PuzzleLampObject : ActivatableObject
 {
-    [SerializeField] GameObject lightModel;
+    [SerializeField]
+    GameObject lightModel;
     float durationLight;
     float intensityLight;
     Color colorLight = Color.white;
@@ -12,22 +13,27 @@ public class PuzzleLampObject : ActivatableObject
     bool turnedOn = false;
     float durationLightWalker = 0.0f;
 
-
     private void Start()
     {
-        if (lightModel == null) lightModel = transform.Find("light").gameObject;
-        if (!lightRenderer) lightRenderer = lightModel.GetComponent<MeshRenderer>();
+        if (lightModel == null)
+            lightModel = transform.Find("light").gameObject;
+        if (!lightRenderer)
+            lightRenderer = lightModel.GetComponent<MeshRenderer>();
         lightMaterial = lightRenderer.material;
     }
+
     private void Update()
     {
         TurnWalkerHolder();
     }
+
     public override void ObjectAction(object info = default)
     {
-        if (!lightMaterial) return;
+        if (!lightMaterial)
+            return;
         TurnOn();
     }
+
     private void TurnOn()
     {
         turnedOn = true;
@@ -35,11 +41,13 @@ public class PuzzleLampObject : ActivatableObject
         lightMaterial.SetColor("_EmissionColor", emissionColor);
         lightMaterial.EnableKeyword("_EMISSION");
     }
+
     private void TurnOff()
     {
         turnedOn = false;
         lightMaterial.SetColor("_EmissionColor", Color.black);
     }
+
     private void TurnWalkerHolder()
     {
         if (turnedOn)
@@ -55,11 +63,11 @@ public class PuzzleLampObject : ActivatableObject
             }
         }
     }
+
     public void SetupCorDurIntensity(Color color, float duration, float intensity)
     {
         colorLight = color;
         durationLight = duration;
         intensityLight = intensity;
     }
-
 }

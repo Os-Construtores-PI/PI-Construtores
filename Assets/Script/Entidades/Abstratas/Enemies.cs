@@ -8,38 +8,59 @@ public abstract class Enemies : CombatEntities
     protected Transform target;
     private Collider[] result = new Collider[10];
     private Collider[] attackResult = new Collider[5];
+
     // ==== CONFIGURAÇÕES DE DETECÇÃO ====
     [Header("Configurações de Detecção")]
-    [SerializeField] private LayerMask layer;        // Camada usada para detectar alvos (ex: jogadores)
-    [SerializeField, Min(10)] private float radius;           // Raio da detecção de visão
-    [SerializeField] private float attackRange = 2f; // Raio da detecção de ataque
+    [SerializeField]
+    private LayerMask layer; // Camada usada para detectar alvos (ex: jogadores)
 
+    [SerializeField, Min(10)]
+    private float radius; // Raio da detecção de visão
 
-    [SerializeField] private float memoryCooldown = 3f;
-    [SerializeField] private float memoryCooldownWalker = 0.0f;
+    [SerializeField]
+    private float attackRange = 2f; // Raio da detecção de ataque
+
+    [SerializeField]
+    private float memoryCooldown = 3f;
+
+    [SerializeField]
+    private float memoryCooldownWalker = 0.0f;
     private bool memoryTriggered = false;
     private bool playerInArea = false;
+
     // ==== COMPORTAMENTO DE IA ====
     [Header("IA")]
-    [SerializeField] private bool can_AI = true;         // Permite ativar/desativar IA
-    [SerializeField] private float visionInterval = 0.5f; // Intervalo para verificar visão
-    [SerializeField] private float attackInterval = 1f;
+    [SerializeField]
+    private bool can_AI = true; // Permite ativar/desativar IA
+
+    [SerializeField]
+    private float visionInterval = 0.5f; // Intervalo para verificar visão
+
+    [SerializeField]
+    private float attackInterval = 1f;
     private float visionIntervalwalker = 0.0f;
     private float attackIntervalwalker = 0.0f;
 
     // ==== CONFIGURAÇÂO DE LOOTTABLE ==== //
     protected WeightedTable<string> lootTable = new();
-    protected SerializedDictionary<string, float> items = new() { { "item bom", 10 }, { "item ruim", 90 } };
+    protected SerializedDictionary<string, float> items = new()
+    {
+        { "item bom", 10 },
+        { "item ruim", 90 },
+    };
+
     // ==== Referência para o Scanner ==== //
-    [HideInInspector] public Vector3 spawnpos;
+    [HideInInspector]
+    public Vector3 spawnpos;
 
     [Header("ENEMY KNOCKBACK PROPERTIES")]
-    [SerializeField] private float _dashBlockDuration;
-    [SerializeField] private float _knockbackForce = 40f;
+    [SerializeField]
+    private float _dashBlockDuration;
+
+    [SerializeField]
+    private float _knockbackForce = 40f;
     public float KnockBackForce => _knockbackForce;
     public float DashBlockDuration => _dashBlockDuration;
-
-
 
     // === Flash Requisitos ===
     private Renderer[] renderers;
@@ -48,13 +69,18 @@ public abstract class Enemies : CombatEntities
     private MaterialPropertyBlock block;
 
     [Header("DAMAGE FLASH PROPERTIES")]
-    [SerializeField] private bool canFlash = true;
-    [SerializeField] private float flashDuration = 0.1f;
-    [SerializeField] private Color flashColor = Color.white;
-    [SerializeField] private Color flashEmission = Color.white; // mais intenso
+    [SerializeField]
+    private bool canFlash = true;
+
+    [SerializeField]
+    private float flashDuration = 0.1f;
+
+    [SerializeField]
+    private Color flashColor = Color.white;
+
+    [SerializeField]
+    private Color flashEmission = Color.white; // mais intenso
     private Sequence flashSequence;
-
-
 
     public override void Awake()
     {
@@ -83,6 +109,7 @@ public abstract class Enemies : CombatEntities
         print("MORREU");
         gameObject.SetActive(false);
     }
+
     private void AddItems()
     {
         if (items.Count > 0)
@@ -93,6 +120,7 @@ public abstract class Enemies : CombatEntities
             }
         }
     }
+
     public override void Update()
     {
         base.Update();
@@ -102,8 +130,8 @@ public abstract class Enemies : CombatEntities
             AttackTimer();
             MemoryTimer();
         }
-
     }
+
     private void VisionTimer()
     {
         visionIntervalwalker += Time.deltaTime;
@@ -113,6 +141,7 @@ public abstract class Enemies : CombatEntities
             visionIntervalwalker = 0f;
         }
     }
+
     private void AttackTimer()
     {
         attackIntervalwalker += Time.deltaTime;
@@ -122,6 +151,7 @@ public abstract class Enemies : CombatEntities
             attackIntervalwalker = 0f;
         }
     }
+
     private void MemoryTimer()
     {
         if (!playerInArea && !memoryTriggered) // só executa se o player saiu e ainda não rodou
@@ -169,14 +199,17 @@ public abstract class Enemies : CombatEntities
     // Verifica se há algum alvo próximo o suficiente para ataque
     private void UpdateAttackLogic()
     {
-        int quantity = Physics.OverlapSphereNonAlloc(transform.position, attackRange, attackResult, layer);
+        int quantity = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            attackRange,
+            attackResult,
+            layer
+        );
         for (int i = 0; i < quantity; i++)
         {
             var nearby = attackResult[i].transform;
             if (nearby == transform || nearby.IsChildOf(transform))
                 continue;
-
-
         }
     }
 
@@ -184,6 +217,7 @@ public abstract class Enemies : CombatEntities
     {
         TriggerFlash();
     }
+
     private void SetupOriginals()
     {
         renderers = GetComponentsInChildren<Renderer>();
@@ -206,11 +240,12 @@ public abstract class Enemies : CombatEntities
             originalEmissionColors.Add(emissionColor);
         }
     }
+
     public void TriggerFlash()
     {
-        if(!canFlash)
+        if (!canFlash)
         {
-          return;
+            return;
         }
         // se já tem uma animação rodando, mata ela
         if (flashSequence != null && flashSequence.IsActive())
@@ -221,17 +256,31 @@ public abstract class Enemies : CombatEntities
         flashSequence = DOTween.Sequence();
 
         // Sobe (0 -> 1) e desce (1 -> 0)
-        flashSequence.Append(DOTween.To(() => intensity, x =>
-        {
-            intensity = x;
-            ApplyFlash(intensity);
-        }, 1f, flashDuration * 0.5f));
+        flashSequence.Append(
+            DOTween.To(
+                () => intensity,
+                x =>
+                {
+                    intensity = x;
+                    ApplyFlash(intensity);
+                },
+                1f,
+                flashDuration * 0.5f
+            )
+        );
 
-        flashSequence.Append(DOTween.To(() => intensity, x =>
-        {
-            intensity = x;
-            ApplyFlash(intensity);
-        }, 0f, flashDuration * 0.5f));
+        flashSequence.Append(
+            DOTween.To(
+                () => intensity,
+                x =>
+                {
+                    intensity = x;
+                    ApplyFlash(intensity);
+                },
+                0f,
+                flashDuration * 0.5f
+            )
+        );
     }
 
     private void ApplyFlash(float intensity)

@@ -17,7 +17,8 @@ public class LoadDirector : MonoBehaviour
     /// <param name="index">Índice do slot</param>
     public void OnNewSlotButton(int index)
     {
-        if (index < 0 || index >= dataSystem.GetMaxSlots()) return;
+        if (index < 0 || index >= dataSystem.GetMaxSlots())
+            return;
 
         DataDirector.Instance.SetCurrentSlot(index);
         string lastLevelName = DataDirector.Instance.GetLastLevelName(index);

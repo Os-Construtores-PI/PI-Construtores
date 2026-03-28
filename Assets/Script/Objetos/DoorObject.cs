@@ -2,16 +2,20 @@ using UnityEngine;
 
 public class DoorObject : ActivatableObject
 {
-    [SerializeField] Animator animator;
+    [SerializeField]
+    Animator animator;
     private bool opened = false;
+
     private void Start()
     {
         GameObject child = transform.Find("porta").gameObject;
         child.TryGetComponent(out animator);
     }
+
     public override void ObjectAction(object info = default)
     {
-        if (!animator) return;
+        if (!animator)
+            return;
         switch (opened)
         {
             case false:

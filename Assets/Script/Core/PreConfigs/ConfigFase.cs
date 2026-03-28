@@ -1,6 +1,3 @@
 using UnityEngine;
 
-public class ConfigFase : ScriptableObject
-{
-    
-}
+public class ConfigFase : ScriptableObject { }

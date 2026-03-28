@@ -11,11 +11,7 @@ public class Stats
     private readonly List<StatModification> activeModifications = new();
 
     // Valores atuais
-    private Typestats stats = new()
-    {
-        _numstats = new(),
-        _boolstats = new()
-    };
+    private Typestats stats = new() { _numstats = new(), _boolstats = new() };
 
     // Valores base originais (para evitar acúmulo indesejado)
     private Dictionary<string, float> numericBaseValues = new();
@@ -25,11 +21,13 @@ public class Stats
     public UnityEvent<string, bool> OnBoolModified = new();
 
     // --- ADIÇÃO DE STATS ---
-    public bool AddStat<T>(string name, T value) where T : IComparable
+    public bool AddStat<T>(string name, T value)
+        where T : IComparable
     {
         if (typeof(T) == typeof(float))
         {
-            if (stats._numstats.ContainsKey(name)) return false;
+            if (stats._numstats.ContainsKey(name))
+                return false;
             float val = Convert.ToSingle(value);
             stats._numstats[name] = val;
             numericBaseValues[name] = val;
@@ -37,7 +35,8 @@ public class Stats
         }
         else if (typeof(T) == typeof(bool))
         {
-            if (stats._boolstats.ContainsKey(name)) return false;
+            if (stats._boolstats.ContainsKey(name))
+                return false;
             bool val = Convert.ToBoolean(value);
             stats._boolstats[name] = val;
             boolBaseValues[name] = val;
@@ -48,7 +47,8 @@ public class Stats
         return false;
     }
 
-    public bool RemoveStat<T>(string name) where T : IComparable
+    public bool RemoveStat<T>(string name)
+        where T : IComparable
     {
         if (typeof(T) == typeof(float))
         {
@@ -66,13 +66,15 @@ public class Stats
     }
 
     // --- MODIFICAÇÃO IMEDIATA ---
-    public bool ModifyStatImmediate<T>(string name, ModifyTYPE type, QualityTier tier) where T : IComparable
+    public bool ModifyStatImmediate<T>(string name, ModifyTYPE type, QualityTier tier)
+        where T : IComparable
     {
         float multiplier = Tiers.GetMultiplier(tier);
         float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
         if (typeof(T) == typeof(float))
         {
-            if (!stats._numstats.ContainsKey(name)) return false;
+            if (!stats._numstats.ContainsKey(name))
+                return false;
 
             float original = numericBaseValues[name]; // pega valor base
             float change = original * (multiplier - 1f) * direction;
@@ -84,7 +86,8 @@ public class Stats
         }
         else if (typeof(T) == typeof(bool))
         {
-            if (!stats._boolstats.ContainsKey(name)) return false;
+            if (!stats._boolstats.ContainsKey(name))
+                return false;
 
             bool original = boolBaseValues[name]; // pega valor base
             stats._boolstats[name] = type == ModifyTYPE.POSITIVE;
@@ -99,7 +102,13 @@ public class Stats
     }
 
     // --- MODIFICAÇÃO TEMPORÁRIA ---
-    public IEnumerator ModifyStatCoroutine<T>(string name, ModifyTYPE type, QualityTier tier, float duration) where T : IComparable
+    public IEnumerator ModifyStatCoroutine<T>(
+        string name,
+        ModifyTYPE type,
+        QualityTier tier,
+        float duration
+    )
+        where T : IComparable
     {
         StatModification tempMod = new(name, tier, type, true, duration);
         activeModifications.Add(tempMod);
@@ -109,7 +118,8 @@ public class Stats
 
         if (typeof(T) == typeof(float))
         {
-            if (!stats._numstats.ContainsKey(name)) yield break;
+            if (!stats._numstats.ContainsKey(name))
+                yield break;
 
             float original = numericBaseValues[name];
             float change = original * (multiplier - 1f) * direction;
@@ -128,7 +138,8 @@ public class Stats
         }
         else if (typeof(T) == typeof(bool))
         {
-            if (!stats._boolstats.ContainsKey(name)) yield break;
+            if (!stats._boolstats.ContainsKey(name))
+                yield break;
 
             bool original = boolBaseValues[name];
             SetStat(name, type == ModifyTYPE.POSITIVE);
@@ -160,7 +171,8 @@ public class Stats
     }
 
     // --- SET GENÉRICO ---
-    public void SetStat<T>(string name, T value) where T : IComparable
+    public void SetStat<T>(string name, T value)
+        where T : IComparable
     {
         if (typeof(T) == typeof(float) && stats._numstats.ContainsKey(name))
         {
@@ -175,7 +187,8 @@ public class Stats
     }
 
     // --- UTILS ---
-    public IReadOnlyList<StatModification> GetActiveModifications() => activeModifications.AsReadOnly();
+    public IReadOnlyList<StatModification> GetActiveModifications() =>
+        activeModifications.AsReadOnly();
 
     private void UpdateTemporaryTime(string statName, float timeLeft)
     {
@@ -192,6 +205,7 @@ public class Stats
 
     // Serialização custom para salvar no DataSystem
     public Dictionary<string, float> GetNumericStats() => new(stats._numstats);
+
     public Dictionary<string, bool> GetBoolStats() => new(stats._boolstats);
 
     public void LoadFromDictionaries(Dictionary<string, float> nums, Dictionary<string, bool> bools)

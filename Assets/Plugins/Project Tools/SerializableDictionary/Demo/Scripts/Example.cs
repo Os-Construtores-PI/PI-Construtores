@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace Project.Tools.DictionaryHelp
-
 {
     public interface MyTestInterface
     {
@@ -12,19 +11,35 @@ namespace Project.Tools.DictionaryHelp
 
     public class Example : MonoBehaviour, MyTestInterface
     {
-        [SerializeField] private Text GeorgeLabel;
-        [SerializeField] private Image GeorgeImage;
+        [SerializeField]
+        private Text GeorgeLabel;
 
-        [SerializeField] private Text ThemisLabel;
-        [SerializeField] private Image ThemisImage;
+        [SerializeField]
+        private Image GeorgeImage;
 
-        [SerializeField] private SerializableDictionary<int, string> intToStringDictionary;
-        [SerializeField] private SerializableDictionary<string, Color> stringToColorDictionary;
-        [SerializeField] private SerializableDictionary<string, int[]> stringToIntArrayDictionary;
+        [SerializeField]
+        private Text ThemisLabel;
 
-        [SerializeField] private InterfaceHolder<MyTestInterface> serializedInterface;
+        [SerializeField]
+        private Image ThemisImage;
 
-        [SerializeField] private SerializableDictionary<string, InterfaceHolder<MyTestInterface>> stringToInterfaceDictionary;
+        [SerializeField]
+        private SerializableDictionary<int, string> intToStringDictionary;
+
+        [SerializeField]
+        private SerializableDictionary<string, Color> stringToColorDictionary;
+
+        [SerializeField]
+        private SerializableDictionary<string, int[]> stringToIntArrayDictionary;
+
+        [SerializeField]
+        private InterfaceHolder<MyTestInterface> serializedInterface;
+
+        [SerializeField]
+        private SerializableDictionary<
+            string,
+            InterfaceHolder<MyTestInterface>
+        > stringToInterfaceDictionary;
 
         private const string GeorgeName = "George";
         private const string ThemisName = "Themis";

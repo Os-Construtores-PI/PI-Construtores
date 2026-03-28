@@ -5,22 +5,24 @@ public class PlayerJumpingState : IState<PlayerContext>
 {
     public ActionType Type => ActionType.Jump;
 
-    public HashSet<ActionType> IncompatibleActions => new() {};
+    public HashSet<ActionType> IncompatibleActions => new() { };
 
     public void Enter(PlayerContext context)
     {
-        if(context.PlayerCurrentJumpCount != 0)
+        if (context.PlayerCurrentJumpCount != 0)
         {
             context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
         }
         if (context.PlayerCurrentJumpCount < context.PlayerMaxJumpCount)
         {
             Vector3 move = context.PlayerMovementVector;
-            float multiplier = 1+(context.PlayerCurrentJumpCount*0.35f);
+            float multiplier = 1 + (context.PlayerCurrentJumpCount * 0.35f);
             if (context.PlayerTouchingWall) // se estiver na parede → usa vetor mais horizontal
             {
                 float horizontalBias = 6.5f; // quanto maior, mais horizontal
-                Vector3 jumpDir = (Vector3.up + context.PlayerLastWallNormal * horizontalBias).normalized;
+                Vector3 jumpDir = (
+                    Vector3.up + context.PlayerLastWallNormal * horizontalBias
+                ).normalized;
                 move = context.PlayerJumpForce * context.PlayerWallJumpMultiplier * jumpDir;
                 context.PlayerTouchingWall = false; // evita repetir
             }
@@ -35,9 +37,7 @@ public class PlayerJumpingState : IState<PlayerContext>
         context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
     }
 
-    public void Exit(PlayerContext context)
-    {
-    }
+    public void Exit(PlayerContext context) { }
 
     public void FixedUpdate(PlayerContext context) { }
 

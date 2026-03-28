@@ -1,20 +1,23 @@
-using UnityEngine;
-using DG.Tweening;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
+using UnityEngine;
 
 public class FallingPlatform : BasePlataform
 {
     private Vector3 startPos;
 
     [Header("Timings")]
-    [SerializeField] private float resetDelay = 5f;
+    [SerializeField]
+    private float resetDelay = 5f;
 
     [Header("Sprites")]
-    [SerializeField] private List<Texture2D> crackingSprites = new();
+    [SerializeField]
+    private List<Texture2D> crackingSprites = new();
 
     [Header("Model")]
-    [SerializeField] private Transform modelTransform;
+    [SerializeField]
+    private Transform modelTransform;
 
     private const float TIME_TO_FALL = 3f;
     private const float SHAKE_DURATION = 2.6f;
@@ -46,8 +49,10 @@ public class FallingPlatform : BasePlataform
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (!canFall) return;
-        if (fallTimer.IsActive) return;
+        if (!canFall)
+            return;
+        if (fallTimer.IsActive)
+            return;
 
         if (collider.gameObject.layer == LayerMask.NameToLayer("Entity"))
         {
@@ -72,7 +77,8 @@ public class FallingPlatform : BasePlataform
 
     private void Update()
     {
-        if (!fallTimer.IsActive) return;
+        if (!fallTimer.IsActive)
+            return;
 
         UpdateCrackingSprite();
 
@@ -84,7 +90,8 @@ public class FallingPlatform : BasePlataform
 
     private void UpdateCrackingSprite()
     {
-        if (crackingSprites.Count == 0) return;
+        if (crackingSprites.Count == 0)
+            return;
 
         float progress = fallTimer.Current / TIME_TO_FALL;
         int index = Mathf.Clamp(
@@ -98,7 +105,8 @@ public class FallingPlatform : BasePlataform
 
     private void SetTextureOnMaterial(Texture2D texture)
     {
-        if (!platformRenderer || !texture) return;
+        if (!platformRenderer || !texture)
+            return;
         platformRenderer.material.SetTexture("_CrackingTexture", texture);
     }
 
@@ -113,10 +121,10 @@ public class FallingPlatform : BasePlataform
 
         modelTransform.localPosition = Vector3.zero;
 
-        yield return transform.DOMoveY(
-            fallTarget.position.y,
-            0.75f
-        ).SetUpdate(UpdateType.Fixed).WaitForCompletion();
+        yield return transform
+            .DOMoveY(fallTarget.position.y, 0.75f)
+            .SetUpdate(UpdateType.Fixed)
+            .WaitForCompletion();
 
         yield return new WaitForSeconds(resetDelay);
 

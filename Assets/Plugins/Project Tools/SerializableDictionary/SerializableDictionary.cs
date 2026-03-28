@@ -1,20 +1,25 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Project.Tools.DictionaryHelp
 {
     [System.Serializable]
-    public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
+    public class SerializableDictionary<TKey, TValue>
+        : Dictionary<TKey, TValue>,
+            ISerializationCallbackReceiver
     {
-        [SerializeField] private List<SerializedDictionaryKVPProps<TKey, TValue>> dictionaryList = new();
+        [SerializeField]
+        private List<SerializedDictionaryKVPProps<TKey, TValue>> dictionaryList = new();
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             foreach (var kVP in this)
             {
-                if (dictionaryList.FirstOrDefault(value => this.Comparer.Equals(value.Key, kVP.Key))
-                    is SerializedDictionaryKVPProps<TKey, TValue> serializedKVP)
+                if (
+                    dictionaryList.FirstOrDefault(value => this.Comparer.Equals(value.Key, kVP.Key))
+                    is SerializedDictionaryKVPProps<TKey, TValue> serializedKVP
+                )
                 {
                     serializedKVP.Value = kVP.Value;
                 }
@@ -54,13 +59,16 @@ namespace Project.Tools.DictionaryHelp
 #if UNITY_EDITOR
                 if (ContainsKey(key))
                 {
-                    var duplicateKeysWithCount = dictionaryList.GroupBy(item => item.Key)
-                                                               .Where(group => group.Count() > 1)
-                                                               .Select(group => new { Key = group.Key, Count = group.Count() });
+                    var duplicateKeysWithCount = dictionaryList
+                        .GroupBy(item => item.Key)
+                        .Where(group => group.Count() > 1)
+                        .Select(group => new { Key = group.Key, Count = group.Count() });
 
                     foreach (var duplicatedKey in duplicateKeysWithCount)
                     {
-                        Debug.LogError($"Key '{duplicatedKey.Key}' is duplicated {duplicatedKey.Count} times in the dictionary.");
+                        Debug.LogError(
+                            $"Key '{duplicatedKey.Key}' is duplicated {duplicatedKey.Count} times in the dictionary."
+                        );
                     }
 
                     return base[key];
@@ -85,13 +93,19 @@ namespace Project.Tools.DictionaryHelp
             public int index;
             public bool isKeyDuplicated;
 
-            public SerializedDictionaryKVPProps(TypeKey key, TypeValue value) { this.Key = key; this.Value = value; }
+            public SerializedDictionaryKVPProps(TypeKey key, TypeValue value)
+            {
+                this.Key = key;
+                this.Value = value;
+            }
 
-            public static implicit operator SerializedDictionaryKVPProps<TypeKey, TypeValue>(KeyValuePair<TypeKey, TypeValue> kvp)
-                => new SerializedDictionaryKVPProps<TypeKey, TypeValue>(kvp.Key, kvp.Value);
-            public static implicit operator KeyValuePair<TypeKey, TypeValue>(SerializedDictionaryKVPProps<TypeKey, TypeValue> kvp)
-                => new KeyValuePair<TypeKey, TypeValue>(kvp.Key, kvp.Value);
+            public static implicit operator SerializedDictionaryKVPProps<TypeKey, TypeValue>(
+                KeyValuePair<TypeKey, TypeValue> kvp
+            ) => new SerializedDictionaryKVPProps<TypeKey, TypeValue>(kvp.Key, kvp.Value);
+
+            public static implicit operator KeyValuePair<TypeKey, TypeValue>(
+                SerializedDictionaryKVPProps<TypeKey, TypeValue> kvp
+            ) => new KeyValuePair<TypeKey, TypeValue>(kvp.Key, kvp.Value);
         }
     }
-
 }

@@ -24,7 +24,10 @@ namespace Project.Tools.DictionaryHelp
                     fullHeaderRect.x -= 17;
                     fullHeaderRect.width += 34;
 
-                    if (Event.current != null && fullHeaderRect.Contains(Event.current.mousePosition))
+                    if (
+                        Event.current != null
+                        && fullHeaderRect.Contains(Event.current.mousePosition)
+                    )
                     {
                         Color transparentGrey = new Color(0.4f, 0.4f, 0.4f, 0.4f);
                         EditorGUI.DrawRect(fullHeaderRect, transparentGrey);
@@ -32,8 +35,17 @@ namespace Project.Tools.DictionaryHelp
 
                     GUI.color = Color.clear;
 
-                    if (GUI.Button(new Rect(fullHeaderRect.x, fullHeaderRect.y, fullHeaderRect.width - 40,
-                                            fullHeaderRect.height), ""))
+                    if (
+                        GUI.Button(
+                            new Rect(
+                                fullHeaderRect.x,
+                                fullHeaderRect.y,
+                                fullHeaderRect.width - 40,
+                                fullHeaderRect.height
+                            ),
+                            ""
+                        )
+                    )
                     {
                         prop.isExpanded = !prop.isExpanded;
                     }
@@ -76,13 +88,16 @@ namespace Project.Tools.DictionaryHelp
 
                     for (int i = 0; i < dictionaryList.arraySize; i++)
                     {
-                        SerializedProperty isKeyRepeatedProperty = dictionaryList.GetArrayElementAtIndex(i)
-                                                                           .FindPropertyRelative("isKeyDuplicated");
+                        SerializedProperty isKeyRepeatedProperty = dictionaryList
+                            .GetArrayElementAtIndex(i)
+                            .FindPropertyRelative("isKeyDuplicated");
 
                         if (isKeyRepeatedProperty.boolValue)
                         {
                             hasRepeated = true;
-                            SerializedProperty keyProperty = dictionaryList.GetArrayElementAtIndex(i).FindPropertyRelative("Key");
+                            SerializedProperty keyProperty = dictionaryList
+                                .GetArrayElementAtIndex(i)
+                                .FindPropertyRelative("Key");
                             string keyString = GetSerializedPropertyValueAsString(keyProperty);
                             repeatedKeys.Add(keyString);
                         }
@@ -96,7 +111,12 @@ namespace Project.Tools.DictionaryHelp
                     float with = GUI.skin.label.CalcSize(new GUIContent(prop.displayName)).x;
                     headerRect.x += with + 35f;
                     var warningRect = headerRect;
-                    Rect warningRectIcon = new Rect(headerRect.x - 18, headerRect.y, headerRect.width, headerRect.height);
+                    Rect warningRectIcon = new Rect(
+                        headerRect.x - 18,
+                        headerRect.y,
+                        headerRect.width,
+                        headerRect.height
+                    );
                     GUI.color = Color.white;
                     GUI.Label(warningRectIcon, EditorGUIUtility.IconContent("console.erroricon"));
                     GUI.color = new Color(1.0f, 0.443f, 0.443f);
@@ -251,8 +271,10 @@ namespace Project.Tools.DictionaryHelp
 
                 if (kvpProp.FindPropertyRelative("isKeyDuplicated").boolValue)
                 {
-                    GUI.Label(new Rect(keyRect.x + keyRect.width - 20, keyRect.y - 1, 20, 20),
-                              EditorGUIUtility.IconContent("console.erroricon"));
+                    GUI.Label(
+                        new Rect(keyRect.x + keyRect.width - 20, keyRect.y - 1, 20, 20),
+                        EditorGUIUtility.IconContent("console.erroricon")
+                    );
                 }
             }
 
@@ -264,20 +286,31 @@ namespace Project.Tools.DictionaryHelp
                 if (valueProp.type.StartsWith("InterfaceHolder"))
                 {
                     var interfaceValue = valueProp.FindPropertyRelative("value");
-                    MonoBehaviour newValue = (MonoBehaviour)EditorGUI.ObjectField(valueRect,
-                                              interfaceValue.objectReferenceValue, typeof(MonoBehaviour), true);
+                    MonoBehaviour newValue = (MonoBehaviour)
+                        EditorGUI.ObjectField(
+                            valueRect,
+                            interfaceValue.objectReferenceValue,
+                            typeof(MonoBehaviour),
+                            true
+                        );
 
                     if (interfaceValue.objectReferenceValue != newValue)
                     {
-                        if (newValue == null || newValue.GetComponent(
-                            fieldInfo.FieldType.GenericTypeArguments[1].GenericTypeArguments[0]) != null)
+                        if (
+                            newValue == null
+                            || newValue.GetComponent(
+                                fieldInfo.FieldType.GenericTypeArguments[1].GenericTypeArguments[0]
+                            ) != null
+                        )
                         {
                             interfaceValue.objectReferenceValue = newValue;
                         }
                         else
                         {
-                            Debug.LogWarning($"Assigned object must implement interface " +
-                                             $"{fieldInfo.FieldType.GenericTypeArguments[1].GenericTypeArguments[0].Name}");
+                            Debug.LogWarning(
+                                $"Assigned object must implement interface "
+                                    + $"{fieldInfo.FieldType.GenericTypeArguments[1].GenericTypeArguments[0].Name}"
+                            );
                         }
                     }
                 }
@@ -299,17 +332,27 @@ namespace Project.Tools.DictionaryHelp
                     {
                         //isDividerDragged = true;
                     }
-                    else if (Event.current.type == EventType.MouseUp
-                             || Event.current.type == EventType.MouseMove
-                             || Event.current.type == EventType.MouseLeaveWindow)
+                    else if (
+                        Event.current.type == EventType.MouseUp
+                        || Event.current.type == EventType.MouseMove
+                        || Event.current.type == EventType.MouseLeaveWindow
+                    )
                     {
                         isDividerDragged = false;
                     }
                 }
 
-                if (isDividerDragged && Event.current != null && Event.current.type == EventType.MouseDrag)
+                if (
+                    isDividerDragged
+                    && Event.current != null
+                    && Event.current.type == EventType.MouseDrag
+                )
                 {
-                    dividerPosProp.floatValue = Mathf.Clamp(dividerPosProp.floatValue + Event.current.delta.x / rect.width, .2f, .8f);
+                    dividerPosProp.floatValue = Mathf.Clamp(
+                        dividerPosProp.floatValue + Event.current.delta.x / rect.width,
+                        .2f,
+                        .8f
+                    );
                 }
             }
 
@@ -324,7 +367,10 @@ namespace Project.Tools.DictionaryHelp
             GUI.Label(rect, "Empty");
         }
 
-        private IEnumerable<SerializedProperty> GetChildren(SerializedProperty prop, bool enterVisibleGrandchildren)
+        private IEnumerable<SerializedProperty> GetChildren(
+            SerializedProperty prop,
+            bool enterVisibleGrandchildren
+        )
         {
             prop = prop.Copy();
 
@@ -332,7 +378,9 @@ namespace Project.Tools.DictionaryHelp
 
             var enterVisibleChildren = true;
 
-            while (prop.NextVisible(enterVisibleChildren) && prop.propertyPath.StartsWith(startPath))
+            while (
+                prop.NextVisible(enterVisibleChildren) && prop.propertyPath.StartsWith(startPath)
+            )
             {
                 yield return prop;
                 enterVisibleChildren = enterVisibleGrandchildren;
@@ -341,7 +389,8 @@ namespace Project.Tools.DictionaryHelp
 
         private bool IsSingleLine(SerializedProperty prop)
         {
-            return prop.propertyType != SerializedPropertyType.Generic || prop.hasVisibleChildren == false;
+            return prop.propertyType != SerializedPropertyType.Generic
+                || prop.hasVisibleChildren == false;
         }
 
         private void SetupList(SerializedProperty prop)
@@ -353,7 +402,14 @@ namespace Project.Tools.DictionaryHelp
 
             SetupProps(prop);
 
-            this.reorderableList = new ReorderableList(dictionaryList.serializedObject, dictionaryList, true, false, true, true);
+            this.reorderableList = new ReorderableList(
+                dictionaryList.serializedObject,
+                dictionaryList,
+                true,
+                false,
+                true,
+                true
+            );
             this.reorderableList.drawElementCallback = DrawListElement;
             this.reorderableList.elementHeightCallback = GetListElementHeight;
             this.reorderableList.drawNoneElementCallback = ShowDictIsEmptyMessage;

@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlayerGroundedState : IState<PlayerContext>
 {
     public ActionType Type => ActionType.Idle;
-    public HashSet<ActionType> IncompatibleActions => new() {};
+    public HashSet<ActionType> IncompatibleActions => new() { };
 
     private Timer exitTimer = new();
     private bool timerStarted = false;
@@ -29,27 +29,32 @@ public class PlayerGroundedState : IState<PlayerContext>
         context.PlayerDashCurrent = 0;
 
         // Aplica atrito separadamente em X e Z
-        move.x = QualityOfLife.PlayerFriction(move.x, context.PlayerFriction,context.PlayerMoveInput);
-        move.z = QualityOfLife.PlayerFriction(move.z, context.PlayerFriction,context.PlayerMoveInput);
+        move.x = QualityOfLife.PlayerFriction(
+            move.x,
+            context.PlayerFriction,
+            context.PlayerMoveInput
+        );
+        move.z = QualityOfLife.PlayerFriction(
+            move.z,
+            context.PlayerFriction,
+            context.PlayerMoveInput
+        );
         context.PlayerMovementVector = move;
-        if(!context.PlayerIsGrounded && !timerStarted)
+        if (!context.PlayerIsGrounded && !timerStarted)
         {
             exitTimer.Start(exitInterval);
             timerStarted = true;
         }
-        if(timerStarted && context.PlayerIsGrounded)
+        if (timerStarted && context.PlayerIsGrounded)
         {
             exitTimer.Stop();
             timerStarted = false;
         }
-        if(exitTimer.Tick(Time.deltaTime) &&  timerStarted)
+        if (exitTimer.Tick(Time.deltaTime) && timerStarted)
         {
             context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
         }
     }
 
-    public void Update(PlayerContext context)
-    {
-        
-    }
+    public void Update(PlayerContext context) { }
 }

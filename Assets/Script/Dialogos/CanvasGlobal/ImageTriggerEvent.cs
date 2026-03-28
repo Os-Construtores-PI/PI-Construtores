@@ -49,6 +49,4 @@ public class ImageTriggerEvent : MonoBehaviour
         StartSpin();
         gameObject.SetActive(true);
     }
-
-
 }

@@ -10,12 +10,17 @@ using UnityEngine.Events;
 public abstract class LiveEntities : Entities
 {
     [Header("Debug - Vida Atual")]
-    [SerializeField] private float _currentHealthDebug;
+    [SerializeField]
+    private float _currentHealthDebug;
+
     #region --- Atributos de Vida ---
 
     [Header("Atributos de Vida")]
-    [SerializeField, Min(1f)] protected float _maxHealth = 100f;
-    [SerializeField, Min(0f)] protected float _defense = 10f;
+    [SerializeField, Min(1f)]
+    protected float _maxHealth = 100f;
+
+    [SerializeField, Min(0f)]
+    protected float _defense = 10f;
 
     private float _health;
 
@@ -64,7 +69,8 @@ public abstract class LiveEntities : Entities
         set => _maxHealth = Mathf.Max(1f, value);
     }
 
-    [HideInInspector] public readonly float MAX_DEFENSE = 100f;
+    [HideInInspector]
+    public readonly float MAX_DEFENSE = 100f;
 
     #endregion
 
@@ -83,15 +89,16 @@ public abstract class LiveEntities : Entities
     public Dictionary<string, Action<float>> numericStatSetters = new();
     public Dictionary<string, Action<bool>> boolStatSetters = new();
 
-
     public override void Awake()
     {
         base.Awake();
         _OnDamage.AddListener(DamageHandler);
     }
+
     public void AutoRegisterStats()
     {
-        var properties = GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var properties = GetType()
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         foreach (var prop in properties)
         {
@@ -111,7 +118,9 @@ public abstract class LiveEntities : Entities
             }
             else
             {
-                Debug.LogWarning($"Property {prop.Name} marcada com [Stat] tem tipo não suportado: {prop.PropertyType.Name}");
+                Debug.LogWarning(
+                    $"Property {prop.Name} marcada com [Stat] tem tipo não suportado: {prop.PropertyType.Name}"
+                );
             }
         }
     }
@@ -156,15 +165,10 @@ public abstract class LiveEntities : Entities
         if (numericStatSetters.TryGetValue(name, out var setter))
             setter(value);
     }
-    public virtual void DeathHandler()
-    {
 
-    }
-    public virtual void DamageHandler()
-    {
+    public virtual void DeathHandler() { }
 
-    }
-
+    public virtual void DamageHandler() { }
 
     #endregion
 
@@ -188,31 +192,38 @@ public abstract class LiveEntities : Entities
         _OnDeath.AddListener(DeathHandler);
     }
     #endregion
-
-
 }
 
 public class LiveEntityContext : EntityContext
 {
     private readonly LiveEntities liveEntity;
 
-    public LiveEntityContext(LiveEntities entity) : base(entity)
+    public LiveEntityContext(LiveEntities entity)
+        : base(entity)
     {
         liveEntity = entity;
     }
 
-    public Stats LiveEntityStats { get => liveEntity.stats; }
-    public float LiveEntityHealth { get => liveEntity.Health; set => liveEntity.Health = value; }
-    public float LiveEntityMaxHealth { get => liveEntity.MaxHealth; set => liveEntity.MaxHealth = value; }
-    public float LiveEntityDefense { get => liveEntity.Defense; set => liveEntity.Defense = value; } 
+    public Stats LiveEntityStats
+    {
+        get => liveEntity.stats;
+    }
+    public float LiveEntityHealth
+    {
+        get => liveEntity.Health;
+        set => liveEntity.Health = value;
+    }
+    public float LiveEntityMaxHealth
+    {
+        get => liveEntity.MaxHealth;
+        set => liveEntity.MaxHealth = value;
+    }
+    public float LiveEntityDefense
+    {
+        get => liveEntity.Defense;
+        set => liveEntity.Defense = value;
+    }
 }
-
-
-
-
-
-
-
 
 /// <summary>
 /// Atributo para marcar propriedades que representam stats.
@@ -227,8 +238,3 @@ public class StatAttribute : Attribute
         Name = name;
     }
 }
-
-
-
-
-

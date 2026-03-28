@@ -16,7 +16,9 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
 
         if (wallExitTimer.Tick(Time.deltaTime))
         {
-            context.LiveEntityStats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString());
+            context.LiveEntityStats.RemoveActiveModifications(
+                Constants.StatsNames.Speed.ToString()
+            );
             context.PlayerWallSpeedApplied = false;
             context.PlayerTouchingWall = false;
             UnBlockPlayerDash(context);
@@ -24,10 +26,15 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
             context.PlayerActionLayer.PopStateDeferred(context);
         }
     }
+
     private void ResetWallExitTimer() => wallExitTimer.Stop();
+
     private void BlockPlayerDash(PlayerContext context)
     {
-        if (context.IsDashBlocked) { return; }
+        if (context.IsDashBlocked)
+        {
+            return;
+        }
         context.IsDashBlocked = true;
         context.LiveEntityStats.ModifyStatImmediate<bool>(
             Constants.StatsNames.CanDash.ToString(),
@@ -50,6 +57,7 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
         );
         context.LiveEntityStats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
     }
+
     public void Enter(PlayerContext context)
     {
         context.OverrideHorizontal = true;
@@ -63,7 +71,9 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
 
         if (!context.PlayerWallSpeedApplied)
         {
-            context.LiveEntityStats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // garante que não acumule
+            context.LiveEntityStats.RemoveActiveModifications(
+                Constants.StatsNames.Speed.ToString()
+            ); // garante que não acumule
             context.LiveEntityStats.ModifyStatImmediate<float>(
                 Constants.StatsNames.Speed.ToString(),
                 ModifyTYPE.POSITIVE,
@@ -74,14 +84,13 @@ public class PlayerActionStateWallSliding : IState<PlayerContext>
         }
         context.PlayerGravity = -1.5f;
     }
+
     public void Exit(PlayerContext context)
     {
         context.OverrideHorizontal = false;
     }
 
-    public void FixedUpdate(PlayerContext context)
-    {
-    }
+    public void FixedUpdate(PlayerContext context) { }
 
     public void Update(PlayerContext context)
     {

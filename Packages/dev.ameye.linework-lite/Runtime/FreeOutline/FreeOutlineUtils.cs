@@ -39,10 +39,14 @@ namespace LineworkLite.FreeOutline
 
     static class ShaderPropertyId
     {
-        public static readonly int OutlineOccludedColor = Shader.PropertyToID("_OutlineOccludedColor");
+        public static readonly int OutlineOccludedColor = Shader.PropertyToID(
+            "_OutlineOccludedColor"
+        );
         public static readonly int OutlineWidth = Shader.PropertyToID("_OutlineWidth");
         public static readonly int MinOutlineWidth = Shader.PropertyToID("_MinimumOutlineWidth");
-        public static readonly int ReferenceResolution = Shader.PropertyToID("_ReferenceResolution");
+        public static readonly int ReferenceResolution = Shader.PropertyToID(
+            "_ReferenceResolution"
+        );
     }
 
     static class ShaderFeature
@@ -55,25 +59,32 @@ namespace LineworkLite.FreeOutline
     public enum MaskingStrategy
     {
         Stencil,
-        CullFrontFaces
+        CullFrontFaces,
     }
 
     public enum ExtrusionMethod
     {
         [InspectorName("Vertex Position (OS)")]
         ObjectSpaceVertexPosition = 0,
+
         [InspectorName("Normalized Vertex Position (OS)")]
         ObjectSpaceNormalizedVertexPosition = 1,
+
         [InspectorName("Normal Vector (OS)")]
         ObjectSpaceNormalVector = 2,
+
         [InspectorName("Vertex Color (OS)")]
         ObjectSpaceVertexColor = 3,
+
         [InspectorName("Normal Vector (CS)")]
         ClipSpaceNormalVector = 4,
+
         [InspectorName("Normal Vector (SS)")]
         ScreenSpaceNormalVector = 5,
+
         [InspectorName("Normal Vector (WS)")]
         WorldSpaceNormalVector = 6,
+
         [InspectorName("Smoothed Normals")]
         SmoothedNormals = 7,
     }
@@ -81,18 +92,21 @@ namespace LineworkLite.FreeOutline
     public enum Scaling
     {
         ConstantScreenSize,
-        ScaleWithDistance
+        ScaleWithDistance,
     }
 
     public enum Resolution
     {
         [InspectorName("480px")]
         _480,
+
         [InspectorName("720px")]
         _720,
+
         [InspectorName("1080px")]
         _1080,
+
         [InspectorName("Custom")]
-        Custom
+        Custom,
     }
 }

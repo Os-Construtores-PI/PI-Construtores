@@ -1,7 +1,7 @@
-using UnityEngine;
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 [Serializable]
@@ -17,8 +17,11 @@ public class ColorPuzzle
 [Serializable]
 public class CustomPositiveFloatRange
 {
-    [SerializeField, Range(0.01f, 10f)] private float min = 0.5f;
-    [SerializeField, Range(0.01f, 10f)] private float max = 1.5f;
+    [SerializeField, Range(0.01f, 10f)]
+    private float min = 0.5f;
+
+    [SerializeField, Range(0.01f, 10f)]
+    private float max = 1.5f;
 
     private const float MIN_LIMIT = 0.01f;
     private const float MAX_LIMIT = 10f;
@@ -44,11 +47,12 @@ public class CustomPositiveFloatRange
                 min = max;
         }
     }
+
     public float GetRandom() => UnityEngine.Random.Range(min, max);
+
     public bool IsValid() => min >= MIN_LIMIT && max <= MAX_LIMIT && min <= max;
 }
 
-    
 [System.Serializable]
 public class Timer
 {
@@ -58,7 +62,7 @@ public class Timer
 
     public bool IsActive => active;
     public bool IsDone => !active;
-    
+
     public float Current => current;
     public float TimeLeft => duration - current;
 
@@ -73,7 +77,8 @@ public class Timer
 
     public bool Tick(float deltaTime)
     {
-        if (!active) return false;
+        if (!active)
+            return false;
         current += deltaTime;
         if (current >= duration)
         {
@@ -111,7 +116,6 @@ public class Scanner<TInput, TOutput>
     }
 }
 
-
 [System.Serializable]
 public class ConditionalGate
 {
@@ -119,18 +123,22 @@ public class ConditionalGate
     bool exited = false;
     Action onEnter;
     Action onExit;
+
     public void Setup(Action enterAction, Action exitAction)
     {
         onEnter = enterAction;
         onExit = exitAction;
     }
+
     public void Enter()
     {
-        if(entered || onEnter == null) return;
+        if (entered || onEnter == null)
+            return;
         entered = true;
         exited = false;
         onEnter.Invoke();
     }
+
     public void Check(bool condition)
     {
         if (condition)
@@ -140,38 +148,48 @@ public class ConditionalGate
         else
         {
             Exit();
-        }    
+        }
     }
+
     public void Exit()
     {
-        if(exited || onExit == null) return;
+        if (exited || onExit == null)
+            return;
         entered = false;
         exited = true;
         onExit.Invoke();
     }
-    
 }
 
 public class EffectsWorker
 {
-    private Dictionary<string,GameObject> effects = new();
+    private Dictionary<string, GameObject> effects = new();
+
     public void InitEffects(Transform transform)
     {
-        foreach(Transform child in transform)
+        foreach (Transform child in transform)
         {
-            effects.Add(child.name,child.gameObject);
+            effects.Add(child.name, child.gameObject);
         }
     }
+
     public void PlayEffect(string name)
     {
-        if(effects.TryGetValue(name,out GameObject effect) && effect.TryGetComponent(out ParticleSystem particleSystem))
+        if (
+            effects.TryGetValue(name, out GameObject effect)
+            && effect.TryGetComponent(out ParticleSystem particleSystem)
+        )
         {
             particleSystem.Play(true);
         }
     }
+
     public void StopEffect(string name)
     {
-        if(effects.TryGetValue(name,out GameObject effect) && effect.TryGetComponent(out ParticleSystem particleSystem))
+        if (
+            effects.TryGetValue(name, out GameObject effect)
+            && effect.TryGetComponent(out ParticleSystem particleSystem)
+        )
         {
             particleSystem.Stop(true);
         }

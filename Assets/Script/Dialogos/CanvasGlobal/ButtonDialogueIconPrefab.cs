@@ -3,8 +3,10 @@ using UnityEngine.UI;
 
 public class ButtonDialogueIconPrefab : MonoBehaviour
 {
-    [SerializeField] private DeviceSpriteManager.DialogueButtonType _buttonType;
+    [SerializeField]
+    private DeviceSpriteManager.DialogueButtonType _buttonType;
     private Image _image;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Awake()
     {
@@ -29,8 +31,6 @@ public class ButtonDialogueIconPrefab : MonoBehaviour
     {
         AtualizarSprite();
     }
-
-
 
     private void AtualizarSprite()
     {

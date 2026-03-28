@@ -17,21 +17,22 @@ public class BaseRenderedGameObject : MonoBehaviour
 
     public virtual void Start()
     {
-        DOTween.Init(); 
+        DOTween.Init();
     }
 
     void OnBecameVisible()
     {
-        if ((!gameObject.activeInHierarchy || hasPlayed) && canPulse) return;
+        if ((!gameObject.activeInHierarchy || hasPlayed) && canPulse)
+            return;
         hasPlayed = true;
 
         scaleTween?.Kill();
-        scaleTween = transform.DOScale(initialScale * scaleFactor, pulseDuration)
+        scaleTween = transform
+            .DOScale(initialScale * scaleFactor, pulseDuration)
             .SetLoops(2, LoopType.Yoyo)
             .SetEase(Ease.OutBack)
             .OnComplete(() => scaleTween = null);
     }
-
 
     void OnBecameInvisible()
     {

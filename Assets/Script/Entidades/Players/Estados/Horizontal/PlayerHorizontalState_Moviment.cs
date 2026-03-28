@@ -8,7 +8,7 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
 
     public ActionType Type => ActionType.Move;
 
-    public HashSet<ActionType> IncompatibleActions => new() {};
+    public HashSet<ActionType> IncompatibleActions => new() { };
 
     private Dictionary<bool, float> _speeds = new();
     private Dictionary<bool, float> _accelerations = new();
@@ -21,13 +21,15 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
         _accelerations[true] = context.PlayerRunningAcceleration;
     }
 
-    public void Exit(PlayerContext context)
-    {
-    }
+    public void Exit(PlayerContext context) { }
 
     public void FixedUpdate(PlayerContext context)
     {
-        if(context.PlayerMoveInput == Vector2.zero) { context.PlayerHorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);};
+        if (context.PlayerMoveInput == Vector2.zero)
+        {
+            context.PlayerHorizontalLayer.ChangeState(new PlayerHorizontalStateIdle(), context);
+        }
+        ;
 
         CinemachineCamera playerCamera = context.PlayerCamera;
         Transform playerTransform = context.EntityTransform;
@@ -41,8 +43,9 @@ public class PlayerHorizontalStateMoviment : IState<PlayerContext>
         forward.y = right.y = 0f;
 
         Vector3 playerDirection = forward.normalized * moveInput.y + right.normalized * moveInput.x;
-        if(playerDirection == Vector3.zero) playerDirection = context.EntityTransform.forward;
-        
+        if (playerDirection == Vector3.zero)
+            playerDirection = context.EntityTransform.forward;
+
         context.EntityTransform.rotation = Quaternion.Slerp(
             playerTransform.rotation,
             Quaternion.LookRotation(playerDirection),

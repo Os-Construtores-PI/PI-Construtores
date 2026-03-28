@@ -4,7 +4,7 @@ public class PlayerActionStateInteraction : IState<PlayerContext>
 {
     public ActionType Type => ActionType.Interact;
 
-    public HashSet<ActionType> IncompatibleActions => new() {};
+    public HashSet<ActionType> IncompatibleActions => new() { };
 
     public void Enter(PlayerContext context)
     {
@@ -13,15 +13,9 @@ public class PlayerActionStateInteraction : IState<PlayerContext>
         context.PlayerActionLayer.PopStateDeferred(context);
     }
 
-    public void Exit(PlayerContext context)
-    {
-    }
+    public void Exit(PlayerContext context) { }
 
-    public void FixedUpdate(PlayerContext context)
-    {
-    }
+    public void FixedUpdate(PlayerContext context) { }
 
-    public void Update(PlayerContext context)
-    {
-    }
+    public void Update(PlayerContext context) { }
 }

@@ -4,7 +4,9 @@ using UnityEngine.Events;
 public class BasicButton : InteractableObject
 {
     private readonly UnityEvent<object> buttonPressed = new();
-    [SerializeField] private ActivatableObject targetobject;
+
+    [SerializeField]
+    private ActivatableObject targetobject;
 
     public virtual void Start()
     {
@@ -13,6 +15,7 @@ public class BasicButton : InteractableObject
             buttonPressed.AddListener(targetobject.ObjectAction);
         }
     }
+
     public override void Interaction(InfoPlayerInteraction info)
     {
         buttonPressed.Invoke(default);

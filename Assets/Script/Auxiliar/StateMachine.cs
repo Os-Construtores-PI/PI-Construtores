@@ -11,7 +11,7 @@ public class StateMachine<T>
     }
 
     public virtual void Update(T entity)
-    { 
+    {
         CurrentState?.Update(entity);
     }
 
@@ -19,7 +19,8 @@ public class StateMachine<T>
     {
         CurrentState?.FixedUpdate(entity);
     }
-    public StateMachine(IState<T> defaultstate,T context)
+
+    public StateMachine(IState<T> defaultstate, T context)
     {
         this.DefaultState = defaultstate;
         this.ChangeState(this.DefaultState, context);

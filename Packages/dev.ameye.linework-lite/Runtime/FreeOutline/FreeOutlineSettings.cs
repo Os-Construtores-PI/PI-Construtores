@@ -6,15 +6,23 @@ using UnityEngine;
 
 namespace LineworkLite.FreeOutline
 {
-    [CreateAssetMenu(fileName = "Free Outline Settings", menuName = "Linework Lite/Free Outline Settings")]
+    [CreateAssetMenu(
+        fileName = "Free Outline Settings",
+        menuName = "Linework Lite/Free Outline Settings"
+    )]
     [Icon("Packages/dev.ameye.linework-lite/Editor/Common/Icons/d_FreeOutline.png")]
     public class FreeOutlineSettings : ScriptableObject
     {
         internal Action OnSettingsChanged;
 
-        [SerializeField] private InjectionPoint injectionPoint = InjectionPoint.AfterRenderingPostProcessing;
-        [SerializeField] private bool showInSceneView = true;
-        [SerializeField] private List<Outline> outlines = new(10);
+        [SerializeField]
+        private InjectionPoint injectionPoint = InjectionPoint.AfterRenderingPostProcessing;
+
+        [SerializeField]
+        private bool showInSceneView = true;
+
+        [SerializeField]
+        private List<Outline> outlines = new(10);
 
         public InjectionPoint InjectionPoint => injectionPoint;
         public bool ShowInSceneView => showInSceneView;
@@ -49,7 +57,7 @@ namespace LineworkLite.FreeOutline
         }
 
 #if UNITY_EDITOR
-        private class OnDestroyProcessor: AssetModificationProcessor
+        private class OnDestroyProcessor : AssetModificationProcessor
         {
             private static readonly Type Type = typeof(FreeOutlineSettings);
             private const string FileEnding = ".asset";
@@ -60,7 +68,8 @@ namespace LineworkLite.FreeOutline
                     return AssetDeleteResult.DidNotDelete;
 
                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(path);
-                if (assetType == null || assetType != Type && !assetType.IsSubclassOf(Type)) return AssetDeleteResult.DidNotDelete;
+                if (assetType == null || assetType != Type && !assetType.IsSubclassOf(Type))
+                    return AssetDeleteResult.DidNotDelete;
                 var asset = AssetDatabase.LoadAssetAtPath<FreeOutlineSettings>(path);
                 foreach (var outline in asset.Outlines)
                 {

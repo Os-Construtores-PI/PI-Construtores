@@ -4,15 +4,20 @@ using UnityEngine.UI;
 
 public class ButtonExitTutorial : MonoBehaviour
 {
-
     [Header("UI")]
-    [SerializeField] private Image buttonIcon;
+    [SerializeField]
+    private Image buttonIcon;
     private PlayerInput playerInput;
 
     [Header("Sprites Por Device")]
-    [SerializeField] private Sprite KeyboardIcon;  //F
-    [SerializeField] private Sprite XboxIcon;  //A
-    [SerializeField] private Sprite PlaystationIcon; // X
+    [SerializeField]
+    private Sprite KeyboardIcon; //F
+
+    [SerializeField]
+    private Sprite XboxIcon; //A
+
+    [SerializeField]
+    private Sprite PlaystationIcon; // X
 
     private void OnEnable()
     {
@@ -28,23 +33,24 @@ public class ButtonExitTutorial : MonoBehaviour
         AtualizarIcone(DeviceSpriteManager.Instance?.GetCurrentDevice());
     }
 
-    private void OnDisable()
-    {
-        
-    }
+    private void OnDisable() { }
 
     private void Update()
     {
-        if (playerInput == null) return;
-        if (TutorialGlobal.Instance == null) return;
-        if (!TutorialGlobal.Instance.IsTutorialActive) return;
+        if (playerInput == null)
+            return;
+        if (TutorialGlobal.Instance == null)
+            return;
+        if (!TutorialGlobal.Instance.IsTutorialActive)
+            return;
 
-        // Ação única (F / A / X)
+        // Aï¿½ï¿½o ï¿½nica (F / A / X)
         if (playerInput.actions["Confirm"].WasPerformedThisFrame())
         {
             ClosedTutorial();
         }
     }
+
     public void ClosedTutorial()
     {
         TutorialGlobal.Instance.FecharTutorial();
@@ -52,25 +58,28 @@ public class ButtonExitTutorial : MonoBehaviour
 
     private void OnTutorialStateChanged(bool ativo)
     {
-        if(buttonIcon != null)
+        if (buttonIcon != null)
             buttonIcon.enabled = ativo;
 
-        if(ativo)
+        if (ativo)
             AtualizarIcone(DeviceSpriteManager.Instance?.GetCurrentDevice());
     }
 
     private void AtualizarIcone(string device)
     {
-        if (buttonIcon == null) return;
-        if(TutorialGlobal.Instance == null) return;
-        if(!TutorialGlobal.Instance.IsTutorialActive) return;
+        if (buttonIcon == null)
+            return;
+        if (TutorialGlobal.Instance == null)
+            return;
+        if (!TutorialGlobal.Instance.IsTutorialActive)
+            return;
 
         buttonIcon.sprite = device switch
         {
             "Keyboard" => KeyboardIcon,
             "Xbox" => XboxIcon,
             "Playstation" => PlaystationIcon,
-            _ => buttonIcon.sprite
+            _ => buttonIcon.sprite,
         };
     }
 }

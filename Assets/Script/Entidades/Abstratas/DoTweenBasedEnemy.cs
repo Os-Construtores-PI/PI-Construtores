@@ -7,74 +7,74 @@ using UnityEngine;
 
 public class DoTweenBasedEnemy : Enemies
 {
-  private readonly List<Vector3> targets = new(); // Inicializado para evitar NullReference
+    private readonly List<Vector3> targets = new(); // Inicializado para evitar NullReference
 
-  [Header("Configurações de Movimento")]
-  [SerializeField]
-  bool _willRotate = false; // Condição para rotacionar
+    [Header("Configurações de Movimento")]
+    [SerializeField]
+    bool _willRotate = false; // Condição para rotacionar
 
-  [SerializeField]
-  PathType tipoPath = PathType.Linear;
+    [SerializeField]
+    PathType tipoPath = PathType.Linear;
 
-  [SerializeField]
-  PathMode modoPath = PathMode.Full3D;
+    [SerializeField]
+    PathMode modoPath = PathMode.Full3D;
 
-  [SerializeField]
-  Ease tipoAnimacao = Ease.Linear;
+    [SerializeField]
+    Ease tipoAnimacao = Ease.Linear;
 
-  [SerializeField]
-  LoopType tipoLoop = LoopType.Yoyo;
+    [SerializeField]
+    LoopType tipoLoop = LoopType.Yoyo;
 
-  [SerializeField]
-  int resolutionPath = 10;
+    [SerializeField]
+    int resolutionPath = 10;
 
-  [SerializeField]
-  Color corGizmo = Color.white;
+    [SerializeField]
+    Color corGizmo = Color.white;
 
-  [Header("Duração e Loops")]
-  [SerializeField]
-  float duration = 5f;
+    [Header("Duração e Loops")]
+    [SerializeField]
+    float duration = 5f;
 
-  [SerializeField]
-  int num_of_loops = -1;
+    [SerializeField]
+    int num_of_loops = -1;
 
-  public override void Start()
-  {
-    base.Start();
-    InitTargets();
-    DOTween.Init();
-
-    if (targets.Count > 0)
+    public override void Start()
     {
-      var pathTween = transform
-        .DOPath(targets.ToArray(), duration, tipoPath, modoPath, resolutionPath, corGizmo)
-        .SetLoops(num_of_loops, tipoLoop)
-        .SetEase(tipoAnimacao)
-        .SetUpdate(UpdateType.Fixed);
+        base.Start();
+        InitTargets();
+        DOTween.Init();
 
-      RotationConfiguration(pathTween);
+        if (targets.Count > 0)
+        {
+            var pathTween = transform
+                .DOPath(targets.ToArray(), duration, tipoPath, modoPath, resolutionPath, corGizmo)
+                .SetLoops(num_of_loops, tipoLoop)
+                .SetEase(tipoAnimacao)
+                .SetUpdate(UpdateType.Fixed);
+
+            RotationConfiguration(pathTween);
+        }
     }
-  }
 
-  private void RotationConfiguration(
-    TweenerCore<Vector3, Path, DG.Tweening.Plugins.Options.PathOptions> tween
-  )
-  {
-    if (_willRotate)
+    private void RotationConfiguration(
+        TweenerCore<Vector3, Path, DG.Tweening.Plugins.Options.PathOptions> tween
+    )
     {
-      tween.SetLookAt(0.01f, forwardDirection: transform.right);
+        if (_willRotate)
+        {
+            tween.SetLookAt(0.01f, forwardDirection: transform.right);
+        }
     }
-  }
 
-  void InitTargets()
-  {
-    targets.Clear();
-    foreach (Transform child in transform)
+    void InitTargets()
     {
-      if (child.name.ToLower().Contains("target"))
-      {
-        targets.Add(child.position);
-      }
+        targets.Clear();
+        foreach (Transform child in transform)
+        {
+            if (child.name.ToLower().Contains("target"))
+            {
+                targets.Add(child.position);
+            }
+        }
     }
-  }
 }

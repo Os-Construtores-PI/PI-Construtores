@@ -2,11 +2,9 @@ using UnityEngine;
 
 public class EyeWolfSpawner : MonoBehaviour
 {
-
     public GameObject _wolfPrefab;
     public int _minPackSize = 3;
     public int _maxPackSize = 5;
-
 
     public void SpawnPack(Vector3 position)
     {
@@ -19,5 +17,5 @@ public class EyeWolfSpawner : MonoBehaviour
 
             Instantiate(_wolfPrefab, spawnPos, Quaternion.identity);
         }
-    }  
+    }
 }

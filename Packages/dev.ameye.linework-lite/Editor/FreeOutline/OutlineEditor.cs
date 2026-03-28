@@ -46,9 +46,15 @@ namespace LineworkLite.Editor.FreeOutline
             scaling = serializedObject.FindProperty(nameof(Outline.scaling));
             width = serializedObject.FindProperty(nameof(Outline.width));
             minWidth = serializedObject.FindProperty(nameof(Outline.minWidth));
-            scaleWithResolution = serializedObject.FindProperty(nameof(Outline.scaleWithResolution));
-            referenceResolution = serializedObject.FindProperty(nameof(Outline.referenceResolution));
-            customReferenceResolution = serializedObject.FindProperty(nameof(Outline.customResolution));
+            scaleWithResolution = serializedObject.FindProperty(
+                nameof(Outline.scaleWithResolution)
+            );
+            referenceResolution = serializedObject.FindProperty(
+                nameof(Outline.referenceResolution)
+            );
+            customReferenceResolution = serializedObject.FindProperty(
+                nameof(Outline.customResolution)
+            );
             materialType = serializedObject.FindProperty(nameof(Outline.materialType));
             customMaterial = serializedObject.FindProperty(nameof(Outline.customMaterial));
         }
@@ -66,54 +72,84 @@ namespace LineworkLite.Editor.FreeOutline
             EditorGUILayout.LabelField("Render", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(occlusion, EditorUtils.CommonStyles.OutlineOcclusion);
             EditorGUILayout.PropertyField(blendMode, EditorUtils.CommonStyles.OutlineBlendMode);
-            if ((Occlusion) occlusion.intValue == Occlusion.WhenNotOccluded)
+            if ((Occlusion)occlusion.intValue == Occlusion.WhenNotOccluded)
             {
-                EditorGUILayout.PropertyField(maskingStrategy, EditorUtils.CommonStyles.MaskingStrategy);
+                EditorGUILayout.PropertyField(
+                    maskingStrategy,
+                    EditorUtils.CommonStyles.MaskingStrategy
+                );
             }
-           
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Outline", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(materialType, EditorUtils.CommonStyles.MaterialType);
-            switch ((MaterialType) materialType.intValue)
+            switch ((MaterialType)materialType.intValue)
             {
                 case MaterialType.Basic:
                     EditorGUILayout.PropertyField(color, EditorUtils.CommonStyles.OutlineColor);
-                    if ((Occlusion) occlusion.intValue == Occlusion.Always)
+                    if ((Occlusion)occlusion.intValue == Occlusion.Always)
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.PropertyField(enableOcclusion, EditorUtils.CommonStyles.OutlineOccludedColor);
-                        if (enableOcclusion.boolValue) EditorGUILayout.PropertyField(occludedColor, GUIContent.none);
+                        EditorGUILayout.PropertyField(
+                            enableOcclusion,
+                            EditorUtils.CommonStyles.OutlineOccludedColor
+                        );
+                        if (enableOcclusion.boolValue)
+                            EditorGUILayout.PropertyField(occludedColor, GUIContent.none);
                         EditorGUILayout.EndHorizontal();
                     }
-                    EditorGUILayout.PropertyField(extrusionMethod, EditorUtils.CommonStyles.ExtrusionMethod);
+                    EditorGUILayout.PropertyField(
+                        extrusionMethod,
+                        EditorUtils.CommonStyles.ExtrusionMethod
+                    );
                     EditorGUILayout.PropertyField(scaling, EditorUtils.CommonStyles.Scaling);
-                    switch ((Scaling) scaling.intValue)
+                    switch ((Scaling)scaling.intValue)
                     {
                         case Scaling.ConstantScreenSize:
-                            EditorGUILayout.PropertyField(width, EditorUtils.CommonStyles.OutlineWidth);
+                            EditorGUILayout.PropertyField(
+                                width,
+                                EditorUtils.CommonStyles.OutlineWidth
+                            );
                             break;
                         case Scaling.ScaleWithDistance:
-                            EditorGUILayout.PropertyField(width, EditorUtils.CommonStyles.OutlineWidth);
-                            EditorGUILayout.PropertyField(minWidth, EditorUtils.CommonStyles.MinWidth);
+                            EditorGUILayout.PropertyField(
+                                width,
+                                EditorUtils.CommonStyles.OutlineWidth
+                            );
+                            EditorGUILayout.PropertyField(
+                                minWidth,
+                                EditorUtils.CommonStyles.MinWidth
+                            );
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.PropertyField(scaleWithResolution, EditorUtils.CommonStyles.ScaleWithResolution);
+                    EditorGUILayout.PropertyField(
+                        scaleWithResolution,
+                        EditorUtils.CommonStyles.ScaleWithResolution
+                    );
                     if (scaleWithResolution.boolValue)
                     {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.PropertyField(referenceResolution, GUIContent.none);
-                        if ((Resolution) referenceResolution.intValue == Resolution.Custom) EditorGUILayout.PropertyField(customReferenceResolution, GUIContent.none, GUILayout.Width(100));
+                        if ((Resolution)referenceResolution.intValue == Resolution.Custom)
+                            EditorGUILayout.PropertyField(
+                                customReferenceResolution,
+                                GUIContent.none,
+                                GUILayout.Width(100)
+                            );
                         EditorGUILayout.EndHorizontal();
                         EditorGUI.indentLevel--;
                     }
                     EditorGUILayout.EndHorizontal();
                     break;
                 case MaterialType.Custom:
-                    EditorGUILayout.PropertyField(customMaterial, EditorUtils.CommonStyles.CustomMaterial);
+                    EditorGUILayout.PropertyField(
+                        customMaterial,
+                        EditorUtils.CommonStyles.CustomMaterial
+                    );
                     break;
             }
             EditorGUILayout.Space();

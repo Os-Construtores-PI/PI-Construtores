@@ -6,8 +6,11 @@ public class Inventory
     // Lista de itens no inventário
     [SerializeField]
     private List<InventoryItem> items = new();
+
     public List<InventoryItem> GetItems() => items;
+
     public void ClearItems() => items.Clear();
+
     public void AddItem(ItemData data, int quantity = 1)
     {
         // Se o item não é único, tenta acumular com outro igual
@@ -25,6 +28,7 @@ public class Inventory
         items.Add(new InventoryItem(data, quantity));
         Debug.Log($"Adicionado: {data.item} x {quantity}");
     }
+
     public void RemoveItem(ItemData data, int quantity = 1)
     {
         var existing = items.Find(i => i.data == data);
@@ -48,6 +52,7 @@ public class Inventory
             items.Remove(existing);
         }
     }
+
     public void UseItem(ItemData itemData)
     {
         if (itemData.GetType() == typeof(PassiveItemData))
@@ -62,5 +67,3 @@ public class Inventory
         }
     }
 }
-
-

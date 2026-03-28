@@ -11,7 +11,10 @@ namespace LineworkLite.Editor.FreeOutline
     {
         private static class Styles
         {
-            public static readonly GUIContent Settings = EditorGUIUtility.TrTextContent("Settings", "The settings for the Free Outline renderer feature.");
+            public static readonly GUIContent Settings = EditorGUIUtility.TrTextContent(
+                "Settings",
+                "The settings for the Free Outline renderer feature."
+            );
         }
 
         private SerializedProperty settings;
@@ -26,7 +29,8 @@ namespace LineworkLite.Editor.FreeOutline
 
         public override void OnInspectorGUI()
         {
-            if (!initialized) Initialize();
+            if (!initialized)
+                Initialize();
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(settings, Styles.Settings);
@@ -56,22 +60,33 @@ namespace LineworkLite.Editor.FreeOutline
             }
             EditorGUILayout.EndHorizontal();
 
-            if (settings.objectReferenceValue != null && !((FreeOutlineSettings) settings.objectReferenceValue).Outlines.Any(outline => outline.IsActive()))
+            if (
+                settings.objectReferenceValue != null
+                && !((FreeOutlineSettings)settings.objectReferenceValue).Outlines.Any(outline =>
+                    outline.IsActive()
+                )
+            )
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("No active outlines present. Effect will not render. Open the settings to add/enable outlines.", MessageType.Warning);
+                EditorGUILayout.HelpBox(
+                    "No active outlines present. Effect will not render. Open the settings to add/enable outlines.",
+                    MessageType.Warning
+                );
             }
-            
+
             EditorGUILayout.Space();
             using (new EditorGUILayout.HorizontalScope())
             {
                 var content = EditorGUIUtility.IconContent("d_AssetStore Icon");
-                content.text = "<b><size=12> Upgrade Linework</size></b>\n Includes smoother outlines, edge detection and fill effects.";
+                content.text =
+                    "<b><size=12> Upgrade Linework</size></b>\n Includes smoother outlines, edge detection and fill effects.";
                 content.tooltip = "Click to open asset page";
-                
+
                 if (GUILayout.Button(content, EditorUtils.ButtonStyle, GUILayout.Height(50f)))
                 {
-                    Application.OpenURL("https://assetstore.unity.com/packages/vfx/shaders/linework-outlines-and-edge-detection-294140");
+                    Application.OpenURL(
+                        "https://assetstore.unity.com/packages/vfx/shaders/linework-outlines-and-edge-detection-294140"
+                    );
                 }
             }
         }

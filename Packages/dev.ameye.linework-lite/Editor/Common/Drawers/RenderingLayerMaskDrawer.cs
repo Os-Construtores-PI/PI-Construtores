@@ -14,9 +14,13 @@ namespace LineworkLite.Editor.Common.Drawers
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            var attr = (RenderingLayerMaskAttribute) attribute;
+            var attr = (RenderingLayerMaskAttribute)attribute;
             var renderingLayerMaskNames = new List<string>(GetRenderingLayerMaskNames());
-            var maskField = new MaskField(attr.ShowLabel ? property.displayName : string.Empty, renderingLayerMaskNames, property.intValue);
+            var maskField = new MaskField(
+                attr.ShowLabel ? property.displayName : string.Empty,
+                renderingLayerMaskNames,
+                property.intValue
+            );
             maskField.AddToClassList(MaskField.alignedFieldUssClassName);
             maskField.BindProperty(property);
             maskField.RegisterValueChangedCallback(x => SetValue(x.newValue, property));
@@ -25,7 +29,7 @@ namespace LineworkLite.Editor.Common.Drawers
 
         private static void SetValue(int intValue, SerializedProperty property)
         {
-            property.uintValue = (uint) intValue;
+            property.uintValue = (uint)intValue;
             property.serializedObject.ApplyModifiedProperties();
         }
 
@@ -36,10 +40,10 @@ namespace LineworkLite.Editor.Common.Drawers
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var attr = (RenderingLayerMaskAttribute) attribute;
-            var renderingLayer = (int) property.uintValue;
+            var attr = (RenderingLayerMaskAttribute)attribute;
+            var renderingLayer = (int)property.uintValue;
             var maskNames = GetRenderingLayerMaskNames();
-            var maskCount = (int) Mathf.Log(renderingLayer, 2) + 1;
+            var maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
 
             if (maskNames.Length < maskCount && maskCount <= 32)
             {
@@ -47,14 +51,16 @@ namespace LineworkLite.Editor.Common.Drawers
 
                 for (var i = 0; i < maskCount; ++i)
                 {
-                    newRenderingLayerMaskNames[i] = i < maskNames.Length
-                        ? maskNames[i]
-                        : $"Unused Layer {i}";
+                    newRenderingLayerMaskNames[i] =
+                        i < maskNames.Length ? maskNames[i] : $"Unused Layer {i}";
                 }
 
                 maskNames = newRenderingLayerMaskNames;
 
-                EditorGUILayout.HelpBox("One or more of the Rendering Layers is not defined in the Universal Global Settings asset.", MessageType.Warning);
+                EditorGUILayout.HelpBox(
+                    "One or more of the Rendering Layers is not defined in the Universal Global Settings asset.",
+                    MessageType.Warning
+                );
             }
 
             EditorGUI.BeginProperty(position, renderingLayerMaskContent, property);
@@ -63,16 +69,26 @@ namespace LineworkLite.Editor.Common.Drawers
             if (attr.ShowLabel)
             {
                 renderingLayerMaskContent.text = property.displayName;
-                renderingLayer = EditorGUI.MaskField(position, renderingLayerMaskContent, renderingLayer, maskNames);
+                renderingLayer = EditorGUI.MaskField(
+                    position,
+                    renderingLayerMaskContent,
+                    renderingLayer,
+                    maskNames
+                );
             }
             else
             {
-                renderingLayer = EditorGUI.MaskField(position, GUIContent.none, renderingLayer, maskNames);
+                renderingLayer = EditorGUI.MaskField(
+                    position,
+                    GUIContent.none,
+                    renderingLayer,
+                    maskNames
+                );
             }
 
             if (EditorGUI.EndChangeCheck())
             {
-                property.uintValue = (uint) renderingLayer;
+                property.uintValue = (uint)renderingLayer;
             }
 
             EditorGUI.EndProperty();
@@ -84,7 +100,9 @@ namespace LineworkLite.Editor.Common.Drawers
             return RenderingLayerMask.GetDefinedRenderingLayerNames();
 #else
             var renderPipeline = GraphicsSettings.currentRenderPipeline;
-            return renderPipeline != null ? renderPipeline.renderingLayerMaskNames : Array.Empty<string>();
+            return renderPipeline != null
+                ? renderPipeline.renderingLayerMaskNames
+                : Array.Empty<string>();
 #endif
         }
     }

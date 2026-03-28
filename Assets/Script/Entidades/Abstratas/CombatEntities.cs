@@ -1,21 +1,26 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-
-
 public abstract class CombatEntities : LiveEntities
 {
     #region --- Configurações de Combate ---
 
     [Header("Atributos de Combate")]
-    [SerializeField, Min(5f)] private float combatCooldown = 5f;
-    [SerializeField, Min(2f)] private float damagedCooldown = 2f;
+    [SerializeField, Min(5f)]
+    private float combatCooldown = 5f;
+
+    [SerializeField, Min(2f)]
+    private float damagedCooldown = 2f;
 
     [Header("Atributos de Regeneração")]
-    [SerializeField] private bool _enableRegen = true;
-    [SerializeField, Min(3f)] private float regenerationInterval = 5f;
+    [SerializeField]
+    private bool _enableRegen = true;
 
-    [HideInInspector] public bool Damaged;
+    [SerializeField, Min(3f)]
+    private float regenerationInterval = 5f;
+
+    [HideInInspector]
+    public bool Damaged;
 
     private bool _inCombat;
     private float combatTimer;
@@ -80,7 +85,8 @@ public abstract class CombatEntities : LiveEntities
         _OnDamage.AddListener(EnterCombat);
 
         stats.OnNumModified.AddListener(HandleNumericStatChange);
-        stats.OnBoolModified.AddListener(HandleBoolStatChange); ;
+        stats.OnBoolModified.AddListener(HandleBoolStatChange);
+        ;
         InitializeStats();
 
         if (EnableRegen)
@@ -103,7 +109,8 @@ public abstract class CombatEntities : LiveEntities
 
     private void HandleCombatTimer()
     {
-        if (!_inCombat) return;
+        if (!_inCombat)
+            return;
 
         combatTimer += Time.deltaTime;
         if (combatTimer >= combatCooldown)
@@ -115,7 +122,8 @@ public abstract class CombatEntities : LiveEntities
 
     private void HandleDamagedCooldown()
     {
-        if (!Damaged) return;
+        if (!Damaged)
+            return;
 
         damagedTimer += Time.deltaTime;
         if (damagedTimer >= damagedCooldown)
@@ -140,10 +148,10 @@ public abstract class CombatEntities : LiveEntities
 
     public void SetHealthHUD(HealthHUDComponent hud)
     {
-        if (hud == null) return;
+        if (hud == null)
+            return;
 
         _healthHUD = hud;
-        
 
         UpdateHUDVisibility(gameObject.activeInHierarchy);
     }
@@ -153,12 +161,10 @@ public abstract class CombatEntities : LiveEntities
         UpdateHUDVisibility(true);
     }
 
-
     private void OnDisable()
     {
         UpdateHUDVisibility(false);
     }
-
 
     private void UpdateHUDVisibility(bool isActive)
     {
@@ -166,20 +172,39 @@ public abstract class CombatEntities : LiveEntities
         {
             _healthHUD.gameObject.SetActive(isActive);
         }
-    }    
+    }
     #endregion
 }
 
 public class CombatEntityContext : LiveEntityContext
 {
     private readonly CombatEntities combatEntity;
-    public CombatEntityContext(CombatEntities entity) : base(entity)
+
+    public CombatEntityContext(CombatEntities entity)
+        : base(entity)
     {
         combatEntity = entity;
     }
-    public bool CombatEntityEnableRegen { get => combatEntity.EnableRegen; set => combatEntity.EnableRegen = value; }
-    public float CombatEntityRegenInterval { get => combatEntity.RegenerationInterval; set => combatEntity.RegenerationInterval = value; }
 
-    public float CombatEntityCombatCooldown { get => combatEntity.CombatCooldown; set => combatEntity.CombatCooldown = value; }
-    public float CombatEntityDamagedCooldown { get => combatEntity.DamagedCooldown; set => combatEntity.DamagedCooldown = value; }
+    public bool CombatEntityEnableRegen
+    {
+        get => combatEntity.EnableRegen;
+        set => combatEntity.EnableRegen = value;
+    }
+    public float CombatEntityRegenInterval
+    {
+        get => combatEntity.RegenerationInterval;
+        set => combatEntity.RegenerationInterval = value;
+    }
+
+    public float CombatEntityCombatCooldown
+    {
+        get => combatEntity.CombatCooldown;
+        set => combatEntity.CombatCooldown = value;
+    }
+    public float CombatEntityDamagedCooldown
+    {
+        get => combatEntity.DamagedCooldown;
+        set => combatEntity.DamagedCooldown = value;
+    }
 }

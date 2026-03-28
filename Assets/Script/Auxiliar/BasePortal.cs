@@ -3,9 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer))]
 public class BasePortal : MonoBehaviour
 {
-    [SerializeField] protected Color outerColor = new();
-    [SerializeField] protected Color midColor = new();
-    [SerializeField] protected Color centerColor = new();
+    [SerializeField]
+    protected Color outerColor = new();
+
+    [SerializeField]
+    protected Color midColor = new();
+
+    [SerializeField]
+    protected Color centerColor = new();
 
     protected virtual void Start()
     {
@@ -24,6 +29,7 @@ public class BasePortal : MonoBehaviour
             material.SetColor("_PortalColor3", centerColor);
         }
     }
+
     private void SetupParticles()
     {
         ParticleSystem particles = GetComponentInChildren<ParticleSystem>();

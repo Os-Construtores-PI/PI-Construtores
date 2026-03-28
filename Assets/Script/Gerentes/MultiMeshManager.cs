@@ -4,12 +4,18 @@ using UnityEngine;
 public class MultiMeshManager : MonoBehaviour
 {
     [Header("Filters")]
-    [SerializeField] private bool onlyStatic = true;
-    [SerializeField] private Transform root; // opcional: null = cena inteira
+    [SerializeField]
+    private bool onlyStatic = true;
+
+    [SerializeField]
+    private Transform root; // opcional: null = cena inteira
 
     [Header("Options")]
-    [SerializeField] private bool disableOriginals = true;
-    [SerializeField] private bool markCombinedStatic = true;
+    [SerializeField]
+    private bool disableOriginals = true;
+
+    [SerializeField]
+    private bool markCombinedStatic = true;
 
     [ContextMenu("Combine Static Meshes")]
     public void Combine()
@@ -19,7 +25,10 @@ public class MultiMeshManager : MonoBehaviour
 
         MeshRenderer[] renderers = root
             ? root.GetComponentsInChildren<MeshRenderer>()
-            : FindObjectsByType<MeshRenderer>(FindObjectsInactive.Exclude,FindObjectsSortMode.None);
+            : FindObjectsByType<MeshRenderer>(
+                FindObjectsInactive.Exclude,
+                FindObjectsSortMode.None
+            );
 
         foreach (var renderer in renderers)
         {
@@ -39,7 +48,8 @@ public class MultiMeshManager : MonoBehaviour
             for (int i = 0; i < materials.Length; i++)
             {
                 Material mat = materials[i];
-                if (!mat) continue;
+                if (!mat)
+                    continue;
 
                 if (!combineMap.TryGetValue(mat, out var list))
                 {
@@ -51,7 +61,7 @@ public class MultiMeshManager : MonoBehaviour
                 {
                     mesh = mesh,
                     subMeshIndex = i,
-                    transform = renderer.localToWorldMatrix
+                    transform = renderer.localToWorldMatrix,
                 };
 
                 list.Add(ci);
@@ -75,10 +85,7 @@ public class MultiMeshManager : MonoBehaviour
         GameObject go = new GameObject($"Combined_{material.name}");
         go.transform.SetParent(transform, false);
 
-        Mesh combinedMesh = new Mesh
-        {
-            indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
-        };
+        Mesh combinedMesh = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
 
         combinedMesh.CombineMeshes(combines.ToArray(), true, true);
         combinedMesh.RecalculateBounds();

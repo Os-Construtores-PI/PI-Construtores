@@ -6,7 +6,8 @@ public class CheckpointZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (saved || DataDirector.Instance == null) return;
+        if (saved || DataDirector.Instance == null)
+            return;
 
         if (other.TryGetComponent(out Player firstPlayer))
         {
@@ -20,6 +21,4 @@ public class CheckpointZone : MonoBehaviour
             //Debug.Log($"Checkpoint salvo na posição {checkpointPosition} para todos os players.");
         }
     }
-
-  
 }

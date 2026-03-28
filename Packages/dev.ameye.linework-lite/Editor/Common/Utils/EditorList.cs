@@ -6,17 +6,27 @@ using UnityEngine;
 
 namespace LineworkLite.Editor.Common.Utils
 {
-    public class EditorList<T> where T : ScriptableObject
+    public class EditorList<T>
+        where T : ScriptableObject
     {
         private SerializedProperty Items { get; }
         private readonly List<UnityEditor.Editor> editors;
         private readonly UnityEditor.Editor targetEditor;
         private readonly Action onChangedCallback;
-        private readonly string addItemText, noItemsText, maxItemsText;
+        private readonly string addItemText,
+            noItemsText,
+            maxItemsText;
         private readonly int maxItems;
 
-        public EditorList(UnityEditor.Editor targetEditor, SerializedProperty items, Action onChangedCallback, string addItemText, string noItemsText, string maxItemsText = "",
-            int maxItems = 0)
+        public EditorList(
+            UnityEditor.Editor targetEditor,
+            SerializedProperty items,
+            Action onChangedCallback,
+            string addItemText,
+            string noItemsText,
+            string maxItemsText = "",
+            int maxItems = 0
+        )
         {
             Items = items;
             this.targetEditor = targetEditor;
@@ -63,7 +73,8 @@ namespace LineworkLite.Editor.Common.Utils
 
             using (new EditorGUI.DisabledScope(reachedMaxItems))
             {
-                if (GUILayout.Button(addItemText, EditorStyles.miniButton)) AddItem();
+                if (GUILayout.Button(addItemText, EditorStyles.miniButton))
+                    AddItem();
             }
         }
 
@@ -80,8 +91,14 @@ namespace LineworkLite.Editor.Common.Utils
                 EditorGUI.BeginChangeCheck();
                 var activeProperty = serializedObjectEditor.FindProperty("isActive");
                 var displayContent = CoreEditorUtils.DrawHeaderToggle(
-                    EditorGUIUtility.TrTextContent(ObjectNames.GetInspectorTitle(item).Replace($" ({typeof(T).Name})", ""), $"An outline."), itemProperty, activeProperty,
-                    pos => OnContextClick(item, pos, index));
+                    EditorGUIUtility.TrTextContent(
+                        ObjectNames.GetInspectorTitle(item).Replace($" ({typeof(T).Name})", ""),
+                        $"An outline."
+                    ),
+                    itemProperty,
+                    activeProperty,
+                    pos => OnContextClick(item, pos, index)
+                );
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 if (displayContent)
@@ -104,19 +121,31 @@ namespace LineworkLite.Editor.Common.Utils
             }
         }
 
-        private void OnContextClick(UnityEngine.Object rendererFeatureObject, Vector2 position, int id)
+        private void OnContextClick(
+            UnityEngine.Object rendererFeatureObject,
+            Vector2 position,
+            int id
+        )
         {
             var menu = new GenericMenu();
 
             if (id == 0)
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
             else
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveItem(id, -1));
+                menu.AddItem(
+                    EditorGUIUtility.TrTextContent("Move Up"),
+                    false,
+                    () => MoveItem(id, -1)
+                );
 
             if (id == Items.arraySize - 1)
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
             else
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveItem(id, 1));
+                menu.AddItem(
+                    EditorGUIUtility.TrTextContent("Move Down"),
+                    false,
+                    () => MoveItem(id, 1)
+                );
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveItem(id));
@@ -187,7 +216,11 @@ namespace LineworkLite.Editor.Common.Utils
 
             for (var i = 0; i < Items.arraySize; i++)
             {
-                editors.Add(UnityEditor.Editor.CreateEditor(Items.GetArrayElementAtIndex(i).objectReferenceValue));
+                editors.Add(
+                    UnityEditor.Editor.CreateEditor(
+                        Items.GetArrayElementAtIndex(i).objectReferenceValue
+                    )
+                );
             }
         }
 

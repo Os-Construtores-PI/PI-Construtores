@@ -18,8 +18,8 @@ public class SaveMenuControl : MonoBehaviour
 
         string lastLevel = DataDirector.Instance.GetLastLevelName(slotIndex);
 
-        if(string.IsNullOrEmpty(lastLevel))
-           lastLevel = Constants.SceneNames.Fase0;
+        if (string.IsNullOrEmpty(lastLevel))
+            lastLevel = Constants.SceneNames.Fase0;
 
         SceneManager.LoadScene(lastLevel);
     }

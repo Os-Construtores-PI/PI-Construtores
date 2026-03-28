@@ -13,10 +13,14 @@ namespace LineworkLite.Editor.FreeOutline
         [MenuItem(MenuPath, true)]
         public static bool ValidateToggle()
         {
-            if (Selection.activeObject is not GameObject && Selection.activeObject is not Mesh) return false;
+            if (Selection.activeObject is not GameObject && Selection.activeObject is not Mesh)
+                return false;
 
             var labels = AssetDatabase.GetLabels(Selection.activeObject);
-            Menu.SetChecked(MenuPath, Array.Exists(labels, label => label == FreeOutlineUtils.SmoothNormalsLabel));
+            Menu.SetChecked(
+                MenuPath,
+                Array.Exists(labels, label => label == FreeOutlineUtils.SmoothNormalsLabel)
+            );
             return true;
         }
 
@@ -24,7 +28,8 @@ namespace LineworkLite.Editor.FreeOutline
         public static void Toggle()
         {
             var selectedObject = Selection.activeObject;
-            if (selectedObject == null) return;
+            if (selectedObject == null)
+                return;
 
             var labels = new List<string>(AssetDatabase.GetLabels(selectedObject));
             var previousLabels = new List<string>(labels);
@@ -46,7 +51,7 @@ namespace LineworkLite.Editor.FreeOutline
             {
                 AssetDatabase.SetLabels(selectedObject, previousLabels.ToArray());
             };
-            
+
             var path = AssetDatabase.GetAssetPath(selectedObject);
             if (!string.IsNullOrEmpty(path))
             {

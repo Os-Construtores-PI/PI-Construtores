@@ -4,20 +4,31 @@ using UnityEngine;
 
 public class StatZone : MonoBehaviour
 {
-    [SerializeField] private Constants.StatsNames StatName;
-    [SerializeField] private QualityTier zoneTier;
-    [SerializeField] private TimeTYPE timeTYPE;
-    [SerializeField] private ModifyTYPE modifyType;
+    [SerializeField]
+    private Constants.StatsNames StatName;
+
+    [SerializeField]
+    private QualityTier zoneTier;
+
+    [SerializeField]
+    private TimeTYPE timeTYPE;
+
+    [SerializeField]
+    private ModifyTYPE modifyType;
 
     [Header("Só funciona se for status temporário")]
-    [SerializeField] private float statDuration = 5f;
-    [SerializeField] private float statCooldown = 10f;
+    [SerializeField]
+    private float statDuration = 5f;
+
+    [SerializeField]
+    private float statCooldown = 10f;
 
     private bool _onCooldown = false;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_onCooldown) return;
+        if (_onCooldown)
+            return;
         if (other.gameObject.layer == LayerMask.NameToLayer("Entity"))
         {
             if (other.TryGetComponent(out CombatEntities combatentity))
@@ -36,37 +47,38 @@ public class StatZone : MonoBehaviour
         _onCooldown = true;
         Type statType = StatTypeMap.Map[StatName];
 
-    if (timeTYPE == TimeTYPE.TEMPORARY)
-    {
-        print($"Funcionando // {StatName}");
-
-        var method = typeof(Stats)
-            .GetMethod(nameof(Stats.ModifyStatCoroutine))
-            .MakeGenericMethod(statType);
-
-        yield return (IEnumerator)method.Invoke(stats, new object[]
+        if (timeTYPE == TimeTYPE.TEMPORARY)
         {
-            StatName.ToString(), modifyType, zoneTier, statDuration
-        });
-    }
-    else
-    {
-        var method = typeof(Stats)
-            .GetMethod(nameof(Stats.ModifyStatImmediate))
-            .MakeGenericMethod(statType);
+            print($"Funcionando // {StatName}");
 
-        method.Invoke(stats, new object[]
+            var method = typeof(Stats)
+                .GetMethod(nameof(Stats.ModifyStatCoroutine))
+                .MakeGenericMethod(statType);
+
+            yield return (IEnumerator)
+                method.Invoke(
+                    stats,
+                    new object[] { StatName.ToString(), modifyType, zoneTier, statDuration }
+                );
+        }
+        else
         {
-            StatName.ToString(), modifyType, zoneTier
-        });
-    }
+            var method = typeof(Stats)
+                .GetMethod(nameof(Stats.ModifyStatImmediate))
+                .MakeGenericMethod(statType);
 
-
+            method.Invoke(stats, new object[] { StatName.ToString(), modifyType, zoneTier });
+        }
 
         if (timeTYPE == TimeTYPE.TEMPORARY)
         {
             print($"Funcionando // {StatName.ToString()}");
-            yield return stats.ModifyStatCoroutine<bool>(StatName.ToString(), modifyType, zoneTier, statDuration);
+            yield return stats.ModifyStatCoroutine<bool>(
+                StatName.ToString(),
+                modifyType,
+                zoneTier,
+                statDuration
+            );
         }
         else
         {

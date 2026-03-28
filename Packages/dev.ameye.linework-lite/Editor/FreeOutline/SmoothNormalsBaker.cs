@@ -21,9 +21,15 @@ namespace LineworkLite.Editor.FreeOutline
                 return null;
             }
 #if HAS_PACKAGE_UNITY_COLLECTIONS_2_1_0_EXP_4
-            var smoothedNormalsMap = new UnsafeParallelHashMap<Vector3, Vector3>(vertexCount, Allocator.Persistent);
+            var smoothedNormalsMap = new UnsafeParallelHashMap<Vector3, Vector3>(
+                vertexCount,
+                Allocator.Persistent
+            );
 #else
-            var smoothedNormalsMap = new UnsafeHashMap<Vector3, Vector3>(vertexCount, Allocator.Persistent);
+            var smoothedNormalsMap = new UnsafeHashMap<Vector3, Vector3>(
+                vertexCount,
+                Allocator.Persistent
+            );
 #endif
             for (var i = 0; i < vertexCount; i++)
             {
@@ -42,7 +48,13 @@ namespace LineworkLite.Editor.FreeOutline
             var tangentsNativeArray = new NativeArray<Vector4>(tangents, Allocator.Persistent);
             var bakedNormals = new NativeArray<Vector2>(vertexCount, Allocator.Persistent);
 
-            var bakeNormalJob = new BakeNormalJob(verticesNativeArray, normalsNativeArray, tangentsNativeArray, smoothedNormalsMap, bakedNormals);
+            var bakeNormalJob = new BakeNormalJob(
+                verticesNativeArray,
+                normalsNativeArray,
+                tangentsNativeArray,
+                smoothedNormalsMap,
+                bakedNormals
+            );
             bakeNormalJob.Schedule(vertexCount, 100).Complete();
 
             var bakedSmoothedNormals = new Vector2[vertexCount];
@@ -58,15 +70,24 @@ namespace LineworkLite.Editor.FreeOutline
 
         private struct BakeNormalJob : IJobParallelFor
         {
-            [ReadOnly] public NativeArray<Vector3> vertices, normals;
-            [ReadOnly] public NativeArray<Vector4> tangents;
+            [ReadOnly]
+            public NativeArray<Vector3> vertices,
+                normals;
+
+            [ReadOnly]
+            public NativeArray<Vector4> tangents;
+
             [NativeDisableContainerSafetyRestriction]
 #if HAS_PACKAGE_UNITY_COLLECTIONS_2_1_0_EXP_4
-            [ReadOnly] public UnsafeParallelHashMap<Vector3, Vector3> smoothedNormals;
+            [ReadOnly]
+            public UnsafeParallelHashMap<Vector3, Vector3> smoothedNormals;
 #else
-              [ReadOnly] public UnsafeHashMap<Vector3, Vector3> smoothedNormals;
+            [ReadOnly]
+            public UnsafeHashMap<Vector3, Vector3> smoothedNormals;
 #endif
-            [WriteOnly] public NativeArray<Vector2> bakedNormals;
+
+            [WriteOnly]
+            public NativeArray<Vector2> bakedNormals;
 
             public BakeNormalJob(
                 NativeArray<Vector3> vertices,
@@ -75,9 +96,10 @@ namespace LineworkLite.Editor.FreeOutline
 #if HAS_PACKAGE_UNITY_COLLECTIONS_2_1_0_EXP_4
                 UnsafeParallelHashMap<Vector3, Vector3> smoothedNormals,
 #else
-                  UnsafeHashMap<Vector3, Vector3> smoothedNormals,
+                UnsafeHashMap<Vector3, Vector3> smoothedNormals,
 #endif
-                NativeArray<Vector2> bakedNormals)
+                NativeArray<Vector2> bakedNormals
+            )
             {
                 this.vertices = vertices;
                 this.normals = normals;
@@ -93,7 +115,9 @@ namespace LineworkLite.Editor.FreeOutline
                 var normalOS = normals[index].normalized;
                 Vector3 tangentOS = tangents[index];
                 tangentOS = tangentOS.normalized;
-                var bitangentOS = (Vector3.Cross(normalOS, tangentOS) * tangents[index].w).normalized;
+                var bitangentOS = (
+                    Vector3.Cross(normalOS, tangentOS) * tangents[index].w
+                ).normalized;
 
                 var tbn = new Matrix4x4(tangentOS, bitangentOS, normalOS, Vector3.zero);
                 tbn = tbn.transpose;
@@ -105,9 +129,14 @@ namespace LineworkLite.Editor.FreeOutline
 
             private static Vector2 OctahedronNormal(Vector3 resultNormal)
             {
-                var absVec = new Vector3(Mathf.Abs(resultNormal.x), Mathf.Abs(resultNormal.y), Mathf.Abs(resultNormal.z));
-                var octNormal = (Vector2) resultNormal / Vector3.Dot(Vector3.one, absVec);
-                if (!(resultNormal.z <= 0)) return octNormal;
+                var absVec = new Vector3(
+                    Mathf.Abs(resultNormal.x),
+                    Mathf.Abs(resultNormal.y),
+                    Mathf.Abs(resultNormal.z)
+                );
+                var octNormal = (Vector2)resultNormal / Vector3.Dot(Vector3.one, absVec);
+                if (!(resultNormal.z <= 0))
+                    return octNormal;
                 var absY = Mathf.Abs(octNormal.y);
                 var value = (1 - absY) * (octNormal.y >= 0 ? 1 : -1);
                 octNormal = new Vector2(value, value);

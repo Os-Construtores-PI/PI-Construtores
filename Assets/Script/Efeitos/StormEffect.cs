@@ -5,12 +5,13 @@ public class StormEffect : MonoBehaviour
 {
     private Light[] lightcomponents;
 
-    [SerializeField] private float cooldownStorm = 5f;
-    [SerializeField] private CustomPositiveFloatRange range; // Classe Wrapper do Random.Range para aparecer no inspetor.
+    [SerializeField]
+    private float cooldownStorm = 5f;
 
+    [SerializeField]
+    private CustomPositiveFloatRange range; // Classe Wrapper do Random.Range para aparecer no inspetor.
 
     private float cooldownTimer = 0f;
-
 
     private void Start()
     {
@@ -22,6 +23,7 @@ public class StormEffect : MonoBehaviour
     {
         StormTimer();
     }
+
     private void StormTimer()
     {
         cooldownTimer += Time.deltaTime;
@@ -32,13 +34,14 @@ public class StormEffect : MonoBehaviour
             TriggerStorm();
         }
     }
+
     private void TriggerStorm()
     {
         foreach (Light light in lightcomponents)
         {
             // duração total aleatória
             float totalDuration = range.GetRandom(); // Tempo Aleatório para dar o flash de luz
-            float upDuration = totalDuration * 0.2f;   // sobe rápido
+            float upDuration = totalDuration * 0.2f; // sobe rápido
             float downDuration = totalDuration * 0.8f; // desce devagar
 
             // intensidade aleatória (deixa natural)
@@ -50,10 +53,8 @@ public class StormEffect : MonoBehaviour
             Sequence seq = DOTween.Sequence();
 
             seq.AppendInterval(randomDelay);
-            seq.Append(light.DOIntensity(peakIntensity, upDuration)
-                .SetEase(Ease.OutQuad));
-            seq.Append(light.DOIntensity(0, downDuration)
-                .SetEase(Ease.InOutSine));
+            seq.Append(light.DOIntensity(peakIntensity, upDuration).SetEase(Ease.OutQuad));
+            seq.Append(light.DOIntensity(0, downDuration).SetEase(Ease.InOutSine));
 
             seq.Play();
         }

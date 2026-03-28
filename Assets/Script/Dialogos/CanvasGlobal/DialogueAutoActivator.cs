@@ -3,8 +3,8 @@ using UnityEngine;
 public class DialogueAutoActivator : MonoBehaviour
 {
     [Header("Configurações")]
-    public TutorialTrigger targetTrigger; 
-    public bool onlyOnce = true;      // Executa só uma vez
+    public TutorialTrigger targetTrigger;
+    public bool onlyOnce = true; // Executa só uma vez
     private bool alreadyTriggered = false;
 
     private void OnTriggerEnter(Collider other)

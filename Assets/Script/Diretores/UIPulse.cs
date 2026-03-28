@@ -3,8 +3,11 @@ using UnityEngine;
 
 public class UIPulse : MonoBehaviour
 {
-    [SerializeField] private Vector3 pulseScale = new(1.05f, 1.05f, 1.05f);
-    [SerializeField] private float duration = .8f;
+    [SerializeField]
+    private Vector3 pulseScale = new(1.05f, 1.05f, 1.05f);
+
+    [SerializeField]
+    private float duration = .8f;
 
     private Tween tween;
 

@@ -6,156 +6,156 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(ManualPlayersSpawner))]
 public class PlayerDirector : MonoBehaviour
 {
-  [Header("Prefabs de Player")]
-  [SerializeField]
-  private GameObject firstPlayerPrefab;
+    [Header("Prefabs de Player")]
+    [SerializeField]
+    private GameObject firstPlayerPrefab;
 
-  [SerializeField]
-  private GameObject fallbackPlayerPrefab;
+    [SerializeField]
+    private GameObject fallbackPlayerPrefab;
 
-  [SerializeField]
-  private GameObject secondPlayerPrefab;
+    [SerializeField]
+    private GameObject secondPlayerPrefab;
 
-  [Header("Prefabs de HUD e Câmera")]
-  [SerializeField]
-  private GameObject hudPrefab;
+    [Header("Prefabs de HUD e Câmera")]
+    [SerializeField]
+    private GameObject hudPrefab;
 
-  [SerializeField]
-  private string hudCanvasParent = "Canvas";
+    [SerializeField]
+    private string hudCanvasParent = "Canvas";
 
-  [SerializeField]
-  private GameObject mainCameraPrefab;
+    [SerializeField]
+    private GameObject mainCameraPrefab;
 
-  [SerializeField]
-  private GameObject freeLookPrefab;
+    [SerializeField]
+    private GameObject freeLookPrefab;
 
-  [Header("Referências de cena")]
-  [SerializeField]
-  private HudDirector hudDirector;
+    [Header("Referências de cena")]
+    [SerializeField]
+    private HudDirector hudDirector;
 
-  private ManualPlayersSpawner playersSpawner;
-  private Transform hudParent;
+    private ManualPlayersSpawner playersSpawner;
+    private Transform hudParent;
 
-  #region === CONFIGURAÇÃO ===
-  [SerializeField]
-  private ConfigPlayer configPlayer;
-  #endregion
+    #region === CONFIGURAÇÃO ===
+    [SerializeField]
+    private ConfigPlayer configPlayer;
+    #endregion
 
 
-  private readonly List<Player> allPlayers = new();
+    private readonly List<Player> allPlayers = new();
 
-  // Referências instanciadas
-  private readonly Dictionary<int, GameObject> playerHUDInstances = new();
-  private readonly Dictionary<int, GameObject> playerCameras = new();
+    // Referências instanciadas
+    private readonly Dictionary<int, GameObject> playerHUDInstances = new();
+    private readonly Dictionary<int, GameObject> playerCameras = new();
 
-  private void Awake()
-  {
-    playersSpawner = GetComponent<ManualPlayersSpawner>();
-    playersSpawner.SetObjects(
-      new() { firstPlayerPrefab, fallbackPlayerPrefab, secondPlayerPrefab }
-    );
-
-    GameObject canvasObj = GameObject.FindWithTag(hudCanvasParent);
-    if (canvasObj != null)
-      hudParent = canvasObj.transform;
-    else
-      Debug.LogError($"Canvas '{hudCanvasParent}' não encontrado na cena!");
-    CacheAllPlayers();
-  }
-
-  private void CacheAllPlayers()
-  {
-    allPlayers.Clear();
-    for (int i = 0; i < playersSpawner.DeactivatedObjectsCount; i++)
+    private void Awake()
     {
-      Player playerComp = playersSpawner.GetDeactivatedObject(i).GetComponent<Player>();
-      allPlayers.Add(playerComp);
-    }
-  }
+        playersSpawner = GetComponent<ManualPlayersSpawner>();
+        playersSpawner.SetObjects(
+            new() { firstPlayerPrefab, fallbackPlayerPrefab, secondPlayerPrefab }
+        );
 
-  public void ActivatePlayers()
-  {
-    switch (DataDirector.Instance.GetGameMode())
-    {
-      case GameMode.SINGLEPLAYER:
-        ActivateSinglePlayer();
-        break;
-      case GameMode.MULTIPLAYER:
-        ActivateMultiplayer();
-        break;
-    }
-    // Garante que o PauseMenu só é instanciado uma vez
-  }
-
-  private void ActivateSinglePlayer()
-  {
-    Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
-    Player fb = allPlayers[1];
-    fb.gameObject.SetActive(false);
-
-    SetupPlayer(fp, new Rect(0f, 0f, 1f, 1f));
-  }
-
-  private void ActivateMultiplayer()
-  {
-    Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
-    Player sp = playersSpawner.Spawn(2).GetComponent<Player>();
-
-    SetupPlayer(fp, new Rect(0f, 0f, 0.5f, 1f));
-    SetupPlayer(sp, new Rect(0.5f, 0f, 0.5f, 1f));
-  }
-
-  private void SetupPlayer(Player player, Rect viewport)
-  {
-    int playerID = player.ID;
-    // Cria HUD apenas uma vez
-    if (!playerHUDInstances.ContainsKey(playerID))
-    {
-      // Agora o HUD é inicializado APENAS pelo HUDDirector
-      GameObject hudInstance = hudDirector.InitializeHUD(player, hudParent, hudPrefab);
-      playerHUDInstances[playerID] = hudInstance;
+        GameObject canvasObj = GameObject.FindWithTag(hudCanvasParent);
+        if (canvasObj != null)
+            hudParent = canvasObj.transform;
+        else
+            Debug.LogError($"Canvas '{hudCanvasParent}' não encontrado na cena!");
+        CacheAllPlayers();
     }
 
-    // Cria câmera apenas uma vez
-    if (!playerCameras.ContainsKey(playerID))
+    private void CacheAllPlayers()
     {
-      GameObject camObj = Instantiate(mainCameraPrefab);
-      Camera unityCam = camObj.GetComponent<Camera>();
-      CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
-      hudDirector.InitializeCamera(playerID, camLogic);
-      unityCam.rect = viewport;
-
-      GameObject freeLookObj = Instantiate(freeLookPrefab);
-      if (freeLookObj.TryGetComponent<CinemachineCamera>(out var freeLook))
-      {
-        camLogic.SetTarget(player, freeLook);
-        player.SetCamera(freeLook, unityCam);
-      }
-      playerCameras[playerID] = camObj;
+        allPlayers.Clear();
+        for (int i = 0; i < playersSpawner.DeactivatedObjectsCount; i++)
+        {
+            Player playerComp = playersSpawner.GetDeactivatedObject(i).GetComponent<Player>();
+            allPlayers.Add(playerComp);
+        }
     }
-    player.gameObject.SetActive(true);
-    player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
-    ConfigPlayer(player);
-  }
 
-  private void ConfigPlayer(Player player)
-  {
-    if (configPlayer == null)
+    public void ActivatePlayers()
     {
-      print("CONFIG PLAYER NULL");
-      return;
+        switch (DataDirector.Instance.GetGameMode())
+        {
+            case GameMode.SINGLEPLAYER:
+                ActivateSinglePlayer();
+                break;
+            case GameMode.MULTIPLAYER:
+                ActivateMultiplayer();
+                break;
+        }
+        // Garante que o PauseMenu só é instanciado uma vez
     }
-    configPlayer.SetConfig(player.Context);
-    //print($"Speed:{player.Context.PlayerSpeed}");
-  }
 
-  public PlayerContext FirstPlayerContext
-  {
-    get
+    private void ActivateSinglePlayer()
     {
-      if (allPlayers.Count > 0)
-        return allPlayers[0].Context;
-      return null;
+        Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
+        Player fb = allPlayers[1];
+        fb.gameObject.SetActive(false);
+
+        SetupPlayer(fp, new Rect(0f, 0f, 1f, 1f));
     }
-  }
+
+    private void ActivateMultiplayer()
+    {
+        Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
+        Player sp = playersSpawner.Spawn(2).GetComponent<Player>();
+
+        SetupPlayer(fp, new Rect(0f, 0f, 0.5f, 1f));
+        SetupPlayer(sp, new Rect(0.5f, 0f, 0.5f, 1f));
+    }
+
+    private void SetupPlayer(Player player, Rect viewport)
+    {
+        int playerID = player.ID;
+        // Cria HUD apenas uma vez
+        if (!playerHUDInstances.ContainsKey(playerID))
+        {
+            // Agora o HUD é inicializado APENAS pelo HUDDirector
+            GameObject hudInstance = hudDirector.InitializeHUD(player, hudParent, hudPrefab);
+            playerHUDInstances[playerID] = hudInstance;
+        }
+
+        // Cria câmera apenas uma vez
+        if (!playerCameras.ContainsKey(playerID))
+        {
+            GameObject camObj = Instantiate(mainCameraPrefab);
+            Camera unityCam = camObj.GetComponent<Camera>();
+            CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
+            hudDirector.InitializeCamera(playerID, camLogic);
+            unityCam.rect = viewport;
+
+            GameObject freeLookObj = Instantiate(freeLookPrefab);
+            if (freeLookObj.TryGetComponent<CinemachineCamera>(out var freeLook))
+            {
+                camLogic.SetTarget(player, freeLook);
+                player.SetCamera(freeLook, unityCam);
+            }
+            playerCameras[playerID] = camObj;
+        }
+        player.gameObject.SetActive(true);
+        player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
+        ConfigPlayer(player);
+    }
+
+    private void ConfigPlayer(Player player)
+    {
+        if (configPlayer == null)
+        {
+            print("CONFIG PLAYER NULL");
+            return;
+        }
+        configPlayer.SetConfig(player.Context);
+        //print($"Speed:{player.Context.PlayerSpeed}");
+    }
+
+    public PlayerContext FirstPlayerContext
+    {
+        get
+        {
+            if (allPlayers.Count > 0)
+                return allPlayers[0].Context;
+            return null;
+        }
+    }
 }

@@ -3,13 +3,17 @@ using UnityEngine.UI;
 
 public class InputIconUI : MonoBehaviour
 {
-    [SerializeField] private DeviceSpriteManager.InputIconType iconType;
-    [SerializeField] private Image targetImage;
+    [SerializeField]
+    private DeviceSpriteManager.InputIconType iconType;
+
+    [SerializeField]
+    private Image targetImage;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    
+
     private void Awake()
     {
-        if(targetImage == null)
+        if (targetImage == null)
             targetImage = GetComponent<Image>();
     }
 
@@ -28,9 +32,9 @@ public class InputIconUI : MonoBehaviour
 
     private void Atualizar(string device)
     {
-        if (targetImage == null) return;
+        if (targetImage == null)
+            return;
 
-        targetImage.sprite =
-            DeviceSpriteManager.Instance.GetSprite(iconType);
+        targetImage.sprite = DeviceSpriteManager.Instance.GetSprite(iconType);
     }
 }

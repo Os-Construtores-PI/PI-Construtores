@@ -10,7 +10,9 @@ namespace LineworkLite.Editor.FreeOutline
     {
         public void OnPostprocessModel(GameObject gameObject)
         {
-            var smoothNormals = AssetDatabase.GetLabels(assetImporter).Any(label => label.Contains(FreeOutlineUtils.SmoothNormalsLabel));
+            var smoothNormals = AssetDatabase
+                .GetLabels(assetImporter)
+                .Any(label => label.Contains(FreeOutlineUtils.SmoothNormalsLabel));
 
             var meshes = GetMeshesForGameobject(gameObject);
 

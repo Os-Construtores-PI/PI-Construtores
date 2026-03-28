@@ -1,15 +1,18 @@
+using LineworkLite.Common.Utils;
+using UnityEngine;
 #if !UNITY_6000_0_OR_NEWER
 using LineworkLite.Common.Attributes;
 #endif
-using LineworkLite.Common.Utils;
-using UnityEngine;
 
 namespace LineworkLite.FreeOutline
 {
     public class Outline : ScriptableObject
     {
-        [SerializeField, HideInInspector] public Material material;
-        [SerializeField, HideInInspector] private bool isActive = true;
+        [SerializeField, HideInInspector]
+        public Material material;
+
+        [SerializeField, HideInInspector]
+        private bool isActive = true;
 
 #if UNITY_6000_0_OR_NEWER
         public RenderingLayerMask RenderingLayer = RenderingLayerMask.defaultRenderingLayerMask;
@@ -21,14 +24,22 @@ namespace LineworkLite.FreeOutline
         public OutlineRenderQueue renderQueue = OutlineRenderQueue.Opaque;
         public Occlusion occlusion = Occlusion.WhenNotOccluded;
         public MaskingStrategy maskingStrategy = MaskingStrategy.Stencil;
-        [ColorUsage(true, true)] public Color color = Color.green;
+
+        [ColorUsage(true, true)]
+        public Color color = Color.green;
         public bool enableOcclusion = false;
-        [ColorUsage(true, true)] public Color occludedColor = Color.red;
+
+        [ColorUsage(true, true)]
+        public Color occludedColor = Color.red;
         public BlendingMode blendMode = BlendingMode.Alpha;
         public ExtrusionMethod extrusionMethod = ExtrusionMethod.ClipSpaceNormalVector;
         public Scaling scaling;
-        [Range(0.0f, 100.0f)] public float width = 20.0f;
-        [Range(0.0f, 100.0f)] public float minWidth = 0.0f;
+
+        [Range(0.0f, 100.0f)]
+        public float width = 20.0f;
+
+        [Range(0.0f, 100.0f)]
+        public float minWidth = 0.0f;
         public bool scaleWithResolution;
         public Resolution referenceResolution;
         public float customResolution;
@@ -47,10 +58,7 @@ namespace LineworkLite.FreeOutline
                 var shader = Shader.Find(ShaderPath.Outline);
                 if (shader != null)
                 {
-                    material = new Material(shader)
-                    {
-                        hideFlags = HideFlags.HideAndDontSave
-                    };
+                    material = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
                 }
             }
         }

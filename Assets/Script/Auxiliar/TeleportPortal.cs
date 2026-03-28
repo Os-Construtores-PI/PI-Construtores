@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class Teleport_Portal : BasePortal
 {
-    [SerializeField] private Teleport_Portal destiny;
+    [SerializeField]
+    private Teleport_Portal destiny;
     private Transform exitPoint;
 
     protected override void Start()
@@ -14,10 +15,10 @@ public class Teleport_Portal : BasePortal
             Debug.LogWarning($"{name} não tem filho 'Destiny' definido!");
     }
 
-
     private void OnTriggerEnter(Collider col)
     {
-        if (!col.TryGetComponent(out Player player) || destiny == null) return;
+        if (!col.TryGetComponent(out Player player) || destiny == null)
+            return;
         Teleport(player);
     }
 

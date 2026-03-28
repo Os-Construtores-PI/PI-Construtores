@@ -3,7 +3,6 @@ using UnityEngine.Events;
 
 public class GameEventTrigger : MonoBehaviour
 {
-
     public bool _triggerOnce = true; // se true, so dispara uma vez
     public string _playerTag = "Player"; // quem pode ativar
 
@@ -11,6 +10,7 @@ public class GameEventTrigger : MonoBehaviour
     public UnityEvent onTriggerExit; //opcional; ao sair
 
     private bool _actived = false;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Reset()
     {
@@ -21,7 +21,8 @@ public class GameEventTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag(_playerTag)) return;
+        if (!other.CompareTag(_playerTag))
+            return;
 
         if (!_actived || !_triggerOnce)
         {

@@ -7,9 +7,9 @@ public class PlayerFallingState : IState<PlayerContext>
     public HashSet<ActionType> IncompatibleActions => new() { };
 
     // ajustes finos
-    private float _gravityUpMultiplier   = 2.2f; // sobe rápido, perde força cedo
+    private float _gravityUpMultiplier = 2.2f; // sobe rápido, perde força cedo
     private float _gravityDownMultiplier = 0.6f; // cai mais lento
-    private float _maxFallSpeed          = -26f; // limite da queda
+    private float _maxFallSpeed = -26f; // limite da queda
 
     public void Enter(PlayerContext context)
     {
@@ -22,17 +22,27 @@ public class PlayerFallingState : IState<PlayerContext>
 
     public void FixedUpdate(PlayerContext context)
     {
-        if (context.OverrideGlobal || context.OverrideVertical) return;
+        if (context.OverrideGlobal || context.OverrideVertical)
+            return;
 
         Vector3 move = context.PlayerMovementVector;
 
         // atrito no ar
-        move.x = QualityOfLife.PlayerFriction(move.x, context.PlayerAirFriction, context.PlayerMoveInput);
-        move.z = QualityOfLife.PlayerFriction(move.z, context.PlayerAirFriction, context.PlayerMoveInput);
+        move.x = QualityOfLife.PlayerFriction(
+            move.x,
+            context.PlayerAirFriction,
+            context.PlayerMoveInput
+        );
+        move.z = QualityOfLife.PlayerFriction(
+            move.z,
+            context.PlayerAirFriction,
+            context.PlayerMoveInput
+        );
 
-        float gravityMultiplier = move.y > 0f
-            ? _gravityUpMultiplier     // SUBIDA
-            : _gravityDownMultiplier;  // DESCIDA
+        float gravityMultiplier =
+            move.y > 0f
+                ? _gravityUpMultiplier // SUBIDA
+                : _gravityDownMultiplier; // DESCIDA
 
         move.y += context.PlayerGravity * gravityMultiplier * Time.deltaTime;
 

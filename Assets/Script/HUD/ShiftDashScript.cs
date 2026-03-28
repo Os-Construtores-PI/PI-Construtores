@@ -1,13 +1,15 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class ShiftDashScript : MonoBehaviour
 {
     [Header("Referencia da Imagem")]
     public Image shiftImage;
     public Image coolDownFillImage;
-    [SerializeField] private CanvasGroup _canvasDashGroup;
+
+    [SerializeField]
+    private CanvasGroup _canvasDashGroup;
 
     [Header("Configura��es do Fade")]
     public float fadeOutDuration = 0.2f;
@@ -19,25 +21,19 @@ public class ShiftDashScript : MonoBehaviour
 
     private void Awake()
     {
-        
-
-        
-
         if (_canvasDashGroup == null)
-            _canvasDashGroup = GetComponent<CanvasGroup>()
-                ?? gameObject.AddComponent<CanvasGroup>();
+            _canvasDashGroup =
+                GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
 
         if (shiftImage == null)
             shiftImage = GetComponent<Image>();
     }
 
-   
     public void OnDashUsed()
     {
-        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        if (fadeCoroutine != null)
+            StopCoroutine(fadeCoroutine);
         fadeCoroutine = StartCoroutine(FadeCanvas(0f, fadeOutDuration));
-
-
     }
 
     private void OnEnable()
@@ -46,13 +42,12 @@ public class ShiftDashScript : MonoBehaviour
         {
             DeviceSpriteManager.Instance.OnDeviceChanged += OnDeviceChanged;
             AtualizarSprite();
-            
         }
     }
 
     private void OnDisable()
     {
-        if(DeviceSpriteManager.Instance != null)
+        if (DeviceSpriteManager.Instance != null)
             DeviceSpriteManager.Instance.OnDeviceChanged -= OnDeviceChanged;
     }
 
@@ -60,28 +55,28 @@ public class ShiftDashScript : MonoBehaviour
     {
         AtualizarSprite();
     }
+
     public void AtualizarSprite()
     {
         if (shiftImage == null || DeviceSpriteManager.Instance == null)
             return;
-        shiftImage.sprite =
-            DeviceSpriteManager.Instance.GetSprite(DeviceSpriteManager.InputIconType.Dash);
+        shiftImage.sprite = DeviceSpriteManager.Instance.GetSprite(
+            DeviceSpriteManager.InputIconType.Dash
+        );
 
         //shiftImage.color = Color.red;
 
         Debug.Log($"[DASH] Device: {DeviceSpriteManager.Instance.GetCurrentDevice()}");
-
     }
-
 
     // mostra novamente quando o Dash est� liberado
 
     public void OnDashReady()
     {
-        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        if (fadeCoroutine != null)
+            StopCoroutine(fadeCoroutine);
         fadeCoroutine = StartCoroutine(FadeCanvas(1f, fadeInDuration));
     }
-
 
     private IEnumerator FadeCanvas(float targetAlpha, float duration)
     {
@@ -97,5 +92,4 @@ public class ShiftDashScript : MonoBehaviour
 
         _canvasDashGroup.alpha = targetAlpha;
     }
-
 }

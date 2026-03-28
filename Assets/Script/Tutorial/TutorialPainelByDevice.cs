@@ -4,12 +4,19 @@ using UnityEngine.UI;
 public class TutorialPainelByDevice : MonoBehaviour
 {
     [Header("UI")]
-    [SerializeField] private Image tutorialImage;
+    [SerializeField]
+    private Image tutorialImage;
 
     [Header("Painels")]
-    [SerializeField] private Sprite keyboardPainel;
-    [SerializeField] private Sprite xboxPainel;
-    [SerializeField] private Sprite playstationPainel;
+    [SerializeField]
+    private Sprite keyboardPainel;
+
+    [SerializeField]
+    private Sprite xboxPainel;
+
+    [SerializeField]
+    private Sprite playstationPainel;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void OnEnable()
     {
@@ -24,10 +31,10 @@ public class TutorialPainelByDevice : MonoBehaviour
 
     private void OnDisable()
     {
-        if  (DeviceSpriteManager.Instance != null)
+        if (DeviceSpriteManager.Instance != null)
             DeviceSpriteManager.Instance.OnDeviceChanged -= Atualizar;
 
-        if(TutorialGlobal.Instance != null)
+        if (TutorialGlobal.Instance != null)
             TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
     }
 
@@ -35,34 +42,32 @@ public class TutorialPainelByDevice : MonoBehaviour
     {
         if (!ativo)
         {
-            if(tutorialImage != null)
+            if (tutorialImage != null)
                 tutorialImage.enabled = false;
             return;
         }
-        if(tutorialImage != null)
+        if (tutorialImage != null)
         {
             tutorialImage.enabled = true;
             Atualizar(DeviceSpriteManager.Instance.GetCurrentDevice());
         }
-
     }
 
     private void Atualizar(string device)
     {
-        if (TutorialGlobal.Instance == null) return;
-        if (!TutorialGlobal.Instance.IsTutorialActive) return;
-        if (tutorialImage == null) return;
+        if (TutorialGlobal.Instance == null)
+            return;
+        if (!TutorialGlobal.Instance.IsTutorialActive)
+            return;
+        if (tutorialImage == null)
+            return;
 
         tutorialImage.sprite = device switch
         {
             "Keyboard" => keyboardPainel,
             "Xbox" => xboxPainel,
             "Playstation" => playstationPainel,
-            _ => tutorialImage.sprite
+            _ => tutorialImage.sprite,
         };
-
-        
     }
-
-    
 }

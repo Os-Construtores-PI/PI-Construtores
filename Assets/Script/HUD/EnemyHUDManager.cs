@@ -5,8 +5,11 @@ using UnityEngine;
 public class EnemyHUDManager : MonoBehaviour
 {
     [Header("Configurações do HUD")]
-    [SerializeField] private GameObject hudPrefab;
-    [SerializeField] private Transform hudParent;
+    [SerializeField]
+    private GameObject hudPrefab;
+
+    [SerializeField]
+    private Transform hudParent;
 
     private const string HealthBarTargetName = "HealthBarTarget";
 
@@ -24,10 +27,9 @@ public class EnemyHUDManager : MonoBehaviour
     /// </summary>
     private void FindEnemies()
     {
-        enemyObjects = GameObject.FindObjectsByType<Enemies>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None
-        ).ToList();
+        enemyObjects = GameObject
+            .FindObjectsByType<Enemies>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .ToList();
     }
 
     /// <summary>
@@ -47,12 +49,19 @@ public class EnemyHUDManager : MonoBehaviour
             Transform healthBarTarget = enemy.transform.Find(HealthBarTargetName);
             if (healthBarTarget == null)
             {
-                Debug.LogWarning($"Objeto '{enemy.name}' não possui filho '{HealthBarTargetName}' para posicionar HUD.");
+                Debug.LogWarning(
+                    $"Objeto '{enemy.name}' não possui filho '{HealthBarTargetName}' para posicionar HUD."
+                );
                 continue;
             }
 
             // Instancia o HUD na posição do alvo e como filho do hudParent
-            GameObject hudInstance = Instantiate(hudPrefab, healthBarTarget.position, Quaternion.identity, hudParent);
+            GameObject hudInstance = Instantiate(
+                hudPrefab,
+                healthBarTarget.position,
+                Quaternion.identity,
+                hudParent
+            );
 
             if (!hudInstance.TryGetComponent(out HealthHUDComponent healthHUD))
             {

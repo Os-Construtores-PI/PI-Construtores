@@ -9,26 +9,45 @@ public class DeviceSpriteManager : MonoBehaviour
     public static DeviceSpriteManager Instance;
 
     [Header("Sprites")]
-    [SerializeField] private Sprite _KeyBoardSprite;
-    [SerializeField] private Sprite _xboxSprite;
-    [SerializeField] private Sprite _playstationSprite;
+    [SerializeField]
+    private Sprite _KeyBoardSprite;
+
+    [SerializeField]
+    private Sprite _xboxSprite;
+
+    [SerializeField]
+    private Sprite _playstationSprite;
 
     [Header("Sprites Dash")]
-    [SerializeField] private Sprite _dashKeyboard;
-    [SerializeField] private Sprite _dashXbox;
-    [SerializeField] private Sprite _dashPlaystation;
+    [SerializeField]
+    private Sprite _dashKeyboard;
+
+    [SerializeField]
+    private Sprite _dashXbox;
+
+    [SerializeField]
+    private Sprite _dashPlaystation;
 
     [Header("Sprites Dialogue Buttons - Keyboard")]
-    [SerializeField] private Sprite _dialogueAdvancedKeyboard;
-    [SerializeField] private Sprite _dialogueReturnKeyboard;
+    [SerializeField]
+    private Sprite _dialogueAdvancedKeyboard;
+
+    [SerializeField]
+    private Sprite _dialogueReturnKeyboard;
 
     [Header("Sprites Dialogue Buttons - Playstation")]
-    [SerializeField] private Sprite _dialogueAdvancedPlayButton;
-    [SerializeField] private Sprite _dialogueReturnPlayButton;
+    [SerializeField]
+    private Sprite _dialogueAdvancedPlayButton;
+
+    [SerializeField]
+    private Sprite _dialogueReturnPlayButton;
 
     [Header("Sprites Dialogue Buttons - Xbox")]
-    [SerializeField] private Sprite _dialogueAdvancedXboxButton;
-    [SerializeField] private Sprite _dialogueReturnXboxButton;
+    [SerializeField]
+    private Sprite _dialogueAdvancedXboxButton;
+
+    [SerializeField]
+    private Sprite _dialogueReturnXboxButton;
 
     public event Action<string> OnDeviceChanged;
 
@@ -36,7 +55,6 @@ public class DeviceSpriteManager : MonoBehaviour
 
     private PlayerInput[] _playerInputs = Array.Empty<PlayerInput>();
 
-    
     private void Start()
     {
         _playerInputs = UnityEngine.Object.FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
@@ -51,28 +69,29 @@ public class DeviceSpriteManager : MonoBehaviour
         if (_playerInputs.Length > 0)
             DetectarDevice(_playerInputs[0]);
     }
+
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
         else
         {
-            DontDestroyOnLoad (gameObject);
+            DontDestroyOnLoad(gameObject);
             return;
         }
     }
 
-
     private void OnDestroy()
     {
         foreach (var p in _playerInputs)
-           p.onControlsChanged -= OnControlsChanged;
-        
+            p.onControlsChanged -= OnControlsChanged;
+
         InputSystem.onAnyButtonPress.Call(OnAnyButtonPress);
     }
+
     private void OnControlsChanged(PlayerInput input)
     {
         DetectarDevice(input);
@@ -101,8 +120,6 @@ public class DeviceSpriteManager : MonoBehaviour
             OnDeviceChanged?.Invoke(_currentDevice);
     }
 
-    
-
     private void DetectarDevice(PlayerInput p)
     {
         string scheme = p.currentControlScheme.ToLower();
@@ -128,10 +145,10 @@ public class DeviceSpriteManager : MonoBehaviour
     {
         return _currentDevice switch
         {
-            "Keyboard"     => _KeyBoardSprite,
-            "Playstation"  => _playstationSprite,
-            "Xbox"         => _xboxSprite,
-            _ => _KeyBoardSprite
+            "Keyboard" => _KeyBoardSprite,
+            "Playstation" => _playstationSprite,
+            "Xbox" => _xboxSprite,
+            _ => _KeyBoardSprite,
         };
     }
 
@@ -147,10 +164,10 @@ public class DeviceSpriteManager : MonoBehaviour
                 "Playstation" => _dashPlaystation,
                 "Xbox" => _dashXbox,
 
-                _ => _dashKeyboard
+                _ => _dashKeyboard,
             },
 
-            _ => _KeyBoardSprite
+            _ => _KeyBoardSprite,
         };
     }
 
@@ -162,26 +179,25 @@ public class DeviceSpriteManager : MonoBehaviour
             {
                 DialogueButtonType.Advance => _dialogueAdvancedKeyboard,
                 DialogueButtonType.Back => _dialogueReturnKeyboard,
-                _ => null
+                _ => null,
             },
 
             "Playstation" => type switch
             {
                 DialogueButtonType.Advance => _dialogueAdvancedPlayButton,
                 DialogueButtonType.Back => _dialogueReturnPlayButton,
-                _ => null
+                _ => null,
             },
 
             "Xbox" => type switch
             {
                 DialogueButtonType.Advance => _dialogueAdvancedXboxButton,
                 DialogueButtonType.Back => _dialogueReturnXboxButton,
-                _ => null
+                _ => null,
             },
 
-            _ => null
-
-        }; 
+            _ => null,
+        };
     }
 
     public enum InputIconType
@@ -190,13 +206,12 @@ public class DeviceSpriteManager : MonoBehaviour
         Dash,
         Attack,
         Jump,
-        
     }
 
     public enum DialogueButtonType
     {
         Advance,
-        Back
+        Back,
     }
 
     public string GetCurrentDevice()
@@ -209,4 +224,3 @@ public class DeviceSpriteManager : MonoBehaviour
         OnDeviceChanged?.Invoke(_currentDevice);
     }
 }
-

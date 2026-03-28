@@ -1,3 +1,1 @@
-public class BasicEnemy : NavBasedEnemy
-{
-}
+public class BasicEnemy : NavBasedEnemy { }

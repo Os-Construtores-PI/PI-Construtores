@@ -8,7 +8,8 @@ public class StackStateMachine<T> : StateMachine<T>
     private readonly IState<T> baseState;
     private const int MAX_ACTIVE_STATES = 2; // além do idle
 
-    public StackStateMachine(IState<T> defaultState, T context) : base(defaultState, context)
+    public StackStateMachine(IState<T> defaultState, T context)
+        : base(defaultState, context)
     {
         baseState = defaultState;
         stateStack.Push(defaultState);
@@ -31,7 +32,6 @@ public class StackStateMachine<T> : StateMachine<T>
         {
             pendingOps.Dequeue().Invoke();
         }
-
     }
 
     public void PushState(IState<T> newState, T entity)
@@ -43,8 +43,10 @@ public class StackStateMachine<T> : StateMachine<T>
 
         // Checa conflito
         foreach (var s in stateStack)
-            if (s.IncompatibleActions.Contains(newState.Type) ||
-                newState.IncompatibleActions.Contains(s.Type))
+            if (
+                s.IncompatibleActions.Contains(newState.Type)
+                || newState.IncompatibleActions.Contains(s.Type)
+            )
                 return;
 
         // Limita a quantidade de estados extras (Idle não conta)
@@ -84,9 +86,8 @@ public class StackStateMachine<T> : StateMachine<T>
 
     public IState<T> Current => stateStack.Peek();
 
-    public void PushStateDeferred(IState<T> newState, T entity)
-    => pendingOps.Enqueue(() => PushState(newState, entity));
+    public void PushStateDeferred(IState<T> newState, T entity) =>
+        pendingOps.Enqueue(() => PushState(newState, entity));
 
-    public void PopStateDeferred(T entity)
-        => pendingOps.Enqueue(() => PopState(entity));
+    public void PopStateDeferred(T entity) => pendingOps.Enqueue(() => PopState(entity));
 }

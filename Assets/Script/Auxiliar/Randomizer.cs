@@ -2,9 +2,9 @@ public class Randomizer
 {
     int lastNumb = default;
     float lastNumbf = default;
+
     public int PositiveIntRandom(int range)
     {
-
         int sortNumb = UnityEngine.Random.Range(0, range);
         while (sortNumb == lastNumb)
         {
@@ -13,9 +13,9 @@ public class Randomizer
         lastNumb = sortNumb;
         return sortNumb;
     }
+
     public float PositiveFloatRandom(int range)
     {
-        
         float sortNumb = UnityEngine.Random.Range(0, range);
         while (sortNumb == lastNumbf)
         {
@@ -24,5 +24,4 @@ public class Randomizer
         lastNumbf = sortNumb;
         return sortNumb;
     }
-
 }
