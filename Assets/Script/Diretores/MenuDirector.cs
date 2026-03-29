@@ -10,265 +10,251 @@ using UnityEngine.UI;
 
 public class MenuDirector : MonoBehaviour
 {
-    [Header("Canvas Roots")]
-    [SerializeField]
-    private Transform[] canvasRoots;
+  [Header("Canvas Roots")]
+  [SerializeField]
+  private Transform[] canvasRoots;
 
-    [SerializeField]
-    private GameObject _continueButton;
+  [SerializeField]
+  private GameObject _continueButton;
 
-    private string _currentPanel;
+  private string _currentPanel;
 
-    private List<Button> currentButtons = new();
+  private List<Button> currentButtons = new();
 
-    private readonly Dictionary<string, List<GameObject>> panels = new();
+  private readonly Dictionary<string, List<GameObject>> panels = new();
 
-    private void Awake()
+  private void Awake()
+  {
+    Time.timeScale = 1f;
+    Cursor.lockState = CursorLockMode.None;
+    Cursor.visible = true;
+
+    BuildPanelMap();
+  }
+
+  #region Start
+
+  private void Start()
+  {
+    InitMenu();
+    UpdateContinueButton();
+  }
+
+  private void Update()
+  {
+    if (EventSystem.current.currentSelectedGameObject != null)
+      return;
+
+    if (Gamepad.current != null)
     {
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        BuildPanelMap();
+      if (
+        Gamepad.current.dpad.ReadValue() != Vector2.zero
+        || Gamepad.current.leftStick.ReadValue() != Vector2.zero
+      )
+      {
+        SelectFirstButton();
+      }
     }
 
-    #region Start
-
-    private void Start()
+    if (Keyboard.current.anyKey.wasPressedThisFrame)
     {
-        InitMenu();
-        UptadeContinueButton();
+      SelectFirstButton();
     }
+  }
 
-    private void Update()
+  private void SelectFirstButton()
+  {
+    if (currentButtons.Count == 0)
+      return;
+
+    foreach (var btn in currentButtons)
     {
-        if (EventSystem.current.currentSelectedGameObject != null)
-            return;
+      if (btn != null && btn.gameObject.activeInHierarchy && btn.interactable)
+      {
+        EventSystem.current.SetSelectedGameObject(btn.gameObject);
+        break;
+      }
+    }
+  }
 
-        if (Gamepad.current != null)
+  private void InitMenu()
+  {
+    ShowPanel(Constants.MenuPanelNames.Menu);
+  }
+
+  public void UpdateContinueButton()
+  {
+    if (_continueButton == null)
+      return;
+
+    bool show =
+      DataDirector.Instance.AnySlotHasCheckpoint(out _) || DataDirector.Instance.AnySlotCompleted();
+
+    _continueButton.SetActive(show);
+  }
+
+  #endregion
+
+
+  #region Panel Discovery
+
+  private void BuildPanelMap()
+  {
+    panels.Clear();
+
+    foreach (var root in canvasRoots)
+      CollectPanelsRecursive(root);
+  }
+
+  private void CollectPanelsRecursive(Transform parent)
+  {
+    foreach (Transform child in parent)
+    {
+      if (!panels.ContainsKey(child.name))
+        panels[child.name] = new List<GameObject>();
+
+      panels[child.name].Add(child.gameObject);
+      CollectPanelsRecursive(child);
+    }
+  }
+
+  #endregion
+
+  #region Public Panel API
+
+  private void ShowPanel(string panelName, bool fade = false)
+  {
+    if (!panels.TryGetValue(panelName, out var roots))
+      return;
+
+    _currentPanel = panelName;
+    currentButtons.Clear();
+
+    //bool firstButtonSelected = false;
+
+    foreach (var root in roots)
+    {
+      root.SetActive(true);
+
+      root.transform.DOKill();
+      root.transform.localScale = Vector3.zero;
+
+      root.transform.DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
+        .OnComplete(() => root.transform.DOScale(Vector3.one, .15f));
+
+      foreach (var t in root.GetComponentsInChildren<Transform>(true))
+      {
+        if (t.TryGetComponent(out Button btn))
         {
-            if (
-                Gamepad.current.dpad.ReadValue() != Vector2.zero
-                || Gamepad.current.leftStick.ReadValue() != Vector2.zero
-            )
-            {
-                SelectFirstButton();
-            }
+          btn.interactable = true;
+          currentButtons.Add(btn);
         }
 
-        if (Keyboard.current.anyKey.wasPressedThisFrame)
-        {
-            SelectFirstButton();
-        }
+        if (t.TryGetComponent(out UIPulse pulse))
+          pulse.Play();
+      }
     }
 
-    private void SelectFirstButton()
-    {
-        if (currentButtons.Count == 0)
-            return;
+    EventSystem.current.SetSelectedGameObject(null);
 
-        foreach (var btn in currentButtons)
-        {
-            if (btn != null && btn.gameObject.activeInHierarchy && btn.interactable)
-            {
-                EventSystem.current.SetSelectedGameObject(btn.gameObject);
-                break;
-            }
-        }
+    if (panelName == Constants.MenuPanelNames.Menu)
+      UpdateContinueButton();
+  }
+
+  private void HidePanel(string panelName, bool fade = false)
+  {
+    if (!panels.TryGetValue(panelName, out var roots))
+      return;
+
+    EventSystem.current.SetSelectedGameObject(null);
+
+    foreach (var root in roots)
+    {
+      root.transform.DOKill();
+
+      root.transform.DOScale(Vector3.zero, .25f).OnComplete(() => root.SetActive(false));
     }
+  }
 
-    private void InitMenu()
+  private void SwitchPanel(string from, string to, bool fade = false)
+  {
+    HidePanel(from, fade);
+    ShowPanel(to, fade);
+  }
+
+  #endregion
+
+  #region Scene / App Control
+
+  public void EnterOptions()
+  {
+    SwitchPanel(Constants.MenuPanelNames.Menu, Constants.MenuPanelNames.OptionsMenu);
+  }
+
+  public void ContinueGame()
+  {
+    int slot = DataDirector.Instance.GetCurrentSlot();
+    string level = DataDirector.Instance.GetLastLevelName(slot);
+
+    if (DataDirector.Instance.IsSlotCompleted(slot))
     {
-        ShowPanel(Constants.MenuPanelNames.Menu);
+      if (!DataDirector.Instance.AnySlotHasCheckpoint(out SavedSlotData slotData))
+      {
+        level = slotData.lastLevelName;
+      }
+      else
+      {
+        StartNewGamePlus(slot);
+        return;
+      }
     }
+    DataDirector.Instance.SaveHasSave(true);
+    SceneManager.LoadScene(level);
+  }
 
-    public void UptadeContinueButton()
-    {
-        if (_continueButton == null)
-            return;
+  public void ExitOptions()
+  {
+    SwitchPanel(Constants.MenuPanelNames.OptionsMenu, Constants.MenuPanelNames.Menu);
+  }
 
-        bool show =
-            DataDirector.Instance.AnySlotHasCheckpoint()
-            || DataDirector.Instance.AnySlotCompleted();
+  public void EnterAudioOptions()
+  {
+    SwitchPanel(Constants.MenuPanelNames.OptionsMenu, Constants.MenuPanelNames.AudioMenu);
+  }
 
-        _continueButton.SetActive(show);
-    }
+  public void ExitAudioOption()
+  {
+    SwitchPanel(Constants.MenuPanelNames.AudioMenu, Constants.MenuPanelNames.OptionsMenu);
+  }
 
-    #endregion
+  public void EnterSaveMenu()
+  {
+    SwitchPanel(Constants.MenuPanelNames.Menu, Constants.MenuPanelNames.SaveMenu);
+  }
 
+  public void ExitSaveMenu()
+  {
+    SwitchPanel(Constants.MenuPanelNames.SaveMenu, Constants.MenuPanelNames.Menu);
+  }
 
-    #region Panel Discovery
+  public void LoadScene(string sceneName)
+  {
+    SceneManager.LoadScene(sceneName);
+  }
 
-    private void BuildPanelMap()
-    {
-        panels.Clear();
-
-        foreach (var root in canvasRoots)
-            CollectPanelsRecursive(root);
-    }
-
-    private void CollectPanelsRecursive(Transform parent)
-    {
-        foreach (Transform child in parent)
-        {
-            if (!panels.ContainsKey(child.name))
-                panels[child.name] = new List<GameObject>();
-
-            panels[child.name].Add(child.gameObject);
-            CollectPanelsRecursive(child);
-        }
-    }
-
-    #endregion
-
-    #region Public Panel API
-
-    private void ShowPanel(string panelName, bool fade = false)
-    {
-        if (!panels.TryGetValue(panelName, out var roots))
-            return;
-
-        _currentPanel = panelName;
-        currentButtons.Clear();
-
-        //bool firstButtonSelected = false;
-
-        foreach (var root in roots)
-        {
-            root.SetActive(true);
-
-            root.transform.DOKill();
-            root.transform.localScale = Vector3.zero;
-
-            root.transform.DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
-                .OnComplete(() => root.transform.DOScale(Vector3.one, .15f));
-
-            foreach (var t in root.GetComponentsInChildren<Transform>(true))
-            {
-                if (t.TryGetComponent(out Button btn))
-                {
-                    btn.interactable = true;
-                    currentButtons.Add(btn);
-                }
-
-                if (t.TryGetComponent(out UIPulse pulse))
-                    pulse.Play();
-            }
-        }
-
-        EventSystem.current.SetSelectedGameObject(null);
-
-        if (panelName == Constants.MenuPanelNames.Menu)
-            UptadeContinueButton();
-    }
-
-    private void HidePanel(string panelName, bool fade = false)
-    {
-        if (!panels.TryGetValue(panelName, out var roots))
-            return;
-
-        EventSystem.current.SetSelectedGameObject(null);
-
-        foreach (var root in roots)
-        {
-            root.transform.DOKill();
-
-            root.transform.DOScale(Vector3.zero, .25f).OnComplete(() => root.SetActive(false));
-        }
-    }
-
-    private void SwitchPanel(string from, string to, bool fade = false)
-    {
-        HidePanel(from, fade);
-        ShowPanel(to, fade);
-    }
-
-    #endregion
-
-    #region Scene / App Control
-
-    public void EnterOptions()
-    {
-        SwitchPanel(Constants.MenuPanelNames.Menu, Constants.MenuPanelNames.OptionsMenu);
-    }
-
-    public void ContinueGame()
-    {
-        int slot = DataDirector.Instance.GetCurrentSlot();
-
-        if (DataDirector.Instance.IsSlotCompleted(slot))
-        {
-            StartCoroutine(StartNewGamePlus(slot));
-        }
-        else
-        {
-            string level = DataDirector.Instance.GetLastLevelName(slot);
-            SceneManager.LoadScene(level);
-        }
-    }
-
-    public void ExitOptions()
-    {
-        SwitchPanel(Constants.MenuPanelNames.OptionsMenu, Constants.MenuPanelNames.Menu);
-    }
-
-    public void EnterAudioOptions()
-    {
-        SwitchPanel(Constants.MenuPanelNames.OptionsMenu, Constants.MenuPanelNames.AudioMenu);
-    }
-
-    public void ExitAudioOption()
-    {
-        SwitchPanel(Constants.MenuPanelNames.AudioMenu, Constants.MenuPanelNames.OptionsMenu);
-    }
-
-    public void EnterSaveMenu()
-    {
-        SwitchPanel(Constants.MenuPanelNames.Menu, Constants.MenuPanelNames.SaveMenu);
-    }
-
-    public void ExitSaveMenu()
-    {
-        SwitchPanel(Constants.MenuPanelNames.SaveMenu, Constants.MenuPanelNames.Menu);
-    }
-
-    public void LoadScene(string sceneName)
-    {
-        SceneManager.LoadScene(sceneName);
-    }
-
-    public void QuitGame()
-    {
-        Application.Quit();
+  public void QuitGame()
+  {
+    Application.Quit();
 #if UNITY_EDITOR
-        Debug.Log("Quit Game");
+    Debug.Log("[MenuDirector] Quitted Game");
 #endif
-    }
+  }
 
-    private IEnumerator StartNewGamePlus(int slot)
-    {
-        SceneManager.LoadScene(Constants.SceneNames.Fase0);
-        yield return null;
+  private void StartNewGamePlus(int slot)
+  {
+    DataDirector.Instance.SaveHasSave(false);
+    SceneManager.LoadScene(Constants.SceneNames.Fase0);
+  }
 
-        var players = DataDirector.Instance.GetPlayersData(
-            slot,
-            DataDirector.Instance.GetLastLevelName(slot)
-        );
-
-        var player = FindAnyObjectByType<Player>();
-
-        if (player == null || players.Count == 0)
-            yield break;
-
-        player.Inventory.ClearItems();
-
-        foreach (var item in players[0].inventory)
-        {
-            var data = Resources.Load<ItemData>($"Items/{item.savedItemName}");
-            if (data)
-                player.Inventory.AddItem(data, item.savedItemQuantity);
-        }
-    }
-
-    #endregion
+  #endregion
 }
