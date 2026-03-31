@@ -4,14 +4,17 @@
 
 # Correções
 - [x] Diminuir a velocidade da plataforma inicial #Padeirinho 
+- [ ] Ajustar o tipo de movimentação da plataforma inicial #Padeirinho 
+- [ ] Mecanica de puxar plataformas #Padeirinho 
 - [ ] Corrigir o respawn do jogo #Padeirinho 
 - [ ] Corrigir os erros do diálogo final #Leonardo 
 - [ ] Corrigir o loop do dialogo preso #Leonardo 
+- [ ] Grappling Hook pra aproximar nos inimigos. #Padeirinho 
 - [ ] Indicar aonde a pandora irá aterrissar com a ajuda de uma sombra extra #Padeirinho 
 - [x] Correções na rota na segunda parte: Parede descendo rápido demais na rota dos cubos #Padeirinho 
 - [x] Ajustar o tamanho da parede na parte 2 #Padeirinho 
-- [ ] Colocar o checkpoint do save no botão continuar #Padeirinho 
-- [ ] Ao morrer, a opção sempre deve ser "tentar de novo" como prioridade #Padeirinho 
+- [x] Colocar o checkpoint do save no botão continuar #Padeirinho
+- [x] Ao morrer, a opção sempre deve ser "tentar de novo" como prioridade #Padeirinho
 - [ ] Ajustar Animação do tentáculo #Padeirinho 
 - [ ] Animações na imagem do dialogo (sinceramente vai continuar querendo) #Erick #Leonardo 
 - [x] Mudança do botão do dash para o gatilho direito (RT) #Padeirinho 

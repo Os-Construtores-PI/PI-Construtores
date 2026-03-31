@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -196,6 +197,7 @@ public sealed class DataDirector : MonoBehaviour
     CollectScene();
     SavedSlotData slotData = GetSafeSlot(slot);
     slotData.lastLevelName = SceneManager.GetActiveScene().name;
+    slotData.lastLevelSaveTime = DateTime.Now;
 
     SavedLevelData lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
 
@@ -229,6 +231,7 @@ public sealed class DataDirector : MonoBehaviour
   {
     SavedSlotData slotData = GetSafeSlot(slot);
     slotData.lastLevelName = SceneManager.GetActiveScene().name;
+    slotData.lastLevelSaveTime = DateTime.Now;
 
     SavedLevelData lvl = GetSafeLevel(slot, SceneManager.GetActiveScene().name);
     lvl.lastPath = lastPath;
@@ -366,6 +369,7 @@ public sealed class DataDirector : MonoBehaviour
   }
 
   public string GetLastLevelName(int index) => GetSafeSlot(index).lastLevelName;
+
   #endregion
 
   #region WRITE API
@@ -382,7 +386,7 @@ public sealed class DataDirector : MonoBehaviour
     return slot.gameCompleted;
   }
 
-  public void SetSlotsCompleted(int slotIndex, bool value)
+  public void SetSlotCompleted(int slotIndex, bool value)
   {
     var slot = GetSafeSlot(slotIndex);
     slot.gameCompleted = value;
@@ -401,13 +405,13 @@ public sealed class DataDirector : MonoBehaviour
 
   public bool AnySlotHasCheckpoint(out SavedSlotData chosenSlot)
   {
-    foreach (var slot in _gameData.savedSlots)
+    SavedSlotData slot = _gameData.savedSlots.Single(slot =>
+      slot.lastLevelSaveTime == _gameData.savedSlots.Max(slot => slot.lastLevelSaveTime)
+    );
+    if (slot.savedLevelDatas != null && slot.savedLevelDatas.Count > 0 && !slot.gameCompleted)
     {
-      if (slot.savedLevelDatas != null && slot.savedLevelDatas.Count > 0 && !slot.gameCompleted)
-      {
-        chosenSlot = slot;
-        return true;
-      }
+      chosenSlot = slot;
+      return true;
     }
     chosenSlot = null;
     return false;
@@ -447,5 +451,10 @@ public sealed class DataDirector : MonoBehaviour
 
     _gameData.savedSlots[slotIndex] = new SavedSlotData();
     Commit();
+  }
+
+  public void ClearGameData()
+  {
+    _gameData = NewGameData();
   }
 }

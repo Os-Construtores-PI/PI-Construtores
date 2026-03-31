@@ -60,6 +60,11 @@ public class MenuDirector : MonoBehaviour
     {
       SelectFirstButton();
     }
+
+    if (Input.GetKeyDown(KeyCode.F12))
+    {
+      DataDirector.Instance.ClearGameData();
+    }
   }
 
   private void SelectFirstButton()
@@ -198,7 +203,7 @@ public class MenuDirector : MonoBehaviour
 
     if (DataDirector.Instance.IsSlotCompleted(slot))
     {
-      if (!DataDirector.Instance.AnySlotHasCheckpoint(out SavedSlotData slotData))
+      if (DataDirector.Instance.AnySlotHasCheckpoint(out SavedSlotData slotData))
       {
         level = slotData.lastLevelName;
       }
@@ -250,7 +255,7 @@ public class MenuDirector : MonoBehaviour
 #endif
   }
 
-  private void StartNewGamePlus(int slot)
+  public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
     SceneManager.LoadScene(Constants.SceneNames.Fase0);

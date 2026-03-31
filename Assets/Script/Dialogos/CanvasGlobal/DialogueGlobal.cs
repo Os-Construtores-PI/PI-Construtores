@@ -74,6 +74,7 @@ public class DialogueGlobal : MonoBehaviour
     private float _inputDelay = 0.15f;
 
     private bool _waitingForButtonRelease = false;
+    private bool _isTyping = false;
 
     void Awake()
     {
@@ -148,7 +149,7 @@ public class DialogueGlobal : MonoBehaviour
                 _state = DialogueState.Open;
                 _dialogoPronto = true;
                 _blockAdvanceInput = false;
-                StartCoroutine(DelayMostrarFala());
+              AtualizarFala();
             });
 
         _lockedPlayer = _playerContext;
@@ -194,6 +195,12 @@ public class DialogueGlobal : MonoBehaviour
     {
         if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open)
             return;
+
+    if (_isTyping)
+    {
+      CompletarTextoInstantanemante();
+      return;
+    }
 
         if (_index >= _falasAtuais.Length - 1)
         {
@@ -289,12 +296,13 @@ public class DialogueGlobal : MonoBehaviour
 
     private void MostrarFala(string texto)
     {
-        LimparFala();
         _textoDialogo.text = texto;
         _textoDialogo.maxVisibleCharacters = 0;
         _textoDialogo.ForceMeshUpdate();
 
         float duracao = Mathf.Clamp(texto.Length * _tempoPorLetra, 0.10f, 1.0f);
+
+        _isTyping = true;
 
         _tweenText = DOTween
             .To(
@@ -304,14 +312,13 @@ public class DialogueGlobal : MonoBehaviour
                 duracao
             )
             .SetEase(Ease.Linear)
-            .SetUpdate(true);
+            .SetUpdate(true)
+            .OnComplete(() =>
+             {
+               _isTyping = false;
+             });
     }
 
-    private System.Collections.IEnumerator DelayMostrarFala()
-    {
-        yield return new WaitForSecondsRealtime(_delayAntesdotexto);
-        AtualizarFala();
-    }
 
     private void LimparFala()
     {
@@ -371,4 +378,11 @@ public class DialogueGlobal : MonoBehaviour
                 Time.timeScale = 1f;
             });
     }
+
+    private void CompletarTextoInstantanemante()
+  {
+    _tweenText?.Kill();
+    _textoDialogo.maxVisibleCharacters = _textoDialogo.text.Length;
+    _isTyping = false;
+  }
 }
