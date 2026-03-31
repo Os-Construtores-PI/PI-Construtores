@@ -1815,7 +1815,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 879841994}
-  - component: {fileID: 879841995}
   m_Layer: 5
   m_Name: SaveMenuController
   m_TagString: Untagged
@@ -1842,18 +1841,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &879841995
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 879841993}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c7f9570e61558c42b189a5c2d8c5936, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SaveMenuControl
 --- !u!1 &886349289
 GameObject:
   m_ObjectHideFlags: 0
@@ -2246,9 +2233,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 879841995}
-        m_TargetAssemblyTypeName: SaveMenuControl, Assembly-CSharp
-        m_MethodName: StartNewGame
+      - m_Target: {fileID: 1333099908}
+        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
+        m_MethodName: StartNewGamePlus
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2378,9 +2365,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 879841995}
-        m_TargetAssemblyTypeName: SaveMenuControl, Assembly-CSharp
-        m_MethodName: StartNewGame
+      - m_Target: {fileID: 1333099908}
+        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
+        m_MethodName: StartNewGamePlus
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2812,9 +2799,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 879841995}
-        m_TargetAssemblyTypeName: SaveMenuControl, Assembly-CSharp
-        m_MethodName: StartNewGame
+      - m_Target: {fileID: 1333099908}
+        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
+        m_MethodName: StartNewGamePlus
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -250,7 +250,7 @@ public class MenuDirector : MonoBehaviour
 #endif
   }
 
-  private void StartNewGamePlus(int slot)
+  public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
     SceneManager.LoadScene(Constants.SceneNames.Fase0);
