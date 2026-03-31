@@ -18,6 +18,7 @@ kanban-plugin: board
 - [ ] Grapling Hook do Monster Hunter
 - [ ] Sistema de Ranking
 - [ ] Rework Level Design Fase 0
+- [ ] [[Prioridades]]
 
 
 ## Em Produção
