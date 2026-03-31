@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,6 +27,7 @@ public class SavedConfigData
 public class SavedSlotData
 {
   public string lastLevelName;
+  public DateTime lastLevelSaveTime;
   public bool gameCompleted;
   public List<SavedLevelData> savedLevelDatas = new();
 }
