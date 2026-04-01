@@ -265,6 +265,11 @@ public class Player : CombatEntities
         "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag"
       );
     }
+    TickDirector.Instance.OnFiveTick.AddListener(_ =>
+      _enemyScanner.Scan(Time.deltaTime, transform.position)
+    );
+    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
+    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanObjects());
 
     _objectScanner = new Scanner<Ray, (bool, RaycastHit)>(
       interactionScanCooldown,
@@ -312,9 +317,6 @@ public class Player : CombatEntities
   public override void Update()
   {
     base.Update();
-    _enemyScanner.Scan(Time.deltaTime, transform.position);
-    ScanWalls();
-    ScanObjects();
     KnockbackTimer();
     //ChangeCharacterTimer();
 
