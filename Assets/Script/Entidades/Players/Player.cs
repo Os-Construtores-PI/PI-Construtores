@@ -64,9 +64,15 @@ public class Player : CombatEntities
   internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
 
   [Header("Componentes")]
+  [SerializeField]
+  private Transform _cameraTarget;
   protected CharacterController characterController;
   public CharacterController Charactercontroller => characterController;
   protected CinemachineCamera _cinemachineCamera;
+  protected CinemachineInputAxisController _cinemachineInput;
+  protected CinemachineOrbitalFollow _cinemachineOrbital;
+  public CinemachineOrbitalFollow CinemachineOrbital => _cinemachineOrbital;
+  public CinemachineInputAxisController CinemachineInput => _cinemachineInput;
   public CinemachineCamera Cinemachinecamera => _cinemachineCamera;
   protected Camera _myCamera;
 
@@ -178,7 +184,7 @@ public class Player : CombatEntities
   #endregion
 
   #region  === Scanner ===
-  private Scanner<Ray, (bool, RaycastHit)> _objectScanner;
+  private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
   #endregion
@@ -265,26 +271,48 @@ public class Player : CombatEntities
         "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag"
       );
     }
+
+    _cinemachineInput = _cinemachineCamera.GetComponent<CinemachineInputAxisController>();
+    _cinemachineOrbital = _cinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
+
     TickDirector.Instance.OnFiveTick.AddListener(_ =>
       _enemyScanner.Scan(Time.deltaTime, transform.position)
     );
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanObjects());
+    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWithCamera());
 
-    _objectScanner = new Scanner<Ray, (bool, RaycastHit)>(
+    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(
       interactionScanCooldown,
       r =>
       {
         bool hit = Physics.SphereCast(
           r,
-          radius: 1.25f,
+          radius: 4f, // Reduzi um pouco para ser mais preciso no centro
           out RaycastHit info,
           40f,
-          layerMask: LayerMask.GetMask("Object")
+          layerMask: LayerMask.GetMask("Object", "Enemy")
         );
-        return (hit, info);
+
+        if (hit)
+        {
+          // Valida se o que bateu é Lockable
+          if (info.collider.TryGetComponent(out ILockable lockable))
+          {
+            Vector3 direcaoParaAlvo = (info.collider.transform.position - r.origin).normalized;
+            float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
+
+            if (dot >= 0.7f) // Cone de visão
+            {
+              // Armazena temporariamente para o ToggleLockIn usar
+              _lockedTarget = lockable;
+              return (true, info);
+            }
+          }
+        }
+        return (false, new RaycastHit());
       }
     );
+
     _enemyScanner = new Scanner<Vector3, bool>(enemyScanInterval, ScanEnemies);
 
     _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(
@@ -325,7 +353,7 @@ public class Player : CombatEntities
     ActionLayer.Update(Context);
   }
 
-  private void FixedUpdate()
+  public void FixedUpdate()
   {
     if (Input.GetKeyDown(KeyCode.F1))
     {
@@ -351,8 +379,7 @@ public class Player : CombatEntities
     Charactercontroller.Move(_movementVector * Time.deltaTime);
   }
 
-  private void OnDestroy() => DOTween.KillAll();
-
+  public void OnDestroy() => DOTween.KillAll();
   #endregion
 
   #region === Input Callbacks ===
@@ -392,6 +419,14 @@ public class Player : CombatEntities
     {
       _isRunning = false;
       StoppedRunning.Invoke();
+    }
+  }
+
+  public void OnLockInTarget(InputAction.CallbackContext context)
+  {
+    if (context.performed)
+    {
+      ToggleLockIn();
     }
   }
 
@@ -511,6 +546,62 @@ public class Player : CombatEntities
   //     changeCharTimer.Start(changeCharacterCooldown);
   // }
   // }
+
+  #endregion
+
+  #region === Lock in ===
+
+  private void ToggleLockIn()
+  {
+    if (_isLockOnActive)
+    {
+      DisableLockIn();
+    }
+    else if (_lastValidResult.success && _lockedTarget != null)
+    {
+      _isLockOnActive = true;
+      SetLockOn(_lockedTarget);
+    }
+  }
+
+  private void SetLockOn(ILockable target)
+  {
+    _lockedTarget = target;
+
+    if (_lockedTarget != null)
+    {
+      _cinemachineCamera.LookAt = _lockedTarget.transform;
+      _cinemachineOrbital.VerticalAxis.Value = -10;
+      if (_cinemachineInput != null)
+      {
+        foreach (var controller in _cinemachineInput.Controllers)
+        {
+          controller.Enabled = false;
+        }
+      }
+    }
+    else
+    {
+      _cinemachineCamera.LookAt = _cameraTarget;
+      _cinemachineOrbital.VerticalAxis.Value = -45;
+      if (_cinemachineInput != null)
+      {
+        foreach (var controller in _cinemachineInput.Controllers)
+        {
+          controller.Enabled = true;
+        }
+      }
+    }
+  }
+
+  private void DisableLockIn()
+  {
+    if (_isLockOnActive)
+    {
+      _isLockOnActive = false;
+      SetLockOn(null);
+    }
+  }
 
   #endregion
 
@@ -730,6 +821,9 @@ public class Player : CombatEntities
     return true; // só para cumprir TOutput
   }
 
+  private ILockable _lockedTarget;
+  private RaycastHit _lastLockHit;
+  private bool _isLockOnActive = false;
   protected RaycastHit _playerRayHit;
   protected InteractableObject _interactionObject;
   protected InteractableObject _lastInteractionObject = null;
@@ -737,43 +831,86 @@ public class Player : CombatEntities
   protected (bool success, RaycastHit hit) _lastValidResult;
 
   // Base
-  protected virtual (bool success, RaycastHit hit) ScanObjects()
+  protected virtual (bool success, RaycastHit hit) ScanWithCamera()
   {
+    // 1. Validação de Câmera
     if (!selectedcamera)
     {
       SetupCamera();
       return (false, default);
     }
-    Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
-    var (executed, scanResult) = _objectScanner.Scan(Time.deltaTime, ray);
 
-    // Se NÃO executou (devido ao cooldown), retorna o último estado conhecido
-    if (!executed)
+    // 2. Lógica de Persistência do Lock-On
+    // Se já estamos travados, verificamos se o alvo ainda é válido antes de escanear outro
+    if (_isLockOnActive && _lockedTarget != null)
     {
-      return _lastValidResult;
+      if (_lockedTarget.IsActive)
+      {
+        float dist = Vector3.Distance(transform.position, _lockedTarget.transform.position);
+        // Se o alvo ainda está no range, mantemos o lock e não precisamos de um novo scan
+        if (dist <= _lockedTarget.LockRange)
+        {
+          // Criamos um hit "falso" ou usamos o último para manter a interface feliz
+          return (true, _lastLockHit);
+        }
+      }
+
+      // Se chegou aqui, o alvo fugiu ou morreu. Desativamos para procurar o próximo (Chain)
+      DisableLockIn();
     }
 
-    // Se executou mas não bateu em nada
+    // 3. Execução do Scanner (Raycast/SphereCast)
+    Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
+    var (executed, scanResult) = _cameraScanner.Scan(Time.deltaTime, ray);
+
+    // Se o scanner está em cooldown, retorna o último resultado válido
+    if (!executed)
+      return _lastValidResult;
+
+    // Se o raio não bateu em absolutamente nada
     if (!scanResult.Item1)
     {
+      ClearInteractable(); // Limpa referências de UI/Interação
       _lastValidResult = (false, default);
       return _lastValidResult;
     }
 
-    var hit = scanResult.Item2;
+    RaycastHit hit = scanResult.Item2;
 
-    if (
-      !hit.collider.TryGetComponent(out _interactionObject)
-      || hit.distance > _interactionObject.Range
-    )
+    // 4. Validação por Interface ILockable (Inimigos e Objetos com trava)
+    if (hit.collider.TryGetComponent(out ILockable lockable))
     {
-      _lastValidResult = (false, default);
-      return _lastValidResult;
+      // Verificamos se o objeto está ativo e dentro do seu range específico
+      if (lockable.IsActive && hit.distance <= lockable.LockRange)
+      {
+        // O Scanner já faz o cálculo do Dot Product (Cone),
+        // então aqui apenas confirmamos a atribuição.
+        _lockedTarget = lockable;
+        _lastLockHit = hit;
+
+        // Se for também um InteractableObject (para lógica de botões/E), guardamos a ref
+        hit.collider.TryGetComponent(out _interactionObject);
+        interactableRef = _interactionObject;
+
+        _lastValidResult = (true, hit);
+        return _lastValidResult;
+      }
     }
 
-    _interactionObjectType = _interactionObject.GetType();
-    interactableRef = _interactionObject;
-    _lastValidResult = (true, hit);
+    // 5. Fallback: Se não for Lockable, mas for um Interactable comum
+    if (hit.collider.TryGetComponent(out _interactionObject))
+    {
+      if (hit.distance <= _interactionObject.Range)
+      {
+        interactableRef = _interactionObject;
+        _lastValidResult = (true, hit);
+        return _lastValidResult;
+      }
+    }
+
+    // Se nada acima validou
+    ClearInteractable();
+    _lastValidResult = (false, default);
     return _lastValidResult;
   }
 

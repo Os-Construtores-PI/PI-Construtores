@@ -1,12 +1,20 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public interface IState<T>
 {
-    ActionType Type { get; } // Identifica o tipo da ação
-    HashSet<ActionType> IncompatibleActions { get; } // Ações que conflitam
-    virtual int Priority => 0;
-    void Enter(T entity);
-    void Update(T entity);
-    void FixedUpdate(T entity);
-    void Exit(T entity);
+  ActionType Type { get; } // Identifica o tipo da ação
+  HashSet<ActionType> IncompatibleActions { get; } // Ações que conflitam
+  virtual int Priority => 0;
+  void Enter(T entity);
+  void Update(T entity);
+  void FixedUpdate(T entity);
+  void Exit(T entity);
+}
+
+public interface ILockable
+{
+  Transform transform { get; }
+  public float LockRange { get; }
+  public bool IsActive { get; }
 }

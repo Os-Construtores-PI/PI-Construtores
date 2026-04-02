@@ -17438,8 +17438,32 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: ca1a9979-cb51-44a7-8e84-9663d7e39d3d
     m_ActionName: 'Dialogue/ReturnDialogue[/Keyboard/g]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 022c035d-30be-49a4-82b9-dbe60518b8cf
+    m_ActionName: 'Player/AdvanceDialogue[/Keyboard/f]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: b7ca1b4a-5fc3-407e-af4f-0251fa6f394e
+    m_ActionName: 'Player/ReturnDialogue[/Keyboard/g]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6754862074013953145}
+        m_TargetAssemblyTypeName: Pandora, Assembly-CSharp
+        m_MethodName: OnLockInTarget
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 4492dba5-39e1-4386-8a6b-25a8c05836fc
+    m_ActionName: 'Player/LockInTarget[/Keyboard/e]'
   m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
+  m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
@@ -17470,10 +17494,13 @@ MonoBehaviour:
   _enableRegen: 1
   regenerationInterval: 5
   Damaged: 0
+  _cameraTarget: {fileID: 6230178497730834178}
   _ultimoDispositivo: 0
   _isGrounded: 0
   enemyScanRadius: 10
   enemyScanInterval: 2
+  cameraOffset: {x: 0, y: 0, z: 0}
+  _lockSpeed: 100
 --- !u!54 &-2005523811532062704
 Rigidbody:
   m_ObjectHideFlags: 0

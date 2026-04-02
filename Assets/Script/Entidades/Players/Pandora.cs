@@ -2,48 +2,48 @@ using UnityEngine;
 
 public class Pandora : Player
 {
-    #region --- OBJETOS ---
+  #region --- OBJETOS ---
 
-    bool HasGrapling = true;
+  bool HasGrapling = true;
 
-    protected override (bool, RaycastHit) ScanObjects()
+  protected override (bool, RaycastHit) ScanWithCamera()
+  {
+    var (success, hit) = base.ScanWithCamera();
+
+    bool valid =
+      success
+      && (
+        Constants.PlayerCommonObjects.types.Contains(_interactionObjectType)
+        || Constants.PandoraObjects.types.Contains(_interactionObjectType)
+      );
+    if (!valid)
     {
-        var (success, hit) = base.ScanObjects();
-
-        bool valid =
-            success
-            && (
-                Constants.PlayerCommonObjects.types.Contains(_interactionObjectType)
-                || Constants.PandoraObjects.types.Contains(_interactionObjectType)
-            );
-        if (!valid)
-        {
-            if (_lastInteractionObject != null)
-            {
-                ClearInteractable(); // Dispara evento false
-                _lastInteractionObject = null;
-            }
-            return (false, default);
-        }
-
-        // SÓ dispara o evento se mudou a instância do objeto
-        if (_interactionObject != _lastInteractionObject)
-        {
-            _lastInteractionObject = _interactionObject;
-            GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, _interactionObject, ID);
-        }
-
-        return (true, hit);
+      if (_lastInteractionObject != null)
+      {
+        ClearInteractable(); // Dispara evento false
+        _lastInteractionObject = null;
+      }
+      return (false, default);
     }
 
-    #endregion
-    #region --- ATAQUE ---
-    protected override void Attack()
+    // SÓ dispara o evento se mudou a instância do objeto
+    if (_interactionObject != _lastInteractionObject)
     {
-        if (canAttack && willAttack)
-        {
-            ActionLayer.PushState(new PlayerActionPandoraAttackState(), Context);
-        }
+      _lastInteractionObject = _interactionObject;
+      GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, _interactionObject, ID);
     }
-    #endregion
+
+    return (true, hit);
+  }
+
+  #endregion
+  #region --- ATAQUE ---
+  protected override void Attack()
+  {
+    if (canAttack && willAttack)
+    {
+      ActionLayer.PushState(new PlayerActionPandoraAttackState(), Context);
+    }
+  }
+  #endregion
 }
