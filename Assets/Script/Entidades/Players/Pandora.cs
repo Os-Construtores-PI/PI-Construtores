@@ -1,4 +1,5 @@
 using UnityEngine;
+using static Constants;
 
 public class Pandora : Player
 {
@@ -10,23 +11,28 @@ public class Pandora : Player
   {
     var (success, hit) = base.ScanWithCamera();
 
-    bool valid =
-      success
-      && (
-        Constants.PlayerCommonObjects.types.Contains(_interactionObjectType)
-        || Constants.PandoraObjects.types.Contains(_interactionObjectType)
-      );
-    if (!valid)
+    if (!success || _interactionObject == null)
     {
       if (_lastInteractionObject != null)
       {
-        ClearInteractable(); // Dispara evento false
+        ClearInteractable();
         _lastInteractionObject = null;
       }
       return (false, default);
     }
 
-    // SÓ dispara o evento se mudou a instância do objeto
+    _interactionObjectType = _interactionObject.GetType();
+
+    bool valid =
+      PlayerCommonObjects.types.Contains(_interactionObjectType)
+      || PandoraObjects.types.Contains(_interactionObjectType);
+
+    if (!valid)
+    {
+      ClearInteractable();
+      return (false, default);
+    }
+
     if (_interactionObject != _lastInteractionObject)
     {
       _lastInteractionObject = _interactionObject;

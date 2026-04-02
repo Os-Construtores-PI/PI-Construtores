@@ -173,7 +173,6 @@ public class Player : CombatEntities
   #region === Interação ===
   [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
   private readonly float interactionScanCooldown = .1f;
-  protected internal InteractableObject interactableRef;
   private Camera selectedcamera = null;
   #endregion
 
@@ -285,31 +284,35 @@ public class Player : CombatEntities
       interactionScanCooldown,
       r =>
       {
+        // 1. Usamos um raio um pouco menor para não "atropelar" objetos laterais por erro
         bool hit = Physics.SphereCast(
           r,
-          radius: 4f, // Reduzi um pouco para ser mais preciso no centro
+          2f,
           out RaycastHit info,
           40f,
-          layerMask: LayerMask.GetMask("Object", "Enemy")
+          LayerMask.GetMask("Object", "Enemy")
         );
 
         if (hit)
         {
-          // Valida se o que bateu é Lockable
-          if (info.collider.TryGetComponent(out ILockable lockable))
-          {
-            Vector3 direcaoParaAlvo = (info.collider.transform.position - r.origin).normalized;
-            float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
+          Vector3 direcaoParaAlvo = (info.collider.transform.position - r.origin).normalized;
+          float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
 
-            if (dot >= 0.7f) // Cone de visão
+          if (dot >= 0.8f)
+          {
+            if (
+              !Physics.Linecast(
+                r.origin,
+                info.collider.transform.position,
+                LayerMask.GetMask("Default")
+              )
+            )
             {
-              // Armazena temporariamente para o ToggleLockIn usar
-              _lockedTarget = lockable;
               return (true, info);
             }
           }
         }
-        return (false, new RaycastHit());
+        return (false, default);
       }
     );
 
@@ -499,7 +502,7 @@ public class Player : CombatEntities
 
   public void OnInteract(InputAction.CallbackContext context)
   {
-    if (interactableRef && context.started)
+    if (_interactionObject && context.started)
     {
       ActionLayer.PushState(_interactionActionS, Context);
     }
@@ -825,99 +828,75 @@ public class Player : CombatEntities
   private RaycastHit _lastLockHit;
   private bool _isLockOnActive = false;
   protected RaycastHit _playerRayHit;
-  protected InteractableObject _interactionObject;
+  protected internal InteractableObject _interactionObject;
   protected InteractableObject _lastInteractionObject = null;
   protected Type _interactionObjectType;
   protected (bool success, RaycastHit hit) _lastValidResult;
 
-  // Base
   protected virtual (bool success, RaycastHit hit) ScanWithCamera()
   {
-    // 1. Validação de Câmera
     if (!selectedcamera)
     {
       SetupCamera();
       return (false, default);
     }
 
-    // 2. Lógica de Persistência do Lock-On
-    // Se já estamos travados, verificamos se o alvo ainda é válido antes de escanear outro
     if (_isLockOnActive && _lockedTarget != null)
     {
       if (_lockedTarget.IsActive)
       {
         float dist = Vector3.Distance(transform.position, _lockedTarget.transform.position);
-        // Se o alvo ainda está no range, mantemos o lock e não precisamos de um novo scan
         if (dist <= _lockedTarget.LockRange)
         {
-          // Criamos um hit "falso" ou usamos o último para manter a interface feliz
           return (true, _lastLockHit);
         }
       }
 
-      // Se chegou aqui, o alvo fugiu ou morreu. Desativamos para procurar o próximo (Chain)
       DisableLockIn();
     }
 
-    // 3. Execução do Scanner (Raycast/SphereCast)
     Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
     var (executed, scanResult) = _cameraScanner.Scan(Time.deltaTime, ray);
 
-    // Se o scanner está em cooldown, retorna o último resultado válido
     if (!executed)
       return _lastValidResult;
 
-    // Se o raio não bateu em absolutamente nada
     if (!scanResult.Item1)
     {
-      ClearInteractable(); // Limpa referências de UI/Interação
+      // Se não bateu em nada, limpa TUDO
+      ClearInteractable();
+      _lockedTarget = null; // Garante limpeza do alvo de camera
       _lastValidResult = (false, default);
       return _lastValidResult;
     }
 
     RaycastHit hit = scanResult.Item2;
 
-    // 4. Validação por Interface ILockable (Inimigos e Objetos com trava)
+    // Tenta pegar o Lockable (obrigatório para ser detectado aqui)
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
-      // Verificamos se o objeto está ativo e dentro do seu range específico
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
       {
-        // O Scanner já faz o cálculo do Dot Product (Cone),
-        // então aqui apenas confirmamos a atribuição.
         _lockedTarget = lockable;
         _lastLockHit = hit;
-
-        // Se for também um InteractableObject (para lógica de botões/E), guardamos a ref
-        hit.collider.TryGetComponent(out _interactionObject);
-        interactableRef = _interactionObject;
+        if (hit.collider.TryGetComponent(out InteractableObject interactable))
+        {
+          _interactionObject = interactable;
+        }
 
         _lastValidResult = (true, hit);
         return _lastValidResult;
       }
     }
 
-    // 5. Fallback: Se não for Lockable, mas for um Interactable comum
-    if (hit.collider.TryGetComponent(out _interactionObject))
-    {
-      if (hit.distance <= _interactionObject.Range)
-      {
-        interactableRef = _interactionObject;
-        _lastValidResult = (true, hit);
-        return _lastValidResult;
-      }
-    }
-
-    // Se nada acima validou
     ClearInteractable();
-    _lastValidResult = (false, default);
-    return _lastValidResult;
+    return (false, default);
   }
 
-  // === Método auxiliar para limpar estado ===
+  // === Método auxiliar para limpar estado === //
   protected void ClearInteractable()
   {
-    interactableRef = null;
+    _interactionObject = null;
     GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
   }
   #endregion
@@ -975,7 +954,7 @@ public class PlayerContext : CombatEntityContext
   }
   public InteractableObject PlayerInteractionReference
   {
-    get => player.interactableRef;
+    get => player._interactionObject;
   }
   public Animator PlayerAnimator
   {
