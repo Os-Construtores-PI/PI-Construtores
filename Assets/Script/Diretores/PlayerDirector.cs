@@ -3,76 +3,137 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Orquestra o ciclo de vida dos jogadores: spawning, câmeras, HUD e configuração.
+/// Requer um <see cref="ManualPlayersSpawner"/> no mesmo GameObject.
+/// </summary>
 [RequireComponent(typeof(ManualPlayersSpawner))]
 public class PlayerDirector : MonoBehaviour
 {
+  // =========================================================
+  // PREFABS DE PLAYER
+  // =========================================================
+
   [Header("Prefabs de Player")]
   [SerializeField]
-  private GameObject firstPlayerPrefab;
+  private GameObject _firstPlayerPrefab;
 
   [SerializeField]
-  private GameObject fallbackPlayerPrefab;
+  private GameObject _fallbackPlayerPrefab; // Usado como placeholder inativo no single
 
   [SerializeField]
-  private GameObject secondPlayerPrefab;
+  private GameObject _secondPlayerPrefab;
+
+  // =========================================================
+  // PREFABS DE HUD E CÂMERA
+  // =========================================================
 
   [Header("Prefabs de HUD e Câmera")]
   [SerializeField]
-  private GameObject hudPrefab;
+  private GameObject _hudPrefab;
 
+  [Tooltip("Tag do Canvas pai onde os HUDs serão instanciados.")]
   [SerializeField]
-  private string hudCanvasParent = "Canvas";
+  private string _hudCanvasParent = "Canvas";
 
+  [Tooltip("Prefab do grupo de câmeras (MainCamera + Cinemachine + LockOn).")]
   [SerializeField]
-  private GameObject mainCameraPrefab;
+  private GameObject _cameraGroup;
 
-  [SerializeField]
-  private GameObject freeLookPrefab;
+  // =========================================================
+  // REFERÊNCIAS DE CENA
+  // =========================================================
 
   [Header("Referências de cena")]
   [SerializeField]
-  private HudDirector hudDirector;
+  private HudDirector _hudDirector;
 
-  private ManualPlayersSpawner playersSpawner;
-  private Transform hudParent;
-
-  #region === CONFIGURAÇÃO ===
   [SerializeField]
   private ConfigPlayer configPlayer;
-  #endregion
 
+  // =========================================================
+  // ESTADO INTERNO
+  // =========================================================
 
-  private readonly List<Player> allPlayers = new();
+  private ManualPlayersSpawner _playersSpawner;
+  private Transform _hudParent;
 
-  // Referências instanciadas
-  private readonly Dictionary<int, GameObject> playerHUDInstances = new();
-  private readonly Dictionary<int, GameObject> playerCameras = new();
+  /// <summary>Todos os players registrados (ativos ou não).</summary>
+  private readonly List<Player> _allPlayers = new();
 
-  private void Awake()
+  /// <summary>HUD instanciado por playerID.</summary>
+  private readonly Dictionary<int, GameObject> _playerHUDInstances = new();
+
+  /// <summary>Câmera principal instanciada por playerID.</summary>
+  private readonly Dictionary<int, GameObject> _playerCameras = new();
+
+  // =========================================================
+  // VIEWPORT CONSTANTS
+  // =========================================================
+
+  private static readonly Rect SingleplayerViewport = new(0f, 0f, 1f, 1f);
+  private static readonly Rect MultiplayerLeftViewport = new(0f, 0f, 0.5f, 1f);
+  private static readonly Rect MultiplayerRightViewport = new(0.5f, 0f, 0.5f, 1f);
+
+  // =========================================================
+  // UNITY LIFECYCLE
+  // =========================================================
+
+  public void Awake()
   {
-    playersSpawner = GetComponent<ManualPlayersSpawner>();
-    playersSpawner.SetObjects(
-      new() { firstPlayerPrefab, fallbackPlayerPrefab, secondPlayerPrefab }
-    );
-
-    GameObject canvasObj = GameObject.FindWithTag(hudCanvasParent);
-    if (canvasObj != null)
-      hudParent = canvasObj.transform;
-    else
-      Debug.LogError($"Canvas '{hudCanvasParent}' não encontrado na cena!");
+    InitSpawner();
+    InitHudParent();
     CacheAllPlayers();
   }
 
+  // =========================================================
+  // INICIALIZAÇÃO
+  // =========================================================
+
+  /// <summary>Configura o spawner com a lista de prefabs na ordem correta.</summary>
+  private void InitSpawner()
+  {
+    _playersSpawner = GetComponent<ManualPlayersSpawner>();
+    _playersSpawner.SetObjects(
+      new() { _firstPlayerPrefab, _fallbackPlayerPrefab, _secondPlayerPrefab }
+    );
+  }
+
+  /// <summary>Localiza e armazena o Transform do Canvas para parenting dos HUDs.</summary>
+  private void InitHudParent()
+  {
+    GameObject canvasObj = GameObject.FindWithTag(_hudCanvasParent);
+    if (canvasObj != null)
+      _hudParent = canvasObj.transform;
+    else
+      Debug.LogError(
+        $"[PlayerDirector] Canvas com tag '{_hudCanvasParent}' não encontrado na cena!"
+      );
+  }
+
+  /// <summary>
+  /// Percorre todos os objetos desativados no spawner e armazena seus componentes <see cref="Player"/>.
+  /// Deve ser chamado após <see cref="InitSpawner"/>.
+  /// </summary>
   private void CacheAllPlayers()
   {
-    allPlayers.Clear();
-    for (int i = 0; i < playersSpawner.DeactivatedObjectsCount; i++)
+    _allPlayers.Clear();
+
+    int count = _playersSpawner.DeactivatedObjectsCount;
+    for (int i = 0; i < count; i++)
     {
-      Player playerComp = playersSpawner.GetDeactivatedObject(i).GetComponent<Player>();
-      allPlayers.Add(playerComp);
+      Player player = _playersSpawner.GetDeactivatedObject(i).GetComponent<Player>();
+      _allPlayers.Add(player);
     }
   }
 
+  // =========================================================
+  // ATIVAÇÃO DE PLAYERS
+  // =========================================================
+
+  /// <summary>
+  /// Ativa os jogadores de acordo com o modo de jogo atual e restaura saves, se existirem.
+  /// </summary>
   public void ActivatePlayers()
   {
     switch (DataDirector.Instance.GetGameMode())
@@ -84,81 +145,123 @@ public class PlayerDirector : MonoBehaviour
         ActivateMultiplayer();
         break;
     }
-    if (DataDirector.Instance.GameHasSave())
-    {
-      DataDirector.Instance.RespawnAllPlayers(DataDirector.Instance.GetCurrentSlot());
-    }
+
+    TryRestoreSave();
   }
 
   private void ActivateSinglePlayer()
   {
-    Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
-    Player fb = allPlayers[1];
-    fb.gameObject.SetActive(false);
+    // Spawna o primeiro player e garante que o fallback fique desativado
+    Player fp = SpawnPlayerAt(0);
+    _allPlayers[1].gameObject.SetActive(false);
 
-    SetupPlayer(fp, new Rect(0f, 0f, 1f, 1f));
+    SetupPlayer(fp, SingleplayerViewport);
   }
 
   private void ActivateMultiplayer()
   {
-    Player fp = playersSpawner.Spawn(0).GetComponent<Player>();
-    Player sp = playersSpawner.Spawn(2).GetComponent<Player>();
+    Player fp = SpawnPlayerAt(0);
+    Player sp = SpawnPlayerAt(2);
 
-    SetupPlayer(fp, new Rect(0f, 0f, 0.5f, 1f));
-    SetupPlayer(sp, new Rect(0.5f, 0f, 0.5f, 1f));
+    SetupPlayer(fp, MultiplayerLeftViewport);
+    SetupPlayer(sp, MultiplayerRightViewport);
   }
 
+  /// <summary>Faz spawn de um player pelo índice e retorna seu componente <see cref="Player"/>.</summary>
+  private Player SpawnPlayerAt(int index) => _playersSpawner.Spawn(index).GetComponent<Player>();
+
+  /// <summary>Restaura dados salvos para todos os jogadores, se houver save ativo.</summary>
+  private void TryRestoreSave()
+  {
+    if (DataDirector.Instance.GameHasSave())
+      DataDirector.Instance.RespawnAllPlayers(DataDirector.Instance.GetCurrentSlot());
+  }
+
+  // =========================================================
+  // SETUP INDIVIDUAL DE PLAYER
+  // =========================================================
+
+  /// <summary>
+  /// Inicializa HUD e câmera para o player (caso ainda não existam) e aplica configurações.
+  /// </summary>
   private void SetupPlayer(Player player, Rect viewport)
   {
-    int playerID = player.ID;
-    // Cria HUD apenas uma vez
-    if (!playerHUDInstances.ContainsKey(playerID))
-    {
-      // Agora o HUD é inicializado APENAS pelo HUDDirector
-      GameObject hudInstance = hudDirector.InitializeHUD(player, hudParent, hudPrefab);
-      playerHUDInstances[playerID] = hudInstance;
-    }
+    int id = player.ID;
 
-    // Cria câmera apenas uma vez
-    if (!playerCameras.ContainsKey(playerID))
-    {
-      GameObject camObj = Instantiate(mainCameraPrefab);
-      Camera unityCam = camObj.GetComponent<Camera>();
-      CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
-      hudDirector.InitializeCamera(playerID, camLogic);
-      unityCam.rect = viewport;
+    if (!_playerHUDInstances.ContainsKey(id))
+      _playerHUDInstances[id] = _hudDirector.InitializeHUD(player, _hudParent, _hudPrefab);
 
-      GameObject freeLookObj = Instantiate(freeLookPrefab);
-      if (freeLookObj.TryGetComponent<CinemachineCamera>(out var freeLook))
-      {
-        camLogic.SetTarget(player, freeLook);
-        player.SetCamera(freeLook, unityCam);
-      }
-      playerCameras[playerID] = camObj;
-    }
+    if (!_playerCameras.ContainsKey(id))
+      SetupCamera(player, viewport);
+
     player.gameObject.SetActive(true);
+
+    // Força atualização visual da barra de vida ao ativar o player
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
-    ConfigPlayer(player);
+
+    ApplyConfig(player);
   }
 
-  private void ConfigPlayer(Player player)
+  // =========================================================
+  // SETUP DE CÂMERA
+  // =========================================================
+
+  /// <summary>
+  /// Instancia o grupo de câmeras, configura viewport e vincula ao player e ao HUD.
+  /// </summary>
+  private void SetupCamera(Player player, Rect viewport)
+  {
+    int id = player.ID;
+
+    // Instancia o grupo completo (MainCamera + Cinemachine + LockOn)
+    GameObject camGroup = Instantiate(_cameraGroup);
+    Transform groupRoot = camGroup.transform;
+
+    GameObject camObj = groupRoot.Find(Constants.CameraGroup.MainCamera).gameObject;
+    GameObject cinemachineObj = groupRoot.Find(Constants.CameraGroup.CinemachineCamera).gameObject;
+    GameObject lockOnObj = groupRoot.Find(Constants.CameraGroup.CinemachineLockOn).gameObject;
+    GameObject lockOnGroupObj = groupRoot.Find(Constants.CameraGroup.LockInGroup).gameObject;
+
+    Camera unityCam = camObj.GetComponent<Camera>();
+    CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
+
+    // Registra câmera no HUD e define a janela de viewport (split-screen)
+    _hudDirector.InitializeCamera(id, camLogic);
+    unityCam.rect = viewport;
+
+    // Vincula Cinemachine e LockOn ao player, se todos os componentes existirem
+    if (
+      cinemachineObj.TryGetComponent(out CinemachineCamera cinemachine)
+      && lockOnObj.TryGetComponent(out CinemachineCamera lockOnCinemachine)
+      && lockOnGroupObj.TryGetComponent(out CinemachineTargetGroup group)
+    )
+    {
+      camLogic.SetTarget(player, cinemachine, lockOnCinemachine);
+      player.SetCamera(cinemachine, lockOnCinemachine, group, unityCam);
+    }
+
+    _playerCameras[id] = camObj;
+  }
+
+  // =========================================================
+  // CONFIGURAÇÃO DE PLAYER
+  // =========================================================
+
+  /// <summary>Aplica o <see cref="ConfigPlayer"/> ao contexto do player.</summary>
+  private void ApplyConfig(Player player)
   {
     if (configPlayer == null)
     {
-      print("CONFIG PLAYER NULL");
+      Debug.LogWarning("[PlayerDirector] ConfigPlayer não atribuído no Inspector.");
       return;
     }
     configPlayer.SetConfig(player.Context);
-    //print($"Speed:{player.Context.PlayerSpeed}");
   }
 
-  public PlayerContext FirstPlayerContext
-  {
-    get
-    {
-      if (allPlayers.Count > 0)
-        return allPlayers[0].Context;
-      return null;
-    }
-  }
+  // =========================================================
+  // PROPRIEDADES PÚBLICAS
+  // =========================================================
+
+  /// <summary>Retorna o contexto do primeiro player, ou <c>null</c> se não houver nenhum.</summary>
+  public PlayerContext FirstPlayerContext => _allPlayers.Count > 0 ? _allPlayers[0].Context : null;
 }

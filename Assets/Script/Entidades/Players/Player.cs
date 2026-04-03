@@ -66,19 +66,24 @@ public class Player : CombatEntities
   [Header("Componentes")]
   [SerializeField]
   private Transform _cameraTarget;
-  protected CharacterController characterController;
-  public CharacterController Charactercontroller => characterController;
-  protected CinemachineCamera _cinemachineCamera;
-  protected CinemachineInputAxisController _cinemachineInput;
-  protected CinemachineOrbitalFollow _cinemachineOrbital;
-  public CinemachineOrbitalFollow CinemachineOrbital => _cinemachineOrbital;
-  public CinemachineInputAxisController CinemachineInput => _cinemachineInput;
-  public CinemachineCamera Cinemachinecamera => _cinemachineCamera;
+  protected internal CharacterController _characterController;
+  protected internal CinemachineCamera _cinemachineCamera;
+  protected internal CinemachineCamera _lockOnCamera;
+  protected internal CinemachineTargetGroup _lockOnGroup;
+  protected internal CinemachineInputAxisController _cinemachineInput;
+  protected internal CinemachineOrbitalFollow _cinemachineOrbital;
   protected Camera _myCamera;
 
-  public void SetCamera(CinemachineCamera cincam, Camera camera)
+  public void SetCamera(
+    CinemachineCamera cincam,
+    CinemachineCamera lockOn,
+    CinemachineTargetGroup group,
+    Camera camera
+  )
   {
     _cinemachineCamera = cincam;
+    _lockOnCamera = lockOn;
+    _lockOnGroup = group;
     _myCamera = camera;
   }
 
@@ -245,7 +250,7 @@ public class Player : CombatEntities
     _initialGravityValue = _gravityValue;
     Context = new(this);
 
-    characterController = GetComponent<CharacterController>();
+    _characterController = GetComponent<CharacterController>();
     animatorComp = GetComponent<Animator>();
     playerInput = GetComponent<PlayerInput>();
     DetectarDispositivo(playerInput);
@@ -363,14 +368,14 @@ public class Player : CombatEntities
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    if (!characterController.enabled)
+    if (!_characterController.enabled)
       return;
 
-    _isGrounded = characterController.isGrounded;
-    animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY, characterController.velocity.y);
+    _isGrounded = _characterController.isGrounded;
+    animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY, _characterController.velocity.y);
     animatorComp.SetFloat(
       Constants.AnimatorFloatNames.VelocityX,
-      Vector2.SqrMagnitude(new(characterController.velocity.x, characterController.velocity.z))
+      Vector2.SqrMagnitude(new(_characterController.velocity.x, _characterController.velocity.z))
     );
     animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
     KnockbackTimer();
@@ -379,7 +384,7 @@ public class Player : CombatEntities
     ActionLayer.FixedUpdate(Context);
 
     // MOVEMENT
-    Charactercontroller.Move(_movementVector * Time.deltaTime);
+    _characterController.Move(_movementVector * Time.deltaTime);
   }
 
   public void OnDestroy() => DOTween.KillAll();
@@ -573,8 +578,9 @@ public class Player : CombatEntities
 
     if (_lockedTarget != null)
     {
-      _cinemachineCamera.LookAt = _lockedTarget.transform;
-      _cinemachineOrbital.VerticalAxis.Value = -10;
+      _lockOnCamera.Priority = 20;
+      _lockOnGroup.AddMember(transform, 1, 1);
+      _lockOnGroup.AddMember(target.transform, .8f, 1);
       if (_cinemachineInput != null)
       {
         foreach (var controller in _cinemachineInput.Controllers)
@@ -585,8 +591,8 @@ public class Player : CombatEntities
     }
     else
     {
-      _cinemachineCamera.LookAt = _cameraTarget;
-      _cinemachineOrbital.VerticalAxis.Value = -45;
+      _lockOnCamera.Priority = 0;
+      _lockOnGroup.Targets = new();
       if (_cinemachineInput != null)
       {
         foreach (var controller in _cinemachineInput.Controllers)
@@ -612,7 +618,7 @@ public class Player : CombatEntities
   private void Move()
   {
     if (
-      Cinemachinecamera == null
+      _cinemachineCamera == null
       || OverrideGlobal
       || OverrideHorizontal
       || HorizontalLayer.CurrentState is PlayerActionStateDash
@@ -824,7 +830,7 @@ public class Player : CombatEntities
     return true; // só para cumprir TOutput
   }
 
-  private ILockable _lockedTarget;
+  protected internal ILockable _lockedTarget;
   private RaycastHit _lastLockHit;
   private bool _isLockOnActive = false;
   protected RaycastHit _playerRayHit;
@@ -946,15 +952,19 @@ public class PlayerContext : CombatEntityContext
 
   public CharacterController PlayerController
   {
-    get => player.Charactercontroller;
+    get => player._characterController;
   }
   public CinemachineCamera PlayerCamera
   {
-    get => player.Cinemachinecamera;
+    get => player._cinemachineCamera;
   }
   public InteractableObject PlayerInteractionReference
   {
     get => player._interactionObject;
+  }
+  public ILockable PlayerLockedTarget
+  {
+    get => player._lockedTarget;
   }
   public Animator PlayerAnimator
   {

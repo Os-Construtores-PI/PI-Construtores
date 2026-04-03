@@ -177,6 +177,14 @@ public static class Constants
     };
   }
 
+  public static class CameraGroup
+  {
+    public const string MainCamera = "MainCamera";
+    public const string CinemachineCamera = "CinemachineCamera";
+    public const string CinemachineLockOn = "CinemachineLockOn";
+    public const string LockInGroup = "LockInGroup";
+  }
+
   public static class PandoraObjects
   {
     public static HashSet<Type> types = new() { typeof(GraplingHookTarget) };

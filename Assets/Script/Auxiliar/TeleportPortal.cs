@@ -2,45 +2,45 @@ using UnityEngine;
 
 public class Teleport_Portal : BasePortal
 {
-    [SerializeField]
-    private Teleport_Portal destiny;
-    private Transform exitPoint;
+  [SerializeField]
+  private Teleport_Portal destiny;
+  private Transform exitPoint;
 
-    protected override void Start()
+  protected override void Start()
+  {
+    base.Start();
+    // Pega o filho "Destiny" do portal atual
+    exitPoint = transform.Find("Destiny");
+    if (exitPoint == null)
+      Debug.LogWarning($"{name} não tem filho 'Destiny' definido!");
+  }
+
+  private void OnTriggerEnter(Collider col)
+  {
+    if (!col.TryGetComponent(out Player player) || destiny == null)
+      return;
+    Teleport(player.Context);
+  }
+
+  private void Teleport(PlayerContext victim)
+  {
+    Transform targetExit = destiny.GetExitPoint();
+    if (targetExit == null)
     {
-        base.Start();
-        // Pega o filho "Destiny" do portal atual
-        exitPoint = transform.Find("Destiny");
-        if (exitPoint == null)
-            Debug.LogWarning($"{name} não tem filho 'Destiny' definido!");
+      Debug.LogWarning($"{destiny.name} não possui ponto de saída!");
+      return;
     }
 
-    private void OnTriggerEnter(Collider col)
-    {
-        if (!col.TryGetComponent(out Player player) || destiny == null)
-            return;
-        Teleport(player);
-    }
+    victim.PlayerController.enabled = false;
+    victim.EntityTransform.position = targetExit.position;
+    victim.EntityTransform.rotation = targetExit.rotation; // opcional, mantém orientação
+    victim.PlayerController.enabled = true;
 
-    private void Teleport(Player victim)
-    {
-        Transform targetExit = destiny.GetExitPoint();
-        if (targetExit == null)
-        {
-            Debug.LogWarning($"{destiny.name} não possui ponto de saída!");
-            return;
-        }
+    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.EntityID);
+  }
 
-        victim.Charactercontroller.enabled = false;
-        victim.transform.position = targetExit.position;
-        victim.transform.rotation = targetExit.rotation; // opcional, mantém orientação
-        victim.Charactercontroller.enabled = true;
+  public GameObject GetDestiny() => destiny.gameObject;
 
-        GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.ID);
-    }
-
-    public GameObject GetDestiny() => destiny.gameObject;
-
-    // Retorna o ponto de saída do portal
-    public Transform GetExitPoint() => exitPoint;
+  // Retorna o ponto de saída do portal
+  public Transform GetExitPoint() => exitPoint;
 }
