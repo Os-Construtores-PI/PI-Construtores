@@ -1,1 +1,1 @@
-public class BasePlataform : BaseRenderedGameObject { }
+public class BasePlatform : BaseRenderedGameObject { }
