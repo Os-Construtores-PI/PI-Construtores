@@ -405,7 +405,7 @@ public sealed class DataDirector : MonoBehaviour
 
   public bool AnySlotHasCheckpoint(out SavedSlotData chosenSlot)
   {
-    SavedSlotData slot = _gameData.savedSlots.Single(slot =>
+    SavedSlotData slot = _gameData.savedSlots.First(slot =>
       slot.lastLevelSaveTime == _gameData.savedSlots.Max(slot => slot.lastLevelSaveTime)
     );
     if (slot.savedLevelDatas != null && slot.savedLevelDatas.Count > 0 && !slot.gameCompleted)

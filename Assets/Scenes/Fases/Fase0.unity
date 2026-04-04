@@ -12308,6 +12308,7 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
+  _lockInRange: 20
   layer:
     serializedVersion: 2
     m_Bits: 0
@@ -31053,6 +31054,7 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
+  _lockInRange: 20
   layer:
     serializedVersion: 2
     m_Bits: 0
@@ -32025,6 +32027,7 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
+  _lockInRange: 20
   layer:
     serializedVersion: 2
     m_Bits: 0
@@ -42315,6 +42318,7 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
+  _lockInRange: 20
   layer:
     serializedVersion: 2
     m_Bits: 0
@@ -86335,6 +86339,7 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
+  _lockInRange: 20
   layer:
     serializedVersion: 2
     m_Bits: 0
@@ -88451,14 +88456,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f33a3366880a446438ffb5b0cc2207da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstPlayerPrefab: {fileID: 4222843589467225069, guid: 188b4bec5cc8c55e3b64b2235049e5c2, type: 3}
-  fallbackPlayerPrefab: {fileID: 4222843589467225069, guid: 188b4bec5cc8c55e3b64b2235049e5c2, type: 3}
-  secondPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
-  hudPrefab: {fileID: 8570821590112259620, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
-  hudCanvasParent: Canvas
-  mainCameraPrefab: {fileID: 1707261825629555682, guid: b1c4a5d69de25e447af953e1b8ee888b, type: 3}
-  freeLookPrefab: {fileID: 1658166362939553594, guid: fdc0c2b74ead6a7499fecbbcf9b83c35, type: 3}
-  hudDirector: {fileID: 801636519493359215}
+  _firstPlayerPrefab: {fileID: 4222843589467225069, guid: 188b4bec5cc8c55e3b64b2235049e5c2, type: 3}
+  _fallbackPlayerPrefab: {fileID: 4222843589467225069, guid: 188b4bec5cc8c55e3b64b2235049e5c2, type: 3}
+  _secondPlayerPrefab: {fileID: 612138199166444679, guid: cd3ef82d6a1e4444caad43c462bf1c6d, type: 3}
+  _hudPrefab: {fileID: 8570821590112259620, guid: e6d9c4c5d6009cc46a6c3a38b2667a1e, type: 3}
+  _hudCanvasParent: Canvas
+  _cameraGroup: {fileID: 5751364115976094394, guid: bf5af2cca93c1c48b91f17f1b5f77e81, type: 3}
+  _hudDirector: {fileID: 801636519493359215}
   configPlayer: {fileID: 11400000, guid: f2933aa40bc0c6a4cb02dc11af7c897a, type: 2}
 --- !u!1 &7874899030602876314
 GameObject:
