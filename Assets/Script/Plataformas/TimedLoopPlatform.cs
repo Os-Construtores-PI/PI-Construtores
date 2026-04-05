@@ -28,9 +28,6 @@ public class TimedPlatform : BasePlatform
 
   [Header("Duração e Quantidade de Loops (-1 para infinitos loops)")]
   [SerializeField]
-  float duration; // Tempo que a plataforma leva para completar o caminho
-
-  [SerializeField]
   int _loopNum = -1; // Quantidade de repetições da animação (loop)
 
   // Inicializa e começa a animação no início
@@ -43,7 +40,7 @@ public class TimedPlatform : BasePlatform
   void StartTimedSequence()
   {
     Sequence timedSequence = DOTween.Sequence();
-    timedSequence.SetLoops(_loopNum, _loopType);
+    timedSequence.SetLoops(_loopNum, _loopType).SetUpdate(UpdateType.Fixed);
     if (_timedTargets.Count == 1)
     {
       Vector3 posicaoOriginal = transform.position;
