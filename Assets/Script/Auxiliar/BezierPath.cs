@@ -127,7 +127,7 @@ public class BezierPath : MonoBehaviour
     waypoints.Add(wp);
 
 #if UNITY_EDITOR
-        EditorUtility.SetDirty(this);
+    EditorUtility.SetDirty(this);
 #endif
   }
 
@@ -137,7 +137,7 @@ public class BezierPath : MonoBehaviour
     waypoints.RemoveAt(waypoints.Count - 1);
 
 #if UNITY_EDITOR
-        EditorUtility.SetDirty(this);
+    EditorUtility.SetDirty(this);
 #endif
   }
 
@@ -146,83 +146,83 @@ public class BezierPath : MonoBehaviour
     waypoints.Clear();
 
 #if UNITY_EDITOR
-        EditorUtility.SetDirty(this);
+    EditorUtility.SetDirty(this);
 #endif
   }
 
   // ── Gizmos ─────────────────────────────────────────────────────
 
 #if UNITY_EDITOR
-    void OnDrawGizmos()
+  void OnDrawGizmos()
+  {
+    if (waypoints == null || waypoints.Count == 0) return;
+
+    Vector3 origin = transform.position;
+    Vector3 originTangentOut = waypoints.Count > 0
+        ? origin + (waypoints[0].position - waypoints[0].tangentIn)
+        : origin + Vector3.right;
+
+    // Linha de tangente da origem
+    Gizmos.color = tangentColor * 0.6f;
+    Gizmos.DrawLine(origin, originTangentOut);
+    Gizmos.DrawSphere(originTangentOut, handleSize * 0.6f);
+
+    // Waypoints e tangentes
+    for (int i = 0; i < waypoints.Count; i++)
     {
-        if (waypoints == null || waypoints.Count == 0) return;
+      Waypoint wp = waypoints[i];
 
-        Vector3 origin = transform.position;
-        Vector3 originTangentOut = waypoints.Count > 0
-            ? origin + (waypoints[0].position - waypoints[0].tangentIn)
-            : origin + Vector3.right;
+      // Linhas das tangentes
+      Gizmos.color = tangentColor * 0.7f;
+      Gizmos.DrawLine(wp.position, wp.tangentIn);
+      if (i < waypoints.Count - 1)
+        Gizmos.DrawLine(wp.position, wp.tangentOut);
 
-        // Linha de tangente da origem
-        Gizmos.color = tangentColor * 0.6f;
-        Gizmos.DrawLine(origin, originTangentOut);
-        Gizmos.DrawSphere(originTangentOut, handleSize * 0.6f);
+      // Handle tangentIn
+      Gizmos.color = tangentColor;
+      Gizmos.DrawSphere(wp.tangentIn, handleSize * 0.6f);
 
-        // Waypoints e tangentes
-        for (int i = 0; i < waypoints.Count; i++)
-        {
-            Waypoint wp = waypoints[i];
+      // Handle tangentOut
+      if (i < waypoints.Count - 1)
+        Gizmos.DrawSphere(wp.tangentOut, handleSize * 0.6f);
 
-            // Linhas das tangentes
-            Gizmos.color = tangentColor * 0.7f;
-            Gizmos.DrawLine(wp.position, wp.tangentIn);
-            if (i < waypoints.Count - 1)
-                Gizmos.DrawLine(wp.position, wp.tangentOut);
+      // Waypoint principal
+      Gizmos.color = waypointColor;
+      Gizmos.DrawSphere(wp.position, handleSize);
 
-            // Handle tangentIn
-            Gizmos.color = tangentColor;
-            Gizmos.DrawSphere(wp.tangentIn, handleSize * 0.6f);
-
-            // Handle tangentOut
-            if (i < waypoints.Count - 1)
-                Gizmos.DrawSphere(wp.tangentOut, handleSize * 0.6f);
-
-            // Waypoint principal
-            Gizmos.color = waypointColor;
-            Gizmos.DrawSphere(wp.position, handleSize);
-
-            // Label
-            Handles.Label(wp.position + Vector3.up * 0.3f, wp.label);
-        }
-
-        // Curva Bezier desenhada por segmento
-        Gizmos.color = pathColor;
-        Vector3 p0 = origin;
-        Vector3 c0 = originTangentOut;
-
-        for (int i = 0; i < waypoints.Count; i++)
-        {
-            Waypoint wp = waypoints[i];
-            Vector3 p1 = wp.position;
-            Vector3 c1 = wp.tangentIn;
-
-            DrawCubicBezierGizmo(p0, c0, c1, p1, 30);
-
-            p0 = p1;
-            c0 = wp.tangentOut;
-        }
+      // Label
+      Handles.Label(wp.position + Vector3.up * 0.3f, wp.label);
     }
 
-    static void DrawCubicBezierGizmo(Vector3 p0, Vector3 c0, Vector3 c1, Vector3 p1, int steps)
+    // Curva Bezier desenhada por segmento
+    Gizmos.color = pathColor;
+    Vector3 p0 = origin;
+    Vector3 c0 = originTangentOut;
+
+    for (int i = 0; i < waypoints.Count; i++)
     {
-        Vector3 prev = p0;
-        for (int s = 1; s <= steps; s++)
-        {
-            float t    = s / (float)steps;
-            float u    = 1f - t;
-            Vector3 pt = u*u*u*p0 + 3*u*u*t*c0 + 3*u*t*t*c1 + t*t*t*p1;
-            Gizmos.DrawLine(prev, pt);
-            prev = pt;
-        }
+      Waypoint wp = waypoints[i];
+      Vector3 p1 = wp.position;
+      Vector3 c1 = wp.tangentIn;
+
+      DrawCubicBezierGizmo(p0, c0, c1, p1, 30);
+
+      p0 = p1;
+      c0 = wp.tangentOut;
     }
+  }
+
+  static void DrawCubicBezierGizmo(Vector3 p0, Vector3 c0, Vector3 c1, Vector3 p1, int steps)
+  {
+    Vector3 prev = p0;
+    for (int s = 1; s <= steps; s++)
+    {
+      float t = s / (float)steps;
+      float u = 1f - t;
+      Vector3 pt = u * u * u * p0 + 3 * u * u * t * c0 + 3 * u * t * t * c1 + t * t * t * p1;
+      Gizmos.DrawLine(prev, pt);
+      prev = pt;
+    }
+  }
 #endif
 }
