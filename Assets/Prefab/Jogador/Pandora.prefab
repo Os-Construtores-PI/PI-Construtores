@@ -5797,6 +5797,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6320091793994528222}
   - component: {fileID: 3860915285852713769}
+  - component: {fileID: 6476157279513025547}
   m_Layer: 1
   m_Name: FakeShadow
   m_TagString: Untagged
@@ -5815,7 +5816,7 @@ Transform:
   m_LocalRotation: {x: 0.70710695, y: -0, z: -0, w: 0.7071067}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 8092701047622248497}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -5834,7 +5835,7 @@ MonoBehaviour:
   m_Material: {fileID: -876546973899608171, guid: 6fec3af290230704c881e86f1cdfe48e, type: 3}
   m_DrawDistance: 1000
   m_FadeScale: 1
-  m_StartAngleFade: 13.575864
+  m_StartAngleFade: 0
   m_EndAngleFade: 180
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
@@ -5847,6 +5848,23 @@ MonoBehaviour:
   m_FadeFactor: 0.7
   version: 1
   m_DecalLayerMask: 1
+--- !u!114 &6476157279513025547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1736229343603452700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e16a63c474f015448dcce03b932c441, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  projector: {fileID: 3860915285852713769}
+  _maxShadowSize: 1
+  _minShadowSize: 0.2
+  _shadowHeightSize: 20
+  _maxDistance: 10
 --- !u!1 &1785083323827957420
 GameObject:
   m_ObjectHideFlags: 0
