@@ -54,7 +54,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 6459879679415913628, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -160,7 +160,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -7597560444520419082, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -266,7 +266,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -372,7 +372,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 6459879679415913628, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -5442,7 +5442,7 @@ MeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -4366945178717527725, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -5523,7 +5523,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -5629,7 +5629,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2109211816015616314, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -5735,7 +5735,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -5787,6 +5787,84 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.0001779776, y: 0.010756975, z: -0.0006187325}
     m_Extent: {x: 0.0024370004, y: 0.002483251, z: 0.0019176276}
   m_DirtyAABB: 0
+--- !u!1 &1736229343603452700
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6320091793994528222}
+  - component: {fileID: 3860915285852713769}
+  - component: {fileID: 6476157279513025547}
+  m_Layer: 1
+  m_Name: FakeShadow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6320091793994528222
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1736229343603452700}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.70710695, y: -0, z: -0, w: 0.7071067}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 8092701047622248497}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &3860915285852713769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1736229343603452700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0777d029ed3dffa4692f417d4aba19ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.DecalProjector
+  m_Material: {fileID: -876546973899608171, guid: 6fec3af290230704c881e86f1cdfe48e, type: 3}
+  m_DrawDistance: 1000
+  m_FadeScale: 1
+  m_StartAngleFade: 0
+  m_EndAngleFade: 180
+  m_UVScale: {x: 1, y: 1}
+  m_UVBias: {x: 0, y: 0}
+  m_RenderingLayerMask:
+    serializedVersion: 0
+    m_Bits: 4294967295
+  m_ScaleMode: 0
+  m_Offset: {x: 0, y: 0, z: 10}
+  m_Size: {x: 1, y: 1, z: 20}
+  m_FadeFactor: 0.7
+  version: 1
+  m_DecalLayerMask: 1
+--- !u!114 &6476157279513025547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1736229343603452700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e16a63c474f015448dcce03b932c441, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  projector: {fileID: 3860915285852713769}
+  _maxShadowSize: 1
+  _minShadowSize: 0.2
+  _shadowHeightSize: 20
+  _maxDistance: 10
 --- !u!1 &1785083323827957420
 GameObject:
   m_ObjectHideFlags: 0
@@ -10742,7 +10820,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -10882,7 +10960,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -7597560444520419082, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -10988,7 +11066,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -11094,7 +11172,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -11200,7 +11278,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -11306,7 +11384,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -11448,7 +11526,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -16607,7 +16685,7 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
@@ -16643,7 +16721,7 @@ MonoBehaviour:
   m_SoftShadowQuality: 0
   m_RenderingLayersMask:
     serializedVersion: 0
-    m_Bits: 1
+    m_Bits: 4294967295
   m_ShadowRenderingLayersMask:
     serializedVersion: 0
     m_Bits: 1
@@ -16739,7 +16817,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 6459879679415913628, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -16845,7 +16923,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -16951,7 +17029,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 6459879679415913628, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -17057,7 +17135,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -7597560444520419082, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -17175,6 +17253,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 6320091793994528222}
   - {fileID: 6707445767027251514}
   - {fileID: 529184069336429120}
   - {fileID: 6230178497730834178}
@@ -17499,8 +17578,6 @@ MonoBehaviour:
   _isGrounded: 0
   enemyScanRadius: 10
   enemyScanInterval: 2
-  cameraOffset: {x: 0, y: 0, z: 0}
-  _lockSpeed: 100
 --- !u!54 &-2005523811532062704
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -22485,7 +22562,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -22591,7 +22668,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -22706,7 +22783,7 @@ MeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -22818,7 +22895,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23087,7 +23164,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23225,7 +23302,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23331,7 +23408,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23469,7 +23546,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23575,7 +23652,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2364024503125691172, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23681,7 +23758,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2109211816015616314, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23787,7 +23864,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -23893,7 +23970,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24040,7 +24117,7 @@ MeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -810043038358735028, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24185,7 +24262,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -7597560444520419082, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24291,7 +24368,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 6459879679415913628, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24429,7 +24506,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 6459879679415913628, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24563,7 +24640,7 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
@@ -24599,7 +24676,7 @@ MonoBehaviour:
   m_SoftShadowQuality: 0
   m_RenderingLayersMask:
     serializedVersion: 0
-    m_Bits: 1
+    m_Bits: 4294967295
   m_ShadowRenderingLayersMask:
     serializedVersion: 0
     m_Bits: 1
@@ -24731,7 +24808,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -5476697931646905717, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24837,7 +24914,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -2028539116791074036, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -24943,7 +25020,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2109211816015616314, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -25111,7 +25188,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -7597560444520419082, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
@@ -25312,7 +25389,7 @@ SkinnedMeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2109211816015616314, guid: fd3a750efa2546bc9b78c702d19f9fcc, type: 3}
