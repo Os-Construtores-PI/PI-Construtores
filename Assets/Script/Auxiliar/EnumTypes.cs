@@ -1,94 +1,100 @@
 public enum ErrorType
 {
-    SUCCESS,
-    ATTRIBUTE_ERROR,
-    COMPONENT_ERROR,
-    TYPE_ERROR,
-    ENEMYTYPE_ERROR,
-    ENTITYTYPE_ERROR,
-    ID_ERROR,
+  SUCCESS,
+  ATTRIBUTE_ERROR,
+  COMPONENT_ERROR,
+  TYPE_ERROR,
+  ENEMYTYPE_ERROR,
+  ENTITYTYPE_ERROR,
+  ID_ERROR,
 }
 
 public enum QualityTier
 {
-    COMMON,
-    UNCOMMON,
-    RARE,
-    EPIC,
-    LEGENDARY,
+  COMMON,
+  UNCOMMON,
+  RARE,
+  EPIC,
+  LEGENDARY,
 }
 
 public enum ItemUsageType
 {
-    Equipable,
-    Consumable,
-    Passive,
+  Equipable,
+  Consumable,
+  Passive,
 }
 
 public enum AIType
 {
-    NONE,
-    AUTOMATIC,
-    MANUAL,
+  NONE,
+  AUTOMATIC,
+  MANUAL,
 }
 
 public enum HealthHUDType
 {
-    PLAYER,
-    ENEMY,
-    ENTITY,
+  PLAYER,
+  ENEMY,
+  ENTITY,
 }
 
 public enum ModifyTYPE
 {
-    POSITIVE,
-    NEGATIVE,
+  POSITIVE,
+  NEGATIVE,
 }
 
 public enum TimeTYPE
 {
-    PERMANENT,
-    TEMPORARY,
+  PERMANENT,
+  TEMPORARY,
 }
 
 public enum ColorCode
 {
-    YELLOW,
-    BLUE,
-    RED,
-    GREEN,
+  YELLOW,
+  BLUE,
+  RED,
+  GREEN,
 }
 
 public enum GameMode
 {
-    SINGLEPLAYER,
-    MULTIPLAYER,
+  SINGLEPLAYER,
+  MULTIPLAYER,
 }
 
 public enum ActionType
 {
-    None,
-    Idle,
-    Move,
-    Jump,
-    Fall,
-    Dash,
-    Attack,
-    Slide,
-    Interact,
+  None,
+  Idle,
+  Move,
+  Jump,
+  Fall,
+  Dash,
+  Attack,
+  Slide,
+  Interact,
 }
 
 public enum InputType
 {
-    Keyboard,
-    JoystickXbox,
-    JoystickPlaystation,
+  Keyboard,
+  JoystickXbox,
+  JoystickPlaystation,
 }
 
 public enum LevelPathType
 {
-    Rotation,
-    Invisible,
-    Mobile,
-    Fall,
+  tation,
+  visible,
+  bile,
+  ll,
+}
+
+public enum BillboardType
+{
+  LookAtCamera,
+  CameraForward,
 }

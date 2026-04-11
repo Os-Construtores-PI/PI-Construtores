@@ -265,6 +265,7 @@ public class Player : CombatEntities
   {
     base.Start();
     DOTween.Init();
+    SetVisibilityLockOnOverlay(false);
     StartCoroutine(DelayedSetupHUD(.1f));
     if (dashHUDScript == null)
     {
@@ -355,6 +356,10 @@ public class Player : CombatEntities
     base.Update();
     KnockbackTimer();
     //ChangeCharacterTimer();
+    if (_willUpdateLockOverlay)
+    {
+      UpdateLockOnOverlayTarget();
+    }
 
     VerticalLayer.Update(Context);
     HorizontalLayer.Update(Context);
@@ -438,7 +443,7 @@ public class Player : CombatEntities
     }
   }
 
-  private void OnEnable()
+  public void OnEnable()
   {
     playerInput.onControlsChanged += DetectarDispositivo;
 
@@ -448,7 +453,7 @@ public class Player : CombatEntities
     // Atualiza no primeiro frame
   }
 
-  private void OnDisable()
+  public void OnDisable()
   {
     playerInput.onControlsChanged -= DetectarDispositivo;
   }
@@ -581,6 +586,8 @@ public class Player : CombatEntities
       _lockOnCamera.Priority = 20;
       _lockOnGroup.AddMember(transform, 1, 1);
       _lockOnGroup.AddMember(target.transform, .8f, 1);
+      _willUpdateLockOverlay = true;
+      SetVisibilityLockOnOverlay(true);
       if (_cinemachineInput != null)
       {
         foreach (var controller in _cinemachineInput.Controllers)
@@ -593,6 +600,8 @@ public class Player : CombatEntities
     {
       _lockOnCamera.Priority = 0;
       _lockOnGroup.Targets = new();
+      SetVisibilityLockOnOverlay(false);
+      _willUpdateLockOverlay = false;
       if (_cinemachineInput != null)
       {
         foreach (var controller in _cinemachineInput.Controllers)
@@ -600,6 +609,23 @@ public class Player : CombatEntities
           controller.Enabled = true;
         }
       }
+    }
+  }
+
+  private void SetVisibilityLockOnOverlay(bool set)
+  {
+    Vector3 scaleTarget = set ? Vector3.one : Vector3.zero;
+    if (_lockOnOverlay.TryGetComponent(out RectTransform rect))
+    {
+      rect.DOScale(scaleTarget, .5f).SetEase(Ease.OutExpo);
+    }
+  }
+
+  private void UpdateLockOnOverlayTarget()
+  {
+    if (_lockedTarget != null)
+    {
+      _lockOnOverlay.transform.position = _lockedTarget.transform.position;
     }
   }
 
@@ -830,6 +856,9 @@ public class Player : CombatEntities
     return true; // só para cumprir TOutput
   }
 
+  [SerializeField]
+  private GameObject _lockOnOverlay;
+  private bool _willUpdateLockOverlay = false;
   protected internal ILockable _lockedTarget;
   private RaycastHit _lastLockHit;
   private bool _isLockOnActive = false;
