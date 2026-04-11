@@ -1,45 +1,43 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerJumpingState : IState<PlayerContext>
+public class PlayerJumpingState : IState<Player>
 {
-    public ActionType Type => ActionType.Jump;
+  public ActionType Type => ActionType.Jump;
 
-    public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new() { };
 
-    public void Enter(PlayerContext context)
+  public void Enter(Player player)
+  {
+    if (player.CurrentJumpCount != 0)
     {
-        if (context.PlayerCurrentJumpCount != 0)
-        {
-            context.PlayerAnimator.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
-        }
-        if (context.PlayerCurrentJumpCount < context.PlayerMaxJumpCount)
-        {
-            Vector3 move = context.PlayerMovementVector;
-            float multiplier = 1 + (context.PlayerCurrentJumpCount * 0.35f);
-            if (context.PlayerTouchingWall) // se estiver na parede → usa vetor mais horizontal
-            {
-                float horizontalBias = 6.5f; // quanto maior, mais horizontal
-                Vector3 jumpDir = (
-                    Vector3.up + context.PlayerLastWallNormal * horizontalBias
-                ).normalized;
-                move = context.PlayerJumpForce * context.PlayerWallJumpMultiplier * jumpDir;
-                context.PlayerTouchingWall = false; // evita repetir
-            }
-            else // pulo normal
-            {
-                move = new(move.x, context.PlayerJumpForce * multiplier, move.z);
-            }
-            context.PlayerCurrentJumpCount++;
-            context.EntityEffects.PlayEffect(Constants.EffectsNames.Player.Jump);
-            context.PlayerMovementVector = move;
-        }
-        context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
+      player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
     }
+    if (player.CurrentJumpCount < player.MaxJumpCount)
+    {
+      Vector3 move = player.MovementVector;
+      float multiplier = 1 + (player.CurrentJumpCount * 0.35f);
+      if (player.TouchingWall) // se estiver na parede → usa vetor mais horizontal
+      {
+        float horizontalBias = 6.5f; // quanto maior, mais horizontal
+        Vector3 jumpDir = (Vector3.up + player.LastWallNormal * horizontalBias).normalized;
+        move = player.JumpForce * player.WallJumpMultiplier * jumpDir;
+        player.TouchingWall = false; // evita repetir
+      }
+      else // pulo normal
+      {
+        move = new(move.x, player.JumpForce * multiplier, move.z);
+      }
+      player.CurrentJumpCount++;
+      player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump);
+      player.MovementVector = move;
+    }
+    player.VerticalLayer.ChangeState(new PlayerFallingState(), player);
+  }
 
-    public void Exit(PlayerContext context) { }
+  public void Exit(Player player) { }
 
-    public void FixedUpdate(PlayerContext context) { }
+  public void FixedUpdate(Player player) { }
 
-    public void Update(PlayerContext context) { }
+  public void Update(Player player) { }
 }

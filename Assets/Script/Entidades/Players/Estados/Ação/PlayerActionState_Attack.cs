@@ -1,38 +1,38 @@
 using System.Collections.Generic;
 
-public class PlayerActionPandoraAttackState : IState<PlayerContext>
+public class PlayerActionPandoraAttackState : IState<Player>
 {
-    public ActionType Type => ActionType.Attack;
+  public ActionType Type => ActionType.Attack;
 
-    public HashSet<ActionType> IncompatibleActions => new() { ActionType.Slide };
+  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Slide };
 
-    public void Enter(PlayerContext context)
-    {
-        context.PlayerAnimator.SetTrigger("Attack");
-        context.PlayerActionLayer.PopStateDeferred(context);
-    }
+  public void Enter(Player player)
+  {
+    player.AnimatorComponent.SetTrigger("Attack");
+    player.ActionLayer.PopStateDeferred(player);
+  }
 
-    public void Exit(PlayerContext context) { }
+  public void Exit(Player player) { }
 
-    public void FixedUpdate(PlayerContext context) { }
+  public void FixedUpdate(Player player) { }
 
-    public void Update(PlayerContext context) { }
+  public void Update(Player player) { }
 }
 
-public class PlayerActionRuskaAttackState : IState<PlayerContext>
+public class PlayerActionRuskaAttackState : IState<Player>
 {
-    public ActionType Type => ActionType.Attack;
+  public ActionType Type => ActionType.Attack;
 
-    public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new() { };
 
-    public void Enter(PlayerContext context)
-    {
-        context.PlayerActionLayer.PopStateDeferred(context);
-    }
+  public void Enter(Player player)
+  {
+    player.ActionLayer.PopStateDeferred(player);
+  }
 
-    public void Exit(PlayerContext context) { }
+  public void Exit(Player player) { }
 
-    public void FixedUpdate(PlayerContext context) { }
+  public void FixedUpdate(Player player) { }
 
-    public void Update(PlayerContext context) { }
+  public void Update(Player player) { }
 }

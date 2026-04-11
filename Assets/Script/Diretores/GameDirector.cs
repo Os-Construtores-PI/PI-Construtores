@@ -55,17 +55,17 @@ public class GameDirector : MonoBehaviour
     }
   }
 
-  private IEnumerator DestravarPlayerNextFrame(PlayerContext ctx)
+  private IEnumerator DestravarPlayerNextFrame(Player player)
   {
     yield return null;
 
-    ctx.PlayerInput.actions.Disable();
-    ctx.PlayerInput.actions.Enable();
+    player.PlayerInput.actions.Disable();
+    player.PlayerInput.actions.Enable();
 
-    SetLockPlayer(ctx, false);
+    SetLockPlayer(player, false);
 
-    ctx.IgnoreGameplayInputThisFrame = false;
-    ctx.WaitForJumpRelease = true;
+    player.IgnoreGameplayInputThisFrame = false;
+    player.WaitForJumpRelease = true;
   }
 
   /// <summary>
@@ -137,9 +137,9 @@ public class GameDirector : MonoBehaviour
 
     if (!setPause && playerDirector?.FirstPlayerContext != null)
     {
-      var ctx = playerDirector?.FirstPlayerContext;
-      ctx.IgnoreGameplayInputThisFrame = true;
-      StartCoroutine(CLearIgnoreInputNextFrame(ctx));
+      var player = playerDirector?.FirstPlayerContext;
+      player.IgnoreGameplayInputThisFrame = true;
+      StartCoroutine(ClearIgnoreInputNextFrame(player));
     }
   }
 
@@ -148,16 +148,16 @@ public class GameDirector : MonoBehaviour
     // Aqui você pode desativar players, limpar câmeras, salvar progresso etc.
   }
 
-  public void SetLockPlayer(PlayerContext playerContext, bool set)
+  public void SetLockPlayer(Player player, bool set)
   {
-    if (playerContext == null)
+    if (player == null)
       return;
 
-    if (playerContext.PlayerController != null)
-      playerContext.PlayerController.enabled = !set;
+    if (player.CharacterController != null)
+      player.CharacterController.enabled = !set;
 
-    playerContext.CameraLocked = set;
-    playerContext.IsHardLocked = set;
+    player.CameraLocked = set;
+    player.IsHardLocked = set;
   }
 
   private IEnumerator FluxoIntro()
@@ -204,9 +204,9 @@ public class GameDirector : MonoBehaviour
     }
   }
 
-  private IEnumerator CLearIgnoreInputNextFrame(PlayerContext ctx)
+  private IEnumerator ClearIgnoreInputNextFrame(Player player)
   {
     yield return null;
-    ctx.IgnoreGameplayInputThisFrame = false;
+    player.IgnoreGameplayInputThisFrame = false;
   }
 }

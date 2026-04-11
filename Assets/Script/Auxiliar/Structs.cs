@@ -86,13 +86,11 @@ public struct CustomCanvas
 
 public struct InfoPlayerInteraction
 {
-  public GameObject Obj;
-  public PlayerContext PlayerContext;
+  public Player Player;
 
-  public InfoPlayerInteraction(GameObject gameObject, PlayerContext script)
+  public InfoPlayerInteraction(Player script)
   {
-    Obj = gameObject;
-    PlayerContext = script;
+    Player = script;
   }
 }
 

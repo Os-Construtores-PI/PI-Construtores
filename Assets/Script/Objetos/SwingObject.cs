@@ -27,20 +27,20 @@ public class SwingObject : InteractableObject
 
   public override void Interaction(InfoPlayerInteraction info)
   {
-    StartSwing(info.PlayerContext);
+    StartSwing(info.Player);
   }
 
-  void StartSwing(PlayerContext context)
+  void StartSwing(Player player)
   {
-    Transform player = context.EntityTransform;
+    Transform playerTrans = player.transform;
 
     Sequence seq = DOTween.Sequence().SetUpdate(UpdateType.Fixed);
 
     seq.AppendCallback(() =>
     {
-      player.SetParent(_playerHolder);
-      context.OverrideGlobal = true;
-      context.PlayerController.enabled = false;
+      playerTrans.SetParent(_playerHolder);
+      player.OverrideGlobal = true;
+      player.CharacterController.enabled = false;
     });
     Vector3 startDir = (_playerHolder.position - _pivot.position).normalized;
     Vector3 axis = Vector3.right;
@@ -66,10 +66,10 @@ public class SwingObject : InteractableObject
             Quaternion rot = Quaternion.AngleAxis(currentAngle, axis);
             Vector3 offset = rot * startDir;
 
-            player.position =
+            playerTrans.position =
               _pivot.position + offset * Vector3.Distance(_pivot.position, _playerHolder.position);
 
-            UpdateRotation(player, axis, offset);
+            UpdateRotation(playerTrans, axis, offset);
           },
           endAngle,
           _duration
@@ -79,19 +79,19 @@ public class SwingObject : InteractableObject
 
     seq.AppendCallback(() =>
     {
-      player.SetParent(null);
-      context.OverrideGlobal = false;
-      context.PlayerController.enabled = true;
-      Vector3 finalDir = (player.position - _pivot.position).normalized;
+      playerTrans.SetParent(null);
+      player.OverrideGlobal = false;
+      player.CharacterController.enabled = true;
+      Vector3 finalDir = (playerTrans.position - _pivot.position).normalized;
       Vector3 releaseTangent = Vector3.Cross(axis, finalDir).normalized;
-      Vector3 finalVector = Vector3.Lerp(releaseTangent, player.forward, .7f);
+      Vector3 finalVector = Vector3.Lerp(releaseTangent, playerTrans.forward, .7f);
       if (!_forward)
         releaseTangent *= -1;
       float radius = Mathf.Pow(Vector3.Distance(_pivot.position, _playerHolder.position), 2);
       float speed = (_angularVelocity * Mathf.Deg2Rad) * radius;
       float boostFactor = 1.5f;
 
-      context.PlayerMovementVector = finalVector * speed * boostFactor;
+      player.MovementVector = finalVector * speed * boostFactor;
       _forward = !_forward;
     });
     seq.Play();

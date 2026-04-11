@@ -3,208 +3,175 @@ using UnityEngine;
 
 public abstract class CombatEntities : LiveEntities
 {
-    #region --- Configurações de Combate ---
+  #region --- Configurações de Combate ---
 
-    [Header("Atributos de Combate")]
-    [SerializeField, Min(5f)]
-    private float combatCooldown = 5f;
+  [Header("Atributos de Combate")]
+  [SerializeField, Min(5f)]
+  private float combatCooldown = 5f;
 
-    [SerializeField, Min(2f)]
-    private float damagedCooldown = 2f;
+  [SerializeField, Min(2f)]
+  private float damagedCooldown = 2f;
 
-    [Header("Atributos de Regeneração")]
-    [SerializeField]
-    private bool _enableRegen = true;
+  [Header("Atributos de Regeneração")]
+  [SerializeField]
+  private bool _enableRegen = true;
 
-    [SerializeField, Min(3f)]
-    private float regenerationInterval = 5f;
+  [SerializeField, Min(3f)]
+  private float regenerationInterval = 5f;
 
-    [HideInInspector]
-    public bool Damaged;
+  [HideInInspector]
+  public bool Damaged;
 
-    private bool _inCombat;
-    private float combatTimer;
-    private float damagedTimer;
+  private bool _inCombat;
+  private float combatTimer;
+  private float damagedTimer;
 
-    #endregion
+  #endregion
 
-    #region --- Componentes e HUD ---
+  #region --- Componentes e HUD ---
 
-    protected HealthHUDComponent _healthHUD;
+  protected HealthHUDComponent _healthHUD;
 
-    #endregion
+  #endregion
 
-    #region --- Stats e Dicionários ---
+  #region --- Stats e Dicionários ---
 
-    [HideInInspector]
-    [Stat(nameof(EnableRegen))]
-    public bool EnableRegen
+  [HideInInspector]
+  [Stat(nameof(EnableRegen))]
+  public bool EnableRegen
+  {
+    get => _enableRegen;
+    set
     {
-        get => _enableRegen;
-        set
-        {
-            if (value == false)
-            {
-                CancelInvoke(nameof(RegenerateHealth));
-            }
-            _enableRegen = value;
-        }
+      if (value == false)
+      {
+        CancelInvoke(nameof(RegenerateHealth));
+      }
+      _enableRegen = value;
     }
+  }
 
-    [HideInInspector]
-    [Stat(nameof(regenerationInterval))]
-    public float RegenerationInterval
+  [HideInInspector]
+  [Stat(nameof(regenerationInterval))]
+  public float RegenerationInterval
+  {
+    get => regenerationInterval;
+    set => regenerationInterval = value;
+  }
+
+  [HideInInspector]
+  [Stat(nameof(combatCooldown))]
+  public float CombatCooldown
+  {
+    get => combatCooldown;
+    set => combatCooldown = value;
+  }
+
+  [HideInInspector]
+  [Stat(nameof(damagedCooldown))]
+  public float DamagedCooldown
+  {
+    get => damagedCooldown;
+    set => damagedCooldown = value;
+  }
+
+  #endregion
+
+  #region --- Ciclo de Vida ---
+
+  public override void Awake()
+  {
+    base.Awake();
+    _OnDamage.AddListener(EnterCombat);
+
+    Stats.OnNumModified.AddListener(HandleNumericStatChange);
+    Stats.OnBoolModified.AddListener(HandleBoolStatChange);
+    ;
+    InitializeStats();
+
+    if (EnableRegen)
     {
-        get => regenerationInterval;
-        set => regenerationInterval = value;
+      InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
     }
+  }
 
-    [HideInInspector]
-    [Stat(nameof(combatCooldown))]
-    public float CombatCooldown
+  public virtual void Update()
+  {
+    HandleCombatTimer();
+    HandleDamagedCooldown();
+  }
+
+  #endregion
+
+  #region --- Combate e Regeneração ---
+
+  private void EnterCombat() => _inCombat = true;
+
+  private void HandleCombatTimer()
+  {
+    if (!_inCombat)
+      return;
+
+    combatTimer += Time.deltaTime;
+    if (combatTimer >= combatCooldown)
     {
-        get => combatCooldown;
-        set => combatCooldown = value;
+      _inCombat = false;
+      combatTimer = 0f;
     }
+  }
 
-    [HideInInspector]
-    [Stat(nameof(damagedCooldown))]
-    public float DamagedCooldown
+  private void HandleDamagedCooldown()
+  {
+    if (!Damaged)
+      return;
+
+    damagedTimer += Time.deltaTime;
+    if (damagedTimer >= damagedCooldown)
     {
-        get => damagedCooldown;
-        set => damagedCooldown = value;
+      Damaged = false;
+      damagedTimer = 0f;
     }
+  }
 
-    #endregion
-
-    #region --- Ciclo de Vida ---
-
-    public override void Awake()
+  private void RegenerateHealth()
+  {
+    if (!_inCombat)
     {
-        base.Awake();
-        _OnDamage.AddListener(EnterCombat);
-
-        stats.OnNumModified.AddListener(HandleNumericStatChange);
-        stats.OnBoolModified.AddListener(HandleBoolStatChange);
-        ;
-        InitializeStats();
-
-        if (EnableRegen)
-        {
-            InvokeRepeating(nameof(RegenerateHealth), 0f, regenerationInterval);
-        }
+      float regenAmount = MaxHealth * 0.06f;
+      Health += regenAmount;
     }
+  }
 
-    public virtual void Update()
+  #endregion
+
+  #region --- HUD ---
+
+  public void SetHealthHUD(HealthHUDComponent hud)
+  {
+    if (hud == null)
+      return;
+
+    _healthHUD = hud;
+
+    UpdateHUDVisibility(gameObject.activeInHierarchy);
+  }
+
+  private void OnEnable()
+  {
+    UpdateHUDVisibility(true);
+  }
+
+  private void OnDisable()
+  {
+    UpdateHUDVisibility(false);
+  }
+
+  private void UpdateHUDVisibility(bool isActive)
+  {
+    if (_healthHUD != null)
     {
-        HandleCombatTimer();
-        HandleDamagedCooldown();
+      _healthHUD.gameObject.SetActive(isActive);
     }
-
-    #endregion
-
-    #region --- Combate e Regeneração ---
-
-    private void EnterCombat() => _inCombat = true;
-
-    private void HandleCombatTimer()
-    {
-        if (!_inCombat)
-            return;
-
-        combatTimer += Time.deltaTime;
-        if (combatTimer >= combatCooldown)
-        {
-            _inCombat = false;
-            combatTimer = 0f;
-        }
-    }
-
-    private void HandleDamagedCooldown()
-    {
-        if (!Damaged)
-            return;
-
-        damagedTimer += Time.deltaTime;
-        if (damagedTimer >= damagedCooldown)
-        {
-            Damaged = false;
-            damagedTimer = 0f;
-        }
-    }
-
-    private void RegenerateHealth()
-    {
-        if (!_inCombat)
-        {
-            float regenAmount = MaxHealth * 0.06f;
-            Health += regenAmount;
-        }
-    }
-
-    #endregion
-
-    #region --- HUD ---
-
-    public void SetHealthHUD(HealthHUDComponent hud)
-    {
-        if (hud == null)
-            return;
-
-        _healthHUD = hud;
-
-        UpdateHUDVisibility(gameObject.activeInHierarchy);
-    }
-
-    private void OnEnable()
-    {
-        UpdateHUDVisibility(true);
-    }
-
-    private void OnDisable()
-    {
-        UpdateHUDVisibility(false);
-    }
-
-    private void UpdateHUDVisibility(bool isActive)
-    {
-        if (_healthHUD != null)
-        {
-            _healthHUD.gameObject.SetActive(isActive);
-        }
-    }
-    #endregion
-}
-
-public class CombatEntityContext : LiveEntityContext
-{
-    private readonly CombatEntities combatEntity;
-
-    public CombatEntityContext(CombatEntities entity)
-        : base(entity)
-    {
-        combatEntity = entity;
-    }
-
-    public bool CombatEntityEnableRegen
-    {
-        get => combatEntity.EnableRegen;
-        set => combatEntity.EnableRegen = value;
-    }
-    public float CombatEntityRegenInterval
-    {
-        get => combatEntity.RegenerationInterval;
-        set => combatEntity.RegenerationInterval = value;
-    }
-
-    public float CombatEntityCombatCooldown
-    {
-        get => combatEntity.CombatCooldown;
-        set => combatEntity.CombatCooldown = value;
-    }
-    public float CombatEntityDamagedCooldown
-    {
-        get => combatEntity.DamagedCooldown;
-        set => combatEntity.DamagedCooldown = value;
-    }
+  }
+  #endregion
 }

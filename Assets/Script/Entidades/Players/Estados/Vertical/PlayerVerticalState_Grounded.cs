@@ -1,60 +1,52 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerGroundedState : IState<PlayerContext>
+public class PlayerGroundedState : IState<Player>
 {
-    public ActionType Type => ActionType.Idle;
-    public HashSet<ActionType> IncompatibleActions => new() { };
+  public ActionType Type => ActionType.Idle;
+  public HashSet<ActionType> IncompatibleActions => new() { };
 
-    private Timer exitTimer = new();
-    private bool timerStarted = false;
-    private float exitInterval = .3f;
+  private readonly Timer exitTimer = new();
+  private bool timerStarted = false;
+  private readonly float exitInterval = .3f;
 
-    public void Enter(PlayerContext context)
+  public void Enter(Player player)
+  {
+    Vector3 move = player.MovementVector;
+    move.y = -1f;
+    player.MovementVector = move;
+  }
+
+  public void Exit(Player player) { }
+
+  public void FixedUpdate(Player player)
+  {
+    // Reseta o eixo Y do movimento
+    Vector3 move = player.MovementVector;
+
+    // Reseta jumps e dash
+    player.CurrentJumpCount = 0;
+    player.CurrentDashCount = 0;
+
+    // Aplica atrito separadamente em X e Z
+    move.x = QualityOfLife.PlayerFriction(move.x, player.Friction, player.MoveInput);
+    move.z = QualityOfLife.PlayerFriction(move.z, player.Friction, player.MoveInput);
+    player.MovementVector = move;
+    if (!player.IsGrounded && !timerStarted)
     {
-        Vector3 move = context.PlayerMovementVector;
-        move.y = -1f;
-        context.PlayerMovementVector = move;
+      exitTimer.Start(exitInterval);
+      timerStarted = true;
     }
-
-    public void Exit(PlayerContext context) { }
-
-    public void FixedUpdate(PlayerContext context)
+    if (timerStarted && player.IsGrounded)
     {
-        // Reseta o eixo Y do movimento
-        Vector3 move = context.PlayerMovementVector;
-
-        // Reseta jumps e dash
-        context.PlayerCurrentJumpCount = 0;
-        context.PlayerDashCurrent = 0;
-
-        // Aplica atrito separadamente em X e Z
-        move.x = QualityOfLife.PlayerFriction(
-            move.x,
-            context.PlayerFriction,
-            context.PlayerMoveInput
-        );
-        move.z = QualityOfLife.PlayerFriction(
-            move.z,
-            context.PlayerFriction,
-            context.PlayerMoveInput
-        );
-        context.PlayerMovementVector = move;
-        if (!context.PlayerIsGrounded && !timerStarted)
-        {
-            exitTimer.Start(exitInterval);
-            timerStarted = true;
-        }
-        if (timerStarted && context.PlayerIsGrounded)
-        {
-            exitTimer.Stop();
-            timerStarted = false;
-        }
-        if (exitTimer.Tick(Time.deltaTime) && timerStarted)
-        {
-            context.PlayerVerticalLayer.ChangeState(new PlayerFallingState(), context);
-        }
+      exitTimer.Stop();
+      timerStarted = false;
     }
+    if (exitTimer.Tick(Time.deltaTime) && timerStarted)
+    {
+      player.VerticalLayer.ChangeState(new PlayerFallingState(), player);
+    }
+  }
 
-    public void Update(PlayerContext context) { }
+  public void Update(Player player) { }
 }

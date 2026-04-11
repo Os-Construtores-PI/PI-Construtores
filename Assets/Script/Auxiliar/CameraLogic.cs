@@ -30,7 +30,7 @@ public class CameraLogic : Entities
     GatherEffects();
   }
 
-  private void Update()
+  public void Update()
   {
     if (Time.timeScale < 1)
     {
@@ -46,7 +46,7 @@ public class CameraLogic : Entities
     if (inputAxisController == null)
       _currentCinemachineCamera.TryGetComponent(out inputAxisController);
 
-    if (playerTarget.Context.CameraLocked)
+    if (playerTarget.CameraLocked)
     {
       // 🔥 trava completamente os inputs da câmera
       if (inputAxisController != null)

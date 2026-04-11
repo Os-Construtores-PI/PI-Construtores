@@ -1,99 +1,95 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerActionStateWallSliding : IState<PlayerContext>
+public class PlayerActionStateWallSliding : IState<Player>
 {
-    private readonly Timer wallExitTimer = new();
+  private readonly Timer wallExitTimer = new();
 
-    public ActionType Type => ActionType.Slide;
+  public ActionType Type => ActionType.Slide;
 
-    public HashSet<ActionType> IncompatibleActions => new();
+  public HashSet<ActionType> IncompatibleActions => new();
 
-    private void WallRunningTimer(PlayerContext context)
+  private void WallRunningTimer(Player player)
+  {
+    if (!player.TouchingWall && player.WallSpeedApplied && wallExitTimer.IsDone)
+      wallExitTimer.Start(player.WallExitDuration);
+
+    if (wallExitTimer.Tick(Time.deltaTime))
     {
-        if (!context.PlayerTouchingWall && context.PlayerWallSpeedApplied && wallExitTimer.IsDone)
-            wallExitTimer.Start(context.PlayerWallExitDuration);
+      player.Stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString());
+      player.WallSpeedApplied = false;
+      player.TouchingWall = false;
+      UnBlockPlayerDash(player);
+      player.GravityValue = player.InitialGravityValue;
+      player.ActionLayer.PopStateDeferred(player);
+    }
+  }
 
-        if (wallExitTimer.Tick(Time.deltaTime))
-        {
-            context.LiveEntityStats.RemoveActiveModifications(
-                Constants.StatsNames.Speed.ToString()
-            );
-            context.PlayerWallSpeedApplied = false;
-            context.PlayerTouchingWall = false;
-            UnBlockPlayerDash(context);
-            context.PlayerGravity = context.InitialGravityValue;
-            context.PlayerActionLayer.PopStateDeferred(context);
-        }
+  private void ResetWallExitTimer() => wallExitTimer.Stop();
+
+  private void BlockPlayerDash(Player player)
+  {
+    if (player.IsDashBlocked)
+    {
+      return;
+    }
+    player.IsDashBlocked = true;
+    player.Stats.ModifyStatImmediate<bool>(
+      Constants.StatsNames.CanDash.ToString(),
+      ModifyTYPE.NEGATIVE,
+      QualityTier.COMMON
+    );
+  }
+
+  private void UnBlockPlayerDash(Player player)
+  {
+    if (!player.IsDashBlocked)
+    {
+      return;
+    }
+    player.IsDashBlocked = false;
+    player.Stats.ModifyStatImmediate<bool>(
+      Constants.StatsNames.CanDash.ToString(),
+      ModifyTYPE.POSITIVE,
+      QualityTier.COMMON
+    );
+    player.Stats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
+  }
+
+  public void Enter(Player player)
+  {
+    player.OverrideHorizontal = true;
+    player.CurrentJumpCount = 1;
+    player.TouchingWall = true;
+    // só reseta se já estava fora da parede
+    if (wallExitTimer.IsActive)
+    {
+      ResetWallExitTimer();
     }
 
-    private void ResetWallExitTimer() => wallExitTimer.Stop();
-
-    private void BlockPlayerDash(PlayerContext context)
+    if (!player.WallSpeedApplied)
     {
-        if (context.IsDashBlocked)
-        {
-            return;
-        }
-        context.IsDashBlocked = true;
-        context.LiveEntityStats.ModifyStatImmediate<bool>(
-            Constants.StatsNames.CanDash.ToString(),
-            ModifyTYPE.NEGATIVE,
-            QualityTier.COMMON
-        );
+      player.Stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // garante que não acumule
+      player.Stats.ModifyStatImmediate<float>(
+        Constants.StatsNames.Speed.ToString(),
+        ModifyTYPE.POSITIVE,
+        player.WallSpeedMultiplier
+      );
+      player.WallSpeedApplied = true;
+      BlockPlayerDash(player);
     }
+    player.GravityValue = -1.5f;
+  }
 
-    private void UnBlockPlayerDash(PlayerContext context)
-    {
-        if (!context.IsDashBlocked)
-        {
-            return;
-        }
-        context.IsDashBlocked = false;
-        context.LiveEntityStats.ModifyStatImmediate<bool>(
-            Constants.StatsNames.CanDash.ToString(),
-            ModifyTYPE.POSITIVE,
-            QualityTier.COMMON
-        );
-        context.LiveEntityStats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
-    }
+  public void Exit(Player player)
+  {
+    player.OverrideHorizontal = false;
+  }
 
-    public void Enter(PlayerContext context)
-    {
-        context.OverrideHorizontal = true;
-        context.PlayerCurrentJumpCount = 1;
-        context.PlayerTouchingWall = true;
-        // só reseta se já estava fora da parede
-        if (wallExitTimer.IsActive)
-        {
-            ResetWallExitTimer();
-        }
+  public void FixedUpdate(Player player) { }
 
-        if (!context.PlayerWallSpeedApplied)
-        {
-            context.LiveEntityStats.RemoveActiveModifications(
-                Constants.StatsNames.Speed.ToString()
-            ); // garante que não acumule
-            context.LiveEntityStats.ModifyStatImmediate<float>(
-                Constants.StatsNames.Speed.ToString(),
-                ModifyTYPE.POSITIVE,
-                context.PlayerWallSpeedMultiplier
-            );
-            context.PlayerWallSpeedApplied = true;
-            BlockPlayerDash(context);
-        }
-        context.PlayerGravity = -1.5f;
-    }
-
-    public void Exit(PlayerContext context)
-    {
-        context.OverrideHorizontal = false;
-    }
-
-    public void FixedUpdate(PlayerContext context) { }
-
-    public void Update(PlayerContext context)
-    {
-        WallRunningTimer(context);
-    }
+  public void Update(Player player)
+  {
+    WallRunningTimer(player);
+  }
 }

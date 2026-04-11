@@ -15,14 +15,14 @@ public class Teleport_Portal : BasePortal
       Debug.LogWarning($"{name} não tem filho 'Destiny' definido!");
   }
 
-  private void OnTriggerEnter(Collider col)
+  public void OnTriggerEnter(Collider col)
   {
     if (!col.TryGetComponent(out Player player) || destiny == null)
       return;
-    Teleport(player.Context);
+    Teleport(player);
   }
 
-  private void Teleport(PlayerContext victim)
+  private void Teleport(Player victim)
   {
     Transform targetExit = destiny.GetExitPoint();
     if (targetExit == null)
@@ -31,12 +31,12 @@ public class Teleport_Portal : BasePortal
       return;
     }
 
-    victim.PlayerController.enabled = false;
-    victim.EntityTransform.position = targetExit.position;
-    victim.EntityTransform.rotation = targetExit.rotation; // opcional, mantém orientação
-    victim.PlayerController.enabled = true;
+    victim.CharacterController.enabled = false;
+    victim.transform.position = targetExit.position;
+    victim.transform.rotation = targetExit.rotation; // opcional, mantém orientação
+    victim.CharacterController.enabled = true;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.EntityID);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.ID);
   }
 
   public GameObject GetDestiny() => destiny.gameObject;
