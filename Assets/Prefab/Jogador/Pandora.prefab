@@ -17717,7 +17717,7 @@ MonoBehaviour:
   _currentHealthDebug: 0
   _maxHealth: 100
   _defense: 10
-  stats:
+  Stats:
     OnNumModified:
       m_PersistentCalls:
         m_Calls: []
@@ -17730,11 +17730,23 @@ MonoBehaviour:
   regenerationInterval: 5
   Damaged: 0
   _cameraTarget: {fileID: 6230178497730834178}
+  CharacterController: {fileID: 0}
+  CinemachineCamera: {fileID: 0}
+  _lockOnCamera: {fileID: 0}
+  _lockOnGroup: {fileID: 0}
+  _cinemachineInput: {fileID: 0}
+  _cinemachineOrbital: {fileID: 0}
+  AnimatorComponent: {fileID: 4498598552815147647}
+  PlayerInput: {fileID: 4848141862502818215}
   _ultimoDispositivo: 0
-  _isGrounded: 0
+  _modelTransform: {fileID: 6707445767027251514}
+  IsGrounded: 0
   enemyScanRadius: 10
   enemyScanInterval: 2
   _lockOnOverlay: {fileID: 3819866683035594381}
+  InteractionObject: {fileID: 0}
+  CanAttack: 1
+  WillAttack: 1
 --- !u!54 &-2005523811532062704
 Rigidbody:
   m_ObjectHideFlags: 0

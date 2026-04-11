@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 
-public class PlayerHorizontalStateIdle : IState<PlayerContext>
+public class PlayerHorizontalStateIdle : IState<Player>
 {
-    public ActionType Type => ActionType.Idle;
+  public ActionType Type => ActionType.Idle;
 
-    public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new() { };
 
-    public void Enter(PlayerContext context) { }
+  public void Enter(Player player) { }
 
-    public void Exit(PlayerContext context) { }
+  public void Exit(Player player) { }
 
-    public void FixedUpdate(PlayerContext context) { }
+  public void FixedUpdate(Player player) { }
 
-    public void Update(PlayerContext context) { }
+  public void Update(Player player) { }
 }

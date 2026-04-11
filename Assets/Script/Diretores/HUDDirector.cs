@@ -506,9 +506,9 @@ public class HudDirector : MonoBehaviour
   # endregion === END GAME ===
 
   # region === DIALOGUE ===
-  private void DialoguePanel(PlayerContext context, List<string> text, float typeSpeed) { }
+  private void DialoguePanel(Player player, List<string> text, float typeSpeed) { }
 
-  private void EndDialoguePanel(PlayerContext context) { }
+  private void EndDialoguePanel(Player player) { }
 
   # endregion === DIALOGUE ===
 

@@ -11,7 +11,7 @@ public class Pandora : Player
   {
     var (success, hit) = base.ScanWithCamera();
 
-    if (!success || _interactionObject == null)
+    if (!success || InteractionObject == null)
     {
       if (_lastInteractionObject != null)
       {
@@ -21,7 +21,7 @@ public class Pandora : Player
       return (false, default);
     }
 
-    _interactionObjectType = _interactionObject.GetType();
+    _interactionObjectType = InteractionObject.GetType();
 
     bool valid =
       PlayerCommonObjects.types.Contains(_interactionObjectType)
@@ -33,10 +33,10 @@ public class Pandora : Player
       return (false, default);
     }
 
-    if (_interactionObject != _lastInteractionObject)
+    if (InteractionObject != _lastInteractionObject)
     {
-      _lastInteractionObject = _interactionObject;
-      GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, _interactionObject, ID);
+      _lastInteractionObject = InteractionObject;
+      GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, InteractionObject, ID);
     }
 
     return (true, hit);
@@ -46,9 +46,9 @@ public class Pandora : Player
   #region --- ATAQUE ---
   protected override void Attack()
   {
-    if (canAttack && willAttack)
+    if (CanAttack && WillAttack)
     {
-      ActionLayer.PushState(new PlayerActionPandoraAttackState(), Context);
+      ActionLayer.PushState(new PlayerActionPandoraAttackState(), this);
     }
   }
   #endregion
