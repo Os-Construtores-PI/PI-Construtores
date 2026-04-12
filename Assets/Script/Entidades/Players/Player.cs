@@ -282,60 +282,79 @@ public class Player : CombatEntities
     _cinemachineInput = CinemachineCamera.GetComponent<CinemachineInputAxisController>();
     _cinemachineOrbital = CinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
 
-    TickDirector.Instance.OnFiveTick.AddListener(_ =>
-      _enemyScanner.Scan(Time.deltaTime, transform.position)
-    );
+    TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWithCamera());
 
-    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(
-      interactionScanCooldown,
-      r =>
+    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
+    {
+      float alcance = 40f;
+      float anguloCorte = 0.92f;
+      LayerMask maskAlvos = LayerMask.GetMask("Object", "Entity");
+      LayerMask maskObstrucao = LayerMask.GetMask("Default");
+
+      // 1. Pegamos os alvos.
+      Collider[] potenciaisAlvos = Physics.OverlapSphere(r.origin, alcance, maskAlvos);
+
+      Collider melhorAlvo = null;
+      float menorDistancia = float.MaxValue;
+
+      foreach (var col in potenciaisAlvos)
       {
-        bool hit = Physics.SphereCast(
-          r,
-          2f,
-          out RaycastHit info,
-          40f,
-          LayerMask.GetMask("Object", "Enemy")
-        );
-        if (hit)
+        if (col.CompareTag("Player"))
         {
-          Vector3 direcaoParaAlvo = (info.collider.transform.position - r.origin).normalized;
-          float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
-          if (dot >= 0.8f)
+          continue;
+        }
+
+        Vector3 centroAlvo = col.bounds.center;
+        Vector3 direcaoParaAlvo = (centroAlvo - r.origin).normalized;
+
+        float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
+
+        if (dot >= anguloCorte)
+        {
+          float distancia = Vector3.Distance(r.origin, centroAlvo);
+
+          if (!Physics.Linecast(r.origin, centroAlvo, out RaycastHit hitObstrucao, maskObstrucao))
           {
-            if (
-              !Physics.Linecast(
-                r.origin,
-                info.collider.transform.position,
-                LayerMask.GetMask("Default")
-              )
-            )
-              return (true, info);
+            if (distancia < menorDistancia)
+            {
+              menorDistancia = distancia;
+              melhorAlvo = col;
+            }
           }
         }
-        return (false, default);
       }
-    );
 
-    _enemyScanner = new Scanner<Vector3, bool>(enemyScanInterval, ScanEnemies);
-
-    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(
-      wallScanInterval,
-      rays =>
+      if (melhorAlvo != null)
       {
-        float distance = 5f;
-        int mask = LayerMask.GetMask("RunningWall");
-        var interaction = QueryTriggerInteraction.Ignore;
+        Vector3 direcaoFinal = (melhorAlvo.bounds.center - r.origin).normalized;
 
-        if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
-          return hit;
-        if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
-          return hit;
-        return null;
+        if (
+          Physics.Raycast(r.origin, direcaoFinal, out RaycastHit finalHit, alcance + 2f, maskAlvos)
+        )
+        {
+          return (true, finalHit);
+        }
       }
-    );
+
+      return (false, default);
+    });
+
+    _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
+
+    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(rays =>
+    {
+      float distance = 5f;
+      int mask = LayerMask.GetMask("RunningWall");
+      var interaction = QueryTriggerInteraction.Ignore;
+
+      if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
+        return hit;
+      if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
+        return hit;
+      return null;
+    });
 
     _modelTransform = transform.Find("Model");
   }
@@ -716,7 +735,6 @@ public class Player : CombatEntities
   private void ScanWalls()
   {
     (bool executed, RaycastHit? hit) = _wallScanner.Scan(
-      Time.deltaTime,
       (new Ray(transform.position, transform.right), new(transform.position, -transform.right))
     );
 
@@ -783,7 +801,8 @@ public class Player : CombatEntities
     }
 
     Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
-    var (executed, scanResult) = _cameraScanner.Scan(Time.deltaTime, ray);
+
+    var (executed, scanResult) = _cameraScanner.Scan(ray);
 
     if (!executed)
       return _lastValidResult;
@@ -791,28 +810,55 @@ public class Player : CombatEntities
     if (!scanResult.Item1)
     {
       ClearInteractable();
-      LockedTarget = null;
+      // Não resetamos o LockedTarget aqui se quiser manter o lock atual
       _lastValidResult = (false, default);
       return _lastValidResult;
     }
 
     RaycastHit hit = scanResult.Item2;
+    if (hit.collider == null)
+    {
+      return (false, default); // Proteção contra hit vazio
+    }
+    bool foundSomething = false;
 
+    // --- LÓGICA DE LOCK (Independente) ---
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
       {
         _lockCandidate = lockable;
         _lastLockHit = hit;
-        if (hit.collider.TryGetComponent(out InteractableObject interactable))
-          InteractionObject = interactable;
-
-        _lastValidResult = (true, hit);
-        return _lastValidResult;
+        foundSomething = true;
       }
     }
 
-    ClearInteractable();
+    // --- LÓGICA DE INTERAÇÃO (Filtra o DashObject) ---
+    if (hit.collider.TryGetComponent(out InteractableObject interactable))
+    {
+      // Se for Interactable mas NÃO for Dash, guardamos a referência de interação
+      if (interactable is not DashInteractableObject && interactable.IsActive)
+      {
+        InteractionObject = interactable;
+        foundSomething = true;
+      }
+      else
+      {
+        // Se for um DashObject, limpamos apenas a interação, mas o Lock ali em cima continua valendo
+        ClearInteractable();
+      }
+    }
+    else
+    {
+      ClearInteractable();
+    }
+
+    if (foundSomething)
+    {
+      _lastValidResult = (true, hit);
+      return _lastValidResult;
+    }
+
     return (false, default);
   }
 

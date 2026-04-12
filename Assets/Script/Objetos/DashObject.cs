@@ -1,10 +1,17 @@
 using UnityEngine;
 
-public class DashInteractableObject : InteractableObject
+public class DashInteractableObject : InteractableObject, ILockable
 {
-  // Start is called once before the first execution of Update after the MonoBehaviour is created
-  void Start() { }
+  [SerializeField]
+  private float _lockRange = 10;
+  public float LockRange => _lockRange;
 
-  // Update is called once per frame
-  void Update() { }
+  public void OnTriggerEnter(Collider collision)
+  {
+    if (collision.TryGetComponent(out Player player) && player.IsDashing)
+    {
+      Interaction(new(player));
+      print("Interagiu");
+    }
+  }
 }

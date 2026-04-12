@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public abstract class InteractableObject : MonoBehaviour, ILockable
+public abstract class InteractableObject : MonoBehaviour
 {
   [Header("Sprites de Interação")]
   public Sprite _keyboardSprites; //F
@@ -11,11 +11,7 @@ public abstract class InteractableObject : MonoBehaviour, ILockable
   [SerializeField]
   public float Range = 10;
 
-  [SerializeField]
-  private float _lockInRange = 20;
-  public float LockRange => _lockInRange;
-
-  public bool IsActive => this.enabled && gameObject.activeInHierarchy;
+  public bool IsActive => enabled && gameObject.activeInHierarchy;
 
   public virtual void Interaction(InfoPlayerInteraction info) { }
 
