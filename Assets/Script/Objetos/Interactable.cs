@@ -8,8 +8,14 @@ public abstract class InteractableObject : MonoBehaviour
   public Sprite _playstationSprites; //X
   public Sprite _xboxSprites; //A
 
+  [Header("Opções de Interação")]
   [SerializeField]
   public float Range = 10;
+
+  [Header("Opções de Cooldown")]
+  [SerializeField]
+  protected float _interactionCooldown = 1f;
+  protected readonly Timer _interactionTimer = new();
 
   public bool IsActive => enabled && gameObject.activeInHierarchy;
 
