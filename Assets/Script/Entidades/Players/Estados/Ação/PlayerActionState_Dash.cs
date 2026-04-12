@@ -28,6 +28,7 @@ public class PlayerActionStateDash : IState<Player>
         player.LockedTarget.transform.position - player.transform.position
       ).normalized;
     }
+    player.transform.forward = player.DashDirection;
     player.DashDuration = player.DashDistance / player.DashSpeed;
     timeToExit = player.DashDuration;
     player.IsDashing = true;

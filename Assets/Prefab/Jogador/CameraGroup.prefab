@@ -258,7 +258,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4395290838759945481}
   - component: {fileID: 2195686378496113037}
-  - component: {fileID: 4685249521568941529}
+  - component: {fileID: 7154605361401602984}
   - component: {fileID: 8802231739339838757}
   - component: {fileID: 7070658586247783995}
   - component: {fileID: 1048847854205891909}
@@ -280,7 +280,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8116530927965356821}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7009094, y: -0, z: -0, w: 0.7132504}
+  m_LocalRotation: {x: 0.7009093, y: -0, z: -0, w: 0.7132504}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -330,7 +330,7 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
---- !u!114 &4685249521568941529
+--- !u!114 &7154605361401602984
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -339,23 +339,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 8116530927965356821}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 625c14eee3ad46c99df7c7c891ef668a, type: 3}
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineThirdPersonFollow
-  Damping: {x: 0, y: 0, z: 0}
-  ShoulderOffset: {x: 1, y: 1, z: -3}
-  VerticalArmLength: 0
-  CameraSide: 0
-  CameraDistance: 0
-  AvoidObstacles:
-    Enabled: 0
-    CollisionFilter:
-      serializedVersion: 2
-      m_Bits: 1
-    IgnoreTag: 
-    CameraRadius: 0.2
-    DampingIntoCollision: 0
-    DampingFromCollision: 0.5
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 4
+    PositionDamping: {x: 1, y: 0, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 6, z: -2}
 --- !u!114 &8802231739339838757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -518,14 +511,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8152201174641266954}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.4305142, z: 0}
+  m_LocalRotation: {x: 0.022800343, y: 0.8959416, z: -0.44116297, w: 0.04630438}
+  m_LocalPosition: {x: 0.33817387, y: 7.8, z: 17.948032}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6498609424254135754}
   m_Father: {fileID: 8248739004165371470}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 41.423, y: 173.4, z: 0}
 --- !u!20 &7962076807223463924
 Camera:
   m_ObjectHideFlags: 0
@@ -559,7 +552,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 70
+  field of view: 80
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -706,13 +699,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8335155777206321734}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.022800343, y: 0.8959416, z: -0.44116297, w: 0.04630438}
+  m_LocalPosition: {x: 0.33817387, y: 7.8, z: 17.948032}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 8248739004165371470}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 41.423, y: 174.18, z: 0}
 --- !u!114 &9082330377010942319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -737,7 +730,7 @@ MonoBehaviour:
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 1
   Lens:
-    FieldOfView: 70
+    FieldOfView: 80
     OrthographicSize: 5
     NearClipPlane: 0.3
     FarClipPlane: 1000
@@ -768,29 +761,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b5d7c088409d9a40b7b09aa707777f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetOffset: {x: 0, y: 1.5, z: 0}
+  TargetOffset: {x: 0, y: 0, z: 0}
   TrackerSettings:
     BindingMode: 4
-    PositionDamping: {x: 2, y: 2, z: 2}
+    PositionDamping: {x: 1, y: 0, z: 1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  OrbitStyle: 0
+  OrbitStyle: 1
   Radius: 6
   Orbits:
     Top:
-      Radius: 2
-      Height: 5
+      Radius: 3
+      Height: 6
     Center:
-      Radius: 4
-      Height: 2.25
+      Radius: 7
+      Height: 3
     Bottom:
-      Radius: 2.5
-      Height: 0.1
+      Radius: 3
+      Height: 1
     SplineCurvature: 0.5
   RecenteringTarget: 2
   HorizontalAxis:
-    Value: -51.69259
+    Value: -14.845553
     Center: 0
     Range: {x: -180, y: 180}
     Wrap: 1
@@ -800,8 +793,8 @@ MonoBehaviour:
       Time: 2
     Restrictions: 0
   VerticalAxis:
-    Value: -78.65894
-    Center: 17.5
+    Value: 8.065139
+    Center: 0
     Range: {x: -90, y: 90}
     Wrap: 0
     Recentering:

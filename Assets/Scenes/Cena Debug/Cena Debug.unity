@@ -190,7 +190,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 10
-  _lockInRange: 20
   buttonColorEnum: 1
   targetobject: {fileID: 1980088070}
 --- !u!1 &39335537
@@ -878,6 +877,136 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92133819}
   m_Mesh: {fileID: 8843346497653607589, guid: cf6c5f337cccd324cbc32be828245055, type: 3}
+--- !u!1 &139240097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 139240101}
+  - component: {fileID: 139240100}
+  - component: {fileID: 139240099}
+  - component: {fileID: 139240102}
+  - component: {fileID: 139240103}
+  m_Layer: 6
+  m_Name: Quad
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &139240099
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139240097}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &139240100
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139240097}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &139240101
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139240097}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 27.61962, y: 1.78, z: -8.57}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &139240102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139240097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a764df9a0c69b37ca94e27e3fc413fd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DashInteractableObject
+  _keyboardSprites: {fileID: 0}
+  _playstationSprites: {fileID: 0}
+  _xboxSprites: {fileID: 0}
+  Range: 20
+  _lockRange: 10
+--- !u!135 &139240103
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139240097}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 3.31
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &149688771
 GameObject:
   m_ObjectHideFlags: 0
@@ -2918,7 +3047,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 10
-  _lockInRange: 20
 --- !u!1 &561886157
 GameObject:
   m_ObjectHideFlags: 0
@@ -4864,7 +4992,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 30
-  _lockInRange: 20
   _pivot: {fileID: 1493542271}
   _playerHolder: {fileID: 2124928401}
   _maxAngle: 120
@@ -5616,7 +5743,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 10
-  _lockInRange: 20
   buttonColorEnum: 0
   targetobject: {fileID: 1980088070}
 --- !u!1 &1522114772
@@ -7832,7 +7958,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 10
-  _lockInRange: 20
   buttonColorEnum: 2
   targetobject: {fileID: 1980088070}
 --- !u!1 &2024687557
@@ -8106,7 +8231,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 10
-  _lockInRange: 20
   buttonColorEnum: 3
   targetobject: {fileID: 1980088070}
 --- !u!1 &2129302935
@@ -8737,7 +8861,7 @@ MonoBehaviour:
   _currentHealthDebug: 100
   _maxHealth: 100
   _defense: 10
-  stats:
+  Stats:
     OnNumModified:
       m_PersistentCalls:
         m_Calls: []
@@ -13256,7 +13380,6 @@ MonoBehaviour:
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
   Range: 10
-  _lockInRange: 20
   targetobject: {fileID: 5876957179906853768}
 --- !u!33 &7919734597472066636
 MeshFilter:
@@ -13609,7 +13732,7 @@ MonoBehaviour:
   _currentHealthDebug: 0
   _maxHealth: 100
   _defense: 10
-  stats:
+  Stats:
     OnNumModified:
       m_PersistentCalls:
         m_Calls: []
@@ -14458,3 +14581,4 @@ SceneRoots:
   - {fileID: 1880476328}
   - {fileID: 1580422038}
   - {fileID: 1351337980}
+  - {fileID: 139240101}
