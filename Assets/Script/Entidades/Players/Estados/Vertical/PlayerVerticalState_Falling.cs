@@ -7,8 +7,8 @@ public class PlayerFallingState : IState<Player>
   public HashSet<ActionType> IncompatibleActions => new() { };
 
   // ajustes finos
-  private float _gravityUpMultiplier = 2.2f; // sobe rápido, perde força cedo
-  private float _gravityDownMultiplier = 0.6f; // cai mais lento
+  private float _gravityUpMultiplier = 0.6f; // sobe rápido, perde força cedo
+  private float _gravityDownMultiplier = 2.2f; // cai mais lento
   private float _maxFallSpeed = -26f; // limite da queda
 
   public void Enter(Player player)
@@ -27,9 +27,11 @@ public class PlayerFallingState : IState<Player>
 
     Vector3 move = player.MovementVector;
 
-    // atrito no ar
-    move.x = QualityOfLife.PlayerFriction(move.x, player.AirFriction, player.MoveInput);
-    move.z = QualityOfLife.PlayerFriction(move.z, player.AirFriction, player.MoveInput);
+    if (!player.IsImpulsioned)
+    {
+      move.x = QualityOfLife.PlayerFriction(move.x, player.AirFriction, player.MoveInput);
+      move.z = QualityOfLife.PlayerFriction(move.z, player.AirFriction, player.MoveInput);
+    }
 
     float gravityMultiplier =
       move.y > 0f

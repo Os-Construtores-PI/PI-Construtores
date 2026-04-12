@@ -15,6 +15,7 @@ public class PlayerGroundedState : IState<Player>
     Vector3 move = player.MovementVector;
     move.y = -1f;
     player.MovementVector = move;
+    player.IsImpulsioned = false;
   }
 
   public void Exit(Player player) { }

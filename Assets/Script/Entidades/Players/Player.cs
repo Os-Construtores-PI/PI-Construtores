@@ -138,6 +138,7 @@ public class Player : CombatEntities
   internal Vector3 DashDirection;
   internal Vector2 MoveInput;
   internal bool IsRunning;
+  internal bool IsImpulsioned;
   internal Vector3 LastWallNormal;
   public Transform _modelTransform;
 
@@ -836,7 +837,7 @@ public class Player : CombatEntities
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
       // Se for Interactable mas NÃO for Dash, guardamos a referência de interação
-      if (interactable is not DashInteractableObject && interactable.IsActive)
+      if (interactable is not LockableInteractableObject && interactable.IsActive)
       {
         InteractionObject = interactable;
         foundSomething = true;
