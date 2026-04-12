@@ -289,7 +289,7 @@ public class Player : CombatEntities
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
     {
       float alcance = 40f;
-      float anguloCorte = 0.92f;
+      float anguloCorte = 0.81f;
       LayerMask maskAlvos = LayerMask.GetMask("Object", "Entity");
       LayerMask maskObstrucao = LayerMask.GetMask("Default");
 
@@ -564,7 +564,7 @@ public class Player : CombatEntities
       _lockOnOverlay.transform.position = LockedTarget.transform.position;
   }
 
-  private void DisableLockIn()
+  public void DisableLockIn()
   {
     if (_isLockOnActive)
     {
@@ -721,7 +721,6 @@ public class Player : CombatEntities
 
     if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
     {
-      print("TESTE");
       _OnDamage.AddListener(hudDir.DamageShake);
       IsRunningEv.AddListener(hudDir.RunningShake);
       IsRunningEv.AddListener(hudDir.GetCameraScript(ID).SpeedFX);

@@ -25,9 +25,9 @@ public class SwingObject : InteractableObject
 
   private bool _forward = true;
 
-  public override void Interaction(InfoPlayerInteraction info)
+  public override void Interaction(Player player)
   {
-    StartSwing(info.Player);
+    StartSwing(player);
   }
 
   void StartSwing(Player player)

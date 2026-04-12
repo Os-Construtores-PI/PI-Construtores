@@ -8,8 +8,7 @@ public class PlayerActionStateInteraction : IState<Player>
 
   public void Enter(Player player)
   {
-    InfoPlayerInteraction info = new(player);
-    player.InteractionObject.Interaction(info);
+    player.InteractionObject.Interaction(player);
     player.ActionLayer.PopStateDeferred(player);
   }
 

@@ -13,7 +13,7 @@ public abstract class InteractableObject : MonoBehaviour
 
   public bool IsActive => enabled && gameObject.activeInHierarchy;
 
-  public virtual void Interaction(InfoPlayerInteraction info) { }
+  public virtual void Interaction(Player info) { }
 
 #if UNITY_EDITOR
   private Collider _interactionCollider;

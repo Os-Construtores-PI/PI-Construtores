@@ -189,7 +189,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  Range: 10
+  Range: 4
   buttonColorEnum: 1
   targetobject: {fileID: 1980088070}
 --- !u!1 &39335537
@@ -888,10 +888,10 @@ GameObject:
   - component: {fileID: 139240101}
   - component: {fileID: 139240100}
   - component: {fileID: 139240099}
-  - component: {fileID: 139240102}
-  - component: {fileID: 139240103}
+  - component: {fileID: 139240104}
+  - component: {fileID: 139240105}
   m_Layer: 6
-  m_Name: Quad
+  m_Name: Trampoline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -953,7 +953,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 139240097}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &139240101
 Transform:
   m_ObjectHideFlags: 0
@@ -963,13 +963,13 @@ Transform:
   m_GameObject: {fileID: 139240097}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.61962, y: 1.78, z: -8.57}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 33.63, y: 1.78, z: -0.2}
+  m_LocalScale: {x: 2, y: 0.5, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &139240102
+--- !u!114 &139240104
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -978,16 +978,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 139240097}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a764df9a0c69b37ca94e27e3fc413fd6, type: 3}
+  m_Script: {fileID: 11500000, guid: 48436193b668cfe4e8e4a2a77b45b366, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DashInteractableObject
+  m_EditorClassIdentifier: '::'
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  Range: 20
-  _lockRange: 10
---- !u!135 &139240103
-SphereCollider:
+  Range: 0
+  _lockRange: 20
+  _impulseForce: 20
+  _gizmoColor: {r: 1, g: 0, b: 0.74569225, a: 1}
+--- !u!65 &139240105
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1005,7 +1007,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 3.31
+  m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &149688771
 GameObject:
@@ -1909,7 +1911,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: cc6c001cf79000261ba5ba09334ed422, type: 2}
+  - {fileID: 2100000, guid: 8fb27c121c7d8d54db5223943f688ea9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3372,7 +3374,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: cc6c001cf79000261ba5ba09334ed422, type: 2}
+  - {fileID: 2100000, guid: 8fb27c121c7d8d54db5223943f688ea9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3633,7 +3635,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3745,7 +3747,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5742,7 +5744,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  Range: 10
+  Range: 4
   buttonColorEnum: 0
   targetobject: {fileID: 1980088070}
 --- !u!1 &1522114772
@@ -6080,7 +6082,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7257,7 +7259,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8a03e2ea7102d1540941f7b8c2f20bda, type: 2}
+  - {fileID: 2100000, guid: 744e56ecef3a2974b8adbd7bab9e36ea, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7957,7 +7959,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  Range: 10
+  Range: 4
   buttonColorEnum: 2
   targetobject: {fileID: 1980088070}
 --- !u!1 &2024687557
@@ -8230,7 +8232,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  Range: 10
+  Range: 4
   buttonColorEnum: 3
   targetobject: {fileID: 1980088070}
 --- !u!1 &2129302935
@@ -9613,7 +9615,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9662,7 +9664,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10220,7 +10222,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13379,7 +13381,7 @@ MonoBehaviour:
   _keyboardSprites: {fileID: 0}
   _playstationSprites: {fileID: 0}
   _xboxSprites: {fileID: 0}
-  Range: 10
+  Range: 4
   targetobject: {fileID: 5876957179906853768}
 --- !u!33 &7919734597472066636
 MeshFilter:
@@ -13605,7 +13607,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 60c16cd42139ffc409965311c7840d77, type: 2}
+  - {fileID: 2100000, guid: 1c0412f0476a2174cb9fb3121ac1ca1e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
