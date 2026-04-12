@@ -162,13 +162,16 @@ public class EffectsWorker
     }
   }
 
-  public void PlayEffect(string name)
+  public void PlayEffect(string name, float duration)
   {
     if (
       effects.TryGetValue(name, out GameObject effect)
       && effect.TryGetComponent(out ParticleSystem particleSystem)
     )
     {
+      particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+      ParticleSystem.MainModule main = particleSystem.main;
+      main.duration = duration;
       particleSystem.Play(true);
     }
   }

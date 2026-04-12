@@ -84,16 +84,6 @@ public struct CustomCanvas
   public List<CustomPanel> Panels;
 }
 
-public struct InfoPlayerInteraction
-{
-  public Player Player;
-
-  public InfoPlayerInteraction(Player script)
-  {
-    Player = script;
-  }
-}
-
 [Serializable]
 public struct IconImage
 {

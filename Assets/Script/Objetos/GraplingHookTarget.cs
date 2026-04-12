@@ -5,15 +5,14 @@ using UnityEngine.InputSystem;
 
 public class GraplingHookTarget : InteractableObject
 {
-  public override void Interaction(InfoPlayerInteraction info)
+  public override void Interaction(Player player)
   {
-    StartCoroutine(Cutscene(info));
+    StartCoroutine(Cutscene(player));
   }
 
-  IEnumerator Cutscene(InfoPlayerInteraction info)
+  IEnumerator Cutscene(Player player)
   {
-    Player playerScript = info.Player;
-    GameObject player = playerScript.gameObject;
+    GameObject playerGameObject = player.gameObject;
     Vector3 targetPosition = transform.position + Vector3.down * 2;
 
     // Velocidade constante do grappling (ajuste a gosto)
@@ -24,11 +23,11 @@ public class GraplingHookTarget : InteractableObject
     float duration = distance / grapplingSpeed;
 
     // Evento de cutscene
-    GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.Invoke(playerScript.ID, duration);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.Invoke(player.ID, duration);
 
     // Desativa o controle do player
-    playerScript.CharacterController.enabled = false;
-    SetActionState(player, false);
+    player.CharacterController.enabled = false;
+    SetActionState(playerGameObject, false);
 
     // Movimento com duração calculada
     player.transform.DOMove(targetPosition, duration).SetEase(Ease.Linear);
@@ -36,8 +35,8 @@ public class GraplingHookTarget : InteractableObject
     yield return new WaitForSeconds(duration);
 
     // Restaura o controle
-    SetActionState(player, true);
-    playerScript.CharacterController.enabled = true;
+    SetActionState(playerGameObject, true);
+    player.CharacterController.enabled = true;
   }
 
   private void SetActionState(GameObject player, bool set)

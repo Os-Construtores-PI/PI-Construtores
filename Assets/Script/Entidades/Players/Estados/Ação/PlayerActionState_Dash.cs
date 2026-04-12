@@ -6,6 +6,7 @@ public class PlayerActionStateDash : IState<Player>
 {
   private float timeToExit;
   private float timeToExitWalker = 0.0f;
+  private readonly float _distanceThresold = 2;
   private int Priority => 10;
 
   public ActionType Type => ActionType.Dash;
@@ -16,23 +17,28 @@ public class PlayerActionStateDash : IState<Player>
   {
     if (player.IsHardLocked)
       return;
-
     player.OverrideGlobal = true;
 
-    player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash);
     player.DashDirection =
       player.MoveInput != Vector2.zero ? player.Direction : player.transform.forward;
     if (player.LockedTarget != null)
     {
-      player.DashDirection = (
-        player.LockedTarget.transform.position - player.transform.position
-      ).normalized;
+      Vector3 distanceToTarget = player.LockedTarget.transform.position - player.transform.position;
+      player.DashDirection = distanceToTarget.normalized;
+      player.DashDistance = distanceToTarget.magnitude;
+      if (distanceToTarget.magnitude < _distanceThresold)
+      {
+        player.DashDirection = Vector3.zero;
+        player.DashDistance = 0;
+        return;
+      }
     }
     player.transform.forward = player.DashDirection;
     player.DashDuration = player.DashDistance / player.DashSpeed;
     timeToExit = player.DashDuration;
     player.IsDashing = true;
     player.CanDash = false;
+    player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
     player.MovementVector = new(player.MovementVector.x, 0, player.MovementVector.z);
     player.CurrentDashCount += 1;
     player.CanMove = false;
@@ -50,6 +56,7 @@ public class PlayerActionStateDash : IState<Player>
   public void Exit(Player player)
   {
     player.CanDash = true;
+    player.IsDashing = false;
     player.OverrideGlobal = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);

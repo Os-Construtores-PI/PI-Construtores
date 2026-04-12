@@ -3,21 +3,21 @@ using UnityEngine.Events;
 
 public class BasicButton : InteractableObject
 {
-    private readonly UnityEvent<object> buttonPressed = new();
+  private readonly UnityEvent<object> buttonPressed = new();
 
-    [SerializeField]
-    private ActivatableObject targetobject;
+  [SerializeField]
+  private ActivatableObject targetobject;
 
-    public virtual void Start()
+  public virtual void Start()
+  {
+    if (targetobject)
     {
-        if (targetobject)
-        {
-            buttonPressed.AddListener(targetobject.ObjectAction);
-        }
+      buttonPressed.AddListener(targetobject.ObjectAction);
     }
+  }
 
-    public override void Interaction(InfoPlayerInteraction info)
-    {
-        buttonPressed.Invoke(default);
-    }
+  public override void Interaction(Player _)
+  {
+    buttonPressed.Invoke(default);
+  }
 }

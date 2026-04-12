@@ -29,7 +29,7 @@ public class PlayerJumpingState : IState<Player>
         move = new(move.x, player.JumpForce * multiplier, move.z);
       }
       player.CurrentJumpCount++;
-      player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump);
+      player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
       player.MovementVector = move;
     }
     player.VerticalLayer.ChangeState(new PlayerFallingState(), player);

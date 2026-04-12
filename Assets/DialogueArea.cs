@@ -10,8 +10,8 @@ public class DialogueArea : InteractableObject
   [SerializeField]
   float dialogueSpeed = 20f;
 
-  public override void Interaction(InfoPlayerInteraction info)
+  public override void Interaction(Player info)
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.Invoke(info.Player, dialogues, dialogueSpeed);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.Invoke(info, dialogues, dialogueSpeed);
   }
 }

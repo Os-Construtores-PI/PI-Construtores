@@ -8,10 +8,13 @@ public class DashInteractableObject : InteractableObject, ILockable
 
   public void OnTriggerEnter(Collider collision)
   {
-    if (collision.TryGetComponent(out Player player) && player.IsDashing)
+    if (
+      collision.TryGetComponent(out Player player)
+      && player.IsDashing
+      && player.LockedTarget as Object == this
+    )
     {
-      Interaction(new(player));
-      print("Interagiu");
+      Interaction(player);
     }
   }
 }
