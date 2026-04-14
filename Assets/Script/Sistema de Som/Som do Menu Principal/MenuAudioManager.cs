@@ -21,15 +21,30 @@ public class MenuAudioManager : MonoBehaviour
 
     Instance = this;
   }
-  void Start()
-    {
-        
-    }
+  private void Start()
+  {
+    TocarMusica();
+    //PlayClick();
+  }
 
   public void TocarMusica()
   {
     musicSource.clip = somMenu.musica;
     musicSource.loop = true;
     musicSource.Play();
+  }
+  public void PlayHover()
+  {
+    sfxSource.PlayOneShot(somMenu.hover);
+  }
+
+  public void PlayClick()
+  {
+    sfxSource.PlayOneShot(somMenu.click);
+  }
+
+  public void PlayBack()
+  {
+    sfxSource.PlayOneShot(somMenu.back);
   }
 }
