@@ -33,43 +33,22 @@ public class PlayerHorizontalStateMoviment : IState<Player>
 
     Vector3 playerDirection;
 
-    if (player.LockedTarget != null)
-    {
-      // Modo strafe: orientação baseada no alvo, câmera não interfere
-      Vector3 toTarget = player.LockedTarget.transform.position - player.transform.position;
-      toTarget.y = 0f;
-      Vector3 forward = toTarget.normalized;
-      Vector3 right = Vector3.Cross(Vector3.up, forward);
+    // Modo normal: baseado na câmera
+    CinemachineCamera playerCamera = player.CinemachineCamera;
+    Vector3 moveInput = player.MoveInput;
+    Vector3 camForward = playerCamera.transform.forward;
+    Vector3 camRight = playerCamera.transform.right;
+    camForward.y = camRight.y = 0f;
 
-      Vector3 moveInput = player.MoveInput;
-      playerDirection = forward * moveInput.y + right * moveInput.x;
+    playerDirection = camForward.normalized * moveInput.y + camRight.normalized * moveInput.x;
+    if (playerDirection == Vector3.zero)
+      playerDirection = player.transform.forward;
 
-      // Player sempre enfrenta o alvo, independente do movimento
-      player.transform.rotation = Quaternion.Slerp(
-        player.transform.rotation,
-        Quaternion.LookRotation(forward),
-        10f * Time.deltaTime
-      );
-    }
-    else
-    {
-      // Modo normal: baseado na câmera
-      CinemachineCamera playerCamera = player.CinemachineCamera;
-      Vector3 moveInput = player.MoveInput;
-      Vector3 camForward = playerCamera.transform.forward;
-      Vector3 camRight = playerCamera.transform.right;
-      camForward.y = camRight.y = 0f;
-
-      playerDirection = camForward.normalized * moveInput.y + camRight.normalized * moveInput.x;
-      if (playerDirection == Vector3.zero)
-        playerDirection = player.transform.forward;
-
-      player.transform.rotation = Quaternion.Slerp(
-        player.transform.rotation,
-        Quaternion.LookRotation(playerDirection),
-        10f * Time.deltaTime
-      );
-    }
+    player.transform.rotation = Quaternion.Slerp(
+      player.transform.rotation,
+      Quaternion.LookRotation(playerDirection),
+      10f * Time.deltaTime
+    );
 
     player.Direction = playerDirection;
 

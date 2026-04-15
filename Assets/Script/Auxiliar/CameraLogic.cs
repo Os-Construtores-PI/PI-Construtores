@@ -100,11 +100,7 @@ public class CameraLogic : Entities
   /// <summary>
   /// Configura a CinemachineCamera para seguir o alvo.
   /// </summary>
-  public void SetTarget(
-    Player newTarget,
-    CinemachineCamera freeLook = null,
-    CinemachineCamera lockOn = null
-  )
+  public void SetTarget(Player newTarget, CinemachineCamera freeLook = null)
   {
     if (newTarget == null)
       return;
@@ -122,13 +118,10 @@ public class CameraLogic : Entities
       targetTransform = newTarget.transform;
     }
 
-    if (freeLook != null && lockOn != null)
+    if (freeLook != null)
     {
       freeLook.Follow = targetTransform;
       freeLook.LookAt = targetTransform;
-      lockOn.Follow = targetTransform;
-      lockOn.LookAt = targetTransform;
-      _lockOnCinemachineCamera = lockOn;
       _currentCinemachineCamera = freeLook;
     }
     else if (_currentCinemachineCamera != null)
