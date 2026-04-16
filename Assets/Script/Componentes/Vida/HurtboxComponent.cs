@@ -2,70 +2,70 @@ using UnityEngine;
 
 public class HurtboxComponent : MonoBehaviour
 {
-    private CombatEntities entity;
-    private float damagedCooldownWalker = 0.0f;
-    private bool can_take_damage = true;
+  private CombatEntities entity;
+  private float _initialCooldown;
+  private float damagedCooldownWalker = 0.0f;
 
-    [SerializeField]
-    private float damagedCooldown = 1f; // Tempo entre danos consecutivos
+  [HideInInspector]
+  public bool CanTakeDamage = true;
 
-    private void Start()
+  public float DamageCooldown = 1f; // Tempo entre danos consecutivos
+
+  private void Start()
+  {
+    SetEntity();
+    _initialCooldown = DamageCooldown;
+    if (entity == null || !TryGetComponent(out Collider collider) || !collider.isTrigger)
     {
-        SetEntity();
-        if (entity == null || !TryGetComponent(out Collider collider) || !collider.isTrigger)
-        {
-            print(
-                "PARENTE NÃO PODE RECEBER DANO OU ESTE GAMEOBJ FILHO ESTÁ SEM COLISÃO OU ESTÁ NO MODO NÃO TRIGGER"
-            );
-        }
+      print(
+        "PARENTE NÃO PODE RECEBER DANO OU ESTE GAMEOBJ FILHO ESTÁ SEM COLISÃO OU ESTÁ NO MODO NÃO TRIGGER"
+      );
     }
+  }
 
-    private void Update()
+  private void Update()
+  {
+    if (!CanTakeDamage)
     {
-        if (!can_take_damage)
-        {
-            damagedCooldownWalker += Time.deltaTime;
-            if (damagedCooldownWalker >= damagedCooldown)
-            {
-                damagedCooldownWalker = 0.0f;
-                can_take_damage = true;
-            }
-        }
+      damagedCooldownWalker += Time.deltaTime;
+      if (damagedCooldownWalker >= DamageCooldown)
+      {
+        damagedCooldownWalker = 0.0f;
+        CanTakeDamage = true;
+        DamageCooldown = _initialCooldown;
+      }
     }
+  }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        DamageLogic(other);
-    }
+  private void OnTriggerEnter(Collider other)
+  {
+    DamageLogic(other);
+  }
 
-    private void OnTriggerStay(Collider other)
-    {
-        DamageLogic(other);
-    }
+  private void OnTriggerStay(Collider other)
+  {
+    DamageLogic(other);
+  }
 
-    private void DamageLogic(Collider collider)
-    {
-        // Verifica se o objeto está na camada "Entity".
-        if (!collider.TryGetComponent(out HitboxComponent hitbox) || !can_take_damage)
-            return;
+  private void DamageLogic(Collider collider)
+  {
+    if (!collider.TryGetComponent(out HitboxComponent hitbox) || !CanTakeDamage)
+      return;
 
-        // Verifica se tem componente CombatEntities e se o dano está liberado.
-        // Calcula fator de defesa (máx 80% de redução)
-        float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
+    float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
 
-        // Aplica dano reduzido pela defesa
-        print($"VIDA // {entity.name} // (ANTES): {entity.Health}");
-        entity.Health -= hitbox.Damage * (1 - factor);
-        print($"VIDA // {entity.name} // (DEPOIS): {entity.Health}");
-        entity.Damaged = true;
+    print($"VIDA // {entity.name} // (ANTES): {entity.Health}");
+    entity.Health -= hitbox.Damage * (1 - factor);
+    print($"VIDA // {entity.name} // (DEPOIS): {entity.Health}");
+    entity.Damaged = true;
 
-        // Ativa cooldown
-        can_take_damage = false;
-    }
+    // Ativa cooldown
+    CanTakeDamage = false;
+  }
 
-    private void SetEntity()
-    {
-        Transform parent = transform.parent;
-        entity = parent.GetComponent<CombatEntities>();
-    }
+  private void SetEntity()
+  {
+    Transform parent = transform.parent;
+    entity = parent.GetComponent<CombatEntities>();
+  }
 }

@@ -75,28 +75,16 @@ public class Player : CombatEntities
   public CinemachineCamera CinemachineCamera;
 
   [HideInInspector]
-  public CinemachineCamera _lockOnCamera;
-
-  [HideInInspector]
-  public CinemachineTargetGroup _lockOnGroup;
-
-  [HideInInspector]
   public CinemachineInputAxisController _cinemachineInput;
 
   [HideInInspector]
   public CinemachineOrbitalFollow _cinemachineOrbital;
   protected Camera _myCamera;
+  public Collider HitboxCollider;
 
-  public void SetCamera(
-    CinemachineCamera cincam,
-    CinemachineCamera lockOn,
-    CinemachineTargetGroup group,
-    Camera camera
-  )
+  public void SetCamera(CinemachineCamera cincam, Camera camera)
   {
     CinemachineCamera = cincam;
-    _lockOnCamera = lockOn;
-    _lockOnGroup = group;
     _myCamera = camera;
   }
 
@@ -107,9 +95,9 @@ public class Player : CombatEntities
 
   #region === Overrides ===
   public bool OverrideGlobal { get; set; } = false;
-  public float GlobalOverride { get; set; } = 0f;
   public bool OverrideHorizontal { get; set; } = false;
   public bool OverrideVertical { get; set; } = false;
+  public float GlobalOverride { get; set; } = 0f;
   public float VerticalOverride { get; set; } = 0f;
   #endregion
 
@@ -192,13 +180,17 @@ public class Player : CombatEntities
 
   #region === Interação ===
   [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
-  private readonly float interactionScanCooldown = .1f;
   private Camera selectedcamera = null;
+  private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
   #endregion
 
   #region === Inventário ===
   private readonly Inventory _inventory = new();
   public Inventory Inventory => _inventory;
+  #endregion
+
+  #region  === Knockback ===
+  public HurtboxComponent HurtboxCollider;
   #endregion
 
   #region === Scanner ===
@@ -285,57 +277,69 @@ public class Player : CombatEntities
 
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWithCamera());
+    TickDirector.Instance.OnTick.AddListener(_ => ScanWithCamera());
 
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
     {
-      float alcance = 40f;
-      float anguloCorte = 0.81f;
-      LayerMask maskAlvos = LayerMask.GetMask("Object", "Entity");
-      LayerMask maskObstrucao = LayerMask.GetMask("Default");
+      float radius = 6f;
+      float maxDistance = 20f;
+      LayerMask targetsMask = LayerMask.GetMask("Object", "Entity");
+      LayerMask obstacleMask = LayerMask.GetMask("Default");
 
-      // 1. Pegamos os alvos.
-      Collider[] potenciaisAlvos = Physics.OverlapSphere(r.origin, alcance, maskAlvos);
+      int hitCount = Physics.SphereCastNonAlloc(
+        r.origin,
+        radius,
+        r.direction,
+        _sphereCastResults,
+        maxDistance,
+        targetsMask
+      );
 
-      Collider melhorAlvo = null;
-      float menorDistancia = float.MaxValue;
+      Collider bestTarget = null;
+      float closestDistance = float.MaxValue;
 
-      foreach (var col in potenciaisAlvos)
+      for (int i = 0; i < hitCount; i++)
       {
+        var col = _sphereCastResults[i].collider;
         if (col.CompareTag("Player"))
-        {
           continue;
-        }
 
-        Vector3 centroAlvo = col.bounds.center;
-        Vector3 direcaoParaAlvo = (centroAlvo - r.origin).normalized;
+        Vector3 targetCenter = col.bounds.center;
 
-        float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
+        Vector3 direcaoParaAlvo = (targetCenter - r.origin).normalized;
+        float dot = Vector3.Dot(r.direction.normalized, direcaoParaAlvo);
+        if (dot < 0.5f)
+          continue;
 
-        if (dot >= anguloCorte)
+        float distance = Vector3.Distance(r.origin, targetCenter);
+        if (distance > maxDistance)
+          continue;
+
+        if (!Physics.Linecast(r.origin, targetCenter, obstacleMask))
         {
-          float distancia = Vector3.Distance(r.origin, centroAlvo);
-
-          if (!Physics.Linecast(r.origin, centroAlvo, out RaycastHit hitObstrucao, maskObstrucao))
+          if (distance < closestDistance)
           {
-            if (distancia < menorDistancia)
-            {
-              menorDistancia = distancia;
-              melhorAlvo = col;
-            }
+            closestDistance = distance;
+            bestTarget = col;
           }
         }
       }
 
-      if (melhorAlvo != null)
+      if (bestTarget != null)
       {
-        Vector3 direcaoFinal = (melhorAlvo.bounds.center - r.origin).normalized;
-
+        Vector3 direcaoFinal = (bestTarget.bounds.center - r.origin).normalized;
         if (
-          Physics.Raycast(r.origin, direcaoFinal, out RaycastHit finalHit, alcance + 2f, maskAlvos)
+          Physics.Raycast(
+            r.origin,
+            direcaoFinal,
+            out RaycastHit finalHit,
+            maxDistance + 2f,
+            targetsMask | obstacleMask
+          )
         )
         {
-          return (true, finalHit);
+          if ((targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0)
+            return (true, finalHit);
         }
       }
 
@@ -433,12 +437,6 @@ public class Player : CombatEntities
     }
   }
 
-  public void OnLockInTarget(InputAction.CallbackContext context)
-  {
-    if (context.performed)
-      ToggleLockIn();
-  }
-
   public void OnEnable()
   {
     PlayerInput.onControlsChanged += DetectarDispositivo;
@@ -531,24 +529,15 @@ public class Player : CombatEntities
 
     if (LockedTarget != null)
     {
-      _lockOnCamera.Priority = 20;
-      _lockOnGroup.AddMember(transform, 1, 1);
-      _lockOnGroup.AddMember(target.transform, .8f, 1);
       _willUpdateLockOverlay = true;
       SetVisibilityLockOnOverlay(true);
-      if (_cinemachineInput != null)
-        foreach (var controller in _cinemachineInput.Controllers)
-          controller.Enabled = false;
+      _isLockOnActive = true;
     }
     else
     {
-      _lockOnCamera.Priority = 0;
-      _lockOnGroup.Targets = new();
       SetVisibilityLockOnOverlay(false);
       _willUpdateLockOverlay = false;
-      if (_cinemachineInput != null)
-        foreach (var controller in _cinemachineInput.Controllers)
-          controller.Enabled = true;
+      _isLockOnActive = false;
     }
   }
 
@@ -660,42 +649,12 @@ public class Player : CombatEntities
       isKnockbackActive = false;
   }
 
-  private void BlockPlayerDashToRoutine(float duration)
-  {
-    if (IsDashBlocked)
-      return;
-    StartCoroutine(BlockDashCoroutine(duration));
-  }
-
-  private IEnumerator BlockDashCoroutine(float duration)
-  {
-    if (IsDashBlocked)
-      yield break;
-    IsDashBlocked = true;
-    yield return Stats.ModifyStatCoroutine<bool>(
-      Constants.StatsNames.CanDash.ToString(),
-      ModifyTYPE.NEGATIVE,
-      QualityTier.COMMON,
-      duration
-    );
-    IsDashBlocked = false;
-  }
   #endregion
 
   [Header("WALL EXIT")]
   #region === WALLRUNNING ===
   internal float WallExitDuration = .2f;
   #endregion
-
-  private void OnControllerColliderHit(ControllerColliderHit hit)
-  {
-    if (hit.gameObject.TryGetComponent(out Enemies enemy))
-    {
-      Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
-      ApplyKnockback(knockbackDirection, enemy.KnockBackForce);
-      BlockPlayerDashToRoutine(enemy.DashBlockDuration);
-    }
-  }
 
   #region === HUD & Feedback ===
   private IEnumerator DelayedSetupHUD(float duration)
@@ -789,19 +748,7 @@ public class Player : CombatEntities
       return (false, default);
     }
 
-    if (_isLockOnActive && LockedTarget != null)
-    {
-      if (LockedTarget.IsActive)
-      {
-        float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
-        if (dist <= LockedTarget.LockRange)
-          return (true, _lastLockHit);
-      }
-      DisableLockIn();
-    }
-
-    Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
-
+    Ray ray = new(transform.position, transform.forward);
     var (executed, scanResult) = _cameraScanner.Scan(ray);
 
     if (!executed)
@@ -810,7 +757,7 @@ public class Player : CombatEntities
     if (!scanResult.Item1)
     {
       ClearInteractable();
-      // Não resetamos o LockedTarget aqui se quiser manter o lock atual
+      DisableLockIn(); // ← estava faltando aqui
       _lastValidResult = (false, default);
       return _lastValidResult;
     }
@@ -818,39 +765,51 @@ public class Player : CombatEntities
     RaycastHit hit = scanResult.Item2;
     if (hit.collider == null)
     {
-      return (false, default); // Proteção contra hit vazio
+      DisableLockIn(); // ← e aqui
+      return (false, default);
     }
+
     bool foundSomething = false;
 
-    // --- LÓGICA DE LOCK (Independente) ---
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
       {
+        if (LockedTarget != lockable)
+          SetLockOn(lockable);
+
         _lockCandidate = lockable;
         _lastLockHit = hit;
         foundSomething = true;
       }
+      else
+      {
+        DisableLockIn();
+      }
+    }
+    else
+    {
+      DisableLockIn();
     }
 
-    // --- LÓGICA DE INTERAÇÃO (Filtra o DashObject) ---
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
-      // Se for Interactable mas NÃO for Dash, guardamos a referência de interação
       if (interactable is not LockableInteractableObject && interactable.IsActive)
       {
         InteractionObject = interactable;
         foundSomething = true;
       }
       else
-      {
-        // Se for um DashObject, limpamos apenas a interação, mas o Lock ali em cima continua valendo
         ClearInteractable();
-      }
     }
     else
-    {
       ClearInteractable();
+
+    if (_isLockOnActive && LockedTarget != null)
+    {
+      float distToLocked = Vector3.Distance(transform.position, LockedTarget.transform.position);
+      if (!LockedTarget.IsActive || distToLocked > LockedTarget.LockRange)
+        DisableLockIn();
     }
 
     if (foundSomething)

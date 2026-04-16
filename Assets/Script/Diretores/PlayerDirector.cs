@@ -219,8 +219,6 @@ public class PlayerDirector : MonoBehaviour
 
     GameObject camObj = groupRoot.Find(Constants.CameraGroup.MainCamera).gameObject;
     GameObject cinemachineObj = groupRoot.Find(Constants.CameraGroup.CinemachineCamera).gameObject;
-    GameObject lockOnObj = groupRoot.Find(Constants.CameraGroup.CinemachineLockOn).gameObject;
-    GameObject lockOnGroupObj = groupRoot.Find(Constants.CameraGroup.LockInGroup).gameObject;
 
     Camera unityCam = camObj.GetComponent<Camera>();
     CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
@@ -230,14 +228,10 @@ public class PlayerDirector : MonoBehaviour
     unityCam.rect = viewport;
 
     // Vincula Cinemachine e LockOn ao player, se todos os componentes existirem
-    if (
-      cinemachineObj.TryGetComponent(out CinemachineCamera cinemachine)
-      && lockOnObj.TryGetComponent(out CinemachineCamera lockOnCinemachine)
-      && lockOnGroupObj.TryGetComponent(out CinemachineTargetGroup group)
-    )
+    if (cinemachineObj.TryGetComponent(out CinemachineCamera cinemachine))
     {
-      camLogic.SetTarget(player, cinemachine, lockOnCinemachine);
-      player.SetCamera(cinemachine, lockOnCinemachine, group, unityCam);
+      camLogic.SetTarget(player, cinemachine);
+      player.SetCamera(cinemachine, unityCam);
     }
 
     _playerCameras[id] = camObj;

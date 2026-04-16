@@ -62,12 +62,15 @@ public abstract class Enemies : CombatEntities, ILockable
 
   [Header("ENEMY KNOCKBACK PROPERTIES")]
   [SerializeField]
-  private float _dashBlockDuration;
+  private Collider _collider;
 
   [SerializeField]
   private float _knockbackForce = 40f;
   public float KnockBackForce => _knockbackForce;
-  public float DashBlockDuration => _dashBlockDuration;
+
+  private Timer _knockbackTimer = new();
+  private float _knockbackCooldown = 2f;
+  private bool _canKnockback = true;
 
   // === Flash Requisitos ===
   private Renderer[] renderers;
@@ -101,15 +104,6 @@ public abstract class Enemies : CombatEntities, ILockable
     AddItems();
   }
 
-  public void ApplyKnockBack(Transform player)
-  {
-    if (player.TryGetComponent<Rigidbody>(out var rb))
-    {
-      Vector3 direction = (player.position - transform.position).normalized;
-      rb.AddForce(direction * _knockbackForce, ForceMode.Impulse);
-    }
-  }
-
   public override void DeathHandler()
   {
     print(lootTable.PickEntry());
@@ -137,6 +131,7 @@ public abstract class Enemies : CombatEntities, ILockable
       AttackTimer();
       MemoryTimer();
     }
+    KnockbackTimer();
   }
 
   private void VisionTimer()
@@ -177,6 +172,18 @@ public abstract class Enemies : CombatEntities, ILockable
       // se o player voltar, reseta o estado
       memoryCooldownWalker = 0.0f;
       memoryTriggered = false;
+    }
+  }
+
+  private void KnockbackTimer()
+  {
+    if (!_canKnockback)
+    {
+      if (_knockbackTimer.Tick(Time.deltaTime))
+      {
+        _canKnockback = true;
+        _collider.enabled = true;
+      }
     }
   }
 
@@ -309,6 +316,22 @@ public abstract class Enemies : CombatEntities, ILockable
         r.material.DisableKeyword("_EMISSION");
 
       r.SetPropertyBlock(block);
+    }
+  }
+
+  public void OnTriggerEnter(Collider col)
+  {
+    if (col.TryGetComponent(out Player player))
+    {
+      if (_canKnockback)
+      {
+        _canKnockback = false;
+        player.CurrentDashCount = 0;
+        player.CurrentJumpCount = 0;
+        player.MovementVector = Vector3.up * KnockBackForce;
+        _collider.enabled = false;
+        _knockbackTimer.Start(_knockbackCooldown);
+      }
     }
   }
 }

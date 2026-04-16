@@ -6,8 +6,12 @@ public class PlayerActionStateDash : IState<Player>
 {
   private float timeToExit;
   private float timeToExitWalker = 0.0f;
+  private float _disableDamageCooldown = 4;
   private readonly float _distanceThresold = 2;
   private int Priority => 10;
+  private float _initialDashSpeed;
+  private float _initialDashDistance;
+  private bool _firstTime;
 
   public ActionType Type => ActionType.Dash;
 
@@ -17,33 +21,62 @@ public class PlayerActionStateDash : IState<Player>
   {
     if (player.IsHardLocked)
       return;
-    player.OverrideGlobal = true;
 
-    player.DashDirection =
-      player.MoveInput != Vector2.zero ? player.Direction : player.transform.forward;
+    // Inicializa valores na primeira vez que o estado é usado
+    if (!_firstTime) // Mudei de 'if (_firstTime)' para '!_firstTime' pois parece ser a lógica correta
+    {
+      _initialDashSpeed = player.DashSpeed;
+      _initialDashDistance = player.DashDistance;
+      _firstTime = true;
+    }
+
+    player.OverrideGlobal = true;
+    player.HurtboxCollider.CanTakeDamage = false;
+    player.HurtboxCollider.DamageCooldown = _disableDamageCooldown;
+    player.HitboxCollider.enabled = true;
+
+    // Lógica principal de decisão: Lockado vs Não Lockado
     if (player.LockedTarget != null)
     {
       Vector3 distanceToTarget = player.LockedTarget.transform.position - player.transform.position;
-      player.DashDirection = distanceToTarget.normalized;
-      player.DashDistance = distanceToTarget.magnitude;
+
+      // Verifica threshold para evitar dash parado
       if (distanceToTarget.magnitude < _distanceThresold)
       {
         player.DashDirection = Vector3.zero;
         player.DashDistance = 0;
-        return;
+        // Opcional: Aqui você pode decidir se quer sair imediatamente ou apenas fazer um dash nulo
+      }
+      else
+      {
+        player.DashDirection = distanceToTarget.normalized;
+        player.DashDistance = distanceToTarget.magnitude;
       }
     }
+    else
+    {
+      // Garante que o dash use os valores originais quando NÃO está lockado
+      player.DashSpeed = _initialDashSpeed;
+      player.DashDistance = _initialDashDistance;
+
+      // Define a direção baseada no input ou na direção do player
+      player.DashDirection =
+        player.MoveInput != Vector2.zero ? player.Direction : player.transform.forward;
+    }
+
+    // Configurações comuns a ambos os casos
     player.transform.forward = player.DashDirection;
     player.DashDuration = player.DashDistance / player.DashSpeed;
+
     timeToExit = player.DashDuration;
     player.IsDashing = true;
     player.CanDash = false;
+
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
     player.MovementVector = new(player.MovementVector.x, 0, player.MovementVector.z);
     player.CurrentDashCount += 1;
     player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
-    //PlayDashVisual(player.PlayerModelTransform,player.PlayerDashDuration);
 
     if (player.DashHudScript != null)
     {
@@ -58,6 +91,7 @@ public class PlayerActionStateDash : IState<Player>
     player.CanDash = true;
     player.IsDashing = false;
     player.OverrideGlobal = false;
+    player.HitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
     ResetDashHUD(player.DashHudScript);
