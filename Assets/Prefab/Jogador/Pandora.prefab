@@ -17411,6 +17411,7 @@ Transform:
   - {fileID: 6320091793994528222}
   - {fileID: 6707445767027251514}
   - {fileID: 529184069336429120}
+  - {fileID: 5505974552461697953}
   - {fileID: 6230178497730834178}
   - {fileID: 2932571647651619521}
   - {fileID: 5752165528184936213}
@@ -17732,10 +17733,9 @@ MonoBehaviour:
   _cameraTarget: {fileID: 6230178497730834178}
   CharacterController: {fileID: 0}
   CinemachineCamera: {fileID: 0}
-  _lockOnCamera: {fileID: 0}
-  _lockOnGroup: {fileID: 0}
   _cinemachineInput: {fileID: 0}
   _cinemachineOrbital: {fileID: 0}
+  HitboxCollider: {fileID: 8688263318238171917}
   AnimatorComponent: {fileID: 4498598552815147647}
   PlayerInput: {fileID: 4848141862502818215}
   _ultimoDispositivo: 0
@@ -17743,6 +17743,7 @@ MonoBehaviour:
   IsGrounded: 0
   enemyScanRadius: 10
   enemyScanInterval: 2
+  HurtboxCollider: {fileID: 7322801009794671605}
   _lockOnOverlay: {fileID: 3819866683035594381}
   InteractionObject: {fileID: 0}
   CanAttack: 1
@@ -23161,7 +23162,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5e8c06c11e343a449daeaae46d3ab92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damagedCooldown: 2
+  CanTakeDamage: 1
+  DamageCooldown: 1
 --- !u!65 &3666272637302261351
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24483,6 +24485,73 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.0031278604, y: -0.0037281578, z: -0.000051299343}
     m_Extent: {x: 0.0032637273, y: 0.0038626762, z: 0.004361272}
   m_DirtyAABB: 0
+--- !u!1 &6073805683308027022
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5505974552461697953}
+  - component: {fileID: 6507626406025360012}
+  - component: {fileID: 8688263318238171917}
+  m_Layer: 10
+  m_Name: Hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5505974552461697953
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6073805683308027022}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8092701047622248497}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6507626406025360012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6073805683308027022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  _maxDamage: 10
+--- !u!65 &8688263318238171917
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6073805683308027022}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 2, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6461744684786239202
 GameObject:
   m_ObjectHideFlags: 0
@@ -25369,7 +25438,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 78ea870877881294a9f7ef394d5c3da7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 369eb535810b7f349941e6ef799c781b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

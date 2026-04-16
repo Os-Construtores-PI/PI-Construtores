@@ -80,6 +80,7 @@ public class Player : CombatEntities
   [HideInInspector]
   public CinemachineOrbitalFollow _cinemachineOrbital;
   protected Camera _myCamera;
+  public Collider HitboxCollider;
 
   public void SetCamera(CinemachineCamera cincam, Camera camera)
   {
@@ -94,9 +95,9 @@ public class Player : CombatEntities
 
   #region === Overrides ===
   public bool OverrideGlobal { get; set; } = false;
-  public float GlobalOverride { get; set; } = 0f;
   public bool OverrideHorizontal { get; set; } = false;
   public bool OverrideVertical { get; set; } = false;
+  public float GlobalOverride { get; set; } = 0f;
   public float VerticalOverride { get; set; } = 0f;
   #endregion
 
@@ -179,15 +180,17 @@ public class Player : CombatEntities
 
   #region === Interação ===
   [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
-  private readonly float interactionScanCooldown = .1f;
   private Camera selectedcamera = null;
-  private readonly Collider[] _hitResults = new Collider[20];
   private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
   #endregion
 
   #region === Inventário ===
   private readonly Inventory _inventory = new();
   public Inventory Inventory => _inventory;
+  #endregion
+
+  #region  === Knockback ===
+  public HurtboxComponent HurtboxCollider;
   #endregion
 
   #region === Scanner ===
@@ -278,7 +281,7 @@ public class Player : CombatEntities
 
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
     {
-      float radius = 2f;
+      float radius = 6f;
       float maxDistance = 20f;
       LayerMask targetsMask = LayerMask.GetMask("Object", "Entity");
       LayerMask obstacleMask = LayerMask.GetMask("Default");
@@ -646,42 +649,12 @@ public class Player : CombatEntities
       isKnockbackActive = false;
   }
 
-  private void BlockPlayerDashToRoutine(float duration)
-  {
-    if (IsDashBlocked)
-      return;
-    StartCoroutine(BlockDashCoroutine(duration));
-  }
-
-  private IEnumerator BlockDashCoroutine(float duration)
-  {
-    if (IsDashBlocked)
-      yield break;
-    IsDashBlocked = true;
-    yield return Stats.ModifyStatCoroutine<bool>(
-      Constants.StatsNames.CanDash.ToString(),
-      ModifyTYPE.NEGATIVE,
-      QualityTier.COMMON,
-      duration
-    );
-    IsDashBlocked = false;
-  }
   #endregion
 
   [Header("WALL EXIT")]
   #region === WALLRUNNING ===
   internal float WallExitDuration = .2f;
   #endregion
-
-  public void OnControllerColliderHit(ControllerColliderHit hit)
-  {
-    if (hit.gameObject.TryGetComponent(out Enemies enemy))
-    {
-      Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
-      ApplyKnockback(knockbackDirection, enemy.KnockBackForce);
-      BlockPlayerDashToRoutine(enemy.DashBlockDuration);
-    }
-  }
 
   #region === HUD & Feedback ===
   private IEnumerator DelayedSetupHUD(float duration)
@@ -775,7 +748,7 @@ public class Player : CombatEntities
       return (false, default);
     }
 
-    Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
+    Ray ray = new(transform.position, transform.forward);
     var (executed, scanResult) = _cameraScanner.Scan(ray);
 
     if (!executed)
