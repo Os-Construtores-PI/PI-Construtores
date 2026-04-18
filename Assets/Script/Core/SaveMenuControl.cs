@@ -3,24 +3,24 @@ using UnityEngine.SceneManagement;
 
 public class SaveMenuControl : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public void StartNewGame(int slotIndex)
-    {
-        DataDirector.Instance.ClearSlot(slotIndex);
-        DataDirector.Instance.SetCurrentSlot(slotIndex);
+  // Start is called once before the first execution of Update after the MonoBehaviour is created
+  public void StartNewGame(int slotIndex)
+  {
+    DataDirector.Instance.ClearSlot(slotIndex);
+    DataDirector.Instance.SetCurrentSlot(slotIndex);
 
-        SceneManager.LoadScene(Constants.SceneNames.Fase0);
-    }
+    SceneManager.LoadScene(Constants.SceneNames.FirstLevel);
+  }
 
-    public void ContinueGame(int slotIndex)
-    {
-        DataDirector.Instance.SetCurrentSlot(slotIndex);
+  public void ContinueGame(int slotIndex)
+  {
+    DataDirector.Instance.SetCurrentSlot(slotIndex);
 
-        string lastLevel = DataDirector.Instance.GetLastLevelName(slotIndex);
+    string lastLevel = DataDirector.Instance.GetLastLevelName(slotIndex);
 
-        if (string.IsNullOrEmpty(lastLevel))
-            lastLevel = Constants.SceneNames.Fase0;
+    if (string.IsNullOrEmpty(lastLevel))
+      lastLevel = Constants.SceneNames.FirstLevel;
 
-        SceneManager.LoadScene(lastLevel);
-    }
+    SceneManager.LoadScene(lastLevel);
+  }
 }
