@@ -5,6 +5,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Processors;
 using UnityEngine.SceneManagement;
 using static TutorialGlobal;
 
@@ -173,9 +174,6 @@ public class Player : CombatEntities
   [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
   [SerializeField, Min(10)]
   private float enemyScanRadius = 10;
-
-  [SerializeField, Min(1)]
-  private float enemyScanInterval = 2.0f;
   #endregion
 
   #region === Interação ===
@@ -183,6 +181,10 @@ public class Player : CombatEntities
   private Camera selectedcamera = null;
   private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
   #endregion
+
+  [Header("Inverter Y Camera")]
+  [SerializeField]
+  private bool _willInvertYAxis = false;
 
   #region === Inventário ===
   private readonly Inventory _inventory = new();
@@ -263,7 +265,7 @@ public class Player : CombatEntities
 
     if (DashHudScript == null)
     {
-      var go = GameObject.FindWithTag("DashHUDIcon");
+      GameObject go = GameObject.FindWithTag("DashHUDIcon");
       if (go)
         DashHudScript = go.GetComponent<ShiftDashScript>();
       else
@@ -271,6 +273,9 @@ public class Player : CombatEntities
           "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag."
         );
     }
+
+    InputAction lookAction = InputSystem.actions.FindAction("Look");
+    lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
 
     _cinemachineInput = CinemachineCamera.GetComponent<CinemachineInputAxisController>();
     _cinemachineOrbital = CinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
