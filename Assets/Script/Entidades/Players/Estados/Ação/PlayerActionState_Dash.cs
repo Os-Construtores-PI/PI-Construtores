@@ -12,6 +12,10 @@ public class PlayerActionStateDash : IState<Player>
   private float _initialDashSpeed;
   private float _initialDashDistance;
   private bool _firstTime;
+  private float _minDashSpeed = 30f;
+  private float _maxDashSpeed = 60f;
+  private float _maxReferenceDistance = 20f;
+  private float _speedExponent = 0.1f; // <1 = sobe rápido, 1 = linear
 
   public ActionType Type => ActionType.Dash;
 
@@ -40,17 +44,17 @@ public class PlayerActionStateDash : IState<Player>
     {
       Vector3 distanceToTarget = player.LockedTarget.transform.position - player.transform.position;
 
-      // Verifica threshold para evitar dash parado
       if (distanceToTarget.magnitude < _distanceThresold)
       {
         player.DashDirection = Vector3.zero;
         player.DashDistance = 0;
-        // Opcional: Aqui você pode decidir se quer sair imediatamente ou apenas fazer um dash nulo
       }
       else
       {
+        float dist = distanceToTarget.magnitude;
         player.DashDirection = distanceToTarget.normalized;
-        player.DashDistance = distanceToTarget.magnitude;
+        player.DashDistance = dist;
+        player.DashSpeed = ComputeDashSpeed(dist);
       }
     }
     else
@@ -124,6 +128,12 @@ public class PlayerActionStateDash : IState<Player>
       .SetEase(Ease.InOutSine)
       .SetUpdate(UpdateType.Fixed)
       .Play();
+  }
+
+  private float ComputeDashSpeed(float distance)
+  {
+    float t = Mathf.Clamp01(distance / _maxReferenceDistance);
+    return _minDashSpeed + (_maxDashSpeed - _minDashSpeed) * Mathf.Pow(t, _speedExponent);
   }
 
   private void ExitTimer(Player player)
