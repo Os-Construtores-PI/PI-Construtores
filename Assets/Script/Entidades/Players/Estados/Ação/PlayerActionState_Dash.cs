@@ -81,7 +81,11 @@ public class PlayerActionStateDash : IState<Player>
     player.CanDash = false;
 
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
-    player.MovementVector = new Vector3(player.MovementVector.x, 0, player.MovementVector.z);
+    player.MovementVector = new Vector3(
+      player.MovementVector.x,
+      player.MovementVector.y,
+      player.MovementVector.z
+    );
     player.CurrentDashCount += 1;
     player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
