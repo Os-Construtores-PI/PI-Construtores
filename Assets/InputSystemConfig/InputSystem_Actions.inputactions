@@ -34,6 +34,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "GroundSlamAttack",
+                    "type": "Button",
+                    "id": "c6825dfe-1ee5-4188-9243-c963704298d0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Attack",
                     "type": "Button",
                     "id": "6c2ab1b8-8984-453a-af3d-a3c78ae1679a",
@@ -136,15 +145,6 @@
                     "name": "ReturnDialogue",
                     "type": "Button",
                     "id": "b7ca1b4a-5fc3-407e-af4f-0251fa6f394e",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "LockInTarget",
-                    "type": "Button",
-                    "id": "4492dba5-39e1-4386-8a6b-25a8c05836fc",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -715,23 +715,23 @@
                 },
                 {
                     "name": "",
-                    "id": "1249c0f0-6633-40a2-beb9-7853368871f5",
-                    "path": "<Keyboard>/e",
+                    "id": "cbe4d592-d60d-4212-a1ad-0e2fa2a12038",
+                    "path": "<Gamepad>/buttonWest",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "LockInTarget",
+                    "groups": ";Gamepad",
+                    "action": "GroundSlamAttack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "d71b07c5-7cd6-4c3f-98ea-bfb0c8e27f53",
-                    "path": "<Gamepad>/leftShoulder",
+                    "id": "547fed3b-9bb9-4f71-8679-2c98e71d3a0d",
+                    "path": "<Mouse>/rightButton",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "LockInTarget",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "GroundSlamAttack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
