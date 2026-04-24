@@ -11,7 +11,7 @@ public class PlayerActionStateDash : IState<Player>
   private float _initialDashSpeed;
   private float _initialDashDistance;
   private bool _firstTime;
-  private float _minDashSpeed = 30f;
+  private float _minDashSpeed = 40f;
   private float _maxDashSpeed = 60f;
   private float _maxReferenceDistance = 20f;
   private float _speedExponent = 0.1f;
@@ -118,12 +118,13 @@ public class PlayerActionStateDash : IState<Player>
   {
     player.CanDash = true;
     player.IsDashing = false;
-    player.LocomotionLayer.ChangeState(new PlayerLocomotionStateAirborne(), player);
+    player.LocomotionLayer.ChangeState(player.AirborneS, player);
     player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
-
-    player.MovementVector += player.DashDirection * player.DashSpeed;
+    Vector3 postDash =
+      new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
+    player.MovementVector += postDash;
 
     ResetDashHUD(player.DashHudScript);
   }
