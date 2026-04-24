@@ -94,33 +94,20 @@ public class Player : CombatEntities
   public InputType _ultimoDispositivo = InputType.Keyboard;
   #endregion
 
-  #region === Overrides ===
-  public bool OverrideGlobal { get; set; } = false;
-  public bool OverrideHorizontal { get; set; } = false;
-  public bool OverrideVertical { get; set; } = false;
-  public float GlobalOverride { get; set; } = 0f;
-  public float VerticalOverride { get; set; } = 0f;
-  #endregion
-
   #region === Estados Internos ===
-  public StateMachine<Player> HorizontalLayer;
-  public StateMachine<Player> VerticalLayer;
+  public StateMachine<Player> LocomotionLayer;
   public StackStateMachine<Player> ActionLayer;
 
   //!: Action
-  internal PlayerActionStateIdle _idleActionS = new();
-  internal PlayerActionStateDash _dashActionS = new();
-  internal PlayerActionStateInteraction _interactionActionS = new();
-  internal PlayerActionStateWallSliding _wallSlidingActionS = new();
+  private PlayerActionStateIdle _idleActionS = new();
+  private PlayerActionStateDash _dashActionS = new();
+  private PlayerActionStateInteraction _interactionActionS = new();
+  private PlayerActionStateWallSliding _wallSlidingActionS = new();
 
-  //!: Horizontal
-  internal PlayerHorizontalStateIdle _idleHorizontalS = new();
-  internal PlayerHorizontalStateMoviment _movementHorizontalS = new();
-
-  //!: Vertical
-  internal PlayerGroundedState _groundedVerticalS = new();
-  internal PlayerFallingState _fallingVerticalS = new();
-  internal PlayerJumpingState _jumpingVerticalS = new();
+  // !: Locomotion
+  private PlayerLocomotionStateGrounded _groundedState = new();
+  private PlayerLocomotionStateAirborne _airborneState = new();
+  private PlayerLocomotionStateLocked _lockedState = new();
 
   internal Vector3 MovementVector;
   internal Vector3 Direction;
@@ -155,10 +142,11 @@ public class Player : CombatEntities
     set => _canDash = value;
   }
 
-  internal bool IsDashing = false;
-  internal float _dashCount = 1;
-  internal float CurrentDashCount = 0;
-  internal float DashDuration;
+  public bool IsDashing = false;
+  public bool JumpInputPressed = false;
+  private float _dashCount = 1;
+  public float CurrentDashCount = 0;
+  public float DashDuration;
   #endregion
 
   #region === Flags de Contexto ===
@@ -251,8 +239,7 @@ public class Player : CombatEntities
     PlayerInput = GetComponent<PlayerInput>();
     DetectarDispositivo(PlayerInput);
 
-    VerticalLayer = new(_fallingVerticalS, this);
-    HorizontalLayer = new(_idleHorizontalS, this);
+    LocomotionLayer = new(_groundedState, this);
     ActionLayer = new(_idleActionS, this);
   }
 
@@ -380,8 +367,7 @@ public class Player : CombatEntities
     if (_willUpdateLockOverlay)
       UpdateLockOnOverlayTarget();
 
-    VerticalLayer.Update(this);
-    HorizontalLayer.Update(this);
+    LocomotionLayer.Update(this);
     ActionLayer.Update(this);
   }
 
@@ -401,8 +387,7 @@ public class Player : CombatEntities
     );
     AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
 
-    HorizontalLayer.FixedUpdate(this);
-    VerticalLayer.FixedUpdate(this);
+    LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
 
     CharacterController.Move(MovementVector * Time.deltaTime);
@@ -417,7 +402,6 @@ public class Player : CombatEntities
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
-    Move();
   }
 
   public void LockCamera(bool state) => CameraLocked = state;
@@ -570,17 +554,6 @@ public class Player : CombatEntities
   #endregion
 
   #region === Movimento & Pulo ===
-  private void Move()
-  {
-    if (
-      CinemachineCamera == null
-      || OverrideGlobal
-      || OverrideHorizontal
-      || HorizontalLayer.CurrentState is PlayerActionStateDash
-    )
-      return;
-    HorizontalLayer.ChangeState(_movementHorizontalS, this);
-  }
 
   private void Jump()
   {
@@ -591,21 +564,10 @@ public class Player : CombatEntities
       if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
         return;
     }
-
-    if (OverrideGlobal)
-      return;
-
-    if (TouchingWall)
+    if (CurrentJumpCount < MaxJumpCount)
     {
-      VerticalLayer.ChangeState(_jumpingVerticalS, this);
-      return;
+      JumpInputPressed = true;
     }
-
-    if (OverrideVertical)
-      return;
-    if (!(IsGrounded || CurrentJumpCount < MaxJumpCount))
-      return;
-    VerticalLayer.ChangeState(_jumpingVerticalS, this);
   }
   #endregion
 
@@ -658,7 +620,7 @@ public class Player : CombatEntities
 
   [Header("WALL EXIT")]
   #region === WALLRUNNING ===
-  internal float WallExitDuration = .2f;
+  internal float WallExitDuration =  .2f;
   #endregion
 
   #region === HUD & Feedback ===
