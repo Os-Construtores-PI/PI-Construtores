@@ -81,11 +81,6 @@ public class PlayerActionStateDash : IState<Player>
     player.CanDash = false;
 
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
-    player.MovementVector = new Vector3(
-      player.MovementVector.x,
-      player.MovementVector.y,
-      player.MovementVector.z
-    );
     player.CurrentDashCount += 1;
     player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
@@ -145,11 +140,11 @@ public class PlayerActionStateDash : IState<Player>
 
   private void ExitTimer(Player player)
   {
-    if (timeToExitWalker < timeToExit)
+    if (timeToExitWalker < timeToExit && player.IsDashing)
     {
       timeToExitWalker += Time.fixedDeltaTime;
       player.CharacterController.Move(
-        player.DashDirection * player.DashSpeed * Time.fixedDeltaTime
+        player.DashSpeed * Time.fixedDeltaTime * player.DashDirection
       );
     }
     else

@@ -327,8 +327,9 @@ public abstract class Enemies : CombatEntities, ILockable
       {
         _canKnockback = false;
         player.CurrentDashCount = 0;
+        player.IsDashing = false;
         player.CurrentJumpCount = 0;
-        player.MovementVector += Vector3.up * KnockBackForce;
+        player.MovementVector = Vector3.up * KnockBackForce;
         _collider.enabled = false;
         _knockbackTimer.Start(_knockbackCooldown);
       }

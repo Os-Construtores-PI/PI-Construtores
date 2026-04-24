@@ -359,7 +359,6 @@ public class Player : CombatEntities
   public override void Update()
   {
     base.Update();
-    KnockbackTimer();
 
     if (Input.GetKeyDown(KeyCode.F1))
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -501,16 +500,7 @@ public class Player : CombatEntities
   #endregion
 
   #region === Lock in ===
-  private void ToggleLockIn()
-  {
-    if (_isLockOnActive)
-      DisableLockIn();
-    else if (_lastValidResult.success && _lockCandidate != null)
-    {
-      _isLockOnActive = true;
-      SetLockOn(_lockCandidate);
-    }
-  }
+
 
   private void SetLockOn(ILockable target)
   {
@@ -599,29 +589,8 @@ public class Player : CombatEntities
   #endregion
 
   #region === KNOCKBACK ===
-  private Vector3 _knockbackVelocity;
-  private readonly float _knockbackDuration = 0.2f;
-  private readonly Timer _knockbackTimer = new();
   private bool isKnockbackActive;
   internal bool IsDashBlocked;
-
-  public void ApplyKnockback(Vector3 direction, float force)
-  {
-    if (isKnockbackActive)
-      return;
-    _knockbackVelocity = direction * force;
-    _knockbackTimer.Start(_knockbackDuration);
-    isKnockbackActive = true;
-  }
-
-  private void KnockbackTimer()
-  {
-    if (!isKnockbackActive)
-      return;
-    transform.position += _knockbackVelocity * Time.deltaTime;
-    if (_knockbackTimer.Tick(Time.deltaTime))
-      isKnockbackActive = false;
-  }
 
   #endregion
 

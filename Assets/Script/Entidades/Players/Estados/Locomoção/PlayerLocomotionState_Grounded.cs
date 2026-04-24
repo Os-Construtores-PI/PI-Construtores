@@ -51,7 +51,7 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     if (timerStarted && (player.IsGrounded || exitTimer.Tick(Time.deltaTime)))
     {
       if (!player.IsGrounded)
-        player.LocomotionLayer.ChangeState(new PlayerLocomotionStateAirborne(), player);
+        player.LocomotionLayer.ChangeState(player.AirborneS, player);
       timerStarted = false;
     }
 
@@ -76,14 +76,14 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     }
     else
     {
-      move.y = player.JumpForce * multiplier;
+      move.y += player.JumpForce * multiplier;
     }
 
     player.CurrentJumpCount++;
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
     player.MovementVector = move;
 
-    // player.VerticalLayer.ChangeState(new PlayerLocomotionStateAirborne(), player);
+    player.LocomotionLayer.ChangeState(player.AirborneS, player);
   }
 
   private void HandleHorizontalMovement(Player player)

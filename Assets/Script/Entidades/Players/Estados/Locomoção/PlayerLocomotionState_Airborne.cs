@@ -22,14 +22,12 @@ public class PlayerLocomotionStateAirborne : IState<Player>
   {
     Vector3 move = player.MovementVector;
 
-    // 1. Gravidade
     float gravityMult = move.y > 0f ? player.GravityUpMultiplier : player.GravityDownMultiplier;
     move.y += player.GravityValue * gravityMult * Time.deltaTime;
     if (move.y < player.MaxFallSpeed)
       move.y = player.MaxFallSpeed;
     player.MovementVector = move;
 
-    // 2. Movimento Horizontal e Atrito
     if (player.MoveInput == Vector2.zero && !player.IsImpulsioned)
     {
       move.x = QualityOfLife.PlayerFriction(move.x, player.AirFriction, player.MoveInput);
@@ -41,9 +39,8 @@ public class PlayerLocomotionStateAirborne : IState<Player>
       ApplyAirMovement(player);
     }
 
-    // 3. Landing
     if (player.IsGrounded && player.MovementVector.y <= 0f)
-      player.LocomotionLayer.ChangeState(new PlayerLocomotionStateGrounded(), player);
+      player.LocomotionLayer.ChangeState(player.GroundedS, player);
   }
 
   private void ApplyAirJump(Player player)
