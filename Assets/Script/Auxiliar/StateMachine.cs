@@ -2,10 +2,15 @@ public class StateMachine<T>
 {
   public IState<T> CurrentState { get; private set; }
   public IState<T> DefaultState;
+  public IState<T> PreviousState;
 
   public void ChangeState(IState<T> newState, T entity)
   {
     CurrentState?.Exit(entity);
+    if (CurrentState != null)
+    {
+      PreviousState = CurrentState;
+    }
     CurrentState = newState;
     CurrentState.Enter(entity);
   }
