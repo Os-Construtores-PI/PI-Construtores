@@ -124,7 +124,7 @@ public class PlayerActionStateDash : IState<Player>
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
 
-    player.MovementVector = player.DashDirection * player.DashSpeed;
+    player.MovementVector += player.DashDirection * player.DashSpeed;
     ResetDashHUD(player.DashHudScript);
   }
 

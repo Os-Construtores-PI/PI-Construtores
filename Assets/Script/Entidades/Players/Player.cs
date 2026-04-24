@@ -99,15 +99,15 @@ public class Player : CombatEntities
   public StackStateMachine<Player> ActionLayer;
 
   //!: Action
-  private PlayerActionStateIdle _idleActionS = new();
-  private PlayerActionStateDash _dashActionS = new();
-  private PlayerActionStateInteraction _interactionActionS = new();
-  private PlayerActionStateWallSliding _wallSlidingActionS = new();
+  public PlayerActionStateIdle IdleAS = new();
+  public PlayerActionStateDash DashAS = new();
+  public PlayerActionStateInteraction InteractionAS = new();
+  public PlayerActionStateWallSliding WallSlidingAS = new();
 
   // !: Locomotion
-  private PlayerLocomotionStateGrounded _groundedState = new();
-  private PlayerLocomotionStateAirborne _airborneState = new();
-  private PlayerLocomotionStateLocked _lockedState = new();
+  public PlayerLocomotionStateGrounded GroundedS = new();
+  public PlayerLocomotionStateAirborne AirborneS = new();
+  public PlayerLocomotionStateLocked LockedS = new();
 
   internal Vector3 MovementVector;
   internal Vector3 Direction;
@@ -239,8 +239,8 @@ public class Player : CombatEntities
     PlayerInput = GetComponent<PlayerInput>();
     DetectarDispositivo(PlayerInput);
 
-    LocomotionLayer = new(_groundedState, this);
-    ActionLayer = new(_idleActionS, this);
+    LocomotionLayer = new(GroundedS, this);
+    ActionLayer = new(IdleAS, this);
   }
 
   public override void Start()
@@ -483,7 +483,7 @@ public class Player : CombatEntities
   public void OnInteract(InputAction.CallbackContext context)
   {
     if (InteractionObject && context.started)
-      ActionLayer.PushState(_interactionActionS, this);
+      ActionLayer.PushState(InteractionAS, this);
     GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(this);
   }
 
@@ -534,13 +534,20 @@ public class Player : CombatEntities
   {
     Vector3 scaleTarget = set ? Vector3.one : Vector3.zero;
     if (_lockOnOverlay.TryGetComponent(out RectTransform rect))
-      rect.DOScale(scaleTarget, .5f).SetEase(Ease.OutExpo);
+    {
+      rect.DOKill();
+      rect.DOScale(scaleTarget, 0.3f).SetEase(Ease.OutBack);
+    }
   }
 
   private void UpdateLockOnOverlayTarget()
   {
     if (LockedTarget != null)
-      _lockOnOverlay.transform.position = LockedTarget.transform.position;
+      _lockOnOverlay.transform.position = Vector3.Lerp(
+        _lockOnOverlay.transform.position,
+        LockedTarget.transform.position,
+        Time.deltaTime * 20f
+      );
   }
 
   public void DisableLockIn()
@@ -587,7 +594,7 @@ public class Player : CombatEntities
   {
     if (IsDashBlocked)
       return;
-    ActionLayer.PushState(_dashActionS, this);
+    ActionLayer.PushState(DashAS, this);
   }
   #endregion
 
@@ -620,7 +627,7 @@ public class Player : CombatEntities
 
   [Header("WALL EXIT")]
   #region === WALLRUNNING ===
-  internal float WallExitDuration =  .2f;
+  internal float WallExitDuration = .2f;
   #endregion
 
   #region === HUD & Feedback ===
@@ -668,7 +675,7 @@ public class Player : CombatEntities
     {
       if (hit.HasValue)
       {
-        ActionLayer.PushState(_wallSlidingActionS, this);
+        ActionLayer.PushState(WallSlidingAS, this);
         LastWallNormal = hit.Value.normal;
       }
       else
@@ -724,7 +731,7 @@ public class Player : CombatEntities
     if (!scanResult.Item1)
     {
       ClearInteractable();
-      DisableLockIn(); // ← estava faltando aqui
+      DisableLockIn();
       _lastValidResult = (false, default);
       return _lastValidResult;
     }
@@ -732,7 +739,7 @@ public class Player : CombatEntities
     RaycastHit hit = scanResult.Item2;
     if (hit.collider == null)
     {
-      DisableLockIn(); // ← e aqui
+      DisableLockIn();
       return (false, default);
     }
 
