@@ -17412,6 +17412,7 @@ Transform:
   - {fileID: 6707445767027251514}
   - {fileID: 529184069336429120}
   - {fileID: 5505974552461697953}
+  - {fileID: 4497387709796139413}
   - {fileID: 6230178497730834178}
   - {fileID: 2932571647651619521}
   - {fileID: 5752165528184936213}
@@ -17686,7 +17687,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 6754862074013953145}
         m_TargetAssemblyTypeName: Pandora, Assembly-CSharp
-        m_MethodName: OnLockInTarget
+        m_MethodName: OnGroundSlam
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -17696,8 +17697,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_ActionId: 4492dba5-39e1-4386-8a6b-25a8c05836fc
-    m_ActionName: 'Player/LockInTarget[/Keyboard/e]'
+    m_ActionId: c6825dfe-1ee5-4188-9243-c963704298d0
+    m_ActionName: 'Player/GroundSlamAttack[/Mouse/rightButton]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
@@ -17727,7 +17728,7 @@ MonoBehaviour:
         m_Calls: []
   combatCooldown: 5
   damagedCooldown: 2
-  _enableRegen: 1
+  _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
   _cameraTarget: {fileID: 6230178497730834178}
@@ -17735,15 +17736,20 @@ MonoBehaviour:
   CinemachineCamera: {fileID: 0}
   _cinemachineInput: {fileID: 0}
   _cinemachineOrbital: {fileID: 0}
-  HitboxCollider: {fileID: 8688263318238171917}
+  HurtboxCollider: {fileID: 7322801009794671605}
+  DashHitboxCollider: {fileID: 8688263318238171917}
+  GroundSlamHitboxCollider: {fileID: 5232564754573124142}
   AnimatorComponent: {fileID: 4498598552815147647}
   PlayerInput: {fileID: 4848141862502818215}
   _ultimoDispositivo: 0
   _modelTransform: {fileID: 6707445767027251514}
   IsGrounded: 0
+  IsDashing: 0
+  JumpInputPressed: 0
+  CurrentDashCount: 0
+  DashDuration: 0
   enemyScanRadius: 10
   _willInvertYAxis: 1
-  HurtboxCollider: {fileID: 7322801009794671605}
   _lockOnOverlay: {fileID: 3819866683035594381}
   InteractionObject: {fileID: 0}
   CanAttack: 1
@@ -24497,7 +24503,7 @@ GameObject:
   - component: {fileID: 6507626406025360012}
   - component: {fileID: 8688263318238171917}
   m_Layer: 10
-  m_Name: Hitbox
+  m_Name: DashHitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24548,7 +24554,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
@@ -24796,6 +24802,73 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.003818697, y: -0.012314192, z: -0.0067497203}
     m_Extent: {x: 0.0038574089, y: 0.0032761209, z: 0.004116282}
   m_DirtyAABB: 0
+--- !u!1 &7217908771197044832
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4497387709796139413}
+  - component: {fileID: 5232564754573124142}
+  - component: {fileID: 6841662986189966198}
+  m_Layer: 10
+  m_Name: GroundSlamHitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4497387709796139413
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7217908771197044832}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8092701047622248497}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &5232564754573124142
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7217908771197044832}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 4, y: 1, z: 4}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6841662986189966198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7217908771197044832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  _maxDamage: 20
 --- !u!1 &7256292780021304885
 GameObject:
   m_ObjectHideFlags: 0

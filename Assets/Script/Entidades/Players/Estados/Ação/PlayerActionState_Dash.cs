@@ -31,10 +31,10 @@ public class PlayerActionStateDash : IState<Player>
       _firstTime = true;
     }
 
-    player.LocomotionLayer.ChangeState(new PlayerLocomotionStateLocked(), player);
+    player.LocomotionLayer.ChangeState(player.LockedS, player);
     player.HurtboxCollider.CanTakeDamage = false;
     player.HurtboxCollider.DamageCooldown = _disableDamageCooldown;
-    player.HitboxCollider.enabled = true;
+    player.DashHitboxCollider.enabled = true;
 
     Vector3 targetDir = Vector3.zero;
 
@@ -119,7 +119,7 @@ public class PlayerActionStateDash : IState<Player>
     player.CanDash = true;
     player.IsDashing = false;
     player.LocomotionLayer.ChangeState(new PlayerLocomotionStateAirborne(), player);
-    player.HitboxCollider.enabled = false;
+    player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
 

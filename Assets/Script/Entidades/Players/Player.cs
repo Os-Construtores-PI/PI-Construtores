@@ -80,8 +80,10 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public CinemachineOrbitalFollow _cinemachineOrbital;
+  public HurtboxComponent HurtboxCollider;
   protected Camera _myCamera;
-  public Collider HitboxCollider;
+  public Collider DashHitboxCollider;
+  public Collider GroundSlamHitboxCollider;
 
   public void SetCamera(CinemachineCamera cincam, Camera camera)
   {
@@ -103,6 +105,7 @@ public class Player : CombatEntities
   public PlayerActionStateDash DashAS = new();
   public PlayerActionStateInteraction InteractionAS = new();
   public PlayerActionStateWallSliding WallSlidingAS = new();
+  public PlayerActionStateGroundSlam GroundSlamAS = new();
 
   // !: Locomotion
   public PlayerLocomotionStateGrounded GroundedS = new();
@@ -150,7 +153,6 @@ public class Player : CombatEntities
   #endregion
 
   #region === Flags de Contexto ===
-  // Flags que antes viviam só no PlayerContext
   public bool CameraLocked { get; set; } = false;
   public bool IsHardLocked { get; set; } = false;
   public bool IgnoreGameplayInputThisFrame { get; set; } = false;
@@ -180,17 +182,12 @@ public class Player : CombatEntities
   #endregion
 
   #region  === Knockback ===
-  public HurtboxComponent HurtboxCollider;
   #endregion
 
   #region === Scanner ===
   private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
-  #endregion
-
-  #region === WallSlide ===
-  private readonly float wallScanInterval = .05f;
   #endregion
 
   #region === Events ===
@@ -269,7 +266,6 @@ public class Player : CombatEntities
 
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-    TickDirector.Instance.OnTick.AddListener(_ => ScanWithCamera());
 
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
     {
@@ -368,6 +364,7 @@ public class Player : CombatEntities
 
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+    ScanWithCamera();
   }
 
   public void FixedUpdate()
@@ -409,6 +406,14 @@ public class Player : CombatEntities
   {
     if (context.started && _canDash && CurrentDashCount < _dashCount)
       StartDash();
+  }
+
+  public void OnGroundSlam(InputAction.CallbackContext context)
+  {
+    if (context.started && !IsGrounded)
+    {
+      ActionLayer.PushState(GroundSlamAS, this);
+    }
   }
 
   public void OnRunning(InputAction.CallbackContext context)
@@ -526,7 +531,7 @@ public class Player : CombatEntities
     if (_lockOnOverlay.TryGetComponent(out RectTransform rect))
     {
       rect.DOKill();
-      rect.DOScale(scaleTarget, 0.3f).SetEase(Ease.OutBack);
+      rect.DOScale(scaleTarget, 0.15f).SetEase(Ease.OutBack);
     }
   }
 
