@@ -9,6 +9,7 @@ public class MenuAudioManager : MonoBehaviour
   [Header("Sources")]
   [SerializeField] private AudioSource musicSource;
   [SerializeField] private AudioSource sfxSource;
+  [SerializeField] private AudioSource ambientSource;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
 
   private void Awake()
