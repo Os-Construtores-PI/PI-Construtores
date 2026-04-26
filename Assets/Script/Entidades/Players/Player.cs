@@ -410,7 +410,7 @@ public class Player : CombatEntities
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {
-    if (context.started && !IsGrounded)
+    if (context.performed && !IsGrounded)
     {
       ActionLayer.PushState(GroundSlamAS, this);
     }
