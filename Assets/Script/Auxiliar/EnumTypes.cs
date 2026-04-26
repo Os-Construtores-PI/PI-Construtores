@@ -76,6 +76,7 @@ public enum ActionType
   Attack,
   Slide,
   Interact,
+  GroundSlam,
 }
 
 public enum InputType

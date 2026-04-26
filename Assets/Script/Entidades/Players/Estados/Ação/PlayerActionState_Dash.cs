@@ -17,7 +17,7 @@ public class PlayerActionStateDash : IState<Player>
   private float _speedExponent = 0.1f;
 
   public ActionType Type => ActionType.Dash;
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
 
   public void Enter(Player player)
   {

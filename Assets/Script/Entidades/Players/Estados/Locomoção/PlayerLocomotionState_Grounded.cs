@@ -5,8 +5,8 @@ using UnityEngine;
 public class PlayerLocomotionStateGrounded : IState<Player>
 {
   // ─── IState ───────────────────────────────────────────────────────────────
-  public ActionType Type => ActionType.Move;
-  public HashSet<ActionType> IncompatibleActions => new();
+  public ActionType Type => ActionType.GroundSlam;
+  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.Dash } };
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
@@ -21,14 +21,12 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   [Header("Bounce Settings")]
   private const float BounceWindowDuration = 0.4f; // janela após pousar
   private const int MaxBounceCombo = 3; // máximo de stacks
-  private const float MaxBounceMultiplier = 2f; // multiplicador no topo
   private const float BounceFrontImpulse = 20;
+  private readonly float[] BounceMultipliers = { 1f, 1.4f, 1.8f, 2.4f };
 
   private int _bounceCombo = 0;
   private float _bounceWindowLeft = 0f;
   private bool _justLanded = false;
-
-  // ──────────────────────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
@@ -158,18 +156,10 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     player.LocomotionLayer.ChangeState(player.AirborneS, player);
   }
 
-  /// <summary>
-  /// Retorna um multiplicador entre 1 e <see cref="MaxBounceMultiplier"/>
-  /// usando uma curva suave baseada no combo acumulado.
-  /// </summary>
   private float CalculateBounceMultiplier(int combo)
   {
-    if (combo <= 0)
-      return 1f;
-
-    float t = (float)combo / MaxBounceCombo; // 0..1
-    float smooth = t * t * (3f - 2f * t); // SmoothStep
-    return Mathf.Lerp(1f, MaxBounceMultiplier, smooth);
+    combo = Mathf.Clamp(combo, 0, MaxBounceCombo);
+    return BounceMultipliers[combo];
   }
 
   // ─── Horizontal Movement ──────────────────────────────────────────────────
