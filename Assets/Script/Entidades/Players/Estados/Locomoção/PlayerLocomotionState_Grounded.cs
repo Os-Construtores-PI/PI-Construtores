@@ -4,91 +4,179 @@ using UnityEngine;
 
 public class PlayerLocomotionStateGrounded : IState<Player>
 {
+  // ─── IState ───────────────────────────────────────────────────────────────
   public ActionType Type => ActionType.Move;
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new();
 
-  private readonly Timer exitTimer = new();
-  private bool timerStarted = false;
-  private readonly float exitInterval = .3f;
+  // ─── Coyote Time ──────────────────────────────────────────────────────────
+  private readonly Timer _coyoteTimer = new();
+  private bool _coyoteStarted = false;
+  private const float CoyoteInterval = 0.3f;
 
-  private readonly Dictionary<bool, float> _speeds = new();
-  private readonly Dictionary<bool, float> _accelerations = new();
+  // ─── Movement ─────────────────────────────────────────────────────────────
+  private Dictionary<bool, float> _speeds;
+  private Dictionary<bool, float> _accelerations;
+
+  // ─── Bounce Combo ─────────────────────────────────────────────────────────
+  [Header("Bounce Settings")]
+  private const float BounceWindowDuration = 0.4f; // janela após pousar
+  private const int MaxBounceCombo = 3; // máximo de stacks
+  private const float MaxBounceMultiplier = 2f; // multiplicador no topo
+  private const float BounceFrontImpulse = 20;
+
+  private int _bounceCombo = 0;
+  private float _bounceWindowLeft = 0f;
+  private bool _justLanded = false;
+
+  // ──────────────────────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
-    _speeds[false] = player.Speed;
-    _speeds[true] = player.RunningSpeed;
-    _accelerations[false] = player.Acceleration;
-    _accelerations[true] = player.AccelerationRunning;
+    _speeds = new Dictionary<bool, float> { [false] = player.Speed, [true] = player.RunningSpeed };
+
+    _accelerations = new Dictionary<bool, float>
+    {
+      [false] = player.Acceleration,
+      [true] = player.AccelerationRunning,
+    };
 
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
     player.IsImpulsioned = false;
 
-    Vector3 move = player.MovementVector;
+    // Marca que acabou de pousar para abrir a janela de bounce
+    _justLanded = true;
+    _bounceWindowLeft = BounceWindowDuration;
+
+    var move = player.MovementVector;
     move.y = -1f;
     player.MovementVector = move;
   }
 
-  public void Exit(Player player) => exitTimer.Stop();
+  public void Exit(Player player)
+  {
+    _coyoteTimer.Stop();
+    _justLanded = false;
+  }
 
   public void Update(Player player)
   {
+    // Tick da janela de bounce
+    if (_bounceWindowLeft > 0f)
+      _bounceWindowLeft -= Time.deltaTime;
+
     if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
-    {
       ExecuteJump(player);
-    }
   }
 
   public void FixedUpdate(Player player)
   {
-    if (!player.IsGrounded && !timerStarted)
-    {
-      exitTimer.Start(exitInterval);
-      timerStarted = true;
-    }
-
-    if (timerStarted && (player.IsGrounded || exitTimer.Tick(Time.deltaTime)))
-    {
-      if (!player.IsGrounded)
-        player.LocomotionLayer.ChangeState(player.AirborneS, player);
-      timerStarted = false;
-    }
-
+    HandleCoyoteTime(player);
     HandleHorizontalMovement(player);
   }
 
+  // ─── Coyote Time ──────────────────────────────────────────────────────────
+
+  private void HandleCoyoteTime(Player player)
+  {
+    if (!player.IsGrounded && !_coyoteStarted)
+    {
+      _coyoteTimer.Start(CoyoteInterval);
+      _coyoteStarted = true;
+    }
+
+    if (!_coyoteStarted)
+      return;
+
+    bool timerExpired = _coyoteTimer.Tick(Time.deltaTime);
+
+    if (player.IsGrounded)
+    {
+      // Pousou de volta — abre janela de bounce
+      if (!_justLanded)
+      {
+        _justLanded = true;
+        _bounceWindowLeft = BounceWindowDuration;
+      }
+      _coyoteStarted = false;
+    }
+    else if (timerExpired)
+    {
+      // Saiu da plataforma sem pular
+      _bounceCombo = 0;
+      _coyoteStarted = false;
+      player.LocomotionLayer.ChangeState(player.AirborneS, player);
+    }
+  }
+
+  // ─── Jump ─────────────────────────────────────────────────────────────────
+
   private void ExecuteJump(Player player)
   {
-    Vector3 move = player.MovementVector;
+    var move = player.MovementVector;
     player.JumpInputPressed = false;
-    if (player.CurrentJumpCount != 0)
+
+    // ── Bounce Combo ──────────────────────────────────────────────────────
+    if (_justLanded && _bounceWindowLeft > 0f)
+    {
+      _bounceCombo = Mathf.Min(_bounceCombo + 1, MaxBounceCombo);
+    }
+    else
+    {
+      _bounceCombo = 0;
+    }
+    _justLanded = false;
+
+    float bounceMultiplier = CalculateBounceMultiplier(_bounceCombo);
+
+    // ── Double Jump ───────────────────────────────────────────────────────
+    if (player.CurrentJumpCount > 0)
       player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
-    float multiplier = 1 + (player.CurrentJumpCount * 0.35f);
+    float jumpMultiplier = (1 + player.CurrentJumpCount * 0.35f) * bounceMultiplier;
 
+    // ── Wall Jump ─────────────────────────────────────────────────────────
     if (player.TouchingWall)
     {
-      float horizontalBias = 6.5f;
-      Vector3 jumpDir = (Vector3.up + player.LastWallNormal * horizontalBias).normalized;
+      const float horizontalBias = 6.5f;
+      var jumpDir = (Vector3.up + player.LastWallNormal * horizontalBias).normalized;
       move = player.JumpForce * player.WallJumpMultiplier * jumpDir;
       player.TouchingWall = false;
     }
     else
     {
-      move.y += player.JumpForce * multiplier;
+      if (bounceMultiplier > 1)
+      {
+        move += player.transform.forward * BounceFrontImpulse;
+      }
+      move.y += player.JumpForce * jumpMultiplier;
     }
 
     player.CurrentJumpCount++;
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
     player.MovementVector = move;
-
     player.LocomotionLayer.ChangeState(player.AirborneS, player);
   }
 
+  /// <summary>
+  /// Retorna um multiplicador entre 1 e <see cref="MaxBounceMultiplier"/>
+  /// usando uma curva suave baseada no combo acumulado.
+  /// </summary>
+  private float CalculateBounceMultiplier(int combo)
+  {
+    if (combo <= 0)
+      return 1f;
+
+    float t = (float)combo / MaxBounceCombo; // 0..1
+    float smooth = t * t * (3f - 2f * t); // SmoothStep
+    return Mathf.Lerp(1f, MaxBounceMultiplier, smooth);
+  }
+
+  // ─── Horizontal Movement ──────────────────────────────────────────────────
+
   private void HandleHorizontalMovement(Player player)
   {
-    Vector3 move = player.MovementVector;
+    var move = player.MovementVector;
 
     if (player.MoveInput == Vector2.zero)
     {
@@ -98,10 +186,11 @@ public class PlayerLocomotionStateGrounded : IState<Player>
       return;
     }
 
-    Vector3 playerDirection = CalculateCameraDirection(player);
+    var direction = CalculateCameraDirection(player);
+
     player.transform.rotation = Quaternion.Slerp(
       player.transform.rotation,
-      Quaternion.LookRotation(playerDirection),
+      Quaternion.LookRotation(direction),
       10f * Time.deltaTime
     );
 
@@ -109,17 +198,19 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     float accel = _accelerations[player.IsRunning];
 
     player.MovementVector = new Vector3(
-      QualityOfLife.SmoothStepLerp(move.x, playerDirection.x * speed, accel),
+      QualityOfLife.SmoothStepLerp(move.x, direction.x * speed, accel),
       move.y,
-      QualityOfLife.SmoothStepLerp(move.z, playerDirection.z * speed, accel)
+      QualityOfLife.SmoothStepLerp(move.z, direction.z * speed, accel)
     );
   }
 
-  private Vector3 CalculateCameraDirection(Player player)
+  private static Vector3 CalculateCameraDirection(Player player)
   {
-    Vector3 camForward = player.CinemachineCamera.transform.forward;
-    Vector3 camRight = player.CinemachineCamera.transform.right;
+    var camForward = player.CinemachineCamera.transform.forward;
+    var camRight = player.CinemachineCamera.transform.right;
+
     camForward.y = camRight.y = 0f;
+
     return (
       camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
     ).normalized;
