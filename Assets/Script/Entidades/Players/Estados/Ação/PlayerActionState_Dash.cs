@@ -17,7 +17,7 @@ public class PlayerActionStateDash : IState<Player>
   private float _speedExponent = 0.1f;
 
   public ActionType Type => ActionType.Dash;
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
 
   public void Enter(Player player)
   {
@@ -33,7 +33,7 @@ public class PlayerActionStateDash : IState<Player>
 
     player.LocomotionLayer.ChangeState(player.LockedS, player);
     player.HurtboxCollider.CanTakeDamage = false;
-    player.HurtboxCollider.DamageCooldown = _disableDamageCooldown;
+    player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
     player.DashHitboxCollider.enabled = true;
 
     Vector3 targetDir = Vector3.zero;

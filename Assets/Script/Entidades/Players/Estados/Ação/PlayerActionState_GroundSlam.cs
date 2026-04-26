@@ -7,9 +7,12 @@ public class PlayerActionStateGroundSlam : IState<Player>
   public HashSet<ActionType> IncompatibleActions => new() { };
   public int Priority => 0;
 
+  private bool _deactivated = false;
+
   public void Enter(Player player)
   {
     player.LocomotionLayer.ChangeState(player.LockedS, player);
+    _deactivated = false;
   }
 
   public void Update(Player player) { }
@@ -21,10 +24,11 @@ public class PlayerActionStateGroundSlam : IState<Player>
       player.MovementVector = Vector3.down * 75;
       player.GroundSlamHitboxCollider.enabled = true;
     }
-    else
+    else if (!_deactivated)
     {
+      _deactivated = true;
       player.LocomotionLayer.ChangeState(player.GroundedS, player);
-      player.ActionLayer.PopState(player);
+      player.ActionLayer.PopStateDeferred(player);
     }
   }
 
