@@ -22004,6 +22004,8 @@ GameObject:
   m_Component:
   - component: {fileID: 627442846}
   - component: {fileID: 627442847}
+  - component: {fileID: 627442848}
+  - component: {fileID: 627442849}
   m_Layer: 0
   m_Name: DJManager
   m_TagString: Untagged
@@ -22037,7 +22039,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: b8eeed6c2b5757b4e840d6832e776dc5, type: 3}
+  m_Resource: {fileID: 8300000, guid: 22abdec9682f257418221d29e68d99cd, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.3
   m_Pitch: 1.05
@@ -22123,6 +22125,34 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &627442848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627442845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19b9dcce83f0a0846aa4a1ee2cb7084b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  musicSource: {fileID: 0}
+  sfxSource: {fileID: 0}
+  ambientSource: {fileID: 627442847}
+--- !u!114 &627442849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627442845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8ac55887f59c354ca8bf31bbcf3aa7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmbientController
+  _somAmbiente: {fileID: 11400000, guid: b345255c5a314294197b3779d1faaa04, type: 2}
 --- !u!1 &627599128
 GameObject:
   m_ObjectHideFlags: 0

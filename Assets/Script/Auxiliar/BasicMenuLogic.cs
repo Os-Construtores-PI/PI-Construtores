@@ -21,14 +21,14 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === MENU PAUSE ===
   public void OpenOptions()
   {
-    //AudioManager.Instance.PlaySFX(somMenu.click); // abrir options
     GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.Invoke(true);
+    AudioManager.Instance.PlaySFX(somMenu.click); // abrir options
   }
 
   public void ContinueGame()
   {
-    AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+    AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
   }
 
   
@@ -38,7 +38,6 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === COMUNS ===
   public void ExitToMainMenu()
   {
-    AudioManager.Instance.PlaySFX(somMenu.back);
 
     Time.timeScale = 1f;
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
@@ -46,6 +45,8 @@ public class BasicMenuLogic : MonoBehaviour
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();
     SceneManager.LoadScene(Constants.SceneNames.MainMenu);
+    
+    AudioManager.Instance.PlaySFX(somMenu.back);
   }
   #endregion
 }
