@@ -27,7 +27,7 @@ public class BasicMenuLogic : MonoBehaviour
 
   public void ContinueGame()
   {
-   // AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
+    AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
   }
 
@@ -38,7 +38,7 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === COMUNS ===
   public void ExitToMainMenu()
   {
-    //AudioManager.Instance.PlaySFX(somMenu.back);
+    AudioManager.Instance.PlaySFX(somMenu.back);
 
     Time.timeScale = 1f;
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
