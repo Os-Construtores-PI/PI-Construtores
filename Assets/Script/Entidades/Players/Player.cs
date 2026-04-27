@@ -404,7 +404,7 @@ public class Player : CombatEntities
 
   public void OnDash(InputAction.CallbackContext context)
   {
-    if (context.started && _canDash && CurrentDashCount < _dashCount)
+    if (context.performed && _canDash && CurrentDashCount < _dashCount)
       StartDash();
   }
 
@@ -528,21 +528,18 @@ public class Player : CombatEntities
   private void SetVisibilityLockOnOverlay(bool set)
   {
     Vector3 scaleTarget = set ? Vector3.one : Vector3.zero;
+    float scaleDuration = set ? 0.15f : 0f;
     if (_lockOnOverlay.TryGetComponent(out RectTransform rect))
     {
       rect.DOKill();
-      rect.DOScale(scaleTarget, 0.15f).SetEase(Ease.OutBack);
+      rect.DOScale(scaleTarget, scaleDuration).SetEase(Ease.OutBack);
     }
   }
 
   private void UpdateLockOnOverlayTarget()
   {
     if (LockedTarget != null)
-      _lockOnOverlay.transform.position = Vector3.Lerp(
-        _lockOnOverlay.transform.position,
-        LockedTarget.transform.position,
-        Time.deltaTime * 20f
-      );
+      _lockOnOverlay.transform.position = LockedTarget.transform.position;
   }
 
   public void DisableLockIn()
@@ -566,9 +563,23 @@ public class Player : CombatEntities
       if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
         return;
     }
-    if (CurrentJumpCount < MaxJumpCount)
+
+    RaycastHit[] results = new RaycastHit[1];
+    int hitCount = Physics.RaycastNonAlloc(
+      new(transform.position, Vector3.down),
+      results,
+      LayerMask.GetMask("Default", "Ground")
+    );
+    float downwardsVelocity = CharacterController.velocity.y;
+    for (int i = 0; i < hitCount; i++)
     {
-      JumpInputPressed = true;
+      float distanceToGround = results[i].distance;
+      float timeToReach = Mathf.Abs(distanceToGround / downwardsVelocity);
+      print(timeToReach);
+      if (timeToReach <= 0.5f || timeToReach >= 2f)
+      {
+        JumpInputPressed = true;
+      }
     }
   }
   #endregion
