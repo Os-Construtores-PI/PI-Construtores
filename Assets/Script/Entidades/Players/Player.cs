@@ -121,7 +121,7 @@ public class Player : CombatEntities
   internal Vector3 LastWallNormal;
   public Transform _modelTransform;
 
-  internal int CurrentJumpCount;
+  internal int CurrentJumpCount = 0;
 
   [SerializeField]
   internal bool IsGrounded;
@@ -404,7 +404,7 @@ public class Player : CombatEntities
 
   public void OnDash(InputAction.CallbackContext context)
   {
-    if (context.started && _canDash && CurrentDashCount < _dashCount)
+    if (context.performed && _canDash && CurrentDashCount < _dashCount)
       StartDash();
   }
 
@@ -528,21 +528,18 @@ public class Player : CombatEntities
   private void SetVisibilityLockOnOverlay(bool set)
   {
     Vector3 scaleTarget = set ? Vector3.one : Vector3.zero;
+    float scaleDuration = set ? 0.15f : 0f;
     if (_lockOnOverlay.TryGetComponent(out RectTransform rect))
     {
       rect.DOKill();
-      rect.DOScale(scaleTarget, 0.15f).SetEase(Ease.OutBack);
+      rect.DOScale(scaleTarget, scaleDuration).SetEase(Ease.OutBack);
     }
   }
 
   private void UpdateLockOnOverlayTarget()
   {
     if (LockedTarget != null)
-      _lockOnOverlay.transform.position = Vector3.Lerp(
-        _lockOnOverlay.transform.position,
-        LockedTarget.transform.position,
-        Time.deltaTime * 20f
-      );
+      _lockOnOverlay.transform.position = LockedTarget.transform.position;
   }
 
   public void DisableLockIn()
@@ -561,14 +558,40 @@ public class Player : CombatEntities
   {
     if (DialogueGlobal.Instance != null)
     {
-      if (DialogueGlobal.Instance.IsDialogueActive)
-        return;
-      if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
+      if (
+        DialogueGlobal.Instance.IsDialogueActive
+        || DialogueGlobal.Instance._bloquearJumpTemporariamente
+      )
         return;
     }
-    if (CurrentJumpCount < MaxJumpCount)
+
+    bool didHit = Physics.Raycast(
+      new Ray(transform.position, Vector3.down),
+      out RaycastHit hit,
+      Mathf.Infinity,
+      LayerMask.GetMask("Default", "Ground"),
+      QueryTriggerInteraction.Ignore
+    );
+
+    if (!didHit)
+      return;
+
+    float distanceToGround = hit.distance;
+    float currentVelocityY = CharacterController.velocity.y;
+    if (distanceToGround <= 1.1f || currentVelocityY > 0.01f)
     {
       JumpInputPressed = true;
+      return;
+    }
+    if (currentVelocityY < -0.01f)
+    {
+      float timeToReach = distanceToGround / Mathf.Abs(currentVelocityY);
+
+      if (timeToReach <= .2f)
+      {
+        CurrentJumpCount = 3;
+        JumpInputPressed = true;
+      }
     }
   }
   #endregion
