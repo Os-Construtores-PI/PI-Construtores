@@ -9,7 +9,7 @@ public class HurtboxComponent : MonoBehaviour
   [HideInInspector]
   public bool CanTakeDamage = true;
 
-  private float _damageCooldown = 1f; // Tempo entre danos consecutivos
+  private float _damageCooldown = 1f;
 
   private void Start()
   {
