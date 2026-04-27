@@ -28,6 +28,7 @@ public class PlayerActionStateGroundSlam : IState<Player>
     {
       _deactivated = true;
       player.LocomotionLayer.ChangeState(player.GroundedS, player);
+      player.JumpInputPressed = true;
       player.ActionLayer.PopStateDeferred(player);
     }
   }
