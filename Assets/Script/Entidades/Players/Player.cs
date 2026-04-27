@@ -121,7 +121,7 @@ public class Player : CombatEntities
   internal Vector3 LastWallNormal;
   public Transform _modelTransform;
 
-  internal int CurrentJumpCount;
+  internal int CurrentJumpCount = 0;
 
   [SerializeField]
   internal bool IsGrounded;
@@ -558,26 +558,38 @@ public class Player : CombatEntities
   {
     if (DialogueGlobal.Instance != null)
     {
-      if (DialogueGlobal.Instance.IsDialogueActive)
-        return;
-      if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
+      if (
+        DialogueGlobal.Instance.IsDialogueActive
+        || DialogueGlobal.Instance._bloquearJumpTemporariamente
+      )
         return;
     }
 
-    RaycastHit[] results = new RaycastHit[1];
-    int hitCount = Physics.RaycastNonAlloc(
-      new(transform.position, Vector3.down),
-      results,
-      LayerMask.GetMask("Default", "Ground")
+    bool didHit = Physics.Raycast(
+      new Ray(transform.position, Vector3.down),
+      out RaycastHit hit,
+      Mathf.Infinity,
+      LayerMask.GetMask("Default", "Ground"),
+      QueryTriggerInteraction.Ignore
     );
-    float downwardsVelocity = CharacterController.velocity.y;
-    for (int i = 0; i < hitCount; i++)
+
+    if (!didHit)
+      return;
+
+    float distanceToGround = hit.distance;
+    float currentVelocityY = CharacterController.velocity.y;
+    if (distanceToGround <= 1.1f || currentVelocityY > 0.01f)
     {
-      float distanceToGround = results[i].distance;
-      float timeToReach = Mathf.Abs(distanceToGround / downwardsVelocity);
-      print(timeToReach);
-      if (timeToReach <= 0.5f || timeToReach >= 2f)
+      JumpInputPressed = true;
+      return;
+    }
+    if (currentVelocityY < -0.01f)
+    {
+      float timeToReach = distanceToGround / Mathf.Abs(currentVelocityY);
+
+      if (timeToReach <= .2f)
       {
+        CurrentJumpCount = 3;
         JumpInputPressed = true;
       }
     }

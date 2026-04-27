@@ -21,7 +21,7 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   [Header("Bounce Settings")]
   private const float BounceWindowDuration = 0.4f; // janela após pousar
   private const int MaxBounceCombo = 3; // máximo de stacks
-  private const float BounceFrontImpulse = 20;
+  private const float BounceFrontImpulse = 30;
   private readonly float[] BounceMultipliers = { 1f, 1.4f, 1.8f, 2.4f };
 
   private int _bounceCombo = 0;
