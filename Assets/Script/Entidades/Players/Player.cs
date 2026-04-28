@@ -359,9 +359,6 @@ public class Player : CombatEntities
     if (Input.GetKeyDown(KeyCode.F1))
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 
-    if (_willUpdateLockOverlay)
-      UpdateLockOnOverlayTarget();
-
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
     ScanWithCamera();
@@ -513,33 +510,22 @@ public class Player : CombatEntities
 
     if (LockedTarget != null)
     {
-      _willUpdateLockOverlay = true;
       SetVisibilityLockOnOverlay(true);
       _isLockOnActive = true;
     }
     else
     {
       SetVisibilityLockOnOverlay(false);
-      _willUpdateLockOverlay = false;
       _isLockOnActive = false;
     }
   }
 
   private void SetVisibilityLockOnOverlay(bool set)
   {
-    Vector3 scaleTarget = set ? Vector3.one : Vector3.zero;
-    float scaleDuration = set ? 0.15f : 0f;
-    if (_lockOnOverlay.TryGetComponent(out RectTransform rect))
-    {
-      rect.DOKill();
-      rect.DOScale(scaleTarget, scaleDuration).SetEase(Ease.OutBack);
-    }
-  }
-
-  private void UpdateLockOnOverlayTarget()
-  {
-    if (LockedTarget != null)
-      _lockOnOverlay.transform.position = LockedTarget.transform.position;
+    Vector3 targetScreenPosition = set
+      ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
+      : Vector3.zero;
+    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.Invoke(ID, set, targetScreenPosition);
   }
 
   public void DisableLockIn()
@@ -698,9 +684,6 @@ public class Player : CombatEntities
     return true;
   }
 
-  [SerializeField]
-  private GameObject _lockOnOverlay;
-  private bool _willUpdateLockOverlay = false;
   public ILockable LockedTarget;
   private ILockable _lockCandidate;
   private RaycastHit _lastLockHit;
@@ -746,8 +729,7 @@ public class Player : CombatEntities
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
       {
-        if (LockedTarget != lockable)
-          SetLockOn(lockable);
+        SetLockOn(lockable);
 
         _lockCandidate = lockable;
         _lastLockHit = hit;

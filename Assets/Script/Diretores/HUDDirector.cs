@@ -9,23 +9,39 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
+/// <summary>
+/// Gerencia todos os elementos visuais do HUD, câmeras e painéis para cada jogador.
+/// Responde a eventos globais do jogo (morte, pausa, diálogo, teleporte, etc.).
+/// </summary>
 public class HudDirector : MonoBehaviour
 {
-  private static readonly WaitForSecondsRealtime WAITTELEPORTFADE = new(1f);
-  private const float WAITSHAKECAM = .25f;
-  private const float WAITRUNNINGSHAKECAM = .5f;
+  // ─── Constantes ────────────────────────────────────────────────────────────
 
+  private static readonly WaitForSecondsRealtime WAIT_TELEPORT_FADE = new(1f);
+  private const float WAIT_SHAKE_CAM = 0.25f;
+  private const float WAIT_RUNNING_SHAKE_CAM = 0.50f;
+
+  private const float PANEL_TWEEN_DURATION = 0.25f;
+  private const float PANEL_FADE_OPACITY = 0.8f;
+
+  // ─── Campos Serializados ────────────────────────────────────────────────────
+
+  [Header("Icons")]
   [SerializeField]
   private List<IconImage> icons = new();
 
+  // ─── Estado Interno ─────────────────────────────────────────────────────────
+
+  /// <summary>Mapa: playerID → (panelName → lista de GameObjects do painel)</summary>
   private readonly Dictionary<int, Dictionary<string, List<GameObject>>> canvasMap = new();
   private readonly Dictionary<int, TextMeshProUGUI> interactionTexts = new();
   private readonly Dictionary<int, Image> interactionImages = new();
-  private readonly Dictionary<int, Sprite> ogSprites = new();
-
+  private readonly Dictionary<int, Sprite> originalSprites = new();
   private readonly Dictionary<int, CameraLogic> playerCameras = new();
 
-  public CameraLogic GetCameraScript(int id) => playerCameras[id];
+  private Player _playerHudOwner;
+
+  // ─── Nomes de painéis válidos ───────────────────────────────────────────────
 
   private static readonly HashSet<string> ValidPanelNames = new()
   {
@@ -39,35 +55,33 @@ public class HudDirector : MonoBehaviour
     Constants.HudPanelNames.HealthBar,
     Constants.HudPanelNames.DashIcon,
     Constants.HudPanelNames.Cutscene,
+    Constants.HudPanelNames.LockOnOverlay,
   };
 
-  #region Unity Events
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Acesso Público
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public CameraLogic GetCameraScript(int id) => playerCameras[id];
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Unity Events
+  // ═══════════════════════════════════════════════════════════════════════════
+
   private void OnEnable()
   {
     if (!GlobalEventBus.HasInstance)
       return;
 
-    // SCANNER OBJETOS
     GlobalEventBus.Instance.OBJECTWASSEEN.AddListener(InteractionPopup);
-
-    // CINEMÁTICA
     GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.AddListener(TriggerCinematicBars);
-
-    //TELEPORTE
     GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.AddListener(TeleportFade);
-
-    // VIDA
     GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(DeathPanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPanel);
-
-    // ENDGAME
     GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(EndPanel);
-
-    // PAUSE
+    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.AddListener(SetLockOnVisibility);
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(PausePanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.AddListener(OptionsPausePanel);
-
-    // DIALOGUE
     GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.AddListener(DialoguePanel);
   }
 
@@ -82,6 +96,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(DeathPanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.RemoveListener(RespawnPanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.RemoveListener(DialoguePanel);
   }
@@ -90,35 +105,36 @@ public class HudDirector : MonoBehaviour
   {
     DOTween.Init();
   }
-  #endregion
 
   private void Update()
   {
     if (EventSystem.current.currentSelectedGameObject != null)
       return;
 
-    if (Gamepad.current != null)
-    {
-      if (
+    bool gamepadNavigating =
+      Gamepad.current != null
+      && (
         Gamepad.current.dpad.ReadValue() != Vector2.zero
         || Gamepad.current.leftStick.ReadValue() != Vector2.zero
-      )
-      {
-        SelectFirstButton();
-      }
-    }
+      );
 
-    if (Keyboard.current.anyKey.wasPressedThisFrame)
-    {
+    if (gamepadNavigating || Keyboard.current.anyKey.wasPressedThisFrame)
       SelectFirstButton();
-    }
   }
 
-  #region Initialization
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Inicialização
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// <summary>
+  /// Instancia e configura o HUD para um jogador específico.
+  /// </summary>
   public GameObject InitializeHUD(Player player, Transform hudParent, GameObject hudPrefab)
   {
     if (player == null || hudPrefab == null || hudParent == null)
       return null;
+
+    _playerHudOwner = player;
     int playerID = player.ID;
 
     GameObject hudInstance = Instantiate(hudPrefab, hudParent);
@@ -126,14 +142,17 @@ public class HudDirector : MonoBehaviour
 
     Canvas.ForceUpdateCanvases();
 
+    // Mapeia todos os painéis do HUD instanciado
     var panelMap = new Dictionary<string, List<GameObject>>();
     CollectPanelsRecursive(hudInstance.transform, panelMap);
     canvasMap[playerID] = panelMap;
 
+    // Vincula HealthHUD ao jogador
     HealthHUDComponent healthHUD = hudInstance.GetComponentInChildren<HealthHUDComponent>();
     if (healthHUD && healthHUD.HUDType == HealthHUDType.PLAYER)
       healthHUD.BindToPlayer(player);
 
+    // Armazena referências do painel de interação
     if (
       panelMap.TryGetValue(Constants.HudPanelNames.InteractionPopup, out var panels)
       && panels.Count > 0
@@ -147,7 +166,7 @@ public class HudDirector : MonoBehaviour
       if (image)
       {
         interactionImages[playerID] = image;
-        ogSprites[playerID] = image.sprite;
+        originalSprites[playerID] = image.sprite;
       }
     }
 
@@ -155,6 +174,9 @@ public class HudDirector : MonoBehaviour
     return hudInstance;
   }
 
+  /// <summary>
+  /// Registra a câmera associada a um jogador.
+  /// </summary>
   public void InitializeCamera(int playerID, CameraLogic camera)
   {
     playerCameras[playerID] = camera;
@@ -206,6 +228,9 @@ public class HudDirector : MonoBehaviour
     );
   }
 
+  /// <summary>
+  /// Percorre a hierarquia recursivamente coletando GameObjects com nomes válidos de painel.
+  /// </summary>
   private void CollectPanelsRecursive(Transform parent, Dictionary<string, List<GameObject>> map)
   {
     foreach (Transform child in parent)
@@ -222,9 +247,10 @@ public class HudDirector : MonoBehaviour
     }
   }
 
-  #endregion
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Controle de Painéis
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  #region Panel Handling
   private void HidePanel(
     string panelName,
     int playerID,
@@ -235,26 +261,9 @@ public class HudDirector : MonoBehaviour
   {
     foreach (var go in GetPanelObjects(playerID, panelName))
     {
-      if (go.TryGetComponent(out Button button))
-      {
-        button.interactable = false;
-        EventSystem.current.SetSelectedGameObject(null);
-      }
-
-      if (fade && go.TryGetComponent(out Image image))
-      {
-        if (instant)
-          image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
-        else
-          image.DOFade(0f, .25f).SetUpdate(UpdateType.Normal, independent);
-
-        image.raycastTarget = false;
-      }
-
-      if (instant)
-        go.transform.localScale = Vector3.zero;
-      else
-        go.transform.DOScale(Vector3.zero, .25f).SetUpdate(UpdateType.Normal, independent);
+      DisableButton(go);
+      ApplyFadeOut(go, fade, instant, independent);
+      ApplyScaleOut(go, instant, independent);
     }
   }
 
@@ -262,293 +271,381 @@ public class HudDirector : MonoBehaviour
   {
     foreach (var go in GetPanelObjects(playerID, panelName))
     {
-      if (go.TryGetComponent(out Button button))
-      {
-        button.interactable = true;
-      }
-      if (fade && go.TryGetComponent(out Image image))
-      {
-        image.DOFade(.8f, .25f).SetUpdate(UpdateType.Normal, independent);
-        image.raycastTarget = true;
-      }
-      go.transform.DOScale(Vector3.one, .25f).SetUpdate(UpdateType.Normal, independent);
+      EnableButton(go);
+      ApplyFadeIn(go, fade, independent);
+      go.transform.DOScale(Vector3.one, PANEL_TWEEN_DURATION)
+        .SetUpdate(UpdateType.Normal, independent);
     }
 
     EventSystem.current.SetSelectedGameObject(null);
   }
 
+  // ─── Helpers de painel ──────────────────────────────────────────────────────
+
+  private static void DisableButton(GameObject go)
+  {
+    if (!go.TryGetComponent(out Button button))
+      return;
+    button.interactable = false;
+    EventSystem.current.SetSelectedGameObject(null);
+  }
+
+  private static void EnableButton(GameObject go)
+  {
+    if (go.TryGetComponent(out Button button))
+      button.interactable = true;
+  }
+
+  private static void ApplyFadeOut(GameObject go, bool fade, bool instant, bool independent)
+  {
+    if (!fade || !go.TryGetComponent(out Image image))
+      return;
+
+    image.raycastTarget = false;
+
+    if (instant)
+      image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
+    else
+      image.DOFade(0f, PANEL_TWEEN_DURATION).SetUpdate(UpdateType.Normal, independent);
+  }
+
+  private static void ApplyFadeIn(GameObject go, bool fade, bool independent)
+  {
+    if (!fade || !go.TryGetComponent(out Image image))
+      return;
+
+    image.raycastTarget = true;
+    image
+      .DOFade(PANEL_FADE_OPACITY, PANEL_TWEEN_DURATION)
+      .SetUpdate(UpdateType.Normal, independent);
+  }
+
+  private static void ApplyScaleOut(GameObject go, bool instant, bool independent)
+  {
+    if (instant)
+    {
+      go.transform.DOKill();
+      go.transform.localScale = Vector3.zero;
+    }
+    else
+      go.transform.DOScale(Vector3.zero, PANEL_TWEEN_DURATION)
+        .SetUpdate(UpdateType.Normal, independent);
+  }
+
   private void SelectFirstButton()
   {
-    var buttons = FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-
-    foreach (var button in buttons)
-    {
-      if (button.interactable)
-      {
-        EventSystem.current.SetSelectedGameObject(button.gameObject);
-        break;
-      }
-    }
-  }
-  #endregion
-
-  #region Camera Shake
-  public void DamageShake()
-  {
-    if (
-      GameObject
-        .FindWithTag("CinemachineCamera")
-        .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise)
+    foreach (
+      var button in FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
     )
     {
-      noise.AmplitudeGain = 1;
-      noise.FrequencyGain = 1;
-      StartCoroutine(StopShaking(noise, WAITSHAKECAM));
+      if (!button.interactable)
+        continue;
+      EventSystem.current.SetSelectedGameObject(button.gameObject);
+      break;
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HUD do Jogador (Enable / Disable)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private void DisableHud(int playerID)
+  {
+    HidePanel(
+      Constants.HudPanelNames.AmethystCounter,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+    HidePanel(
+      Constants.HudPanelNames.HealthBar,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+    HidePanel(
+      Constants.HudPanelNames.DashIcon,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+  }
+
+  private void EnableHUD(int playerID)
+  {
+    ShowPanel(Constants.HudPanelNames.AmethystCounter, playerID, independent: true, fade: false);
+    ShowPanel(Constants.HudPanelNames.HealthBar, playerID, independent: true, fade: false);
+    ShowPanel(Constants.HudPanelNames.DashIcon, playerID, independent: true, fade: false);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Shake de Câmera
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public void DamageShake()
+  {
+    if (!TryGetCameraNoiseComponent(out var noise))
+      return;
+    noise.AmplitudeGain = 1f;
+    noise.FrequencyGain = 1f;
+    StartCoroutine(StopShakingAfter(noise, WAIT_SHAKE_CAM));
   }
 
   public void RunningShake()
   {
-    if (
-      GameObject
-        .FindWithTag("CinemachineCamera")
-        .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise)
-    )
-    {
-      noise.AmplitudeGain = 0.1f;
-      noise.FrequencyGain = 0.7f;
-    }
+    if (!TryGetCameraNoiseComponent(out var noise))
+      return;
+    noise.AmplitudeGain = 0.1f;
+    noise.FrequencyGain = 0.7f;
   }
 
   public void StopRunningShake()
   {
-    if (
-      GameObject
-        .FindWithTag("CinemachineCamera")
-        .TryGetComponent<CinemachineBasicMultiChannelPerlin>(out var noise)
-    )
-    {
-      StartCoroutine(StopShaking(noise, WAITRUNNINGSHAKECAM));
-    }
+    if (!TryGetCameraNoiseComponent(out var noise))
+      return;
+    StartCoroutine(StopShakingAfter(noise, WAIT_RUNNING_SHAKE_CAM));
   }
 
-  private IEnumerator StopShaking(CinemachineBasicMultiChannelPerlin noise, float waitTime)
+  private static bool TryGetCameraNoiseComponent(out CinemachineBasicMultiChannelPerlin noise)
   {
-    yield return new WaitForSeconds(waitTime);
-    noise.AmplitudeGain = 0;
-    noise.FrequencyGain = 0;
+    noise = null;
+    var cam = GameObject.FindWithTag("CinemachineCamera");
+    return cam != null && cam.TryGetComponent(out noise);
   }
-  #endregion
 
-  #region Interaction
+  private IEnumerator StopShakingAfter(CinemachineBasicMultiChannelPerlin noise, float delay)
+  {
+    yield return new WaitForSeconds(delay);
+    noise.AmplitudeGain = 0f;
+    noise.FrequencyGain = 0f;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Popup de Interação
+  // ═══════════════════════════════════════════════════════════════════════════
+
   public void InteractionPopup(bool seeing, InteractableObject obj, int playerID)
   {
     if (!interactionTexts.ContainsKey(playerID) || !interactionImages.ContainsKey(playerID))
-    {
       return;
-    }
 
     var text = interactionTexts[playerID];
     var image = interactionImages[playerID];
-    string interactionBind = InputSystem
-      .actions.FindAction("Interaction")
-      .GetBindingDisplayString();
-    float duration = .25f;
 
     if (!seeing)
     {
       HidePanel(Constants.HudPanelNames.InteractionPopup, playerID, independent: true);
-      text.DOColor(Color.white, duration);
-      text.text = "";
-      image.sprite = ogSprites[playerID];
+      text.DOColor(Color.white, PANEL_TWEEN_DURATION);
+      text.text = string.Empty;
+      image.sprite = originalSprites[playerID];
       return;
     }
 
+    string bindLabel = InputSystem.actions.FindAction("Interaction").GetBindingDisplayString();
+    ApplyInteractionVisuals(obj, text, image, bindLabel);
+    ShowPanel(Constants.HudPanelNames.InteractionPopup, playerID, independent: true);
+  }
+
+  private void ApplyInteractionVisuals(
+    InteractableObject obj,
+    TextMeshProUGUI text,
+    Image image,
+    string bindLabel
+  )
+  {
     switch (obj)
     {
       case PuzzleColorButton pcb:
-        text.DOColor(pcb.buttonCode.Color, duration);
-        text.text = interactionBind;
+        text.DOColor(pcb.buttonCode.Color, PANEL_TWEEN_DURATION);
+        text.text = bindLabel;
         break;
 
       case GraplingHookTarget:
-        if (GetIcon("GHOOK") is IconImage validIcon)
-        {
-          image.sprite = validIcon.Sprite;
-        }
+        if (GetIcon("GHOOK") is IconImage icon)
+          image.sprite = icon.Sprite;
         break;
 
       default:
-        text.text = interactionBind;
+        text.text = bindLabel;
         break;
     }
-
-    ShowPanel(Constants.HudPanelNames.InteractionPopup, playerID, independent: true);
   }
-  #endregion
 
-  #region Cinematic Bars
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Barras Cinemáticas
+  // ═══════════════════════════════════════════════════════════════════════════
+
   private void TriggerCinematicBars(int playerID, float duration)
   {
-    List<GameObject> holders = GetPanel(playerID, Constants.HudPanelNames.Cutscene);
-    List<GameObject> cinematicPanels = new();
-
-    foreach (var holder in holders)
-    {
-      var rects = holder.GetComponentsInChildren<RectTransform>(true);
-      foreach (var rect in rects)
-      {
-        if (rect.name == "Top" || rect.name == "Bottom")
-          cinematicPanels.Add(rect.gameObject);
-      }
-    }
-
+    List<GameObject> cinematicPanels = GetCinematicBarPanels(playerID);
     if (cinematicPanels.Count == 0)
       return;
 
     float halfDuration = duration / 2f;
-    AnimateCinematicBars(cinematicPanels, 250f, halfDuration);
+    AnimateCinematicBars(cinematicPanels, targetSize: 250f, halfDuration);
   }
 
-  private void AnimateCinematicBars(List<GameObject> panels, float size, float duration)
+  private List<GameObject> GetCinematicBarPanels(int playerID)
+  {
+    var result = new List<GameObject>();
+    var holders = GetPanel(playerID, Constants.HudPanelNames.Cutscene);
+
+    foreach (var holder in holders)
+    foreach (var rect in holder.GetComponentsInChildren<RectTransform>(true))
+    {
+      if (rect.name == "Top" || rect.name == "Bottom")
+        result.Add(rect.gameObject);
+    }
+
+    return result;
+  }
+
+  private static void AnimateCinematicBars(
+    List<GameObject> panels,
+    float targetSize,
+    float duration
+  )
   {
     DOTween
       .Sequence()
-      .AppendCallback(() => ChangeRectSize(size, panels, duration))
+      .AppendCallback(() => SetBarSize(panels, targetSize, duration))
       .AppendInterval(duration)
-      .AppendCallback(() => ChangeRectSize(0f, panels, duration));
+      .AppendCallback(() => SetBarSize(panels, 0f, duration));
   }
 
-  private void ChangeRectSize(float size, List<GameObject> panels, float duration)
+  private static void SetBarSize(List<GameObject> panels, float height, float duration)
   {
-    foreach (GameObject panel in panels)
+    foreach (var panel in panels)
     {
       if (!panel.TryGetComponent(out RectTransform rect))
         continue;
-      rect.DOSizeDelta(new Vector2(rect.rect.width, size), duration).SetEase(Ease.InOutCubic);
+      rect.DOSizeDelta(new Vector2(rect.rect.width, height), duration).SetEase(Ease.InOutCubic);
     }
   }
-  #endregion
-  #region Teleport
-  private void TeleportFade(int ID)
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Lock On
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private void SetLockOnVisibility(int playerID, bool set, Vector3 position)
   {
-    StartCoroutine(TeleportFadeRoutine(ID));
+    if (set)
+    {
+      ShowPanel(Constants.HudPanelNames.LockOnOverlay, playerID, independent: false);
+    }
+    else
+    {
+      HidePanel(Constants.HudPanelNames.LockOnOverlay, playerID, independent: false, instant: true);
+    }
+
+    foreach (var go in GetPanel(playerID, Constants.HudPanelNames.LockOnOverlay))
+    {
+      if (go.TryGetComponent(out LockOnOverlay overlay))
+        overlay.TargetPosition = position;
+    }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Teleporte
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private void TeleportFade(int playerID) => StartCoroutine(TeleportFadeRoutine(playerID));
 
   private IEnumerator TeleportFadeRoutine(int playerID)
   {
-    // pega o painel preto do HUD do jogador
     GameObject teleportPanel = GetPanel(playerID, Constants.HudPanelNames.TeleportFadePanel)
       .FirstOrDefault();
     if (!teleportPanel)
     {
-      Debug.LogWarning("SEM TELEPORT PANEL");
+      Debug.LogWarning("[HudDirector] TeleportFadePanel não encontrado para o jogador " + playerID);
       yield break;
     }
 
-    // fade in
-    ShowPanel(Constants.HudPanelNames.TeleportFadePanel, playerID, false);
-    yield return WAITTELEPORTFADE;
-
-    // fade out
-    HidePanel(Constants.HudPanelNames.TeleportFadePanel, playerID, false, false);
+    ShowPanel(Constants.HudPanelNames.TeleportFadePanel, playerID, independent: false);
+    yield return WAIT_TELEPORT_FADE;
+    HidePanel(Constants.HudPanelNames.TeleportFadePanel, playerID, independent: false);
   }
-  #endregion
 
-  # region === DEATH ===
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Morte e Respawn
+  // ═══════════════════════════════════════════════════════════════════════════
+
   private void DeathPanel()
   {
-    CursorOptions(true);
-    foreach (
-      Player player in FindObjectsByType<Player>(
-        FindObjectsInactive.Exclude,
-        FindObjectsSortMode.None
-      )
-    )
+    CursorOptions(visible: true);
+    ForEachPlayer(player =>
     {
-      ShowPanel(Constants.HudPanelNames.GameOver, player.ID, true);
+      ShowPanel(Constants.HudPanelNames.GameOver, player.ID, independent: true);
       DisableHud(player.ID);
-    }
+    });
   }
 
   private void RespawnPanel()
   {
-    CursorOptions(false);
-    foreach (
-      Player player in FindObjectsByType<Player>(
-        FindObjectsInactive.Exclude,
-        FindObjectsSortMode.None
-      )
-    )
+    CursorOptions(visible: false);
+    ForEachPlayer(player =>
     {
-      HidePanel(Constants.HudPanelNames.GameOver, player.ID, true);
-      HidePanel(Constants.HudPanelNames.EndGame, player.ID, true);
+      HidePanel(Constants.HudPanelNames.GameOver, player.ID, independent: true);
+      HidePanel(Constants.HudPanelNames.EndGame, player.ID, independent: true);
       EnableHUD(player.ID);
-    }
+    });
   }
-  # endregion
 
-  # region === END GAME ===
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Fim de Jogo
+  // ═══════════════════════════════════════════════════════════════════════════
+
   private void EndPanel()
   {
-    CursorOptions(true);
-    foreach (
-      Player player in FindObjectsByType<Player>(
-        FindObjectsInactive.Exclude,
-        FindObjectsSortMode.None
-      )
-    )
+    CursorOptions(visible: true);
+    ForEachPlayer(player =>
     {
       DisableHud(player.ID);
-      ShowPanel(Constants.HudPanelNames.EndGame, player.ID, true);
-    }
+      ShowPanel(Constants.HudPanelNames.EndGame, player.ID, independent: true);
+    });
   }
-  # endregion === END GAME ===
 
-  # region === DIALOGUE ===
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Diálogo
+  // ═══════════════════════════════════════════════════════════════════════════
+
   private void DialoguePanel(Player player, List<string> text, float typeSpeed) { }
 
   private void EndDialoguePanel(Player player) { }
 
-  # endregion === DIALOGUE ===
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Pausa
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  # region === PAUSE ===
   private void PausePanel(bool set)
   {
-    CursorOptions(set);
-    foreach (
-      Player player in FindObjectsByType<Player>(
-        FindObjectsInactive.Exclude,
-        FindObjectsSortMode.None
-      )
-    )
+    CursorOptions(visible: set);
+    ForEachPlayer(player =>
     {
       if (set)
       {
-        ShowPanel(Constants.HudPanelNames.Pause, player.ID, true);
+        ShowPanel(Constants.HudPanelNames.Pause, player.ID, independent: true);
         DisableHud(player.ID);
       }
       else
       {
-        HidePanel(Constants.HudPanelNames.Pause, player.ID, true);
+        HidePanel(Constants.HudPanelNames.Pause, player.ID, independent: true);
         EnableHUD(player.ID);
       }
-    }
+    });
   }
 
-  private void OptionsPausePanel(bool set)
-  {
-    // aqui você pode abrir outro painel ou cena de opções
-  }
+  private void OptionsPausePanel(bool set) { } // TODO: abrir painel/cena de opções
 
-  private void SoundOptionsPausePanel(bool set)
-  {
-    // menu de som
-  }
+  private void SoundOptionsPausePanel(bool set) { } // TODO: menu de som
 
-  #endregion
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Helpers Gerais
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  #region Helpers
   private IconImage? GetIcon(string destiny) => icons.Find(icon => icon.Destiny == destiny);
 
   private List<GameObject> GetPanel(int playerID, string panelName) =>
@@ -556,33 +653,30 @@ public class HudDirector : MonoBehaviour
       ? result
       : new List<GameObject>();
 
+  /// <summary>
+  /// Retorna todos os GameObjects filhos (incluindo raiz) de um painel.
+  /// </summary>
   private IEnumerable<GameObject> GetPanelObjects(int playerID, string panelName)
   {
     foreach (var root in GetPanel(playerID, panelName))
-    {
-      foreach (var t in root.GetComponentsInChildren<Transform>(true))
-        yield return t.gameObject;
-    }
+    foreach (var t in root.GetComponentsInChildren<Transform>(true))
+      yield return t.gameObject;
   }
 
-  private void DisableHud(int playerID)
+  private static void CursorOptions(bool visible)
   {
-    HidePanel(Constants.HudPanelNames.AmethystCounter, playerID, true, false, true);
-    HidePanel(Constants.HudPanelNames.HealthBar, playerID, true, false, true);
-    HidePanel(Constants.HudPanelNames.DashIcon, playerID, true, false, true);
+    Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
+    Cursor.visible = visible;
   }
 
-  private void EnableHUD(int playerID)
+  /// <summary>
+  /// Itera sobre todos os Players ativos na cena e executa uma ação.
+  /// </summary>
+  private static void ForEachPlayer(System.Action<Player> action)
   {
-    ShowPanel(Constants.HudPanelNames.AmethystCounter, playerID, true, false);
-    ShowPanel(Constants.HudPanelNames.HealthBar, playerID, true, false);
-    ShowPanel(Constants.HudPanelNames.DashIcon, playerID, true, false);
+    foreach (
+      var player in FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+    )
+      action(player);
   }
-
-  private void CursorOptions(bool set)
-  {
-    Cursor.lockState = set ? CursorLockMode.None : CursorLockMode.Locked;
-    Cursor.visible = set;
-  }
-  #endregion
 }

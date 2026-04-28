@@ -8,9 +8,11 @@ public class PlayerActionStateGroundSlam : IState<Player>
   public int Priority => 0;
 
   private bool _deactivated = false;
+  private Vector2 _momentum;
 
   public void Enter(Player player)
   {
+    _momentum = new(player.MovementVector.x, player.MovementVector.z);
     player.LocomotionLayer.ChangeState(player.LockedS, player);
     _deactivated = false;
   }
@@ -21,7 +23,7 @@ public class PlayerActionStateGroundSlam : IState<Player>
   {
     if (!player.IsGrounded)
     {
-      player.MovementVector = Vector3.down * 75;
+      player.MovementVector = new(_momentum.x, -75, _momentum.y);
       player.GroundSlamHitboxCollider.enabled = true;
     }
     else if (!_deactivated)
