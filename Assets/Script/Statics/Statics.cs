@@ -98,7 +98,7 @@ public static class Constants
   public static class SceneNames
   {
     public static readonly string DebugScene = "Cena Debug";
-    public static readonly string Fase0 = "Fase0";
+    public static readonly string FirstLevel = "Fase0";
     public static readonly string MainMenu = "MainMenu";
   }
 
@@ -154,6 +154,7 @@ public static class Constants
     public static readonly string AmethystCounter = "AmethystCounter";
     public static readonly string InteractionPopup = "InteractionPopup";
     public static readonly string InteractionLetter = "InteractionLetter";
+    public static readonly string LockOnOverlay = "LockOnOverlay";
     public static readonly string Cutscene = "Cutscene";
     public static readonly string TeleportFadePanel = "TeleportFadePanel";
   }

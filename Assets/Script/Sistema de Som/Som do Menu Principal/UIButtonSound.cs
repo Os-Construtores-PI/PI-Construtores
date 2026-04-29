@@ -6,23 +6,29 @@ public class UIButtonSound : MonoBehaviour,
   ISelectHandler,
   ISubmitHandler
 {
-    public void OnPointerEnter(PointerEventData eventData)
+  [SerializeField] private somMenu _somMenu;
+  public void OnPointerEnter(PointerEventData eventData)
   {
-    MenuAudioManager.Instance.PlayHover();
+    if(AudioManager.Instance != null)
+    AudioManager.Instance.PlaySFX(_somMenu.hover);
   }
+  
 
   public void OnPointerClick(PointerEventData eventData)
   {
-    MenuAudioManager.Instance.PlayClick();
+    if(AudioManager.Instance != null)
+    AudioManager.Instance.PlaySFX(_somMenu.click);
   }
 
   public void OnSelect(BaseEventData eventData)
   {
-    MenuAudioManager.Instance.PlayHover();
+    if(AudioManager.Instance != null)
+    AudioManager.Instance.PlaySFX(_somMenu.hover);
   }
 
   public void OnSubmit(BaseEventData eventData)
   {
-    MenuAudioManager.Instance.PlayClick();
+     if(AudioManager.Instance != null)
+    AudioManager.Instance.PlaySFX(_somMenu.click);
   }
 }

@@ -8,72 +8,79 @@ public class PlayerActionStateDash : IState<Player>
   private float timeToExitWalker = 0.0f;
   private float _disableDamageCooldown = 4;
   private readonly float _distanceThresold = 2;
-  private int Priority => 10;
   private float _initialDashSpeed;
   private float _initialDashDistance;
   private bool _firstTime;
+  private float _minDashSpeed = 40f;
+  private float _maxDashSpeed = 60f;
+  private float _maxReferenceDistance = 20f;
+  private float _speedExponent = 0.1f;
 
   public ActionType Type => ActionType.Dash;
-
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
 
   public void Enter(Player player)
   {
     if (player.IsHardLocked)
       return;
 
-    // Inicializa valores na primeira vez que o estado é usado
-    if (!_firstTime) // Mudei de 'if (_firstTime)' para '!_firstTime' pois parece ser a lógica correta
+    if (!_firstTime)
     {
       _initialDashSpeed = player.DashSpeed;
       _initialDashDistance = player.DashDistance;
       _firstTime = true;
     }
 
-    player.OverrideGlobal = true;
+    player.LocomotionLayer.ChangeState(player.LockedS, player);
     player.HurtboxCollider.CanTakeDamage = false;
-    player.HurtboxCollider.DamageCooldown = _disableDamageCooldown;
-    player.HitboxCollider.enabled = true;
+    player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
+    player.DashHitboxCollider.enabled = true;
 
-    // Lógica principal de decisão: Lockado vs Não Lockado
+    Vector3 targetDir = Vector3.zero;
+
     if (player.LockedTarget != null)
     {
-      Vector3 distanceToTarget = player.LockedTarget.transform.position - player.transform.position;
+      Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
+      float dist = diff.magnitude;
 
-      // Verifica threshold para evitar dash parado
-      if (distanceToTarget.magnitude < _distanceThresold)
+      if (dist < _distanceThresold)
       {
-        player.DashDirection = Vector3.zero;
+        targetDir = player.transform.forward;
         player.DashDistance = 0;
-        // Opcional: Aqui você pode decidir se quer sair imediatamente ou apenas fazer um dash nulo
       }
       else
       {
-        player.DashDirection = distanceToTarget.normalized;
-        player.DashDistance = distanceToTarget.magnitude;
+        targetDir = diff.normalized;
+        player.DashDistance = dist;
+        player.DashSpeed = ComputeDashSpeed(dist);
       }
     }
     else
     {
-      // Garante que o dash use os valores originais quando NÃO está lockado
+      if (player.MoveInput != Vector2.zero)
+      {
+        targetDir = CalculateRawInputDirection(player);
+      }
+      else
+      {
+        targetDir =
+          player.Direction.sqrMagnitude > 0.01f ? player.Direction : player.transform.forward;
+      }
+
       player.DashSpeed = _initialDashSpeed;
       player.DashDistance = _initialDashDistance;
-
-      // Define a direção baseada no input ou na direção do player
-      player.DashDirection =
-        player.MoveInput != Vector2.zero ? player.Direction : player.transform.forward;
     }
 
-    // Configurações comuns a ambos os casos
-    player.transform.forward = player.DashDirection;
-    player.DashDuration = player.DashDistance / player.DashSpeed;
+    player.DashDirection = targetDir;
+    if (player.DashDirection != Vector3.zero)
+      player.transform.rotation = Quaternion.LookRotation(player.DashDirection);
 
+    player.DashDuration = player.DashDistance / player.DashSpeed;
     timeToExit = player.DashDuration;
     player.IsDashing = true;
     player.CanDash = false;
 
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
-    player.MovementVector = new(player.MovementVector.x, 0, player.MovementVector.z);
     player.CurrentDashCount += 1;
     player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
@@ -86,57 +93,78 @@ public class PlayerActionStateDash : IState<Player>
     }
   }
 
-  public void Exit(Player player)
-  {
-    player.CanDash = true;
-    player.IsDashing = false;
-    player.OverrideGlobal = false;
-    player.HitboxCollider.enabled = false;
-    player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
-    player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
-    ResetDashHUD(player.DashHudScript);
-  }
-
   public void FixedUpdate(Player player)
   {
+    if (player.LockedTarget != null)
+    {
+      Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
+      if (diff.sqrMagnitude > 0.1f)
+      {
+        player.DashDirection = diff.normalized;
+        player.transform.rotation = Quaternion.Slerp(
+          player.transform.rotation,
+          Quaternion.LookRotation(player.DashDirection),
+          40f * Time.fixedDeltaTime
+        );
+      }
+    }
+
     ExitTimer(player);
   }
 
   public void Update(Player player) { }
 
-  private void ResetDashHUD(ShiftDashScript dashScript)
+  public void Exit(Player player)
   {
-    if (dashScript != null)
-    {
-      if (!dashScript.gameObject.activeInHierarchy)
-        dashScript.gameObject.SetActive(true);
-      dashScript.OnDashReady();
-    }
+    player.CanDash = true;
+    player.IsDashing = false;
+    player.LocomotionLayer.ChangeState(player.AirborneS, player);
+    player.DashHitboxCollider.enabled = false;
+    player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
+    player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
+    Vector3 postDash =
+      new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
+    player.MovementVector += postDash;
+
+    ResetDashHUD(player.DashHudScript);
   }
 
-  private void PlayDashVisual(Transform transform, float duration)
+  private Vector3 CalculateRawInputDirection(Player player)
   {
-    float initialYScale = transform.localScale.y;
-    DOTween
-      .Sequence()
-      .Append(transform.DOScaleY(initialYScale * 0.5f, duration * 0.6f))
-      .Append(transform.DOScaleY(initialYScale * 1f, duration * 0.4f))
-      .SetEase(Ease.InOutSine)
-      .SetUpdate(UpdateType.Fixed)
-      .Play();
+    Vector3 camForward = player.CinemachineCamera.transform.forward;
+    Vector3 camRight = player.CinemachineCamera.transform.right;
+    camForward.y = 0;
+    camRight.y = 0;
+    return (
+      camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
+    ).normalized;
   }
 
   private void ExitTimer(Player player)
   {
-    if (timeToExitWalker < timeToExit)
+    if (timeToExitWalker < timeToExit && player.IsDashing)
     {
-      timeToExitWalker += Time.deltaTime;
-      player.CharacterController.Move(player.DashSpeed * Time.deltaTime * player.DashDirection);
+      timeToExitWalker += Time.fixedDeltaTime;
+      player.CharacterController.Move(
+        player.DashSpeed * Time.fixedDeltaTime * player.DashDirection
+      );
     }
     else
     {
       player.ActionLayer.PopStateDeferred(player);
       timeToExitWalker = 0f;
     }
+  }
+
+  private float ComputeDashSpeed(float distance)
+  {
+    float t = Mathf.Clamp01(distance / _maxReferenceDistance);
+    return _minDashSpeed + (_maxDashSpeed - _minDashSpeed) * Mathf.Pow(t, _speedExponent);
+  }
+
+  private void ResetDashHUD(ShiftDashScript dashScript)
+  {
+    if (dashScript != null && dashScript.gameObject.activeInHierarchy)
+      dashScript.OnDashReady();
   }
 }

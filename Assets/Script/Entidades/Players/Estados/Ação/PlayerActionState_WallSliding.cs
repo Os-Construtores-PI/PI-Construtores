@@ -58,7 +58,7 @@ public class PlayerActionStateWallSliding : IState<Player>
 
   public void Enter(Player player)
   {
-    player.OverrideHorizontal = true;
+    // player.OverrideHorizontal = true;
     player.CurrentJumpCount = 1;
     player.TouchingWall = true;
     // só reseta se já estava fora da parede
@@ -83,7 +83,7 @@ public class PlayerActionStateWallSliding : IState<Player>
 
   public void Exit(Player player)
   {
-    player.OverrideHorizontal = false;
+    // player.OverrideHorizontal = false;
   }
 
   public void FixedUpdate(Player player) { }

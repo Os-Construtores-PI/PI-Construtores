@@ -39,7 +39,7 @@ public class SwingObject : InteractableObject
     seq.AppendCallback(() =>
     {
       playerTrans.SetParent(_playerHolder);
-      player.OverrideGlobal = true;
+      player.LocomotionLayer.ChangeState(new PlayerLocomotionStateGrounded(), player);
       player.CharacterController.enabled = false;
     });
     Vector3 startDir = (_playerHolder.position - _pivot.position).normalized;
@@ -80,7 +80,7 @@ public class SwingObject : InteractableObject
     seq.AppendCallback(() =>
     {
       playerTrans.SetParent(null);
-      player.OverrideGlobal = false;
+      player.LocomotionLayer.ChangeState(player.LocomotionLayer.PreviousState, player);
       player.CharacterController.enabled = true;
       Vector3 finalDir = (playerTrans.position - _pivot.position).normalized;
       Vector3 releaseTangent = Vector3.Cross(axis, finalDir).normalized;

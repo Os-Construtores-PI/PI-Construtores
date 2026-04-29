@@ -9,12 +9,12 @@ public class HurtboxComponent : MonoBehaviour
   [HideInInspector]
   public bool CanTakeDamage = true;
 
-  public float DamageCooldown = 1f; // Tempo entre danos consecutivos
+  private float _damageCooldown = 1f;
 
   private void Start()
   {
     SetEntity();
-    _initialCooldown = DamageCooldown;
+    _initialCooldown = _damageCooldown;
     if (entity == null || !TryGetComponent(out Collider collider) || !collider.isTrigger)
     {
       print(
@@ -28,24 +28,30 @@ public class HurtboxComponent : MonoBehaviour
     if (!CanTakeDamage)
     {
       damagedCooldownWalker += Time.deltaTime;
-      if (damagedCooldownWalker >= DamageCooldown)
+      if (damagedCooldownWalker >= _damageCooldown)
       {
-        damagedCooldownWalker = 0.0f;
-        CanTakeDamage = true;
-        DamageCooldown = _initialCooldown;
+        ResetInvulnerability();
       }
     }
   }
 
-  private void OnTriggerEnter(Collider other)
+  public void TriggerInvulnerability(float duration)
   {
-    DamageLogic(other);
+    CanTakeDamage = false;
+    _damageCooldown = duration;
+    damagedCooldownWalker = 0f;
   }
 
-  private void OnTriggerStay(Collider other)
+  public void ResetInvulnerability()
   {
-    DamageLogic(other);
+    damagedCooldownWalker = 0.0f;
+    CanTakeDamage = true;
+    _damageCooldown = _initialCooldown;
   }
+
+  public void OnTriggerEnter(Collider other) => DamageLogic(other);
+
+  public void OnTriggerStay(Collider other) => DamageLogic(other);
 
   private void DamageLogic(Collider collider)
   {
@@ -54,13 +60,11 @@ public class HurtboxComponent : MonoBehaviour
 
     float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
 
-    print($"VIDA // {entity.name} // (ANTES): {entity.Health}");
     entity.Health -= hitbox.Damage * (1 - factor);
-    print($"VIDA // {entity.name} // (DEPOIS): {entity.Health}");
     entity.Damaged = true;
 
-    // Ativa cooldown
-    CanTakeDamage = false;
+    // Usa a nova função para entrar em cooldown de dano padrão
+    TriggerInvulnerability(_initialCooldown);
   }
 
   private void SetEntity()

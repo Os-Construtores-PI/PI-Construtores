@@ -68,8 +68,8 @@ public abstract class Enemies : CombatEntities, ILockable
   private float _knockbackForce = 40f;
   public float KnockBackForce => _knockbackForce;
 
-  private Timer _knockbackTimer = new();
-  private float _knockbackCooldown = 2f;
+  private readonly Timer _knockbackTimer = new();
+  private readonly float _knockbackCooldown = 2f;
   private bool _canKnockback = true;
 
   // === Flash Requisitos ===
@@ -327,6 +327,7 @@ public abstract class Enemies : CombatEntities, ILockable
       {
         _canKnockback = false;
         player.CurrentDashCount = 0;
+        player.IsDashing = false;
         player.CurrentJumpCount = 0;
         player.MovementVector = Vector3.up * KnockBackForce;
         _collider.enabled = false;

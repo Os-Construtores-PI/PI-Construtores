@@ -17,6 +17,7 @@ public class GlobalEventBus : MonoBehaviour
   public readonly UnityEvent PLAYERTRIGGEREDRESPAWN = new();
   public readonly UnityEvent PLAYERTRIGGEREDENDGAME = new();
   public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
+  public readonly UnityEvent<int, bool, Vector3> PLAYERTRIGGEREDLOCKONVISIBILITY = new();
   public readonly UnityEvent<bool> PLAYERTRIGGEREDOPTIONS = new();
   public readonly UnityEvent<int, Vector3?> AMETHYSTSAMOUNTCHANGED = new();
   public readonly UnityEvent<string> PLAYERINPUTCHANGED = new();

@@ -258,7 +258,7 @@ public class MenuDirector : MonoBehaviour
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
-    SceneManager.LoadScene(Constants.SceneNames.Fase0);
+    SceneManager.LoadScene(Constants.SceneNames.FirstLevel);
   }
 
   #endregion

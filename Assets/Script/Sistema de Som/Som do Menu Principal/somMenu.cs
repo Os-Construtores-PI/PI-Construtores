@@ -7,4 +7,5 @@ public class somMenu : ScriptableObject
   public AudioClip hover;
   public AudioClip click;
   public AudioClip back;
+  public AudioClip pause;
 }
