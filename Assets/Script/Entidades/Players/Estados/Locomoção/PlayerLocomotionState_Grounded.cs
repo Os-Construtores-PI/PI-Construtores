@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using Unity.Cinemachine;
 using UnityEngine;
 
 public class PlayerLocomotionStateGrounded : IState<Player>
 {
   // ─── IState ───────────────────────────────────────────────────────────────
   public ActionType Type => ActionType.GroundSlam;
-  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.Dash } };
+  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash };
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
@@ -17,21 +16,28 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   private Dictionary<bool, float> _speeds;
   private Dictionary<bool, float> _accelerations;
 
-  // ─── Bounce Combo ─────────────────────────────────────────────────────────
-  [Header("Bounce Settings")]
-  private const float BounceWindowDuration = 0.4f; // janela após pousar
-  private const int MaxBounceCombo = 3; // máximo de stacks
-  private const float BounceFrontImpulse = 30;
-  private readonly float[] BounceMultipliers = { 1f, 1.4f, 1.8f, 2.4f };
-
+  // ─── Bounce ───────────────────────────────────────────────────────────────
+  private const float BounceWindowDuration = 0.4f;
+  private const int MaxBounceCombo = 3;
   private int _bounceCombo = 0;
+  private const float BounceFrontImpulse = 30f;
+
+  // Quanto da velocidade de queda vira impulso vertical (0–1)
+  // Ex: caiu a 75 u/s → bounce base = 75 * 0.85 = ~63.75
+  private const float BounceConversionRate = 0.85f;
+
+  // Amplificação por combo (sem GroundSlam = só JumpForce normal)
+  private readonly float[] BounceComboBonus = { 0f, 0.25f, 0.55f, 0.90f };
+
   private float _bounceWindowLeft = 0f;
   private bool _justLanded = false;
+  private bool _jumpedThisState = false;
+
+  // ─── Enter / Exit ─────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
     _speeds = new Dictionary<bool, float> { [false] = player.Speed, [true] = player.RunningSpeed };
-
     _accelerations = new Dictionary<bool, float>
     {
       [false] = player.Acceleration,
@@ -41,8 +47,8 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
     player.IsImpulsioned = false;
+    _jumpedThisState = false;
 
-    // Marca que acabou de pousar para abrir a janela de bounce
     _justLanded = true;
     _bounceWindowLeft = BounceWindowDuration;
 
@@ -54,12 +60,14 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   public void Exit(Player player)
   {
     _coyoteTimer.Stop();
+    _coyoteStarted = false;
     _justLanded = false;
   }
 
+  // ─── Update / FixedUpdate ─────────────────────────────────────────────────
+
   public void Update(Player player)
   {
-    // Tick da janela de bounce
     if (_bounceWindowLeft > 0f)
       _bounceWindowLeft -= Time.deltaTime;
 
@@ -69,7 +77,9 @@ public class PlayerLocomotionStateGrounded : IState<Player>
 
   public void FixedUpdate(Player player)
   {
-    HandleCoyoteTime(player);
+    if (!_jumpedThisState)
+      HandleCoyoteTime(player);
+
     HandleHorizontalMovement(player);
   }
 
@@ -90,7 +100,6 @@ public class PlayerLocomotionStateGrounded : IState<Player>
 
     if (player.IsGrounded)
     {
-      // Pousou de volta — abre janela de bounce
       if (!_justLanded)
       {
         _justLanded = true;
@@ -100,38 +109,48 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     }
     else if (timerExpired)
     {
-      // Saiu da plataforma sem pular
       _bounceCombo = 0;
       _coyoteStarted = false;
       player.LocomotionLayer.ChangeState(player.AirborneS, player);
     }
   }
 
-  // ─── Jump ─────────────────────────────────────────────────────────────────
+  // ─── Jump / Bounce ────────────────────────────────────────────────────────
 
   private void ExecuteJump(Player player)
   {
-    var move = player.MovementVector;
     player.JumpInputPressed = false;
+    _jumpedThisState = true;
 
-    // ── Bounce Combo ──────────────────────────────────────────────────────
-    if (_justLanded && _bounceWindowLeft > 0f)
-    {
+    var move = player.MovementVector;
+    bool isBounce = _justLanded && _bounceWindowLeft > 0f && player.GroundSlamImpactSpeed > 0f;
+    bool isComboWindow = isBounce;
+
+    // ── Atualiza combo ────────────────────────────────────────────────────
+    if (isComboWindow)
       _bounceCombo = Mathf.Min(_bounceCombo + 1, MaxBounceCombo);
+    else
+      _bounceCombo = 0;
+
+    _justLanded = false;
+
+    // ── Calcula impulso Y ─────────────────────────────────────────────────
+    float jumpY;
+
+    if (isBounce)
+    {
+      float comboBonus = BounceComboBonus[_bounceCombo];
+      jumpY = player.GroundSlamImpactSpeed * BounceConversionRate * (1f + comboBonus);
+      jumpY = Mathf.Max(jumpY, player.JumpForce);
+      move += player.transform.forward * BounceFrontImpulse;
+      player.GroundSlamImpactSpeed = 0f;
     }
     else
     {
-      _bounceCombo = 0;
+      // Pulo normal — sem GroundSlam
+      float jumpMultiplier = 1f + player.CurrentJumpCount * 0.35f;
+      jumpY = player.JumpForce * jumpMultiplier;
     }
-    _justLanded = false;
-
-    float bounceMultiplier = CalculateBounceMultiplier(_bounceCombo);
-
-    // ── Double Jump ───────────────────────────────────────────────────────
-    if (player.CurrentJumpCount > 0)
-      player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
-
-    float jumpMultiplier = (1 + player.CurrentJumpCount * 0.35f) * bounceMultiplier;
 
     // ── Wall Jump ─────────────────────────────────────────────────────────
     if (player.TouchingWall)
@@ -143,23 +162,16 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     }
     else
     {
-      if (bounceMultiplier > 1)
-      {
-        move += player.transform.forward * BounceFrontImpulse;
-      }
-      move.y += player.JumpForce * jumpMultiplier;
+      move.y = jumpY;
     }
+
+    if (player.CurrentJumpCount > 0)
+      player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
     player.CurrentJumpCount++;
     player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
     player.MovementVector = move;
     player.LocomotionLayer.ChangeState(player.AirborneS, player);
-  }
-
-  private float CalculateBounceMultiplier(int combo)
-  {
-    combo = Mathf.Clamp(combo, 0, MaxBounceCombo);
-    return BounceMultipliers[combo];
   }
 
   // ─── Horizontal Movement ──────────────────────────────────────────────────

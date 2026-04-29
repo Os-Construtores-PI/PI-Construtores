@@ -106,6 +106,7 @@ public class Player : CombatEntities
   public PlayerActionStateInteraction InteractionAS = new();
   public PlayerActionStateWallSliding WallSlidingAS = new();
   public PlayerActionStateGroundSlam GroundSlamAS = new();
+  public float GroundSlamImpactSpeed { get; set; } = 0f;
 
   // !: Locomotion
   public PlayerLocomotionStateGrounded GroundedS = new();
