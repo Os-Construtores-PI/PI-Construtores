@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BasicMenuLogic : MonoBehaviour
@@ -31,7 +31,35 @@ public class BasicMenuLogic : MonoBehaviour
     AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
   }
 
-  
+  private void OnEnable()
+  {
+    if (GlobalEventBus.Instance != null)
+      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(OnPauseChanged);
+  }
+
+  private void OnDisable()
+  {
+    if (GlobalEventBus.Instance != null)
+      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(OnPauseChanged);
+  }
+
+  private void OnPauseChanged(bool isPaused)
+  {
+    if (AudioManager.Instance == null || somMenu == null) return;
+
+    if (isPaused)
+    {
+      // 🔊 abriu pause
+      AudioManager.Instance.PlaySFX(somMenu.pause);
+    }
+    else
+    {
+      // 🔊 fechou pause
+      AudioManager.Instance.PlaySFX(somMenu.back);
+    }
+  }
+
+
 
   #endregion === MENU PAUSE ===
 
