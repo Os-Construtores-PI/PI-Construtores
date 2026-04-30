@@ -221,11 +221,14 @@ public class IncreaseButton : PressAndReleaseButton
 {
   protected float _maxValue = 100;
   public float Value;
+
   private float _sumVelocity = 1f;
   private float _simpleActionInterval = 0.5f;
   private float _initialTime;
+  private float _movementLimit = 1.5f;
+
   private bool _isPressed = false;
-  private float limit = 1.5f;
+  private bool _wasIncreasing = false;
 
   public UnityEvent IsUsingEv = new();
   public UnityEvent StoppedUsingEv = new();
@@ -245,17 +248,23 @@ public class IncreaseButton : PressAndReleaseButton
 
   public override void Update()
   {
-    if (_isPressed && _player.MovementVector.sqrMagnitude < Mathf.Pow(limit, 2))
+    if (_isPressed && _player.MovementVector.sqrMagnitude < _movementLimit * _movementLimit)
     {
       if (Time.time - _initialTime >= _simpleActionInterval)
       {
+        if (!_wasIncreasing)
+        {
+          IsUsingEv.Invoke();
+        }
+
         Value = Mathf.Min(Value + _sumVelocity * Time.deltaTime, _maxValue);
-        Debug.Log(Value);
+        _wasIncreasing = true;
       }
     }
-    else
+    else if (_wasIncreasing)
     {
       StoppedUsingEv.Invoke();
+      _wasIncreasing = false;
     }
   }
 
@@ -265,24 +274,30 @@ public class IncreaseButton : PressAndReleaseButton
     {
       _initialTime = Time.time;
       _isPressed = true;
-      IsUsingEv.Invoke();
     }
-
-    if (context.canceled)
+    else if (context.canceled)
     {
-      float duration = Time.time - _initialTime;
-
-      if (duration < _simpleActionInterval)
-      {
-        SimpleAction();
-      }
-
       _isPressed = false;
-      StoppedUsingEv.Invoke();
+
+      if (WasQuickPress())
+        SimpleAction();
+      else if (_wasIncreasing)
+        StoppedUsingEv.Invoke();
+
+      _wasIncreasing = false;
     }
   }
 
   protected virtual void SimpleAction() { }
+
+  private bool ShouldIncrease()
+  {
+    bool holdTimeElapsed = Time.time - _initialTime >= _simpleActionInterval;
+    bool playerIsStill = _player.MovementVector.sqrMagnitude < _movementLimit * _movementLimit;
+    return _isPressed && holdTimeElapsed && playerIsStill;
+  }
+
+  private bool WasQuickPress() => Time.time - _initialTime < _simpleActionInterval;
 }
 
 public class BoostSlashDashButton : IncreaseButton
