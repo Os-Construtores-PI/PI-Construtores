@@ -16,6 +16,10 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   private Dictionary<bool, float> _speeds;
   private Dictionary<bool, float> _accelerations;
 
+  // ─── Boost ─────────────────────────────────────────────────────────────
+  private const float BoostDrainRate = 15f; // unidades por segundo
+  private bool _isUsingBoost;
+
   // ─── Bounce ───────────────────────────────────────────────────────────────
   private const float BounceWindowDuration = 0.4f;
   private const int MaxBounceCombo = 3;
@@ -48,6 +52,7 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     player.CurrentDashCount = 0;
     player.IsImpulsioned = false;
     _jumpedThisState = false;
+    player.CanDash = true;
 
     _justLanded = true;
     _bounceWindowLeft = BounceWindowDuration;
@@ -69,10 +74,21 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   public void Update(Player player)
   {
     if (_bounceWindowLeft > 0f)
+    {
       _bounceWindowLeft -= Time.deltaTime;
+    }
 
     if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
+    {
       ExecuteJump(player);
+    }
+
+    _isUsingBoost = player.DashSlashBoostButton.Value > 0f && player.IsRunning;
+
+    if (_isUsingBoost)
+    {
+      CalculateBoost(player);
+    }
   }
 
   public void FixedUpdate(Player player)
@@ -196,7 +212,8 @@ public class PlayerLocomotionStateGrounded : IState<Player>
       10f * Time.deltaTime
     );
 
-    float speed = _speeds[player.IsRunning];
+    float baseSpeed = _speeds[player.IsRunning];
+    float speed = baseSpeed * player.DashSlashBoostButton.SpeedMultiplier;
     float accel = _accelerations[player.IsRunning];
 
     player.MovementVector = new Vector3(
@@ -216,5 +233,19 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     return (
       camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
     ).normalized;
+  }
+
+  private void CalculateBoost(Player player)
+  {
+    if (player.DashSlashBoostButton.Value <= 0f)
+    {
+      _isUsingBoost = false;
+      return;
+    }
+
+    player.DashSlashBoostButton.Value = Mathf.Max(
+      player.DashSlashBoostButton.Value - BoostDrainRate * Time.deltaTime,
+      0f
+    );
   }
 }

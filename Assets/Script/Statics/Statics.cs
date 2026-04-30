@@ -127,9 +127,10 @@ public static class Constants
   {
     public static class Player
     {
-      public const string Dash = "Dash";
-      public const string Jump = "Jump";
-      public const string Run = "Run";
+      public const string Dash = nameof(Dash);
+      public const string Jump = nameof(Jump);
+      public const string Run = nameof(Run);
+      public const string Charging = nameof(Charging);
     }
 
     public static class Interface

@@ -103,6 +103,7 @@ public class Player : CombatEntities
   //!: Action
   public PlayerActionStateIdle IdleAS = new();
   public PlayerActionStateDash DashAS = new();
+  public BoostSlashDashButton DashSlashBoostButton;
   public PlayerActionStateInteraction InteractionAS = new();
   public PlayerActionStateWallSliding WallSlidingAS = new();
   public PlayerActionStateGroundSlam GroundSlamAS = new();
@@ -148,7 +149,7 @@ public class Player : CombatEntities
 
   public bool IsDashing = false;
   public bool JumpInputPressed = false;
-  private float _dashCount = 1;
+  public float MaxDashCount = 1;
   public float CurrentDashCount = 0;
   public float DashDuration;
   #endregion
@@ -268,6 +269,14 @@ public class Player : CombatEntities
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
+    DashSlashBoostButton = new(this, 100, 20, .25f);
+    DashSlashBoostButton.IsUsingEv.AddListener(() =>
+      EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
+    );
+    DashSlashBoostButton.StoppedUsingEv.AddListener(() =>
+      EffectsWorker.StopEffect(Constants.EffectsNames.Player.Charging)
+    );
+
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
     {
       float radius = 6f;
@@ -362,6 +371,9 @@ public class Player : CombatEntities
 
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+
+    DashSlashBoostButton.Update();
+
     ScanWithCamera();
   }
 
@@ -402,8 +414,7 @@ public class Player : CombatEntities
 
   public void OnDash(InputAction.CallbackContext context)
   {
-    if (context.performed && _canDash && CurrentDashCount < _dashCount)
-      StartDash();
+    DashSlashBoostButton.OnInputAction(context);
   }
 
   public void OnGroundSlam(InputAction.CallbackContext context)
@@ -478,7 +489,7 @@ public class Player : CombatEntities
         WaitForJumpRelease = false;
       return;
     }
-    if (context.started)
+    if (context.started || IsGrounded)
       Jump();
   }
 
@@ -591,15 +602,6 @@ public class Player : CombatEntities
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
-  }
-  #endregion
-
-  #region === Dash ===
-  private void StartDash()
-  {
-    if (IsDashBlocked)
-      return;
-    ActionLayer.PushState(DashAS, this);
   }
   #endregion
 
