@@ -213,7 +213,9 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     );
 
     float baseSpeed = _speeds[player.IsRunning];
-    float speed = baseSpeed * player.DashSlashBoostButton.SpeedMultiplier;
+    float speed = player.IsRunning
+      ? baseSpeed * player.DashSlashBoostButton.SpeedMultiplier
+      : baseSpeed;
     float accel = _accelerations[player.IsRunning];
 
     player.MovementVector = new Vector3(

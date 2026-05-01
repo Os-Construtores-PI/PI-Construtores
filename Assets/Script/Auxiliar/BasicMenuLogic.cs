@@ -4,7 +4,8 @@ using UnityEngine.SceneManagement;
 public class BasicMenuLogic : MonoBehaviour
 {
   [Header("Audio")]
-  [SerializeField] private somMenu somMenu;
+  [SerializeField]
+  private somMenu somMenu;
 
   #region  === MENU GAMEOVER ===
   public void Respawn()
@@ -45,7 +46,8 @@ public class BasicMenuLogic : MonoBehaviour
 
   private void OnPauseChanged(bool isPaused)
   {
-    if (AudioManager.Instance == null || somMenu == null) return;
+    if (AudioManager.Instance == null || somMenu == null)
+      return;
 
     if (isPaused)
     {
@@ -59,21 +61,18 @@ public class BasicMenuLogic : MonoBehaviour
     }
   }
 
-
-
   #endregion === MENU PAUSE ===
 
   #region  === COMUNS ===
   public void ExitToMainMenu()
   {
-
     Time.timeScale = 1f;
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
 
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();
     SceneManager.LoadScene(Constants.SceneNames.MainMenu);
-    
+
     AudioManager.Instance.PlaySFX(somMenu.back);
   }
   #endregion

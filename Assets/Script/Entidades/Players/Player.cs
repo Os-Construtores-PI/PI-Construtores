@@ -269,7 +269,7 @@ public class Player : CombatEntities
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
-    DashSlashBoostButton = new(this, 100, 20, .25f);
+    DashSlashBoostButton = new(this, 100, 20, .5f);
     DashSlashBoostButton.IsUsingEv.AddListener(() =>
       EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
     );

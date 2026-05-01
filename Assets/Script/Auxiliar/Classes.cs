@@ -162,6 +162,7 @@ public class EffectsWorker
     foreach (Transform child in transform)
     {
       effects.Add(child.name, child.gameObject);
+      StopEffect(child.name);
     }
   }
 
