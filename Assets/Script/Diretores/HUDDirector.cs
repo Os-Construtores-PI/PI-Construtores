@@ -148,9 +148,13 @@ public class HudDirector : MonoBehaviour
     canvasMap[playerID] = panelMap;
 
     // Vincula HealthHUD ao jogador
-    HealthHUDComponent healthHUD = hudInstance.GetComponentInChildren<HealthHUDComponent>();
-    if (healthHUD && healthHUD.HUDType == HealthHUDType.PLAYER)
+    HealthHUD healthHUD = hudInstance.GetComponentInChildren<HealthHUD>();
+    if (healthHUD != null)
       healthHUD.BindToPlayer(player);
+
+    BoostHUD boostHUD = hudInstance.GetComponentInChildren<BoostHUD>();
+    if (boostHUD != null)
+      boostHUD.BindToPlayer(player);
 
     // Armazena referências do painel de interação
     if (
@@ -358,6 +362,7 @@ public class HudDirector : MonoBehaviour
       fade: false,
       instant: true
     );
+
     HidePanel(
       Constants.HudPanelNames.HealthBar,
       playerID,
@@ -365,6 +370,15 @@ public class HudDirector : MonoBehaviour
       fade: false,
       instant: true
     );
+
+    HidePanel(
+      Constants.HudPanelNames.BoostBar,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+
     HidePanel(
       Constants.HudPanelNames.DashIcon,
       playerID,

@@ -238,6 +238,7 @@ public class Player : CombatEntities
     PlayerInput = GetComponent<PlayerInput>();
     DetectarDispositivo(PlayerInput);
 
+    DashSlashBoostButton = new(this, 100, 20, .5f);
     LocomotionLayer = new(GroundedS, this);
     ActionLayer = new(IdleAS, this);
   }
@@ -269,11 +270,10 @@ public class Player : CombatEntities
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
-    DashSlashBoostButton = new(this, 100, 20, .5f);
-    DashSlashBoostButton.IsUsingEv.AddListener(() =>
+    DashSlashBoostButton.StartedChargingEv.AddListener(() =>
       EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
     );
-    DashSlashBoostButton.StoppedUsingEv.AddListener(() =>
+    DashSlashBoostButton.StoppedChargingEv.AddListener(() =>
       EffectsWorker.StopEffect(Constants.EffectsNames.Player.Charging)
     );
 
@@ -625,20 +625,6 @@ public class Player : CombatEntities
 
   private void SetupHUD()
   {
-    foreach (var hudObj in GameObject.FindGameObjectsWithTag("HealthHUD"))
-    {
-      if (
-        hudObj.TryGetComponent(out HealthHUDComponent hud)
-        && hud.IdHealth == ID
-        && hud.HUDType == HealthHUDType.PLAYER
-      )
-      {
-        _healthHUD = hud;
-        _healthHUD.BindToPlayer(this);
-        break;
-      }
-    }
-
     if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
     {
       _OnDamage.AddListener(hudDir.DamageShake);

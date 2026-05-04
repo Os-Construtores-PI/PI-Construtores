@@ -221,7 +221,16 @@ public class PressAndReleaseButton
 public class IncreaseButton : PressAndReleaseButton
 {
   protected float _maxValue = 100;
-  public float Value;
+  private float _value;
+  public float Value
+  {
+    get { return _value; }
+    set
+    {
+      ChargingEv.Invoke(value / _maxValue);
+      _value = value;
+    }
+  }
 
   private float _sumVelocity = 1f;
   private float _simpleActionInterval = 0.5f;
@@ -231,8 +240,9 @@ public class IncreaseButton : PressAndReleaseButton
   private bool _isPressed = false;
   private bool _wasIncreasing = false;
 
-  public UnityEvent IsUsingEv = new();
-  public UnityEvent StoppedUsingEv = new();
+  public UnityEvent StartedChargingEv = new();
+  public UnityEvent<float> ChargingEv = new();
+  public UnityEvent StoppedChargingEv = new();
 
   public IncreaseButton(
     Player player,
@@ -255,7 +265,7 @@ public class IncreaseButton : PressAndReleaseButton
       {
         if (!_wasIncreasing)
         {
-          IsUsingEv.Invoke();
+          StartedChargingEv.Invoke();
         }
 
         Value = Mathf.Min(Value + _sumVelocity * Time.deltaTime, _maxValue);
@@ -264,7 +274,7 @@ public class IncreaseButton : PressAndReleaseButton
     }
     else if (_wasIncreasing)
     {
-      StoppedUsingEv.Invoke();
+      StoppedChargingEv.Invoke();
       _wasIncreasing = false;
     }
   }
@@ -283,7 +293,7 @@ public class IncreaseButton : PressAndReleaseButton
       if (WasQuickPress())
         SimpleAction();
       else if (_wasIncreasing)
-        StoppedUsingEv.Invoke();
+        StoppedChargingEv.Invoke();
 
       _wasIncreasing = false;
     }
