@@ -1,11 +1,16 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BoostHUD : BarHUD
 {
-  private bool _isShaking = false;
+  [Header("Fill Options")]
+  [SerializeField]
+  private Image _fill;
   private Tween _shakeTween;
   private Vector2 _sliderInitialAnchoredPos;
+  private bool _isShaking = false;
+  private bool _isGlowing = false;
 
   protected override void Awake()
   {
@@ -30,6 +35,7 @@ public class BoostHUD : BarHUD
     player.DashSlashBoostButton.ChargingEv.AddListener(UpdateSlider);
     player.DashSlashBoostButton.StartedChargingEv.AddListener(StartShaking);
     player.DashSlashBoostButton.StoppedChargingEv.AddListener(StopShaking);
+    _slider.DOValue(player.DashSlashBoostButton.Value, 0.35f).SetEase(Ease.OutQuad);
   }
 
   protected override void UpdateSlider(float normalizedValue)
@@ -43,6 +49,17 @@ public class BoostHUD : BarHUD
       gameObject.SetActive(true);
 
     _slider.DOValue(normalizedValue, 0.35f).SetEase(Ease.OutQuad);
+
+    if (!_isGlowing)
+    {
+      _isGlowing = true;
+
+      _fill.DOKill();
+      _fill
+        .DOColor(Color.lightBlue, 0.25f)
+        .SetLoops(2, LoopType.Yoyo)
+        .OnComplete(() => _isGlowing = false);
+    }
   }
 
   private void StartShaking()

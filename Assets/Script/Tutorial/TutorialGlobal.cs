@@ -6,6 +6,8 @@ public class TutorialGlobal : MonoBehaviour
 {
     public static TutorialGlobal Instance;
 
+  [SerializeField] private somMenu _somMenu;
+
     [Header("Ui")]
     [SerializeField]
     private GameObject tutorialHUD;
@@ -51,6 +53,9 @@ public class TutorialGlobal : MonoBehaviour
         IsTutorialActive = true;
         GameState.IsTutorialActive = true;
 
+    if (AudioManager.Instance != null && _somMenu != null)
+      AudioManager.Instance.PlaySFX(_somMenu.tutorialOpen);
+
         DeviceSpriteManager.Instance?.ForceRefresh();
 
         DesativarTodos();
@@ -72,6 +77,10 @@ public class TutorialGlobal : MonoBehaviour
 
         IsTutorialActive = false;
         GameState.IsTutorialActive = false;
+
+    if (AudioManager.Instance != null && _somMenu != null)
+      AudioManager.Instance.PlaySFX(_somMenu.tutorialBack);
+
         tutorialHUD.SetActive(false);
         GameObject painelAtivo = GetPainelAtivo();
         if (painelAtivo != null)
