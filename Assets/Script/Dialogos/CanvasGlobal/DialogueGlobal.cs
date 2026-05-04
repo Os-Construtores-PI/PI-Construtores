@@ -16,6 +16,8 @@ public class DialogueGlobal : MonoBehaviour
     Closing,
   }
 
+  [SerializeField] private somMenu _somMenu;
+
   [Header("Settings")]
   [SerializeField]
   private float _delayAntesdotexto = 0.25f;
@@ -123,6 +125,9 @@ public class DialogueGlobal : MonoBehaviour
     _Interactable.actions["ReturnDialogue"]?.Reset();
 
     OndialogueStart?.Invoke();
+
+    if (AudioManager.Instance != null && _somMenu != null)
+        AudioManager.Instance.PlaySFX(_somMenu.dialogueOpen);
     _falasAtuais = falas;
     _index = 0;
     AtualizarVisibilidadedosBotoes();
@@ -208,6 +213,8 @@ public class DialogueGlobal : MonoBehaviour
       return;
     }
 
+    if (AudioManager.Instance != null && _somMenu != null)
+        AudioManager.Instance.PlaySFX(_somMenu.dialogueNext);
     _index++;
     AtualizarFala();
   }
@@ -216,6 +223,8 @@ public class DialogueGlobal : MonoBehaviour
   {
     if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open || _index <= 0)
       return;
+    if (AudioManager.Instance != null && _somMenu != null)
+      AudioManager.Instance.PlaySFX(_somMenu.dialogueBack);
 
     _index--;
     AtualizarFala();
