@@ -56,6 +56,7 @@ public class HudDirector : MonoBehaviour
     Constants.HudPanelNames.DashIcon,
     Constants.HudPanelNames.Cutscene,
     Constants.HudPanelNames.LockOnOverlay,
+    Constants.HudPanelNames.BoostBar,
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -82,7 +83,6 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.AddListener(SetLockOnVisibility);
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(PausePanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.AddListener(OptionsPausePanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.AddListener(DialoguePanel);
   }
 
   private void OnDisable()
@@ -98,7 +98,6 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.RemoveListener(DialoguePanel);
   }
 
   private void Start()
@@ -392,6 +391,7 @@ public class HudDirector : MonoBehaviour
   {
     ShowPanel(Constants.HudPanelNames.AmethystCounter, playerID, independent: true, fade: false);
     ShowPanel(Constants.HudPanelNames.HealthBar, playerID, independent: true, fade: false);
+    ShowPanel(Constants.HudPanelNames.BoostBar, playerID, independent: true, fade: false);
     ShowPanel(Constants.HudPanelNames.DashIcon, playerID, independent: true, fade: false);
   }
 
@@ -621,14 +621,6 @@ public class HudDirector : MonoBehaviour
       ShowPanel(Constants.HudPanelNames.EndGame, player.ID, independent: true);
     });
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Diálogo
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  private void DialoguePanel(Player player, List<string> text, float typeSpeed) { }
-
-  private void EndDialoguePanel(Player player) { }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Pausa
