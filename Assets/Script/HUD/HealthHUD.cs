@@ -7,11 +7,6 @@ public class HealthHUD : BarHUD
   [SerializeField]
   private Slider _damageSlider; // ===> BARRA DE DANO / FADE
 
-  private void Awake()
-  {
-    DOTween.Init();
-  }
-
   public override void BindToPlayer(Player player)
   {
     if (player == null)
@@ -25,26 +20,10 @@ public class HealthHUD : BarHUD
 
     // Inicializa sliders imediatamente
     float percent = _boundPlayer.MaxHealth > 0 ? _boundPlayer.Health / _boundPlayer.MaxHealth : 1f;
-    _slider.value = percent;
+    _slider.DOValue(percent, 0.35f).SetEase(Ease.OutQuad);
+    print(_slider.value);
     if (_damageSlider != null)
       _damageSlider.value = percent;
-
-    if (_slider != null)
-    {
-      RectTransform sliderRect = _slider.GetComponent<RectTransform>();
-      if (sliderRect != null)
-      {
-        // Salva o tamanho original
-        float originalWidth = sliderRect.sizeDelta.x;
-
-        // Começa com largura zero
-        sliderRect.sizeDelta = new Vector2(0f, sliderRect.sizeDelta.y);
-
-        sliderRect
-          .DOSizeDelta(new Vector2(originalWidth, sliderRect.sizeDelta.y), 1f)
-          .SetEase(Ease.OutQuart);
-      }
-    }
   }
 
   protected override void UpdateSlider(float normalizedValue)
