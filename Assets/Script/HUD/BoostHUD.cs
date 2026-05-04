@@ -30,6 +30,7 @@ public class BoostHUD : BarHUD
     player.DashSlashBoostButton.ChargingEv.AddListener(UpdateSlider);
     player.DashSlashBoostButton.StartedChargingEv.AddListener(StartShaking);
     player.DashSlashBoostButton.StoppedChargingEv.AddListener(StopShaking);
+    _slider.DOValue(player.DashSlashBoostButton.Value, 0.35f).SetEase(Ease.OutQuad);
   }
 
   protected override void UpdateSlider(float normalizedValue)
