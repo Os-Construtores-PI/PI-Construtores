@@ -776,7 +776,23 @@ public class Player : CombatEntities
   public bool CanAttack = true;
   public bool WillAttack = true;
 
-  protected virtual void Attack() { }
+  private void Attack()
+  {
+    if (CanDash && LockedTarget != null)
+    {
+      ActionLayer.PushState(DashAS, this);
+      return;
+    }
+
+    if (CanExecuteAttack())
+    {
+      OnExecuteAttack();
+    }
+  }
+
+  protected virtual bool CanExecuteAttack() => true;
+
+  protected virtual void OnExecuteAttack() { }
   #endregion
 
   #region === Camera ===

@@ -44,12 +44,12 @@ public class Pandora : Player
 
   #endregion
   #region --- ATAQUE ---
-  protected override void Attack()
+  protected override void OnExecuteAttack()
   {
-    if (CanAttack && WillAttack)
-    {
-      ActionLayer.PushState(new PlayerActionPandoraAttackState(), this);
-    }
+    // if (CanAttack && WillAttack)
+    // {
+    //   ActionLayer.PushState(new PlayerActionPandoraAttackState(), this);
+    // }
   }
   #endregion
 }
