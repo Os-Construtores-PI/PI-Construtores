@@ -7,7 +7,7 @@ public class AmethystItemDropZone : ItemDropZone
   private readonly float _durationScale = .25f;
 
   [SerializeField]
-  private float _boostGrace = 20f;
+  private float _boostGrace = 10f;
 
   protected override void AddItem(Player player)
   {
