@@ -14,10 +14,13 @@ using static TutorialGlobal;
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
-  #region === Configurações de Movimento ===
+  // ─────────────────────────────────────────────────────────────
+  //  MOVIMENTO
+  // ─────────────────────────────────────────────────────────────
+  #region Movimento – Stats
+
   private float _speed = 10f;
-  private float _runningSpeed = 20;
-  internal QualityTier WallSpeedMultiplier = QualityTier.RARE;
+  private float _runningSpeed = 20f;
 
   [HideInInspector]
   [Stat(nameof(Speed))]
@@ -35,14 +38,17 @@ public class Player : CombatEntities
     set => _runningSpeed = value;
   }
 
+  internal QualityTier WallSpeedMultiplier = QualityTier.RARE;
   internal float Acceleration = 5f;
-  internal float AccelerationRunning = 10;
+  internal float AccelerationRunning = 10f;
   internal float Friction = 2f;
   internal float AirFriction = 2f;
 
-  [Header("Pulo")]
+  #endregion
+
+  #region Movimento – Pulo
+
   private float _jumpForce = 10f;
-  internal float WallJumpMultiplier = 5;
 
   [HideInInspector]
   [Stat(nameof(JumpForce))]
@@ -53,19 +59,29 @@ public class Player : CombatEntities
   }
 
   internal int MaxJumpCount = 2;
-  internal float GravityValue = -16.62f;
+  internal float WallJumpMultiplier = 5f;
+  internal float GravityValue;
   internal float GravityUpMultiplier = 2.2f;
   internal float GravityDownMultiplier = 0.6f;
   internal float MaxFallSpeed = -26f;
   internal float InitialGravityValue;
 
-  [Header("Dash")]
+  #endregion
+
+  #region Movimento – Dash
+
   internal float DashSpeed = 30f;
   internal float DashDistance = 5f;
   internal float DashCooldown = 1f;
   internal ShiftDashScript DashHudScript;
 
-  [Header("Componentes")]
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  COMPONENTES
+  // ─────────────────────────────────────────────────────────────
+  #region Componentes
+
   [SerializeField]
   private Transform _cameraTarget;
 
@@ -80,10 +96,14 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public CinemachineOrbitalFollow _cinemachineOrbital;
+
   public HurtboxComponent HurtboxCollider;
-  protected Camera _myCamera;
   public Collider DashHitboxCollider;
   public Collider GroundSlamHitboxCollider;
+  public Animator AnimatorComponent;
+  public PlayerInput PlayerInput;
+
+  protected Camera _myCamera;
 
   public void SetCamera(CinemachineCamera cincam, Camera camera)
   {
@@ -91,47 +111,55 @@ public class Player : CombatEntities
     _myCamera = camera;
   }
 
-  public Animator AnimatorComponent;
-  public PlayerInput PlayerInput;
-  public InputType _ultimoDispositivo = InputType.Keyboard;
   #endregion
 
-  #region === Estados Internos ===
+  // ─────────────────────────────────────────────────────────────
+  //  STATE MACHINES
+  // ─────────────────────────────────────────────────────────────
+  #region State Machines & Estados
+
   public StateMachine<Player> LocomotionLayer;
   public StackStateMachine<Player> ActionLayer;
 
-  //!: Action
+  // Action states
   public PlayerActionStateIdle IdleAS = new();
   public PlayerActionStateDash DashAS = new();
-  public BoostSlashDashButton DashSlashBoostButton;
   public PlayerActionStateInteraction InteractionAS = new();
   public PlayerActionStateWallSliding WallSlidingAS = new();
   public PlayerActionStateGroundSlam GroundSlamAS = new();
-  public float GroundSlamImpactSpeed { get; set; } = 0f;
+  public BoostSlashDashButton DashSlashBoostButton;
 
-  // !: Locomotion
+  // Locomotion states
   public PlayerLocomotionStateGrounded GroundedS = new();
   public PlayerLocomotionStateAirborne AirborneS = new();
   public PlayerLocomotionStateLocked LockedS = new();
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  ESTADO INTERNO DO PLAYER
+  // ─────────────────────────────────────────────────────────────
+  #region Estado Interno
 
   internal Vector3 MovementVector;
   internal Vector3 Direction;
   internal Vector3 DashDirection;
   internal Vector2 MoveInput;
+  internal Vector3 LastWallNormal;
+
   internal bool IsRunning;
   internal bool IsImpulsioned;
-  internal Vector3 LastWallNormal;
-  public Transform _modelTransform;
+  internal bool WallSpeedApplied;
+  internal bool TouchingWall;
+  internal bool IsDashBlocked;
 
   internal int CurrentJumpCount = 0;
 
   [SerializeField]
   internal bool IsGrounded;
-  internal bool WallSpeedApplied;
-  internal bool TouchingWall;
 
-  internal bool _canDash = true;
-  internal bool _canMove = true;
+  private bool _canMove = true;
+  private bool _canDash = true;
 
   [Stat(nameof(CanMove))]
   public bool CanMove
@@ -148,56 +176,97 @@ public class Player : CombatEntities
   }
 
   public bool IsDashing = false;
-  public bool JumpInputPressed = false;
-  public float MaxDashCount = 1;
-  public float CurrentDashCount = 0;
+  public float MaxDashCount = 1f;
+  public float CurrentDashCount = 0f;
   public float DashDuration;
+  public float GroundSlamImpactSpeed { get; set; } = 0f;
+
+  public Transform _modelTransform;
+
+  // Ultimo dispositivo de input detectado
+  public InputType _ultimoDispositivo = InputType.Keyboard;
+
   #endregion
 
-  #region === Flags de Contexto ===
+  // ─────────────────────────────────────────────────────────────
+  //  FLAGS DE INPUT DE PULO
+  // ─────────────────────────────────────────────────────────────
+  #region Flags de Input – Pulo
+  public bool JumpInputPressed = false;
+  public bool JumpInteractionPressed = false;
+
+  public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  FLAGS DE CONTEXTO
+  // ─────────────────────────────────────────────────────────────
+  #region Flags de Contexto
+
   public bool CameraLocked { get; set; } = false;
   public bool IsHardLocked { get; set; } = false;
   public bool IgnoreGameplayInputThisFrame { get; set; } = false;
   public bool WaitForJumpRelease { get; set; } = false;
   public bool BlockJumpByDialogue { get; set; } = false;
+
   #endregion
 
-  #region === EnemyScan ===
-  [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
+  // ─────────────────────────────────────────────────────────────
+  //  SCANNERS
+  // ─────────────────────────────────────────────────────────────
+  #region Scanners – Declarações
+
+  [Header("Scanner – Inimigos")]
   [SerializeField, Min(10)]
-  private float enemyScanRadius = 10;
-  #endregion
+  private float enemyScanRadius = 10f;
 
-  #region === Interação ===
-  [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
-  private Camera selectedcamera = null;
+  private Camera _selectedCamera = null;
   private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
-  #endregion
 
-  [Header("Inverter Y Camera")]
-  [SerializeField]
-  private bool _willInvertYAxis = false;
-
-  #region === Inventário ===
-  private readonly Inventory _inventory = new();
-  public Inventory Inventory => _inventory;
-  #endregion
-
-  #region  === Knockback ===
-  #endregion
-
-  #region === Scanner ===
   private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
+
   #endregion
 
-  #region === Events ===
-  public readonly UnityEvent IsRunningEv = new();
-  public readonly UnityEvent StoppedRunningEv = new();
+  // ─────────────────────────────────────────────────────────────
+  //  LOCK-ON
+  // ─────────────────────────────────────────────────────────────
+  #region Lock-On
+
+  public ILockable LockedTarget;
+  private ILockable _lockCandidate;
+  private RaycastHit _lastLockHit;
+  private bool _isLockOnActive = false;
+  protected RaycastHit _playerRayHit;
+
   #endregion
 
-  #region Coletáveis
+  // ─────────────────────────────────────────────────────────────
+  //  INTERAÇÃO
+  // ─────────────────────────────────────────────────────────────
+  #region Interação
+
+  public InteractableObject InteractionObject;
+  protected InteractableObject _lastInteractionObject;
+  protected Type _interactionObjectType;
+  protected (bool success, RaycastHit hit) _lastValidResult;
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  INVENTÁRIO & COLETÁVEIS
+  // ─────────────────────────────────────────────────────────────
+  #region Inventário
+
+  private readonly Inventory _inventory = new();
+  public Inventory Inventory => _inventory;
+
+  #endregion
+
+  #region Coletáveis – Ametistas
+
   private int amethysts = 0;
   public int Amethysts => amethysts;
 
@@ -206,9 +275,9 @@ public class Player : CombatEntities
     if (amethysts == value)
       return;
 
-    Vector3? positionInCamera = null;
-    if (amethystPos != null)
-      positionInCamera = _myCamera.WorldToScreenPoint((Vector3)amethystPos);
+    Vector3? positionInCamera = amethystPos.HasValue
+      ? _myCamera.WorldToScreenPoint(amethystPos.Value)
+      : (Vector3?)null;
 
     amethysts = Mathf.Max(0, value);
     GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
@@ -224,20 +293,98 @@ public class Player : CombatEntities
     SetAmethysts(amethysts - amount, null);
     return true;
   }
+
   #endregion
 
-  #region === Inicialização Unity ===
+  // ─────────────────────────────────────────────────────────────
+  //  EVENTOS
+  // ─────────────────────────────────────────────────────────────
+  #region Eventos
+
+  public readonly UnityEvent IsRunningEv = new();
+  public readonly UnityEvent StoppedRunningEv = new();
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  ATAQUE
+  // ─────────────────────────────────────────────────────────────
+  #region Ataque
+
+  internal float AttackCooldown;
+  public bool CanAttack = true;
+  public bool WillAttack = true;
+
+  private void Attack()
+  {
+    if (CanDash && LockedTarget != null)
+    {
+      ActionLayer.PushState(DashAS, this);
+      return;
+    }
+    if (CanExecuteAttack())
+      OnExecuteAttack();
+  }
+
+  protected virtual bool CanExecuteAttack() => true;
+
+  protected virtual void OnExecuteAttack() { }
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  WALL RUNNING
+  // ─────────────────────────────────────────────────────────────
+  #region Wall Running
+
+  [Header("Wall Exit")]
+  internal float WallExitDuration = 0.2f;
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  CAMERA
+  // ─────────────────────────────────────────────────────────────
+  #region Camera – Configuração
+
+  [Header("Inverter Y Camera")]
+  [SerializeField]
+  private bool _willInvertYAxis = false;
+
+  private void SetupCamera()
+  {
+    foreach (Camera cam in Camera.allCameras)
+    {
+      if (cam.TryGetComponent(out CameraLogic cameraLogic) && cameraLogic.ID == ID)
+      {
+        _selectedCamera = cam;
+        return;
+      }
+    }
+    Debug.LogError("[Player] Câmera com ID correspondente não encontrada.");
+  }
+
+  public void LockCamera(bool state) => CameraLocked = state;
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  UNITY LIFECYCLE
+  // ─────────────────────────────────────────────────────────────
+  #region Unity – Awake / Start / Update / FixedUpdate / OnDestroy
+
   public override void Awake()
   {
     base.Awake();
     canPulse = false;
+    GravityValue = -16.62f; // valor padrão antes de ser sobrescrito
     InitialGravityValue = GravityValue;
 
     CharacterController = GetComponent<CharacterController>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
-    DetectarDispositivo(PlayerInput);
 
+    DetectarDispositivo(PlayerInput);
     DashSlashBoostButton = new(this, 100, 20, .5f);
     LocomotionLayer = new(GroundedS, this);
     ActionLayer = new(IdleAS, this);
@@ -249,24 +396,87 @@ public class Player : CombatEntities
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
     StartCoroutine(DelayedSetupHUD(.1f));
+    SetupDashHUD();
+    SetupCinemachine();
+    SetupScanners();
 
-    if (DashHudScript == null)
-    {
-      GameObject go = GameObject.FindWithTag("DashHUDIcon");
-      if (go)
-        DashHudScript = go.GetComponent<ShiftDashScript>();
-      else
-        Debug.LogWarning(
-          "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag."
-        );
-    }
+    _modelTransform = transform.Find("Model");
+  }
 
+  public override void Update()
+  {
+    base.Update();
+
+#if UNITY_EDITOR
+    if (Input.GetKeyDown(KeyCode.F1))
+      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+#endif
+
+    LocomotionLayer.Update(this);
+    ActionLayer.Update(this);
+    DashSlashBoostButton.Update();
+    ScanWithCamera();
+  }
+
+  public void FixedUpdate()
+  {
+    if (!CharacterController.enabled)
+      return;
+
+    IsGrounded = CharacterController.isGrounded;
+
+    AnimatorComponent.SetFloat(
+      Constants.AnimatorFloatNames.VelocityY,
+      CharacterController.velocity.y
+    );
+    AnimatorComponent.SetFloat(
+      Constants.AnimatorFloatNames.VelocityX,
+      Vector2.SqrMagnitude(
+        new Vector2(CharacterController.velocity.x, CharacterController.velocity.z)
+      )
+    );
+    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
+
+    LocomotionLayer.FixedUpdate(this);
+    ActionLayer.FixedUpdate(this);
+
+    CharacterController.Move(MovementVector * Time.deltaTime);
+  }
+
+  public void OnDestroy() => DOTween.Kill(this);
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  INICIALIZAÇÃO AUXILIAR (Start helpers)
+  // ─────────────────────────────────────────────────────────────
+  #region Inicialização Auxiliar
+
+  private void SetupDashHUD()
+  {
+    if (DashHudScript != null)
+      return;
+
+    GameObject go = GameObject.FindWithTag("DashHUDIcon");
+    if (go)
+      DashHudScript = go.GetComponent<ShiftDashScript>();
+    else
+      Debug.LogWarning(
+        "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag."
+      );
+  }
+
+  private void SetupCinemachine()
+  {
     InputAction lookAction = InputSystem.actions.FindAction("Look");
     lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
 
     _cinemachineInput = CinemachineCamera.GetComponent<CinemachineInputAxisController>();
     _cinemachineOrbital = CinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
+  }
 
+  private void SetupScanners()
+  {
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
@@ -277,7 +487,27 @@ public class Player : CombatEntities
       EffectsWorker.StopEffect(Constants.EffectsNames.Player.Charging)
     );
 
-    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(r =>
+    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
+    _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
+    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(rays =>
+    {
+      float distance = 5f;
+      int mask = LayerMask.GetMask("RunningWall");
+      var interaction = QueryTriggerInteraction.Ignore;
+
+      if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
+        return hit;
+      if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
+        return hit;
+      return null;
+    });
+  }
+
+  /// <summary>
+  /// Fábrica do delegate do camera scanner, separado para manter o Start legível.
+  /// </summary>
+  private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
+    r =>
     {
       float radius = 6f;
       float maxDistance = 20f;
@@ -298,14 +528,13 @@ public class Player : CombatEntities
 
       for (int i = 0; i < hitCount; i++)
       {
-        var col = _sphereCastResults[i].collider;
+        Collider col = _sphereCastResults[i].collider;
         if (col.CompareTag("Player"))
           continue;
 
         Vector3 targetCenter = col.bounds.center;
-
-        Vector3 direcaoParaAlvo = (targetCenter - r.origin).normalized;
-        float dot = Vector3.Dot(r.direction.normalized, direcaoParaAlvo);
+        Vector3 dirToTarget = (targetCenter - r.origin).normalized;
+        float dot = Vector3.Dot(r.direction.normalized, dirToTarget);
         if (dot < 0.5f)
           continue;
 
@@ -313,23 +542,20 @@ public class Player : CombatEntities
         if (distance > maxDistance)
           continue;
 
-        if (!Physics.Linecast(r.origin, targetCenter, obstacleMask))
+        if (!Physics.Linecast(r.origin, targetCenter, obstacleMask) && distance < closestDistance)
         {
-          if (distance < closestDistance)
-          {
-            closestDistance = distance;
-            bestTarget = col;
-          }
+          closestDistance = distance;
+          bestTarget = col;
         }
       }
 
       if (bestTarget != null)
       {
-        Vector3 direcaoFinal = (bestTarget.bounds.center - r.origin).normalized;
+        Vector3 finalDir = (bestTarget.bounds.center - r.origin).normalized;
         if (
           Physics.Raycast(
             r.origin,
-            direcaoFinal,
+            finalDir,
             out RaycastHit finalHit,
             maxDistance + 2f,
             targetsMask | obstacleMask
@@ -342,67 +568,15 @@ public class Player : CombatEntities
       }
 
       return (false, default);
-    });
+    };
 
-    _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
-
-    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(rays =>
-    {
-      float distance = 5f;
-      int mask = LayerMask.GetMask("RunningWall");
-      var interaction = QueryTriggerInteraction.Ignore;
-
-      if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
-        return hit;
-      if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
-        return hit;
-      return null;
-    });
-
-    _modelTransform = transform.Find("Model");
-  }
-
-  public override void Update()
-  {
-    base.Update();
-
-    if (Input.GetKeyDown(KeyCode.F1))
-      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-
-    LocomotionLayer.Update(this);
-    ActionLayer.Update(this);
-
-    DashSlashBoostButton.Update();
-
-    ScanWithCamera();
-  }
-
-  public void FixedUpdate()
-  {
-    if (!CharacterController.enabled)
-      return;
-
-    IsGrounded = CharacterController.isGrounded;
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityY,
-      CharacterController.velocity.y
-    );
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityX,
-      Vector2.SqrMagnitude(new(CharacterController.velocity.x, CharacterController.velocity.z))
-    );
-    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
-
-    LocomotionLayer.FixedUpdate(this);
-    ActionLayer.FixedUpdate(this);
-
-    CharacterController.Move(MovementVector * Time.deltaTime);
-  }
-
-  public void OnDestroy() => DOTween.Kill(this);
   #endregion
 
-  #region === Input Callbacks ===
+  // ─────────────────────────────────────────────────────────────
+  //  INPUT CALLBACKS
+  // ─────────────────────────────────────────────────────────────
+  #region Input Callbacks
+
   public void OnMove(InputAction.CallbackContext context)
   {
     if (IgnoreGameplayInputThisFrame)
@@ -410,19 +584,13 @@ public class Player : CombatEntities
     MoveInput = context.ReadValue<Vector2>();
   }
 
-  public void LockCamera(bool state) => CameraLocked = state;
-
-  public void OnDash(InputAction.CallbackContext context)
-  {
+  public void OnDash(InputAction.CallbackContext context) =>
     DashSlashBoostButton.OnInputAction(context);
-  }
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {
     if (context.performed && !IsGrounded)
-    {
       ActionLayer.PushState(GroundSlamAS, this);
-    }
   }
 
   public void OnRunning(InputAction.CallbackContext context)
@@ -437,41 +605,6 @@ public class Player : CombatEntities
       IsRunning = false;
       StoppedRunningEv.Invoke();
     }
-  }
-
-  public void OnEnable()
-  {
-    PlayerInput.onControlsChanged += DetectarDispositivo;
-    DetectarDispositivo(PlayerInput);
-  }
-
-  public void OnDisable()
-  {
-    PlayerInput.onControlsChanged -= DetectarDispositivo;
-  }
-
-  private void DetectarDispositivo(PlayerInput input)
-  {
-    string last = input.currentControlScheme;
-    switch (last)
-    {
-      case "Keyboard&Mouse":
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-      case "Gamepad":
-        var gp = Gamepad.current;
-        if (gp == null)
-          break;
-        if (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-          _ultimoDispositivo = InputType.JoystickPlaystation;
-        else
-          _ultimoDispositivo = InputType.JoystickXbox;
-        break;
-      default:
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-    }
-    GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo.ToString());
   }
 
   public void OnJump(InputAction.CallbackContext context)
@@ -489,14 +622,26 @@ public class Player : CombatEntities
         WaitForJumpRelease = false;
       return;
     }
-    if (context.started || IsGrounded)
-      Jump();
+
+    if (!context.started)
+    {
+      return;
+    }
+
+    if (!IsGrounded)
+    {
+      JumpInteractionPressed = true;
+    }
+
+    // ── Pulo normal ──────────────────────────────────────────────────
+    TryJump();
   }
 
   public void OnInteract(InputAction.CallbackContext context)
   {
     if (InteractionObject && context.started)
       ActionLayer.PushState(InteractionAS, this);
+
     GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(this);
   }
 
@@ -511,57 +656,59 @@ public class Player : CombatEntities
     if (context.started)
       Pause();
   }
+
+  public void OnEnable()
+  {
+    PlayerInput.onControlsChanged += DetectarDispositivo;
+    DetectarDispositivo(PlayerInput);
+  }
+
+  public void OnDisable()
+  {
+    PlayerInput.onControlsChanged -= DetectarDispositivo;
+  }
+
+  private void DetectarDispositivo(PlayerInput input)
+  {
+    switch (input.currentControlScheme)
+    {
+      case "Keyboard&Mouse":
+        _ultimoDispositivo = InputType.Keyboard;
+        break;
+
+      case "Gamepad":
+        var gp = Gamepad.current;
+        if (gp == null)
+          break;
+        _ultimoDispositivo =
+          (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
+            ? InputType.JoystickPlaystation
+            : InputType.JoystickXbox;
+        break;
+
+      default:
+        _ultimoDispositivo = InputType.Keyboard;
+        break;
+    }
+    GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo.ToString());
+  }
+
   #endregion
 
-  #region === Lock in ===
-
-
-  private void SetLockOn(ILockable target)
+  // ─────────────────────────────────────────────────────────────
+  //  PULO
+  // ─────────────────────────────────────────────────────────────
+  #region Pulo
+  private void TryJump()
   {
-    LockedTarget = target;
-
-    if (LockedTarget != null)
-    {
-      SetVisibilityLockOnOverlay(true);
-      _isLockOnActive = true;
-    }
-    else
-    {
-      SetVisibilityLockOnOverlay(false);
-      _isLockOnActive = false;
-    }
-  }
-
-  private void SetVisibilityLockOnOverlay(bool set)
-  {
-    Vector3 targetScreenPosition = set
-      ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
-      : Vector3.zero;
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.Invoke(ID, set, targetScreenPosition);
-  }
-
-  public void DisableLockIn()
-  {
-    if (_isLockOnActive)
-    {
-      _isLockOnActive = false;
-      SetLockOn(null);
-    }
-  }
-  #endregion
-
-  #region === Movimento & Pulo ===
-
-  private void Jump()
-  {
-    if (DialogueGlobal.Instance != null)
-    {
-      if (
+    if (
+      DialogueGlobal.Instance != null
+      && (
         DialogueGlobal.Instance.IsDialogueActive
         || DialogueGlobal.Instance._bloquearJumpTemporariamente
       )
-        return;
-    }
+    )
+      return;
 
     bool didHit = Physics.Raycast(
       new Ray(transform.position, Vector3.down),
@@ -576,25 +723,65 @@ public class Player : CombatEntities
 
     float distanceToGround = hit.distance;
     float currentVelocityY = CharacterController.velocity.y;
+
+    // Próximo do chão ou subindo → pulo imediato
     if (distanceToGround <= 1.1f || currentVelocityY > 0.01f)
     {
       JumpInputPressed = true;
       return;
     }
+
+    // Caindo e perto de aterrissar → registra pulo antecipado (coyote-like)
     if (currentVelocityY < -0.01f)
     {
       float timeToReach = distanceToGround / Mathf.Abs(currentVelocityY);
-
-      if (timeToReach <= .2f)
+      if (timeToReach <= 0.2f)
       {
         CurrentJumpCount = 3;
         JumpInputPressed = true;
       }
     }
   }
+
   #endregion
 
-  #region === PAUSE ===
+  // ─────────────────────────────────────────────────────────────
+  //  LOCK-ON (métodos)
+  // ─────────────────────────────────────────────────────────────
+  #region Lock-On – Métodos
+
+  private void SetLockOn(ILockable target)
+  {
+    LockedTarget = target;
+    bool active = LockedTarget != null;
+    SetVisibilityLockOnOverlay(active);
+    _isLockOnActive = active;
+  }
+
+  private void SetVisibilityLockOnOverlay(bool set)
+  {
+    Vector3 targetScreenPosition = set
+      ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
+      : Vector3.zero;
+
+    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.Invoke(ID, set, targetScreenPosition);
+  }
+
+  public void DisableLockIn()
+  {
+    if (!_isLockOnActive)
+      return;
+    _isLockOnActive = false;
+    SetLockOn(null);
+  }
+
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  PAUSE
+  // ─────────────────────────────────────────────────────────────
+  #region Pause
+
   private void Pause()
   {
     if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
@@ -603,57 +790,31 @@ public class Player : CombatEntities
       return;
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
   }
-  #endregion
-
-  #region === KNOCKBACK ===
-  private bool isKnockbackActive;
-  internal bool IsDashBlocked;
 
   #endregion
 
-  [Header("WALL EXIT")]
-  #region === WALLRUNNING ===
-  internal float WallExitDuration = .2f;
-  #endregion
-
-  #region === HUD & Feedback ===
-  private IEnumerator DelayedSetupHUD(float duration)
-  {
-    yield return new WaitForSeconds(duration);
-    SetupHUD();
-  }
-
-  private void SetupHUD()
-  {
-    if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
-    {
-      _OnDamage.AddListener(hudDir.DamageShake);
-      IsRunningEv.AddListener(hudDir.RunningShake);
-      IsRunningEv.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
-      StoppedRunningEv.AddListener(hudDir.StopRunningShake);
-      StoppedRunningEv.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
-    }
-  }
-  #endregion
-
+  // ─────────────────────────────────────────────────────────────
+  //  SCAN (câmera, inimigos, paredes)
+  // ─────────────────────────────────────────────────────────────
   #region Scan
+
   private void ScanWalls()
   {
     (bool executed, RaycastHit? hit) = _wallScanner.Scan(
-      (new Ray(transform.position, transform.right), new(transform.position, -transform.right))
+      (new Ray(transform.position, transform.right), new Ray(transform.position, -transform.right))
     );
 
-    if (executed)
+    if (!executed)
+      return;
+
+    if (hit.HasValue)
     {
-      if (hit.HasValue)
-      {
-        ActionLayer.PushState(WallSlidingAS, this);
-        LastWallNormal = hit.Value.normal;
-      }
-      else
-      {
-        TouchingWall = false;
-      }
+      ActionLayer.PushState(WallSlidingAS, this);
+      LastWallNormal = hit.Value.normal;
+    }
+    else
+    {
+      TouchingWall = false;
     }
   }
 
@@ -662,42 +823,31 @@ public class Player : CombatEntities
     int amount = EnemySpawner.enemySpawner.GetAmountPool();
     for (int i = 0; i < amount; i++)
     {
-      GameObject enemytmp = EnemySpawner.enemySpawner.GetDisabledObject();
-      if (enemytmp != null)
-      {
-        float distance = Vector3.Distance(enemytmp.transform.position, playerPos);
-        if (distance <= enemyScanRadius)
-          enemytmp.SetActive(true);
-      }
+      GameObject enemy = EnemySpawner.enemySpawner.GetDisabledObject();
+      if (enemy == null)
+        continue;
+
+      if (Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
+        enemy.SetActive(true);
     }
     return true;
   }
 
-  public ILockable LockedTarget;
-  private ILockable _lockCandidate;
-  private RaycastHit _lastLockHit;
-  private bool _isLockOnActive = false;
-  protected RaycastHit _playerRayHit;
-  public InteractableObject InteractionObject;
-  protected InteractableObject _lastInteractionObject = null;
-  protected Type _interactionObjectType;
-  protected (bool success, RaycastHit hit) _lastValidResult;
-
   protected virtual (bool success, RaycastHit hit) ScanWithCamera()
   {
-    if (!selectedcamera)
+    if (!_selectedCamera)
     {
       SetupCamera();
       return (false, default);
     }
 
     Ray ray = new(transform.position, transform.forward);
-    var (executed, scanResult) = _cameraScanner.Scan(ray);
+    var (executed, result) = _cameraScanner.Scan(ray);
 
     if (!executed)
       return _lastValidResult;
 
-    if (!scanResult.Item1)
+    if (!result.Item1)
     {
       ClearInteractable();
       DisableLockIn();
@@ -705,7 +855,7 @@ public class Player : CombatEntities
       return _lastValidResult;
     }
 
-    RaycastHit hit = scanResult.Item2;
+    RaycastHit hit = result.Item2;
     if (hit.collider == null)
     {
       DisableLockIn();
@@ -714,26 +864,23 @@ public class Player : CombatEntities
 
     bool foundSomething = false;
 
+    // ── Lock-on ──────────────────────────────────────────────────────
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
       {
         SetLockOn(lockable);
-
         _lockCandidate = lockable;
         _lastLockHit = hit;
         foundSomething = true;
       }
       else
-      {
         DisableLockIn();
-      }
     }
     else
-    {
       DisableLockIn();
-    }
 
+    // ── Interagível ───────────────────────────────────────────────────
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
       if (interactable is not LockableInteractableObject && interactable.IsActive)
@@ -747,10 +894,11 @@ public class Player : CombatEntities
     else
       ClearInteractable();
 
+    // ── Mantém lock-on válido ─────────────────────────────────────────
     if (_isLockOnActive && LockedTarget != null)
     {
-      float distToLocked = Vector3.Distance(transform.position, LockedTarget.transform.position);
-      if (!LockedTarget.IsActive || distToLocked > LockedTarget.LockRange)
+      float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
+      if (!LockedTarget.IsActive || dist > LockedTarget.LockRange)
         DisableLockIn();
     }
 
@@ -768,54 +916,44 @@ public class Player : CombatEntities
     InteractionObject = null;
     GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
   }
+
   #endregion
 
-  #region === Ataque ===
-  [Header("ATAQUE PARÂMETROS")]
-  internal float AttackCooldown;
-  public bool CanAttack = true;
-  public bool WillAttack = true;
+  // ─────────────────────────────────────────────────────────────
+  //  HUD & FEEDBACK
+  // ─────────────────────────────────────────────────────────────
+  #region HUD & Feedback
 
-  private void Attack()
+  private IEnumerator DelayedSetupHUD(float duration)
   {
-    if (CanDash && LockedTarget != null)
-    {
-      ActionLayer.PushState(DashAS, this);
+    yield return new WaitForSeconds(duration);
+    SetupHUD();
+  }
+
+  private void SetupHUD()
+  {
+    if (!GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
       return;
-    }
 
-    if (CanExecuteAttack())
-    {
-      OnExecuteAttack();
-    }
+    _OnDamage.AddListener(hudDir.DamageShake);
+    IsRunningEv.AddListener(hudDir.RunningShake);
+    IsRunningEv.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
+    StoppedRunningEv.AddListener(hudDir.StopRunningShake);
+    StoppedRunningEv.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
   }
 
-  protected virtual bool CanExecuteAttack() => true;
-
-  protected virtual void OnExecuteAttack() { }
   #endregion
 
-  #region === Camera ===
-  private void SetupCamera()
-  {
-    foreach (Camera camera in Camera.allCameras)
-    {
-      camera.TryGetComponent(out CameraLogic cameraLogic);
-      if (cameraLogic && cameraLogic.ID == ID)
-      {
-        selectedcamera = camera;
-        return;
-      }
-    }
-    Debug.LogError("[Player] Câmera com ID correspondente não encontrada.");
-  }
-  #endregion
+  // ─────────────────────────────────────────────────────────────
+  //  MORTE
+  // ─────────────────────────────────────────────────────────────
+  #region Morte
 
-  #region === DEATH ===
   public override void DeathHandler()
   {
     base.DeathHandler();
     GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke();
   }
+
   #endregion
 }

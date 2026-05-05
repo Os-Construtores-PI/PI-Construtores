@@ -53,6 +53,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
     player.IsImpulsioned = false;
     _jumpedThisState = false;
     player.CanDash = true;
+    player.JumpInteractionPressed = false;
 
     _justLanded = true;
     _bounceWindowLeft = BounceWindowDuration;

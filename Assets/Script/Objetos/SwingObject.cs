@@ -54,7 +54,7 @@ public class SwingObject : MonoBehaviour
 
   private readonly Dictionary<Collider, float> _playerCooldowns = new Dictionary<Collider, float>();
 
-  public void OnTriggerEnter(Collider other)
+  public void OnTriggerStay(Collider other)
   {
     if (!other.TryGetComponent(out Player player) || player.IsGrounded)
       return;
@@ -68,8 +68,11 @@ public class SwingObject : MonoBehaviour
     if (Physics.Raycast(player.transform.position, Vector3.down, 0.5f, _groundLayer))
       return;
 
-    if (player.LocomotionLayer.CurrentState != player.LockedS && player.JumpInputPressed)
+    if (player.LocomotionLayer.CurrentState != player.LockedS && player.JumpInteractionPressed)
+    {
+      player.JumpInteractionPressed = false;
       StartSwing(player, other);
+    }
   }
 
   private void StartSwing(Player player, Collider playerCollider)
