@@ -15,6 +15,7 @@ public class PlayerActionStateDash : IState<Player>
   private float _maxDashSpeed = 60f;
   private float _maxReferenceDistance = 20f;
   private float _speedExponent = 0.1f;
+  private float _boostGrace = 10f;
 
   public ActionType Type => ActionType.Dash;
   public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
@@ -52,6 +53,7 @@ public class PlayerActionStateDash : IState<Player>
       {
         targetDir = diff.normalized;
         player.DashDistance = dist;
+        player.DashSlashBoostButton.Value += _boostGrace;
         player.DashSpeed = ComputeDashSpeed(dist);
       }
     }

@@ -6,6 +6,9 @@ public class DirectionalTrampoline : LockableInteractableObject
   private float _impulseForce = 10f;
 
   [SerializeField]
+  private float _boostGrace = 20f;
+
+  [SerializeField]
   private Color _gizmoColor = Color.white;
 
   private bool _canJump = true;
@@ -16,6 +19,7 @@ public class DirectionalTrampoline : LockableInteractableObject
     player.MovementVector = Vector3.zero;
     player.MovementVector = transform.up * _impulseForce;
     player.IsImpulsioned = true;
+    player.DashSlashBoostButton.Value += _boostGrace;
     player.CurrentDashCount = 0;
     player.DisableLockIn();
     _interactionTimer.Start(_interactionCooldown);

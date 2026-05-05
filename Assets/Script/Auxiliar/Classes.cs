@@ -227,8 +227,8 @@ public class IncreaseButton : PressAndReleaseButton
     get { return _value; }
     set
     {
-      ChargingEv.Invoke(value / _maxValue);
-      _value = value;
+      _value = Mathf.Clamp(value, 0, _maxValue);
+      ChargingEv.Invoke(_value / _maxValue);
     }
   }
 

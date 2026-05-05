@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerLocomotionStateGrounded : IState<Player>
+public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 {
   // ─── IState ───────────────────────────────────────────────────────────────
   public ActionType Type => ActionType.GroundSlam;
@@ -194,17 +194,22 @@ public class PlayerLocomotionStateGrounded : IState<Player>
 
   private void HandleHorizontalMovement(Player player)
   {
-    var move = player.MovementVector;
-
     if (player.MoveInput == Vector2.zero)
     {
+      var move = player.MovementVector;
       move.x = QualityOfLife.PlayerFriction(move.x, player.Friction, player.MoveInput);
       move.z = QualityOfLife.PlayerFriction(move.z, player.Friction, player.MoveInput);
       player.MovementVector = move;
       return;
     }
 
-    var direction = CalculateCameraDirection(player);
+    float baseSpeed = _speeds[player.IsRunning];
+    float speed = player.IsRunning
+      ? baseSpeed * player.DashSlashBoostButton.SpeedMultiplier
+      : baseSpeed;
+
+    // Rotação ainda precisa da direção: delega o cálculo estático da interface
+    Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
 
     player.transform.rotation = Quaternion.Slerp(
       player.transform.rotation,
@@ -212,29 +217,12 @@ public class PlayerLocomotionStateGrounded : IState<Player>
       10f * Time.deltaTime
     );
 
-    float baseSpeed = _speeds[player.IsRunning];
-    float speed = player.IsRunning
-      ? baseSpeed * player.DashSlashBoostButton.SpeedMultiplier
-      : baseSpeed;
-    float accel = _accelerations[player.IsRunning];
-
+    var m = player.MovementVector;
     player.MovementVector = new Vector3(
-      QualityOfLife.SmoothStepLerp(move.x, direction.x * speed, accel),
-      move.y,
-      QualityOfLife.SmoothStepLerp(move.z, direction.z * speed, accel)
+      QualityOfLife.SmoothStepLerp(m.x, direction.x * speed, _accelerations[player.IsRunning]),
+      m.y,
+      QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, _accelerations[player.IsRunning])
     );
-  }
-
-  private static Vector3 CalculateCameraDirection(Player player)
-  {
-    var camForward = player.CinemachineCamera.transform.forward;
-    var camRight = player.CinemachineCamera.transform.right;
-
-    camForward.y = camRight.y = 0f;
-
-    return (
-      camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
-    ).normalized;
   }
 
   private void CalculateBoost(Player player)
@@ -245,9 +233,6 @@ public class PlayerLocomotionStateGrounded : IState<Player>
       return;
     }
 
-    player.DashSlashBoostButton.Value = Mathf.Max(
-      player.DashSlashBoostButton.Value - BoostDrainRate * Time.deltaTime,
-      0f
-    );
+    player.DashSlashBoostButton.Value -= BoostDrainRate * Time.deltaTime;
   }
 }
