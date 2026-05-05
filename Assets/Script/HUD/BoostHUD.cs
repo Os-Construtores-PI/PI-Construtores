@@ -48,9 +48,7 @@ public class BoostHUD : BarHUD
     if (!gameObject.activeInHierarchy)
       gameObject.SetActive(true);
 
-    _slider.DOValue(normalizedValue, 0.35f).SetEase(Ease.OutQuad);
-
-    if (!_isGlowing)
+    if (!_isGlowing && normalizedValue >= _slider.value)
     {
       _isGlowing = true;
 
@@ -60,6 +58,7 @@ public class BoostHUD : BarHUD
         .SetLoops(2, LoopType.Yoyo)
         .OnComplete(() => _isGlowing = false);
     }
+    _slider.DOValue(normalizedValue, 0.35f).SetEase(Ease.OutQuad);
   }
 
   private void StartShaking()

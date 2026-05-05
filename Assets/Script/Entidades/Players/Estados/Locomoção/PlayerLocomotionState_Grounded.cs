@@ -9,7 +9,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
-  private bool _coyoteStarted = false;
+  private bool _coyoteStarted = false; //
   private const float CoyoteInterval = 0.3f;
 
   // ─── Movement ─────────────────────────────────────────────────────────────

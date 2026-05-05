@@ -6,9 +6,6 @@ public class DirectionalTrampoline : LockableInteractableObject
   private float _impulseForce = 10f;
 
   [SerializeField]
-  private float _boostGrace = 20f;
-
-  [SerializeField]
   private Color _gizmoColor = Color.white;
 
   private bool _canJump = true;
