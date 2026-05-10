@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerLocomotionStateGrounded : IState<Player>
+public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 {
   // ─── IState ───────────────────────────────────────────────────────────────
   public ActionType Type => ActionType.GroundSlam;
@@ -9,12 +9,16 @@ public class PlayerLocomotionStateGrounded : IState<Player>
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
-  private bool _coyoteStarted = false;
+  private bool _coyoteStarted = false; //
   private const float CoyoteInterval = 0.3f;
 
   // ─── Movement ─────────────────────────────────────────────────────────────
   private Dictionary<bool, float> _speeds;
   private Dictionary<bool, float> _accelerations;
+
+  // ─── Boost ─────────────────────────────────────────────────────────────
+  private const float BoostDrainRate = 15f; // unidades por segundo
+  private bool _isUsingBoost;
 
   // ─── Bounce ───────────────────────────────────────────────────────────────
   private const float BounceWindowDuration = 0.4f;
@@ -48,6 +52,8 @@ public class PlayerLocomotionStateGrounded : IState<Player>
     player.CurrentDashCount = 0;
     player.IsImpulsioned = false;
     _jumpedThisState = false;
+    player.CanDash = true;
+    player.JumpInteractionPressed = false;
 
     _justLanded = true;
     _bounceWindowLeft = BounceWindowDuration;
@@ -69,10 +75,21 @@ public class PlayerLocomotionStateGrounded : IState<Player>
   public void Update(Player player)
   {
     if (_bounceWindowLeft > 0f)
+    {
       _bounceWindowLeft -= Time.deltaTime;
+    }
 
     if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
+    {
       ExecuteJump(player);
+    }
+
+    _isUsingBoost = player.DashSlashBoostButton.Value > 0f && player.IsRunning;
+
+    if (_isUsingBoost)
+    {
+      CalculateBoost(player);
+    }
   }
 
   public void FixedUpdate(Player player)
@@ -178,17 +195,22 @@ public class PlayerLocomotionStateGrounded : IState<Player>
 
   private void HandleHorizontalMovement(Player player)
   {
-    var move = player.MovementVector;
-
     if (player.MoveInput == Vector2.zero)
     {
+      var move = player.MovementVector;
       move.x = QualityOfLife.PlayerFriction(move.x, player.Friction, player.MoveInput);
       move.z = QualityOfLife.PlayerFriction(move.z, player.Friction, player.MoveInput);
       player.MovementVector = move;
       return;
     }
 
-    var direction = CalculateCameraDirection(player);
+    float baseSpeed = _speeds[player.IsRunning];
+    float speed = player.IsRunning
+      ? baseSpeed * player.DashSlashBoostButton.SpeedMultiplier
+      : baseSpeed;
+
+    // Rotação ainda precisa da direção: delega o cálculo estático da interface
+    Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
 
     player.transform.rotation = Quaternion.Slerp(
       player.transform.rotation,
@@ -196,25 +218,22 @@ public class PlayerLocomotionStateGrounded : IState<Player>
       10f * Time.deltaTime
     );
 
-    float speed = _speeds[player.IsRunning];
-    float accel = _accelerations[player.IsRunning];
-
+    var m = player.MovementVector;
     player.MovementVector = new Vector3(
-      QualityOfLife.SmoothStepLerp(move.x, direction.x * speed, accel),
-      move.y,
-      QualityOfLife.SmoothStepLerp(move.z, direction.z * speed, accel)
+      QualityOfLife.SmoothStepLerp(m.x, direction.x * speed, _accelerations[player.IsRunning]),
+      m.y,
+      QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, _accelerations[player.IsRunning])
     );
   }
 
-  private static Vector3 CalculateCameraDirection(Player player)
+  private void CalculateBoost(Player player)
   {
-    var camForward = player.CinemachineCamera.transform.forward;
-    var camRight = player.CinemachineCamera.transform.right;
+    if (player.DashSlashBoostButton.Value <= 0f)
+    {
+      _isUsingBoost = false;
+      return;
+    }
 
-    camForward.y = camRight.y = 0f;
-
-    return (
-      camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
-    ).normalized;
+    player.DashSlashBoostButton.Value -= BoostDrainRate * Time.deltaTime;
   }
 }

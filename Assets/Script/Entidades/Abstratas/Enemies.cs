@@ -13,7 +13,12 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField]
   private float _lockInRange = 20;
 
+  [Header("Boost")]
+  [SerializeField]
+  private float _boostGrace = 20f;
+
   public float LockRange => _lockInRange;
+  public float BoostGrace => _boostGrace;
   public bool IsActive => this.enabled && gameObject.activeInHierarchy;
 
   // ==== CONFIGURAÇÕES DE DETECÇÃO ====

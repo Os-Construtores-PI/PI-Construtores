@@ -52,6 +52,7 @@ public class PlayerActionStateDash : IState<Player>
       {
         targetDir = diff.normalized;
         player.DashDistance = dist;
+        player.DashSlashBoostButton.Value += player.LockedTarget.BoostGrace;
         player.DashSpeed = ComputeDashSpeed(dist);
       }
     }

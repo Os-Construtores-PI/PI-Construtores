@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 [Serializable]
@@ -156,9 +158,11 @@ public class EffectsWorker
 
   public void InitEffects(Transform transform)
   {
+    effects.Clear();
     foreach (Transform child in transform)
     {
       effects.Add(child.name, child.gameObject);
+      StopEffect(child.name);
     }
   }
 
@@ -173,6 +177,8 @@ public class EffectsWorker
       ParticleSystem.MainModule main = particleSystem.main;
       main.duration = duration;
       particleSystem.Play(true);
+
+      SetLights(effect, true);
     }
   }
 
@@ -184,6 +190,147 @@ public class EffectsWorker
     )
     {
       particleSystem.Stop(true);
+
+      SetLights(effect, false);
     }
+  }
+
+  private void SetLights(GameObject effect, bool state)
+  {
+    foreach (Light light in effect.GetComponentsInChildren<Light>(true))
+    {
+      light.enabled = state;
+    }
+  }
+}
+
+public class PressAndReleaseButton
+{
+  public PressAndReleaseButton(Player player)
+  {
+    _player = player;
+  }
+
+  protected Player _player;
+
+  public virtual void Update() { }
+
+  public virtual void OnInputAction(InputAction.CallbackContext context) { }
+}
+
+public class IncreaseButton : PressAndReleaseButton
+{
+  protected float _maxValue = 100;
+  private float _value;
+  public float Value
+  {
+    get { return _value; }
+    set
+    {
+      _value = Mathf.Clamp(value, 0, _maxValue);
+      ChargingEv.Invoke(_value / _maxValue);
+    }
+  }
+
+  private float _sumVelocity = 1f;
+  private float _simpleActionInterval = 0.5f;
+  private float _initialTime;
+  private float _movementLimit = 1.5f;
+
+  private bool _isPressed = false;
+  private bool _wasIncreasing = false;
+
+  public UnityEvent StartedChargingEv = new();
+  public UnityEvent<float> ChargingEv = new();
+  public UnityEvent StoppedChargingEv = new();
+
+  public IncreaseButton(
+    Player player,
+    float maxValue,
+    float sumVelocity,
+    float simpleActionInterval
+  )
+    : base(player)
+  {
+    _maxValue = maxValue;
+    _sumVelocity = sumVelocity;
+    _simpleActionInterval = simpleActionInterval;
+  }
+
+  public override void Update()
+  {
+    if (_isPressed && _player.MovementVector.sqrMagnitude < _movementLimit * _movementLimit)
+    {
+      if (Time.time - _initialTime >= _simpleActionInterval)
+      {
+        if (!_wasIncreasing)
+        {
+          StartedChargingEv.Invoke();
+        }
+
+        Value = Mathf.Min(Value + _sumVelocity * Time.deltaTime, _maxValue);
+        _wasIncreasing = true;
+      }
+    }
+    else if (_wasIncreasing)
+    {
+      StoppedChargingEv.Invoke();
+      _wasIncreasing = false;
+    }
+  }
+
+  public override void OnInputAction(InputAction.CallbackContext context)
+  {
+    if (context.started)
+    {
+      _initialTime = Time.time;
+      _isPressed = true;
+    }
+    else if (context.canceled)
+    {
+      _isPressed = false;
+
+      if (WasQuickPress())
+        SimpleAction();
+      else if (_wasIncreasing)
+        StoppedChargingEv.Invoke();
+
+      _wasIncreasing = false;
+    }
+  }
+
+  protected virtual void SimpleAction() { }
+
+  private bool ShouldIncrease()
+  {
+    bool holdTimeElapsed = Time.time - _initialTime >= _simpleActionInterval;
+    bool playerIsStill = _player.MovementVector.sqrMagnitude < _movementLimit * _movementLimit;
+    return _isPressed && holdTimeElapsed && playerIsStill;
+  }
+
+  private bool WasQuickPress() => Time.time - _initialTime < _simpleActionInterval;
+}
+
+public class BoostSlashDashButton : IncreaseButton
+{
+  public float SpeedMultiplier => Value > 0f ? 2 : 1f;
+
+  public BoostSlashDashButton(
+    Player player,
+    float maxValue,
+    float sumVelocity,
+    float simpleActionInterval
+  )
+    : base(player, maxValue, sumVelocity, simpleActionInterval) { }
+
+  protected override void SimpleAction()
+  {
+    if (
+      !_player.CanDash
+      || _player.CurrentDashCount >= _player.MaxDashCount
+      || _player.IsDashBlocked
+    )
+      return;
+    _player.ActionLayer.PushState(_player.DashAS, _player);
   }
 }

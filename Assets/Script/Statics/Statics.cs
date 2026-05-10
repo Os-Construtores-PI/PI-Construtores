@@ -127,9 +127,10 @@ public static class Constants
   {
     public static class Player
     {
-      public const string Dash = "Dash";
-      public const string Jump = "Jump";
-      public const string Run = "Run";
+      public const string Dash = nameof(Dash);
+      public const string Jump = nameof(Jump);
+      public const string Run = nameof(Run);
+      public const string Charging = nameof(Charging);
     }
 
     public static class Interface
@@ -145,18 +146,19 @@ public static class Constants
 
   public static class HudPanelNames
   {
-    public static readonly string GameOver = "GameOver";
-    public static readonly string Pause = "Pause";
-    public static readonly string Dialogue = "Dialogue";
-    public static readonly string HealthBar = "HealthBar";
-    public static readonly string DashIcon = "DashIcon";
-    public static readonly string EndGame = "EndGame";
-    public static readonly string AmethystCounter = "AmethystCounter";
-    public static readonly string InteractionPopup = "InteractionPopup";
-    public static readonly string InteractionLetter = "InteractionLetter";
-    public static readonly string LockOnOverlay = "LockOnOverlay";
-    public static readonly string Cutscene = "Cutscene";
-    public static readonly string TeleportFadePanel = "TeleportFadePanel";
+    public const string GameOver = "GameOver";
+    public const string Pause = "Pause";
+    public const string Dialogue = "Dialogue";
+    public const string HealthBar = "HealthBar";
+    public const string BoostBar = "BoostBar";
+    public const string DashIcon = "DashIcon";
+    public const string EndGame = "EndGame";
+    public const string AmethystCounter = "AmethystCounter";
+    public const string InteractionPopup = "InteractionPopup";
+    public const string InteractionLetter = "InteractionLetter";
+    public const string LockOnOverlay = "LockOnOverlay";
+    public const string Cutscene = "Cutscene";
+    public const string TeleportFadePanel = "TeleportFadePanel";
   }
 
   public static class MenuPanelNames

@@ -30,7 +30,7 @@ public abstract class CombatEntities : LiveEntities
 
   #region --- Componentes e HUD ---
 
-  protected HealthHUDComponent _healthHUD;
+  protected HealthHUD _healthHUD;
 
   #endregion
 
@@ -146,7 +146,7 @@ public abstract class CombatEntities : LiveEntities
 
   #region --- HUD ---
 
-  public void SetHealthHUD(HealthHUDComponent hud)
+  public void SetHealthHUD(HealthHUD hud)
   {
     if (hud == null)
       return;
