@@ -183,7 +183,8 @@ public static class Constants
   public static class CameraGroup
   {
     public const string MainCamera = "MainCamera";
-    public const string CinemachineCamera = "CinemachineCamera";
+    public const string MainCinemachine = "MainCinemachine";
+    public const string BoostCinemachine = "BoostCinemachine";
     public const string CinemachineLockOn = "CinemachineLockOn";
     public const string LockInGroup = "LockInGroup";
   }

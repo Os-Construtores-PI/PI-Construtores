@@ -89,7 +89,10 @@ public class Player : CombatEntities
   public CharacterController CharacterController;
 
   [HideInInspector]
-  public CinemachineCamera CinemachineCamera;
+  public CinemachineCamera MainCamera;
+
+  [HideInInspector]
+  public CinemachineCamera BoostCamera;
 
   [HideInInspector]
   public CinemachineInputAxisController _cinemachineInput;
@@ -105,9 +108,10 @@ public class Player : CombatEntities
 
   protected Camera _myCamera;
 
-  public void SetCamera(CinemachineCamera cincam, Camera camera)
+  public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
   {
-    CinemachineCamera = cincam;
+    MainCamera = mainCam;
+    BoostCamera = boostCam;
     _myCamera = camera;
   }
 
@@ -127,6 +131,9 @@ public class Player : CombatEntities
   public PlayerActionStateInteraction InteractionAS = new();
   public PlayerActionStateWallSliding WallSlidingAS = new();
   public PlayerActionStateGroundSlam GroundSlamAS = new();
+  public PlayerActionStateBoost BoostAS = new();
+  public PlayerActionStateBounce BounceAS = new();
+  public PlayerActionStateJump JumpAS = new();
   public BoostSlashDashButton DashSlashBoostButton;
 
   // Locomotion states
@@ -471,8 +478,8 @@ public class Player : CombatEntities
     InputAction lookAction = InputSystem.actions.FindAction("Look");
     lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
 
-    _cinemachineInput = CinemachineCamera.GetComponent<CinemachineInputAxisController>();
-    _cinemachineOrbital = CinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
+    _cinemachineInput = MainCamera.GetComponent<CinemachineInputAxisController>();
+    _cinemachineOrbital = MainCamera.GetComponent<CinemachineOrbitalFollow>();
   }
 
   private void SetupScanners()
@@ -737,7 +744,6 @@ public class Player : CombatEntities
       float timeToReach = distanceToGround / Mathf.Abs(currentVelocityY);
       if (timeToReach <= 0.2f)
       {
-        CurrentJumpCount = 3;
         JumpInputPressed = true;
       }
     }

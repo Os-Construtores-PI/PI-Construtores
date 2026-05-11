@@ -132,8 +132,8 @@ public class PlayerActionStateDash : IState<Player>
 
   private Vector3 CalculateRawInputDirection(Player player)
   {
-    Vector3 camForward = player.CinemachineCamera.transform.forward;
-    Vector3 camRight = player.CinemachineCamera.transform.right;
+    Vector3 camForward = player.MainCamera.transform.forward;
+    Vector3 camRight = player.MainCamera.transform.right;
     camForward.y = 0;
     camRight.y = 0;
     return (
@@ -152,7 +152,7 @@ public class PlayerActionStateDash : IState<Player>
     }
     else
     {
-      player.ActionLayer.PopStateDeferred(player);
+      player.ActionLayer.ExitStateDeferred(this, player);
       timeToExitWalker = 0f;
     }
   }

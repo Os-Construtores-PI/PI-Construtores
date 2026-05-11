@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CameraLogic : Entities
 {
@@ -100,7 +99,11 @@ public class CameraLogic : Entities
   /// <summary>
   /// Configura a CinemachineCamera para seguir o alvo.
   /// </summary>
-  public void SetTarget(Player newTarget, CinemachineCamera freeLook = null)
+  public void SetTarget(
+    Player newTarget,
+    CinemachineCamera freeLook = null,
+    CinemachineCamera boostCam = null
+  )
   {
     if (newTarget == null)
       return;
@@ -108,7 +111,6 @@ public class CameraLogic : Entities
     playerTarget = newTarget;
     id = newTarget.ID;
 
-    // Busca pelo filho "TargetCam" no player
     Transform targetTransform = newTarget.transform.Find("TargetCam");
     if (targetTransform == null)
     {
@@ -130,6 +132,12 @@ public class CameraLogic : Entities
       _currentCinemachineCamera.LookAt = targetTransform;
       _lockOnCinemachineCamera.Follow = targetTransform;
       _lockOnCinemachineCamera.LookAt = targetTransform;
+    }
+
+    if (boostCam != null)
+    {
+      boostCam.Follow = targetTransform;
+      boostCam.LookAt = targetTransform;
     }
   }
 

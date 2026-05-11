@@ -9,33 +9,12 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
-  private bool _coyoteStarted = false; //
+  private bool _coyoteStarted = false;
   private const float CoyoteInterval = 0.3f;
 
   // ─── Movement ─────────────────────────────────────────────────────────────
   private Dictionary<bool, float> _speeds;
   private Dictionary<bool, float> _accelerations;
-
-  // ─── Boost ─────────────────────────────────────────────────────────────
-  private const float BoostDrainRate = 15f; // unidades por segundo
-  private bool _isUsingBoost;
-
-  // ─── Bounce ───────────────────────────────────────────────────────────────
-  private const float BounceWindowDuration = 0.4f;
-  private const int MaxBounceCombo = 3;
-  private int _bounceCombo = 0;
-  private const float BounceFrontImpulse = 30f;
-
-  // Quanto da velocidade de queda vira impulso vertical (0–1)
-  // Ex: caiu a 75 u/s → bounce base = 75 * 0.85 = ~63.75
-  private const float BounceConversionRate = 0.85f;
-
-  // Amplificação por combo (sem GroundSlam = só JumpForce normal)
-  private readonly float[] BounceComboBonus = { 0f, 0.25f, 0.55f, 0.90f };
-
-  private float _bounceWindowLeft = 0f;
-  private bool _justLanded = false;
-  private bool _jumpedThisState = false;
 
   // ─── Enter / Exit ─────────────────────────────────────────────────────────
 
@@ -51,50 +30,37 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
     player.IsImpulsioned = false;
-    _jumpedThisState = false;
     player.CanDash = true;
     player.JumpInteractionPressed = false;
-
-    _justLanded = true;
-    _bounceWindowLeft = BounceWindowDuration;
 
     var move = player.MovementVector;
     move.y = -1f;
     player.MovementVector = move;
+
+    if (player.GroundSlamImpactSpeed > 0f)
+    {
+      player.ActionLayer.PushState(player.BounceAS, player);
+      player.ActionLayer.PushStateDeferred(player.JumpAS, player);
+    }
   }
 
   public void Exit(Player player)
   {
     _coyoteTimer.Stop();
     _coyoteStarted = false;
-    _justLanded = false;
   }
 
   // ─── Update / FixedUpdate ─────────────────────────────────────────────────
 
   public void Update(Player player)
   {
-    if (_bounceWindowLeft > 0f)
-    {
-      _bounceWindowLeft -= Time.deltaTime;
-    }
-
     if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
-    {
-      ExecuteJump(player);
-    }
-
-    _isUsingBoost = player.DashSlashBoostButton.Value > 0f && player.IsRunning;
-
-    if (_isUsingBoost)
-    {
-      CalculateBoost(player);
-    }
+      player.ActionLayer.PushState(player.JumpAS, player);
   }
 
   public void FixedUpdate(Player player)
   {
-    if (!_jumpedThisState)
+    if (player.ActionLayer.GetActive<PlayerActionStateJump>() == null)
       HandleCoyoteTime(player);
 
     HandleHorizontalMovement(player);
@@ -117,78 +83,14 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 
     if (player.IsGrounded)
     {
-      if (!_justLanded)
-      {
-        _justLanded = true;
-        _bounceWindowLeft = BounceWindowDuration;
-      }
       _coyoteStarted = false;
     }
     else if (timerExpired)
     {
-      _bounceCombo = 0;
       _coyoteStarted = false;
+      player.ActionLayer.ExitStateDeferred(player.BounceAS, player);
       player.LocomotionLayer.ChangeState(player.AirborneS, player);
     }
-  }
-
-  // ─── Jump / Bounce ────────────────────────────────────────────────────────
-
-  private void ExecuteJump(Player player)
-  {
-    player.JumpInputPressed = false;
-    _jumpedThisState = true;
-
-    var move = player.MovementVector;
-    bool isBounce = _justLanded && _bounceWindowLeft > 0f && player.GroundSlamImpactSpeed > 0f;
-    bool isComboWindow = isBounce;
-
-    // ── Atualiza combo ────────────────────────────────────────────────────
-    if (isComboWindow)
-      _bounceCombo = Mathf.Min(_bounceCombo + 1, MaxBounceCombo);
-    else
-      _bounceCombo = 0;
-
-    _justLanded = false;
-
-    // ── Calcula impulso Y ─────────────────────────────────────────────────
-    float jumpY;
-
-    if (isBounce)
-    {
-      float comboBonus = BounceComboBonus[_bounceCombo];
-      jumpY = player.GroundSlamImpactSpeed * BounceConversionRate * (1f + comboBonus);
-      jumpY = Mathf.Max(jumpY, player.JumpForce);
-      move += player.transform.forward * BounceFrontImpulse;
-      player.GroundSlamImpactSpeed = 0f;
-    }
-    else
-    {
-      // Pulo normal — sem GroundSlam
-      float jumpMultiplier = 1f + player.CurrentJumpCount * 0.35f;
-      jumpY = player.JumpForce * jumpMultiplier;
-    }
-
-    // ── Wall Jump ─────────────────────────────────────────────────────────
-    if (player.TouchingWall)
-    {
-      const float horizontalBias = 6.5f;
-      var jumpDir = (Vector3.up + player.LastWallNormal * horizontalBias).normalized;
-      move = player.JumpForce * player.WallJumpMultiplier * jumpDir;
-      player.TouchingWall = false;
-    }
-    else
-    {
-      move.y = jumpY;
-    }
-
-    if (player.CurrentJumpCount > 0)
-      player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
-
-    player.CurrentJumpCount++;
-    player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
-    player.MovementVector = move;
-    player.LocomotionLayer.ChangeState(player.AirborneS, player);
   }
 
   // ─── Horizontal Movement ──────────────────────────────────────────────────
@@ -204,12 +106,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
       return;
     }
 
-    float baseSpeed = _speeds[player.IsRunning];
-    float speed = player.IsRunning
-      ? baseSpeed * player.DashSlashBoostButton.SpeedMultiplier
-      : baseSpeed;
-
-    // Rotação ainda precisa da direção: delega o cálculo estático da interface
+    float speed = _speeds[player.IsRunning];
     Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
 
     player.transform.rotation = Quaternion.Slerp(
@@ -224,16 +121,5 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
       m.y,
       QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, _accelerations[player.IsRunning])
     );
-  }
-
-  private void CalculateBoost(Player player)
-  {
-    if (player.DashSlashBoostButton.Value <= 0f)
-    {
-      _isUsingBoost = false;
-      return;
-    }
-
-    player.DashSlashBoostButton.Value -= BoostDrainRate * Time.deltaTime;
   }
 }

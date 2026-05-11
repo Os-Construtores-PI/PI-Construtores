@@ -231,7 +231,6 @@ public class IncreaseButton : PressAndReleaseButton
       ChargingEv.Invoke(_value / _maxValue);
     }
   }
-
   private float _sumVelocity = 1f;
   private float _simpleActionInterval = 0.5f;
   private float _initialTime;
@@ -267,7 +266,6 @@ public class IncreaseButton : PressAndReleaseButton
         {
           StartedChargingEv.Invoke();
         }
-
         Value = Mathf.Min(Value + _sumVelocity * Time.deltaTime, _maxValue);
         _wasIncreasing = true;
       }
@@ -293,7 +291,7 @@ public class IncreaseButton : PressAndReleaseButton
       if (WasQuickPress())
         SimpleAction();
       else if (_wasIncreasing)
-        StoppedChargingEv.Invoke();
+        ComplexAction();
 
       _wasIncreasing = false;
     }
@@ -301,11 +299,9 @@ public class IncreaseButton : PressAndReleaseButton
 
   protected virtual void SimpleAction() { }
 
-  private bool ShouldIncrease()
+  protected virtual void ComplexAction()
   {
-    bool holdTimeElapsed = Time.time - _initialTime >= _simpleActionInterval;
-    bool playerIsStill = _player.MovementVector.sqrMagnitude < _movementLimit * _movementLimit;
-    return _isPressed && holdTimeElapsed && playerIsStill;
+    StoppedChargingEv.Invoke();
   }
 
   private bool WasQuickPress() => Time.time - _initialTime < _simpleActionInterval;
@@ -332,5 +328,11 @@ public class BoostSlashDashButton : IncreaseButton
     )
       return;
     _player.ActionLayer.PushState(_player.DashAS, _player);
+  }
+
+  protected override void ComplexAction()
+  {
+    base.ComplexAction();
+    _player.ActionLayer.PushState(_player.BoostAS, _player);
   }
 }

@@ -16,8 +16,8 @@ public interface ILocomotionState<T> : IState<T>
 {
   protected static Vector3 CalculateCameraDirection(Player player)
   {
-    Vector3 camForward = player.CinemachineCamera.transform.forward;
-    Vector3 camRight = player.CinemachineCamera.transform.right;
+    Vector3 camForward = player.MainCamera.transform.forward;
+    Vector3 camRight = player.MainCamera.transform.right;
     camForward.y = camRight.y = 0f;
 
     return (

@@ -4,8 +4,7 @@ using UnityEngine;
 public class PlayerActionStateGroundSlam : IState<Player>
 {
   public ActionType Type => ActionType.GroundSlam;
-  public HashSet<ActionType> IncompatibleActions => new() { ActionType.GroundSlam };
-  public int Priority => 0;
+  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash, ActionType.Jump };
 
   private const float SlamForce = 75f;
   private const float MaxImpactCap = 30f;
@@ -38,10 +37,8 @@ public class PlayerActionStateGroundSlam : IState<Player>
     else if (!_deactivated)
     {
       _deactivated = true;
-
       player.LocomotionLayer.ChangeState(player.GroundedS, player);
-      player.JumpInputPressed = true;
-      player.ActionLayer.PopStateDeferred(player);
+      player.ActionLayer.ExitState(this, player);
     }
   }
 

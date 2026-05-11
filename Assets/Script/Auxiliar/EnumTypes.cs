@@ -77,6 +77,8 @@ public enum ActionType
   Slide,
   Interact,
   GroundSlam,
+  Boost,
+  Bounce,
 }
 
 public enum InputType

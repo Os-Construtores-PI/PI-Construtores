@@ -18,21 +18,52 @@ public class StackStateMachine<T> : StateMachine<T>
   public override void Update(T entity)
   {
     // atualiza todos os ativos (idle + extras)
-    foreach (var state in stateStack)
+    foreach (var state in stateStack.ToArray())
       state.Update(entity);
   }
 
   public override void FixedUpdate(T entity)
   {
-    foreach (var state in stateStack)
-    {
+    foreach (var state in stateStack.ToArray())
       state.FixedUpdate(entity);
-    }
+
     while (pendingOps.Count > 0)
-    {
       pendingOps.Dequeue().Invoke();
-    }
   }
+
+  public TState GetActive<TState>()
+    where TState : class, IState<T>
+  {
+    foreach (var state in stateStack)
+      if (state is TState match)
+        return match;
+
+    return null;
+  }
+
+  public void ExitState(IState<T> state, T entity)
+  {
+    if (stateStack.Count <= 1 || state == baseState)
+      return;
+
+    // Reconstrói a pilha sem o estado alvo
+    var temp = new List<IState<T>>(stateStack);
+    int index = temp.IndexOf(state);
+
+    if (index < 0)
+      return;
+
+    temp.RemoveAt(index);
+    state.Exit(entity);
+
+    stateStack.Clear();
+    // List de Stack é LIFO invertido — reinsere na ordem correta
+    for (int i = temp.Count - 1; i >= 0; i--)
+      stateStack.Push(temp[i]);
+  }
+
+  public void ExitStateDeferred(IState<T> state, T entity) =>
+    pendingOps.Enqueue(() => ExitState(state, entity));
 
   public void PushState(IState<T> newState, T entity)
   {
