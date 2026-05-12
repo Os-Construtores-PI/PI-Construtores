@@ -8,10 +8,6 @@
 {
   # ── Pacotes ───────────────────────────────────────────────────────────────────
   packages = with pkgs; [
-
-    # LS
-    roslyn-ls
-
     # Formatador — necessário pro conform-nvim (cs = ["csharpier"])
     csharpier
 
@@ -39,9 +35,6 @@
     dotnet = {
       enable = true;
       package = pkgs.dotnet-sdk_9;
-      lsp = {
-        enable = true;
-      };
     };
   };
 
@@ -187,7 +180,7 @@
     csharpier = {
       enable = true;
       name = "csharpier format check";
-      entry = "dotnet csharpier --check";
+      entry = "dotnet csharpier check";
       language = "system";
       types = [ "c#" ];
       # passa só os arquivos staged ao invés do diretório inteiro

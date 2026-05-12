@@ -9,13 +9,12 @@ public class PlayerActionStateBoost : IState<Player>
   public ActionType Type => ActionType.Boost;
   public HashSet<ActionType> IncompatibleActions => new();
 
-  private float _playerRotation = 0;
-  private float _rotationSpeed = 20f;
+  private float _rotationSpeed = 60f;
   private float _boostUsage = 20;
 
   public void Enter(Player player)
   {
-    player.LocomotionLayer.ChangeState(player.LockedS, player);
+    player.LocomotionLayer.ChangeState(player.HLockedS, player);
     player.MainCamera.Priority = 0;
     player.BoostCamera.Priority = 20;
   }
@@ -29,10 +28,13 @@ public class PlayerActionStateBoost : IState<Player>
 
   public void FixedUpdate(Player player)
   {
-    _playerRotation += player.MoveInput.x * _rotationSpeed;
-    player.MovementVector = player.transform.forward * 50;
-    player.MovementVector.y = -player.transform.up.y;
-    player.transform.Rotate(new Vector3(0, _playerRotation, 0) * Time.deltaTime);
+    player.transform.Rotate(
+      Vector3.up,
+      player.MoveInput.x * _rotationSpeed * Time.deltaTime,
+      Space.World
+    );
+    Vector3 horizontal = player.transform.forward * 50;
+    player.MovementVector = new(horizontal.x, player.MovementVector.y, horizontal.z);
   }
 
   public void Update(Player player)

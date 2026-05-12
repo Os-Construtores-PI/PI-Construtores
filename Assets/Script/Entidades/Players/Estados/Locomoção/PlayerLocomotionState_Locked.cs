@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerLocomotionStateLocked : IState<Player>
+public class PlayerLocomotionStateLocked : ILocomotionState<Player>
 {
   public ActionType Type => ActionType.Dash;
   public HashSet<ActionType> IncompatibleActions => new() { };

@@ -15,13 +15,13 @@ public class PlayerLocomotionStateAirborne : ILocomotionState<Player>
   public void Update(Player player)
   {
     if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
-      player.ActionLayer.PushState(player.JumpAS, player);
+      player.ActionLayer.PushState(player.Jump, player);
   }
 
   // ─── FixedUpdate ──────────────────────────────────────────────────────────
   public void FixedUpdate(Player player)
   {
-    ApplyGravity(player);
+    ILocomotionState<Player>.ApplyGravity(player);
     HandleAirMovement(player);
 
     if (player.IsGrounded && player.MovementVector.y <= 0f)
@@ -29,17 +29,6 @@ public class PlayerLocomotionStateAirborne : ILocomotionState<Player>
   }
 
   // ─── Gravidade ────────────────────────────────────────────────────────────
-  private static void ApplyGravity(Player player)
-  {
-    Vector3 move = player.MovementVector;
-    float gravityMult = move.y > 0f ? player.GravityUpMultiplier : player.GravityDownMultiplier;
-
-    move.y += player.GravityValue * gravityMult * Time.deltaTime;
-    if (move.y < player.MaxFallSpeed)
-      move.y = player.MaxFallSpeed;
-
-    player.MovementVector = move;
-  }
 
   // ─── Movimento horizontal no ar ───────────────────────────────────────────
   private void HandleAirMovement(Player player)

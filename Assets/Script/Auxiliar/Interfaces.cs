@@ -25,6 +25,18 @@ public interface ILocomotionState<T> : IState<T>
     ).normalized;
   }
 
+  protected static void ApplyGravity(Player player)
+  {
+    Vector3 move = player.MovementVector;
+    float gravityMult = move.y > 0f ? player.GravityUpMultiplier : player.GravityDownMultiplier;
+
+    move.y += player.GravityValue * gravityMult * Time.deltaTime;
+    if (move.y < player.MaxFallSpeed)
+      move.y = player.MaxFallSpeed;
+
+    player.MovementVector = move;
+  }
+
   protected static void ApplyHorizontalMovement(
     Player player,
     float targetSpeed,

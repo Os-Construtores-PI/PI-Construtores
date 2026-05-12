@@ -327,12 +327,12 @@ public class BoostSlashDashButton : IncreaseButton
       || _player.IsDashBlocked
     )
       return;
-    _player.ActionLayer.PushState(_player.DashAS, _player);
+    _player.ActionLayer.PushState(_player.Dash, _player);
   }
 
   protected override void ComplexAction()
   {
     base.ComplexAction();
-    _player.ActionLayer.PushState(_player.BoostAS, _player);
+    _player.ActionLayer.PushState(_player.Boost, _player);
   }
 }

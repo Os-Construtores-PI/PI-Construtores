@@ -39,8 +39,8 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 
     if (player.GroundSlamImpactSpeed > 0f)
     {
-      player.ActionLayer.PushState(player.BounceAS, player);
-      player.ActionLayer.PushStateDeferred(player.JumpAS, player);
+      player.ActionLayer.PushState(player.Bounce, player);
+      player.ActionLayer.PushStateDeferred(player.Jump, player);
     }
   }
 
@@ -55,7 +55,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
   public void Update(Player player)
   {
     if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
-      player.ActionLayer.PushState(player.JumpAS, player);
+      player.ActionLayer.PushState(player.Jump, player);
   }
 
   public void FixedUpdate(Player player)
@@ -88,7 +88,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
     else if (timerExpired)
     {
       _coyoteStarted = false;
-      player.ActionLayer.ExitStateDeferred(player.BounceAS, player);
+      player.ActionLayer.ExitStateDeferred(player.Bounce, player);
       player.LocomotionLayer.ChangeState(player.AirborneS, player);
     }
   }
