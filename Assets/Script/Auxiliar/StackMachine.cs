@@ -49,9 +49,6 @@ public class StackStateMachine<T> : StateMachine<T>
 
   public void PushState(IState<T> newState, T entity)
   {
-    Debug.Log(
-      $"{newState.GetType()}: \n{IsDuplicate(newState)} \n{HasIncompatibleState(newState)} \n{IsOverCapacity()}"
-    );
     if (IsDuplicate(newState) || HasIncompatibleState(newState) || IsOverCapacity())
       return;
 
