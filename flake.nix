@@ -143,8 +143,9 @@
             dotnet-build = {
               enable = true;
               name = "dotnet-build";
-              description = "Compila o projeto antes do push";
-              entry = "dotnet build --configuration Debug --no-restore -v quiet";
+              description = "Compiles the project before push";
+              # Explicitly targeting the .sln file avoids ambiguity
+              entry = "dotnet build ./PI-Construtores.sln --configuration Debug --no-restore -v quiet";
               language = "system";
               stages = [ "pre-push" ];
               pass_filenames = false;
