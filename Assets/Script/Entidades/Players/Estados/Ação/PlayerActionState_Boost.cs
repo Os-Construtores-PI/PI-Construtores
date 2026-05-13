@@ -11,7 +11,7 @@ public class PlayerActionStateBoost : IState<Player>
 
   private float _rotationSpeed = 60f;
   private float _boostUsage = 20;
-  private float _velocity = 20f;
+  private float _velocity = 50f;
 
   public void Enter(Player player)
   {
@@ -23,9 +23,9 @@ public class PlayerActionStateBoost : IState<Player>
 
   public void Exit(Player player)
   {
-    player.LocomotionLayer.ChangeState(player.LocomotionLayer.PreviousState, player);
-    _velocity = 0f;
+    player.LocomotionLayer.ChangeState(player.GroundedS, player);
     player.MovementVector += player.transform.forward * _velocity;
+    _velocity = 0f;
     player.MainCamera.Priority = 20;
     player.BoostCamera.Priority = 0;
   }
@@ -46,7 +46,7 @@ public class PlayerActionStateBoost : IState<Player>
     player.DashSlashBoostButton.Value -= _boostUsage * Time.deltaTime;
     if (player.DashSlashBoostButton.Value <= 0)
     {
-      player.ActionLayer.ExitStateDeferred(this, player);
+      player.ActionLayer.ExitState(this, player);
     }
   }
 }

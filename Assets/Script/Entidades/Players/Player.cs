@@ -122,11 +122,10 @@ public class Player : CombatEntities
   //  STATE MACHINES
   // ─────────────────────────────────────────────────────────────
   #region State Machines & Estados
-  public StateMachine<Player> LocomotionLayer;
-  public StackStateMachine<Player> ActionLayer;
+  public StateMachine<Player> LocomotionLayer = new();
+  public StackStateMachine<Player> ActionLayer = new();
 
   // Action states
-  public PlayerActionStateIdle Idle = new();
   public PlayerActionStateDash Dash = new();
   public PlayerActionStateInteraction Interaction = new();
   public PlayerActionStateWallSliding WallSliding = new();
@@ -193,7 +192,6 @@ public class Player : CombatEntities
   //  FLAGS DE INPUT DE PULO
   // ─────────────────────────────────────────────────────────────
   #region Flags de Input – Pulo
-  public bool JumpInputPressed = false;
   public bool JumpInteractionPressed = false;
 
   public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
@@ -379,8 +377,7 @@ public class Player : CombatEntities
 
     DetectarDispositivo(PlayerInput);
     DashSlashBoostButton = new(this, 100, 20, .5f);
-    LocomotionLayer = new(GroundedS, this);
-    ActionLayer = new(Idle, this);
+    LocomotionLayer.ChangeState(GroundedS, this);
   }
 
   public override void Start()
@@ -679,6 +676,9 @@ public class Player : CombatEntities
     )
       return;
 
+    if (CurrentJumpCount >= MaxJumpCount)
+      return;
+
     bool didHit = Physics.Raycast(
       new Ray(transform.position, Vector3.down),
       out RaycastHit hit,
@@ -696,7 +696,7 @@ public class Player : CombatEntities
     // Próximo do chão ou subindo → pulo imediato
     if (distanceToGround <= GroundProximityThreshold || velocityY > 0.01f)
     {
-      JumpInputPressed = true;
+      ActionLayer.PushState(Jump, this);
       return;
     }
 
@@ -705,7 +705,7 @@ public class Player : CombatEntities
     {
       float timeToReach = distanceToGround / Mathf.Abs(velocityY);
       if (timeToReach <= CoyoteTimeThreshold)
-        JumpInputPressed = true;
+        ActionLayer.PushState(Jump, this);
     }
   }
   #endregion

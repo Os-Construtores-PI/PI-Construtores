@@ -8,8 +8,6 @@ public class PlayerActionStateJump : IState<Player>
 
   public void Enter(Player player)
   {
-    player.JumpInputPressed = false;
-
     var move = player.MovementVector;
     var bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
     bool isBounce = bounceState != null && player.GroundSlamImpactSpeed > 0f;
