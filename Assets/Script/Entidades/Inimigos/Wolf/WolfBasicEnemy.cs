@@ -22,7 +22,9 @@ public class WolfBasicEnemy : Enemies
     public float _chaseMemoryTime = 3f; // tempo (em segundos) que ele continua perseguindo mesmo sem ver o Player
     private float _memoryTimer = 0f; // Contador interno dessa memória
 
-    // Estados possíveis do Lobo: patrulhando ou perseguindo
+  // Estados possíveis do Lobo: patrulhando ou perseguindo
+
+   [SerializeField] private Animator _animimator;
     private enum WolfState
     {
         Patrol,
@@ -63,7 +65,11 @@ public class WolfBasicEnemy : Enemies
         base.Awake();
         _agent = GetComponent<NavMeshAgent>(); // Pega o NavMeshAgent do Lobo
         _vision = GetComponentInChildren<EyeWolf>(); // Procura o Script EyeWolf em filhos (ex: "cabeça/olhos)
+        
+        _animimator = GetComponentInChildren<Animator>();
+        
         _startPosition = transform.position; // Salva a posição inicial do inimigo
+
     }
 
     protected new void Start()
@@ -104,8 +110,8 @@ public class WolfBasicEnemy : Enemies
                     );
                     if (!_isAttacking && _dashTimer <= 0f && dis <= _stopDistance)
                     {
-                        _isAttacking = true;
-                        _dashTimer = _dashCooldown; // reseta cooldown
+                  
+                         _dashTimer = _dashCooldown; // reseta cooldown
                         StartCoroutine(PrepareThenRush(_vision._playerDetectado));
                     }
                 }
@@ -150,6 +156,9 @@ public class WolfBasicEnemy : Enemies
 
     private IEnumerator PrepareThenRush(Transform playerTransform)
     {
+        _isAttacking = true;
+        _animimator.SetBool("isAttacking", true);
+
         _agent.isStopped = true;
         _agent.velocity = Vector3.zero;
 
@@ -212,5 +221,6 @@ public class WolfBasicEnemy : Enemies
             _agent.SetDestination(_startPosition);
 
         _isAttacking = false;
+        _animimator.SetBool("isAttacking", false);
     }
 }
