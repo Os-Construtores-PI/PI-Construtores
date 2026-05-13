@@ -3,54 +3,54 @@ using UnityEngine;
 
 public class EnemySpawner : BasePool
 {
-    public static EnemySpawner enemySpawner;
+  public static EnemySpawner enemySpawner;
 
-    [SerializeField]
-    protected List<Spawner> spawners;
-    protected new int amount;
+  [SerializeField]
+  protected List<Spawner> spawners;
+  protected new int amount;
 
-    public override void Awake()
+  public override void Awake()
+  {
+    base.Awake();
+    enemySpawner = this;
+  }
+
+  private void Start()
+  {
+    InitSpawner();
+    SetupInstance();
+  }
+
+  protected void SetupInstance()
+  {
+    _deactivatedObjects = new();
+    GameObject tmp;
+    foreach (Spawner sp in spawners)
     {
-        base.Awake();
-        enemySpawner = this;
-    }
-
-    private void Start()
-    {
-        InitSpawner();
-        SetupInstance();
-    }
-
-    protected void SetupInstance()
-    {
-        _deactivatedObjects = new();
-        GameObject tmp;
-        foreach (Spawner sp in spawners)
+      amount = sp.positions.Count;
+      for (int i = 0; i < amount; i++)
+      {
+        Transform tmpMarker = sp.positions[i];
+        tmp = Instantiate(sp.obj, tmpMarker.position, tmpMarker.rotation, _parent);
+        if (tmp.TryGetComponent(out Enemies enemy))
         {
-            amount = sp.positions.Count;
-            for (int i = 0; i < amount; i++)
-            {
-                Transform tmpMarker = sp.positions[i];
-                tmp = Instantiate(sp.obj, tmpMarker.position, tmpMarker.rotation, _parent);
-                if (tmp.TryGetComponent(out Enemies enemy))
-                {
-                    enemy.spawnpos = tmpMarker.position;
-                }
-                tmp.SetActive(false);
-                _deactivatedObjects.Add(tmp);
-            }
+          enemy.spawnpos = tmpMarker.position;
         }
+        tmp.SetActive(false);
+        _deactivatedObjects.Add(tmp);
+      }
     }
+  }
 
-    private void InitSpawner()
+  private void InitSpawner()
+  {
+    foreach (Spawner sp in spawners)
     {
-        foreach (Spawner sp in spawners)
-        {
-            GameObject[] tempposarray = GameObject.FindGameObjectsWithTag(sp.spawner_tag);
-            foreach (GameObject tempos in tempposarray)
-            {
-                sp.positions.Add(tempos.transform);
-            }
-        }
+      GameObject[] tempposarray = GameObject.FindGameObjectsWithTag(sp.spawner_tag);
+      foreach (GameObject tempos in tempposarray)
+      {
+        sp.positions.Add(tempos.transform);
+      }
     }
+  }
 }
