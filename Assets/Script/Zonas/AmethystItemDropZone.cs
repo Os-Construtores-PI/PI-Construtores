@@ -9,8 +9,16 @@ public class AmethystItemDropZone : ItemDropZone
   [SerializeField]
   private float _boostGrace = 10f;
 
+  [SerializeField]
+  private somMenu somMenu;
+
   protected override void AddItem(Player player)
   {
+    if(AudioManager.Instance != null && somMenu != null)
+    {
+      AudioManager.Instance.PlaySFX(somMenu.amestinstSong);
+    }
+
     Vector3 initialScale = transform.localScale;
 
     player.AddAmethysts(quantity, transform.position);
