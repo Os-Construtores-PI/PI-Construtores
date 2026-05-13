@@ -13,9 +13,11 @@ public class PlayerActionStateBoost : IState<Player>
   private float _boostUsage = 20;
   private float _velocity = 50f;
   private float slopeLimit = 30f;
+  public bool WasLaunched;
 
   public void Enter(Player player)
   {
+    WasLaunched = false;
     player.LocomotionLayer.ChangeState(player.HLockedS, player);
     _velocity = player.DashSlashBoostButton.Value;
     player.MainCamera.Priority = 0;
@@ -25,7 +27,7 @@ public class PlayerActionStateBoost : IState<Player>
   public void Exit(Player player)
   {
     player.LocomotionLayer.ChangeState(player.GroundedS, player);
-    player.MovementVector += player.CharacterController.velocity;
+    player.MovementVector *= 2;
     _velocity = 0f;
     player.MainCamera.Priority = 20;
     player.BoostCamera.Priority = 0;
@@ -39,12 +41,16 @@ public class PlayerActionStateBoost : IState<Player>
       Space.World
     );
 
-    Vector3 moveDir = OnSlope(player, out RaycastHit hit)
-      ? Vector3.ProjectOnPlane(player.transform.forward, hit.normal).normalized
-      : player.transform.forward;
-
-    Vector3 horizontal = moveDir * _velocity;
-    player.MovementVector = new(horizontal.x, player.MovementVector.y, horizontal.z);
+    if (OnSlope(player, out RaycastHit hit))
+    {
+      Vector3 moveDir = Vector3.ProjectOnPlane(player.transform.forward, hit.normal).normalized;
+      player.MovementVector = moveDir * _velocity;
+    }
+    else
+    {
+      Vector3 horizontal = player.transform.forward * _velocity;
+      player.MovementVector = new(horizontal.x, player.MovementVector.y, horizontal.z);
+    }
   }
 
   public void Update(Player player)
@@ -52,31 +58,23 @@ public class PlayerActionStateBoost : IState<Player>
     player.DashSlashBoostButton.Value -= _boostUsage * Time.deltaTime;
 
     if (!player.IsGrounded)
-    {
+      WasLaunched = true;
+
+    if (player.IsGrounded && WasLaunched)
       player.ActionLayer.ExitState(this, player);
-      player.IsImpulsioned = true;
-    }
+
     if (player.DashSlashBoostButton.Value <= 0)
-    {
       player.ActionLayer.ExitState(this, player);
-    }
   }
 
   private bool OnSlope(Player player, out RaycastHit hit)
   {
     hit = default;
 
-    if (!player.IsGrounded)
-      return false;
+    // Aumenta o reach para não perder contato em slopes
+    float reach = player.CharacterController.height / 2 + 1f;
 
-    if (
-      Physics.Raycast(
-        player.transform.position,
-        Vector3.down,
-        out hit,
-        player.CharacterController.height / 2 + 0.5f
-      )
-    )
+    if (Physics.Raycast(player.transform.position, Vector3.down, out hit, reach))
     {
       float angle = Vector3.Angle(hit.normal, Vector3.up);
       return angle > 0 && angle <= slopeLimit;

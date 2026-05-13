@@ -5,7 +5,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 {
   // ─── IState ───────────────────────────────────────────────────────────────
   public ActionType Type => ActionType.GroundSlam;
-  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash };
+  public HashSet<ActionType> IncompatibleActions => new();
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
