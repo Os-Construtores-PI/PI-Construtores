@@ -12,11 +12,7 @@ public class PlayerLocomotionStateAirborne : ILocomotionState<Player>
   public void Exit(Player player) { }
 
   // ─── Update ───────────────────────────────────────────────────────────────
-  public void Update(Player player)
-  {
-    if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
-      player.ActionLayer.PushState(player.Jump, player);
-  }
+  public void Update(Player player) { }
 
   // ─── FixedUpdate ──────────────────────────────────────────────────────────
   public void FixedUpdate(Player player)

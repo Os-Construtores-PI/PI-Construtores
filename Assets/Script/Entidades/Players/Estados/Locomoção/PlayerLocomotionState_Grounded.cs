@@ -52,11 +52,7 @@ public class PlayerLocomotionStateGrounded : ILocomotionState<Player>
 
   // ─── Update / FixedUpdate ─────────────────────────────────────────────────
 
-  public void Update(Player player)
-  {
-    if (player.JumpInputPressed && player.CurrentJumpCount < player.MaxJumpCount)
-      player.ActionLayer.PushState(player.Jump, player);
-  }
+  public void Update(Player player) { }
 
   public void FixedUpdate(Player player)
   {
