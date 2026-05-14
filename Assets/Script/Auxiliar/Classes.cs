@@ -154,7 +154,7 @@ public class ConditionalGate
 
 public class EffectsWorker
 {
-  private Dictionary<string, GameObject> effects = new();
+  private readonly Dictionary<string, GameObject> effects = new();
 
   public void InitEffects(Transform transform)
   {
@@ -200,6 +200,44 @@ public class EffectsWorker
     foreach (Light light in effect.GetComponentsInChildren<Light>(true))
     {
       light.enabled = state;
+    }
+  }
+}
+
+public class TrailsWorker
+{
+  private readonly Dictionary<string, GameObject> _trails = new();
+
+  public void InitTrails(Transform parent)
+  {
+    _trails.Clear();
+    foreach (Transform child in parent)
+    {
+      _trails.Add(child.name, child.gameObject);
+      StopEffect(child.name);
+    }
+  }
+
+  public void PlayEffect(string name)
+  {
+    if (
+      _trails.TryGetValue(name, out GameObject trail)
+      && trail.TryGetComponent(out TrailRenderer trailRenderer)
+    )
+    {
+      trailRenderer.Clear();
+      trailRenderer.emitting = true;
+    }
+  }
+
+  public void StopEffect(string name)
+  {
+    if (
+      _trails.TryGetValue(name, out GameObject trail)
+      && trail.TryGetComponent(out TrailRenderer trailRenderer)
+    )
+    {
+      trailRenderer.emitting = false;
     }
   }
 }

@@ -92,35 +92,35 @@ public static class Constants
   {
     public static readonly string DataPath = Application.persistentDataPath + "GameData.json";
     public static readonly string ConfigPath = Application.persistentDataPath + "ConfigData.json";
-    public static readonly string CryptoKey = "Pão de Queijo";
+    public const string CryptoKey = "Pão de Queijo";
   }
 
   public static class SceneNames
   {
-    public static readonly string DebugScene = "Cena Debug";
-    public static readonly string FirstLevel = "Fase0";
-    public static readonly string MainMenu = "MainMenu";
+    public const string DebugScene = "Cena Debug";
+    public const string FirstLevel = "Fase0";
+    public const string MainMenu = "MainMenu";
   }
 
   public static class AnimatorTriggerNames
   {
-    public static readonly string Idle = "Idle";
-    public static readonly string Walk = "Walk";
-    public static readonly string Jump = "Jump";
-    public static readonly string DoubleJump = "DoubleJump";
-    public static readonly string Hit = "Hit";
-    public static readonly string Dash = "Dash";
+    public const string Idle = nameof(Idle);
+    public const string Walk = nameof(Walk);
+    public const string Jump = nameof(Jump);
+    public const string DoubleJump = nameof(DoubleJump);
+    public const string Hit = nameof(Hit);
+    public const string Dash = nameof(Dash);
   }
 
   public static class AnimatorBoolNames
   {
-    public static readonly string IsGrounded = "IsGrounded";
+    public const string IsGrounded = nameof(IsGrounded);
   }
 
   public static class AnimatorFloatNames
   {
-    public const string VelocityY = "VelocityY";
-    public const string VelocityX = "VelocityX";
+    public const string VelocityY = nameof(VelocityY);
+    public const string VelocityX = nameof(VelocityX);
   }
 
   public static class EffectsNames
@@ -129,44 +129,49 @@ public static class Constants
     {
       public const string Dash = nameof(Dash);
       public const string Jump = nameof(Jump);
-      public const string Run = nameof(Run);
+      public const string Boost = nameof(Boost);
       public const string Charging = nameof(Charging);
     }
 
     public static class Interface
     {
-      public const string Speed = "Speed";
+      public const string Speed = nameof(Speed);
     }
+  }
+
+  public static class TrailsNames
+  {
+    public const string Movement = nameof(Movement);
   }
 
   public static class Values
   {
-    public static readonly float GraplingHookSpeed = 10f;
+    public const float GraplingHookSpeed = 10f;
   }
 
   public static class HudPanelNames
   {
-    public const string GameOver = "GameOver";
-    public const string Pause = "Pause";
-    public const string Dialogue = "Dialogue";
-    public const string HealthBar = "HealthBar";
-    public const string BoostBar = "BoostBar";
-    public const string DashIcon = "DashIcon";
-    public const string EndGame = "EndGame";
-    public const string AmethystCounter = "AmethystCounter";
-    public const string InteractionPopup = "InteractionPopup";
-    public const string InteractionLetter = "InteractionLetter";
-    public const string LockOnOverlay = "LockOnOverlay";
-    public const string Cutscene = "Cutscene";
-    public const string TeleportFadePanel = "TeleportFadePanel";
+    public const string GameOver = nameof(GameOver);
+    public const string Pause = nameof(Pause);
+    public const string Dialogue = nameof(Dialogue);
+    public const string HealthBar = nameof(HealthBar);
+    public const string BoostBar = nameof(BoostBar);
+    public const string DashIcon = nameof(DashIcon);
+    public const string EndGame = nameof(EndGame);
+    public const string AmethystCounter = nameof(AmethystCounter);
+    public const string InteractionPopup = nameof(InteractionPopup);
+    public const string InteractionLetter = nameof(InteractionLetter);
+    public const string LockOnOverlay = nameof(LockOnOverlay);
+    public const string Cutscene = nameof(Cutscene);
+    public const string TeleportFadePanel = nameof(TeleportFadePanel);
   }
 
   public static class MenuPanelNames
   {
-    public static readonly string Menu = "Menu";
-    public static readonly string AudioMenu = "AudioMenu";
-    public static readonly string OptionsMenu = "OptionsMenu";
-    public static readonly string SaveMenu = "SaveMenu";
+    public const string Menu = nameof(Menu);
+    public const string AudioMenu = nameof(AudioMenu);
+    public const string OptionsMenu = nameof(OptionsMenu);
+    public const string SaveMenu = nameof(SaveMenu);
   }
 
   public static class PlayerCommonObjects
@@ -182,11 +187,11 @@ public static class Constants
 
   public static class CameraGroup
   {
-    public const string MainCamera = "MainCamera";
-    public const string MainCinemachine = "MainCinemachine";
-    public const string BoostCinemachine = "BoostCinemachine";
-    public const string CinemachineLockOn = "CinemachineLockOn";
-    public const string LockInGroup = "LockInGroup";
+    public const string MainCamera = nameof(MainCamera);
+    public const string MainCinemachine = nameof(MainCinemachine);
+    public const string BoostCinemachine = nameof(BoostCinemachine);
+    public const string CinemachineLockOn = nameof(CinemachineLockOn);
+    public const string LockInGroup = nameof(LockInGroup);
   }
 
   public static class PandoraObjects

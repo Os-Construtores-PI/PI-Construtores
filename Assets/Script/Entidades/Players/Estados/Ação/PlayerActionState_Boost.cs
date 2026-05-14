@@ -1,56 +1,63 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using Unity.Cinemachine;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerActionStateBoost : IState<Player>
 {
+  #region IState
+
   public ActionType Type => ActionType.Boost;
-  public HashSet<ActionType> IncompatibleActions => new();
+  public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
+
+  #endregion
+
+  #region Constants
+
+  private const int MainCameraPriority = 20;
+  private const int BoostCameraPriority = 20;
+  private const int InactivePriority = 0;
+
+  #endregion
+
+  #region Fields
+
+  private readonly HashSet<ActionType> _incompatibleActions = new();
 
   private float _rotationSpeed = 30f;
-  private float _boostUsage = 20;
-  private float _velocity = 50f;
-  private float slopeLimit = 30f;
+  private float _boostUsage = 20f;
+  private float _slopeLimit = 30f;
+  private float _velocity;
+
   public bool WasLaunched;
+
+  #endregion
+
+  #region IState Callbacks
 
   public void Enter(Player player)
   {
     WasLaunched = false;
-    player.LocomotionLayer.ChangeState(player.HLockedS, player);
     _velocity = player.DashSlashBoostButton.Value;
-    player.MainCamera.Priority = 0;
-    player.BoostCamera.Priority = 20;
+
+    player.LocomotionLayer.ChangeState(player.HLockedS, player);
+    player.IsFast.Invoke();
+    player.TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
+    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 1);
+    SetBoostCamera(player, active: true);
   }
 
   public void Exit(Player player)
   {
-    player.LocomotionLayer.ChangeState(player.GroundedS, player);
-    player.MovementVector *= 2;
     _velocity = 0f;
-    player.MainCamera.Priority = 20;
-    player.BoostCamera.Priority = 0;
-  }
 
-  public void FixedUpdate(Player player)
-  {
-    player.transform.Rotate(
-      Vector3.up,
-      player.MoveInput.x * _rotationSpeed * Time.deltaTime,
-      Space.World
-    );
+    player.LocomotionLayer.ChangeState(player.GroundedS, player);
 
-    if (OnSlope(player, out RaycastHit hit))
-    {
-      Vector3 moveDir = Vector3.ProjectOnPlane(player.transform.forward, hit.normal).normalized;
-      player.MovementVector = moveDir * _velocity;
-    }
-    else
-    {
-      Vector3 horizontal = player.transform.forward * _velocity;
-      player.MovementVector = new(horizontal.x, player.MovementVector.y, horizontal.z);
-    }
+    player.StoppedBeingFast.Invoke();
+    player.TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
+    player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Boost);
+
+    player.MovementVector *= 2f;
+    SetBoostCamera(player, active: false);
   }
 
   public void Update(Player player)
@@ -60,26 +67,64 @@ public class PlayerActionStateBoost : IState<Player>
     if (!player.IsGrounded)
       WasLaunched = true;
 
-    if (player.IsGrounded && WasLaunched)
-      player.ActionLayer.ExitState(this, player);
+    bool landedAfterLaunch = player.IsGrounded && WasLaunched;
+    bool boostDepleted = player.DashSlashBoostButton.Value <= 0f;
 
-    if (player.DashSlashBoostButton.Value <= 0)
+    if (landedAfterLaunch || boostDepleted)
       player.ActionLayer.ExitState(this, player);
+  }
+
+  public void FixedUpdate(Player player)
+  {
+    RotatePlayer(player);
+    ApplyVelocity(player);
+  }
+
+  #endregion
+
+  #region Private Methods
+
+  private void RotatePlayer(Player player)
+  {
+    player.transform.Rotate(
+      Vector3.up,
+      player.MoveInput.x * _rotationSpeed * Time.deltaTime,
+      Space.World
+    );
+  }
+
+  private void ApplyVelocity(Player player)
+  {
+    if (OnSlope(player, out RaycastHit hit))
+    {
+      Vector3 slopeDir = Vector3.ProjectOnPlane(player.transform.forward, hit.normal).normalized;
+      player.MovementVector = slopeDir * _velocity;
+    }
+    else
+    {
+      Vector3 horizontal = player.transform.forward * _velocity;
+      player.MovementVector = new Vector3(horizontal.x, player.MovementVector.y, horizontal.z);
+    }
   }
 
   private bool OnSlope(Player player, out RaycastHit hit)
   {
-    hit = default;
-
-    // Aumenta o reach para não perder contato em slopes
-    float reach = player.CharacterController.height / 2 + 1f;
+    float reach = player.CharacterController.height / 2f + 1f;
 
     if (Physics.Raycast(player.transform.position, Vector3.down, out hit, reach))
     {
       float angle = Vector3.Angle(hit.normal, Vector3.up);
-      return angle > 0 && angle <= slopeLimit;
+      return angle > 0f && angle <= _slopeLimit;
     }
 
     return false;
   }
+
+  private static void SetBoostCamera(Player player, bool active)
+  {
+    player.MainCamera.Priority = active ? InactivePriority : MainCameraPriority;
+    player.BoostCamera.Priority = active ? BoostCameraPriority : InactivePriority;
+  }
+
+  #endregion
 }

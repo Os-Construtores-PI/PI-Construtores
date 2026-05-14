@@ -81,7 +81,7 @@ public class PlayerActionStateDash : IState<Player>
     player.IsDashing = true;
     player.CanDash = false;
 
-    player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
+    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
     player.CurrentDashCount += 1;
     player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
@@ -122,7 +122,7 @@ public class PlayerActionStateDash : IState<Player>
     player.LocomotionLayer.ChangeState(player.AirborneS, player);
     player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
-    player.EffectsWorker.StopEffect(Constants.EffectsNames.Player.Dash);
+    player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Dash);
     Vector3 postDash =
       new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
     player.MovementVector += postDash;

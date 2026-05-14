@@ -41,7 +41,7 @@ public class PlayerActionStateJump : IState<Player>
       player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
     player.CurrentJumpCount++;
-    player.EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
+    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
     player.MovementVector = move;
     player.LocomotionLayer.ChangeState(player.AirborneS, player);
     player.ActionLayer.ExitState(this, player); // ← libera para o próximo pulo

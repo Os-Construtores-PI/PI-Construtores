@@ -198,6 +198,13 @@ public class Player : CombatEntities
   #endregion
 
   // ─────────────────────────────────────────────────────────────
+  //  Trails
+  // ─────────────────────────────────────────────────────────────
+  #region Trails
+  public TrailsWorker TrailsSystem = new();
+
+  #endregion
+  // ─────────────────────────────────────────────────────────────
   //  FLAGS DE CONTEXTO
   // ─────────────────────────────────────────────────────────────
   #region Flags de Contexto
@@ -299,8 +306,8 @@ public class Player : CombatEntities
   //  EVENTOS
   // ─────────────────────────────────────────────────────────────
   #region Eventos
-  public readonly UnityEvent IsRunningEv = new();
-  public readonly UnityEvent StoppedRunningEv = new();
+  public readonly UnityEvent IsFast = new();
+  public readonly UnityEvent StoppedBeingFast = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -389,6 +396,7 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    TrailsSystem.InitTrails(transform.Find("Trails"));
     _modelTransform = transform.Find("Model");
   }
 
@@ -463,10 +471,10 @@ public class Player : CombatEntities
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
     DashSlashBoostButton.StartedChargingEv.AddListener(() =>
-      EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
+      EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
     );
     DashSlashBoostButton.StoppedChargingEv.AddListener(() =>
-      EffectsWorker.StopEffect(Constants.EffectsNames.Player.Charging)
+      EffectsSystem.StopEffect(Constants.EffectsNames.Player.Charging)
     );
 
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
@@ -577,12 +585,14 @@ public class Player : CombatEntities
     if (context.performed)
     {
       IsRunning = true;
-      IsRunningEv.Invoke();
+      IsFast.Invoke();
+      TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
     }
     else if (context.canceled)
     {
       IsRunning = false;
-      StoppedRunningEv.Invoke();
+      TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
+      StoppedBeingFast.Invoke();
     }
   }
 
@@ -885,10 +895,10 @@ public class Player : CombatEntities
       return;
 
     _OnDamage.AddListener(hudDir.DamageShake);
-    IsRunningEv.AddListener(hudDir.RunningShake);
-    IsRunningEv.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
-    StoppedRunningEv.AddListener(hudDir.StopRunningShake);
-    StoppedRunningEv.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
+    IsFast.AddListener(hudDir.RunningShake);
+    IsFast.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
+    StoppedBeingFast.AddListener(hudDir.StopRunningShake);
+    StoppedBeingFast.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
   }
   #endregion
 
