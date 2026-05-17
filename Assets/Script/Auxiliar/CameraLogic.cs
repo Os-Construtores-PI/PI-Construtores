@@ -67,14 +67,16 @@ public class CameraLogic : Entities
     }
   }
 
-  public void SpeedFX()
+  public void SpeedlinesFX(bool set)
   {
-    effects[Constants.EffectsNames.Interface.Speed].Play();
-  }
-
-  public void StopSpeedFX()
-  {
-    StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Speed, 0.5f));
+    if (set)
+    {
+      effects[Constants.EffectsNames.Interface.Speed].Play();
+    }
+    else
+    {
+      effects[Constants.EffectsNames.Interface.Speed].Stop();
+    }
   }
 
   private IEnumerator StopEffectsRoutine(string effect, float waitTime)

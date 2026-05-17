@@ -40,7 +40,7 @@ public class PlayerActionStateBoost : IState<Player>
     _velocity = player.DashSlashBoostButton.Value;
 
     player.LocomotionLayer.ChangeState(player.HLockedS, player);
-    player.IsFast.Invoke();
+    player.SpeedLines.Invoke(true);
     player.TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
     player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 1);
     SetBoostCamera(player, active: true);
@@ -52,7 +52,7 @@ public class PlayerActionStateBoost : IState<Player>
 
     player.LocomotionLayer.ChangeState(player.GroundedS, player);
 
-    player.StoppedBeingFast.Invoke();
+    player.SpeedLines.Invoke(false);
     player.TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
     player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Boost);
 

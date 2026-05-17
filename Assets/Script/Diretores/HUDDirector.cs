@@ -18,11 +18,19 @@ public class HudDirector : MonoBehaviour
   // ─── Constantes ────────────────────────────────────────────────────────────
 
   private static readonly WaitForSecondsRealtime WAIT_TELEPORT_FADE = new(1f);
-  private const float WAIT_SHAKE_CAM = 0.25f;
-  private const float WAIT_RUNNING_SHAKE_CAM = 0.50f;
 
   private const float PANEL_TWEEN_DURATION = 0.25f;
   private const float PANEL_FADE_OPACITY = 0.8f;
+
+  // ─── Parâmetros de Shake ────────────────────────────────────────────────────
+
+  private const float DAMAGE_SHAKE_AMPLITUDE = 1f;
+  private const float DAMAGE_SHAKE_FREQUENCY = 1f;
+  private const float DAMAGE_SHAKE_DURATION = 0.25f;
+
+  private const float RUNNING_SHAKE_AMPLITUDE = 0.1f;
+  private const float RUNNING_SHAKE_FREQUENCY = 0.7f;
+  private const float RUNNING_SHAKE_STOP_DELAY = 0.50f;
 
   // ─── Campos Serializados ────────────────────────────────────────────────────
 
@@ -40,6 +48,9 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, CameraLogic> playerCameras = new();
 
   private Player _playerHudOwner;
+
+  /// <summary>Referência à coroutine de parada de shake para evitar sobreposição.</summary>
+  private Coroutine _shakeStopCoroutine;
 
   // ─── Nomes de painéis válidos ───────────────────────────────────────────────
 
@@ -98,6 +109,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
+    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.RemoveListener(OptionsPausePanel); // BUG FIX: estava faltando
   }
 
   private void Start()
@@ -361,7 +373,6 @@ public class HudDirector : MonoBehaviour
       fade: false,
       instant: true
     );
-
     HidePanel(
       Constants.HudPanelNames.HealthBar,
       playerID,
@@ -369,7 +380,6 @@ public class HudDirector : MonoBehaviour
       fade: false,
       instant: true
     );
-
     HidePanel(
       Constants.HudPanelNames.BoostBar,
       playerID,
@@ -377,7 +387,6 @@ public class HudDirector : MonoBehaviour
       fade: false,
       instant: true
     );
-
     HidePanel(
       Constants.HudPanelNames.DashIcon,
       playerID,
@@ -399,28 +408,67 @@ public class HudDirector : MonoBehaviour
   // Shake de Câmera
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public void DamageShake()
+  /// <summary>
+  /// Método centralizado de shake de câmera.
+  /// Cancela qualquer shake anterior antes de aplicar os novos parâmetros.
+  /// </summary>
+  /// <param name="amplitude">Intensidade do shake.</param>
+  /// <param name="frequency">Frequência do shake.</param>
+  /// <param name="duration">
+  ///   Duração em segundos. Use 0 para manter ativo indefinidamente
+  ///   (nesse caso, chame novamente com amplitude/frequency = 0 ou use
+  ///   <see cref="RunningShake"/> com <c>false</c> para parar).
+  /// </param>
+  public void CameraShake(float amplitude, float frequency, float duration = 0f)
   {
     if (!TryGetCameraNoiseComponent(out var noise))
       return;
-    noise.AmplitudeGain = 1f;
-    noise.FrequencyGain = 1f;
-    StartCoroutine(StopShakingAfter(noise, WAIT_SHAKE_CAM));
+
+    if (_shakeStopCoroutine != null)
+    {
+      StopCoroutine(_shakeStopCoroutine);
+      _shakeStopCoroutine = null;
+    }
+
+    noise.AmplitudeGain = amplitude;
+    noise.FrequencyGain = frequency;
+
+    if (duration > 0f)
+      _shakeStopCoroutine = StartCoroutine(StopShakingAfter(noise, duration));
   }
 
-  public void RunningShake()
-  {
-    if (!TryGetCameraNoiseComponent(out var noise))
-      return;
-    noise.AmplitudeGain = 0.1f;
-    noise.FrequencyGain = 0.7f;
-  }
+  /// <summary>
+  /// Shake de dano com parâmetros pré-definidos e duração automática.
+  /// </summary>
+  public void DamageShake() =>
+    CameraShake(DAMAGE_SHAKE_AMPLITUDE, DAMAGE_SHAKE_FREQUENCY, DAMAGE_SHAKE_DURATION);
 
-  public void StopRunningShake()
+  /// <summary>
+  /// Controla o shake contínuo de corrida.
+  /// </summary>
+  /// <param name="active">
+  ///   <c>true</c> inicia o shake; <c>false</c> agenda a parada com delay suave.
+  /// </param>
+  public void RunningShake(bool active)
   {
-    if (!TryGetCameraNoiseComponent(out var noise))
-      return;
-    StartCoroutine(StopShakingAfter(noise, WAIT_RUNNING_SHAKE_CAM));
+    if (active)
+    {
+      // Reutiliza CameraShake para garantir cancelamento de qualquer stop pendente
+      CameraShake(RUNNING_SHAKE_AMPLITUDE, RUNNING_SHAKE_FREQUENCY);
+    }
+    else
+    {
+      if (!TryGetCameraNoiseComponent(out var noise))
+        return;
+
+      // Cancela stop anterior antes de agendar novo
+      if (_shakeStopCoroutine != null)
+      {
+        StopCoroutine(_shakeStopCoroutine);
+      }
+
+      _shakeStopCoroutine = StartCoroutine(StopShakingAfter(noise, RUNNING_SHAKE_STOP_DELAY));
+    }
   }
 
   private static bool TryGetCameraNoiseComponent(out CinemachineBasicMultiChannelPerlin noise)
@@ -435,6 +483,7 @@ public class HudDirector : MonoBehaviour
     yield return new WaitForSeconds(delay);
     noise.AmplitudeGain = 0f;
     noise.FrequencyGain = 0f;
+    _shakeStopCoroutine = null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -547,13 +596,9 @@ public class HudDirector : MonoBehaviour
   private void SetLockOnVisibility(int playerID, bool set, Vector3 position)
   {
     if (set)
-    {
       ShowPanel(Constants.HudPanelNames.LockOnOverlay, playerID, independent: false);
-    }
     else
-    {
       HidePanel(Constants.HudPanelNames.LockOnOverlay, playerID, independent: false, instant: true);
-    }
 
     foreach (var go in GetPanel(playerID, Constants.HudPanelNames.LockOnOverlay))
     {
@@ -572,6 +617,7 @@ public class HudDirector : MonoBehaviour
   {
     GameObject teleportPanel = GetPanel(playerID, Constants.HudPanelNames.TeleportFadePanel)
       .FirstOrDefault();
+
     if (!teleportPanel)
     {
       Debug.LogWarning("[HudDirector] TeleportFadePanel não encontrado para o jogador " + playerID);

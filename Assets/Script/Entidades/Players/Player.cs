@@ -202,8 +202,8 @@ public class Player : CombatEntities
   // ─────────────────────────────────────────────────────────────
   #region Trails
   public TrailsWorker TrailsSystem = new();
-
   #endregion
+
   // ─────────────────────────────────────────────────────────────
   //  FLAGS DE CONTEXTO
   // ─────────────────────────────────────────────────────────────
@@ -306,8 +306,14 @@ public class Player : CombatEntities
   //  EVENTOS
   // ─────────────────────────────────────────────────────────────
   #region Eventos
-  public readonly UnityEvent IsFast = new();
-  public readonly UnityEvent StoppedBeingFast = new();
+  public readonly UnityEvent<bool> SpeedLines = new();
+
+  /// <summary>
+  /// Evento unificado de shake de corrida.
+  /// <c>true</c> → inicia; <c>false</c> → para.
+  /// Conectado a <see cref="HudDirector.RunningShake(bool)"/> em <see cref="SetupHUD"/>.
+  /// </summary>
+  public readonly UnityEvent<bool> RunningShake = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -585,14 +591,17 @@ public class Player : CombatEntities
     if (context.performed)
     {
       IsRunning = true;
-      IsFast.Invoke();
+      SpeedLines.Invoke(true);
+
+      RunningShake.Invoke(true);
       TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
     }
     else if (context.canceled)
     {
       IsRunning = false;
+      RunningShake.Invoke(false);
       TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
-      StoppedBeingFast.Invoke();
+      SpeedLines.Invoke(false);
     }
   }
 
@@ -895,10 +904,8 @@ public class Player : CombatEntities
       return;
 
     _OnDamage.AddListener(hudDir.DamageShake);
-    IsFast.AddListener(hudDir.RunningShake);
-    IsFast.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
-    StoppedBeingFast.AddListener(hudDir.StopRunningShake);
-    StoppedBeingFast.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
+    RunningShake.AddListener(hudDir.RunningShake);
+    SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
   }
   #endregion
 
