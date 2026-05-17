@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using static Constants.PlayerShakes;
 
 /// <summary>
 /// Gerencia todos os elementos visuais do HUD, câmeras e painéis para cada jogador.
@@ -21,16 +22,6 @@ public class HudDirector : MonoBehaviour
 
   private const float PANEL_TWEEN_DURATION = 0.25f;
   private const float PANEL_FADE_OPACITY = 0.8f;
-
-  // ─── Parâmetros de Shake ────────────────────────────────────────────────────
-
-  private const float DAMAGE_SHAKE_AMPLITUDE = 1f;
-  private const float DAMAGE_SHAKE_FREQUENCY = 1f;
-  private const float DAMAGE_SHAKE_DURATION = 0.25f;
-
-  private const float RUNNING_SHAKE_AMPLITUDE = 0.1f;
-  private const float RUNNING_SHAKE_FREQUENCY = 0.7f;
-  private const float RUNNING_SHAKE_STOP_DELAY = 0.50f;
 
   // ─── Campos Serializados ────────────────────────────────────────────────────
 
@@ -49,8 +40,11 @@ public class HudDirector : MonoBehaviour
 
   private Player _playerHudOwner;
 
-  /// <summary>Referência à coroutine de parada de shake para evitar sobreposição.</summary>
-  private Coroutine _shakeStopCoroutine;
+  // <summary> Coroutines e Noises </summary>
+  private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
+
+  /// <summary>Coroutine de parada de shake por playerID.</summary>
+  private readonly Dictionary<int, Coroutine> _shakeStopCoroutines = new();
 
   // ─── Nomes de painéis válidos ───────────────────────────────────────────────
 
@@ -109,7 +103,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
     GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.RemoveListener(OptionsPausePanel); // BUG FIX: estava faltando
+    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.RemoveListener(OptionsPausePanel);
   }
 
   private void Start()
@@ -190,11 +184,16 @@ public class HudDirector : MonoBehaviour
   }
 
   /// <summary>
-  /// Registra a câmera associada a um jogador.
+  /// Registra a câmera e noise do cinemachine associada a um jogador.
   /// </summary>
   public void InitializeCamera(int playerID, CameraLogic camera)
   {
     playerCameras[playerID] = camera;
+  }
+
+  public void InitializeNoise(int playerID, CinemachineBasicMultiChannelPerlin noise)
+  {
+    _playerNoises[playerID] = noise;
   }
 
   private void HideAllPanels(int playerID)
@@ -408,82 +407,54 @@ public class HudDirector : MonoBehaviour
   // Shake de Câmera
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// <summary>
-  /// Método centralizado de shake de câmera.
-  /// Cancela qualquer shake anterior antes de aplicar os novos parâmetros.
-  /// </summary>
-  /// <param name="amplitude">Intensidade do shake.</param>
-  /// <param name="frequency">Frequência do shake.</param>
-  /// <param name="duration">
-  ///   Duração em segundos. Use 0 para manter ativo indefinidamente
-  ///   (nesse caso, chame novamente com amplitude/frequency = 0 ou use
-  ///   <see cref="RunningShake"/> com <c>false</c> para parar).
-  /// </param>
-  public void CameraShake(float amplitude, float frequency, float duration = 0f)
+  public void CameraShake(int playerID, float amplitude, float frequency, float duration = 0f)
   {
-    if (!TryGetCameraNoiseComponent(out var noise))
+    if (!_playerNoises.TryGetValue(playerID, out var noise))
       return;
 
-    if (_shakeStopCoroutine != null)
+    if (_shakeStopCoroutines.TryGetValue(playerID, out var existing) && existing != null)
     {
-      StopCoroutine(_shakeStopCoroutine);
-      _shakeStopCoroutine = null;
+      StopCoroutine(existing);
+      _shakeStopCoroutines[playerID] = null;
     }
 
     noise.AmplitudeGain = amplitude;
     noise.FrequencyGain = frequency;
 
     if (duration > 0f)
-      _shakeStopCoroutine = StartCoroutine(StopShakingAfter(noise, duration));
+      _shakeStopCoroutines[playerID] = StartCoroutine(StopShakingAfter(playerID, noise, duration));
   }
 
-  /// <summary>
-  /// Shake de dano com parâmetros pré-definidos e duração automática.
-  /// </summary>
-  public void DamageShake() =>
-    CameraShake(DAMAGE_SHAKE_AMPLITUDE, DAMAGE_SHAKE_FREQUENCY, DAMAGE_SHAKE_DURATION);
-
-  /// <summary>
-  /// Controla o shake contínuo de corrida.
-  /// </summary>
-  /// <param name="active">
-  ///   <c>true</c> inicia o shake; <c>false</c> agenda a parada com delay suave.
-  /// </param>
-  public void RunningShake(bool active)
+  public void RunningShake(int playerID, bool active)
   {
     if (active)
     {
-      // Reutiliza CameraShake para garantir cancelamento de qualquer stop pendente
-      CameraShake(RUNNING_SHAKE_AMPLITUDE, RUNNING_SHAKE_FREQUENCY);
+      CameraShake(playerID, Running.Amplitude, Running.Frequency);
     }
     else
     {
-      if (!TryGetCameraNoiseComponent(out var noise))
+      if (!_playerNoises.TryGetValue(playerID, out var noise))
         return;
 
-      // Cancela stop anterior antes de agendar novo
-      if (_shakeStopCoroutine != null)
-      {
-        StopCoroutine(_shakeStopCoroutine);
-      }
+      if (_shakeStopCoroutines.TryGetValue(playerID, out var existing) && existing != null)
+        StopCoroutine(existing);
 
-      _shakeStopCoroutine = StartCoroutine(StopShakingAfter(noise, RUNNING_SHAKE_STOP_DELAY));
+      _shakeStopCoroutines[playerID] = StartCoroutine(
+        StopShakingAfter(playerID, noise, Running.StopDelay)
+      );
     }
   }
 
-  private static bool TryGetCameraNoiseComponent(out CinemachineBasicMultiChannelPerlin noise)
-  {
-    noise = null;
-    var cam = GameObject.FindWithTag("CinemachineCamera");
-    return cam != null && cam.TryGetComponent(out noise);
-  }
-
-  private IEnumerator StopShakingAfter(CinemachineBasicMultiChannelPerlin noise, float delay)
+  private IEnumerator StopShakingAfter(
+    int playerID,
+    CinemachineBasicMultiChannelPerlin noise,
+    float delay
+  )
   {
     yield return new WaitForSeconds(delay);
     noise.AmplitudeGain = 0f;
     noise.FrequencyGain = 0f;
-    _shakeStopCoroutine = null;
+    _shakeStopCoroutines[playerID] = null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

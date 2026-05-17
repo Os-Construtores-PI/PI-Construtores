@@ -139,6 +139,23 @@ public static class Constants
     }
   }
 
+  public static class PlayerShakes
+  {
+    public static class Damage
+    {
+      public const float Amplitude = 1f;
+      public const float Frequency = 1f;
+      public const float Duration = 0.25f;
+    }
+
+    public static class Running
+    {
+      public const float Amplitude = 0.1f;
+      public const float Frequency = 0.7f;
+      public const float StopDelay = 0.50f;
+    }
+  }
+
   public static class TrailsNames
   {
     public const string Movement = nameof(Movement);

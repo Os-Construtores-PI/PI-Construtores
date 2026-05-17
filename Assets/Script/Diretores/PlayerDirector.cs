@@ -226,11 +226,9 @@ public class PlayerDirector : MonoBehaviour
     Camera unityCam = camObj.GetComponent<Camera>();
     CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
 
-    // Registra câmera no HUD e define a janela de viewport (split-screen)
     _hudDirector.InitializeCamera(id, camLogic);
     unityCam.rect = viewport;
 
-    // Vincula Cinemachine e LockOn ao player, se todos os componentes existirem
     if (
       !cinemachineObj.TryGetComponent(out CinemachineCamera mainCinemachine)
       || !boostCinemachineObj.TryGetComponent(out CinemachineCamera boostCinemachine)
@@ -241,6 +239,9 @@ public class PlayerDirector : MonoBehaviour
     camLogic.SetTarget(player, mainCinemachine, boostCinemachine);
     player.SetCamera(mainCinemachine, boostCinemachine, unityCam);
 
+    if (cinemachineObj.TryGetComponent(out CinemachineBasicMultiChannelPerlin noise))
+      _hudDirector.InitializeNoise(id, noise);
+
     _playerCameras[id] = camObj;
   }
 
@@ -248,7 +249,6 @@ public class PlayerDirector : MonoBehaviour
   // CONFIGURAÇÃO DE PLAYER
   // =========================================================
 
-  /// <summary>Aplica o <see cref="ConfigPlayer"/> ao contexto do player.</summary>
   private void ApplyConfig(Player player)
   {
     if (configPlayer == null)
@@ -263,6 +263,5 @@ public class PlayerDirector : MonoBehaviour
   // PROPRIEDADES PÚBLICAS
   // =========================================================
 
-  /// <summary>Retorna o contexto do primeiro player, ou <c>null</c> se não houver nenhum.</summary>
   public Player FirstPlayerContext => _allPlayers.Count > 0 ? _allPlayers[0] : null;
 }

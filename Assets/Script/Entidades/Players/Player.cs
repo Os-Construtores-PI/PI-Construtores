@@ -7,6 +7,7 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
 using UnityEngine.SceneManagement;
+using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
@@ -307,13 +308,8 @@ public class Player : CombatEntities
   // ─────────────────────────────────────────────────────────────
   #region Eventos
   public readonly UnityEvent<bool> SpeedLines = new();
-
-  /// <summary>
-  /// Evento unificado de shake de corrida.
-  /// <c>true</c> → inicia; <c>false</c> → para.
-  /// Conectado a <see cref="HudDirector.RunningShake(bool)"/> em <see cref="SetupHUD"/>.
-  /// </summary>
   public readonly UnityEvent<bool> RunningShake = new();
+  public readonly UnityEvent<int, float, float, float> CustomShake = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -903,9 +899,16 @@ public class Player : CombatEntities
     if (!GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
       return;
 
-    _OnDamage.AddListener(hudDir.DamageShake);
-    RunningShake.AddListener(hudDir.RunningShake);
     SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
+
+    // NOTE: Shake
+    _OnDamage.AddListener(() =>
+      hudDir.CameraShake(ID, Damage.Amplitude, Damage.Frequency, Damage.Duration)
+    );
+    CustomShake.AddListener(
+      (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
+    );
+    RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
   }
   #endregion
 

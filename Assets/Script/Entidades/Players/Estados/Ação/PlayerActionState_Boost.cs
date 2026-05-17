@@ -17,15 +17,21 @@ public class PlayerActionStateBoost : IState<Player>
   private const int BoostCameraPriority = 20;
   private const int InactivePriority = 0;
 
+  // Shake
+
+  private const float EnterShakeAmplitude = 1.5f;
+  private const float EnterShakeFrequency = .4f;
+  private const float EnterShakeDuration = .25f;
+
   #endregion
 
   #region Fields
 
   private readonly HashSet<ActionType> _incompatibleActions = new();
 
-  private float _rotationSpeed = 30f;
-  private float _boostUsage = 20f;
-  private float _slopeLimit = 30f;
+  private readonly float _rotationSpeed = 30f;
+  private readonly float _boostUsage = 20f;
+  private readonly float _slopeLimit = 30f;
   private float _velocity;
 
   public bool WasLaunched;
@@ -42,6 +48,12 @@ public class PlayerActionStateBoost : IState<Player>
     player.LocomotionLayer.ChangeState(player.HLockedS, player);
     player.SpeedLines.Invoke(true);
     player.TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
+    player.CustomShake.Invoke(
+      player.ID,
+      EnterShakeAmplitude,
+      EnterShakeFrequency,
+      EnterShakeDuration
+    );
     player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 1);
     SetBoostCamera(player, active: true);
   }
