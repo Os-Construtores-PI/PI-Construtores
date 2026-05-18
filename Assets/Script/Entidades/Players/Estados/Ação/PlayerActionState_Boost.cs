@@ -68,7 +68,9 @@ public class PlayerActionStateBoost : IState<Player>
     player.TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
     player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Boost);
 
-    player.MovementVector *= 2f;
+    Vector3 mv = player.MovementVector;
+    player.MovementVector = new Vector3(mv.x * 2f, mv.y, mv.z * 2f);
+
     SetBoostCamera(player, active: false);
   }
 

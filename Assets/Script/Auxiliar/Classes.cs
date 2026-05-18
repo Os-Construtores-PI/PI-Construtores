@@ -296,7 +296,9 @@ public class IncreaseButton : PressAndReleaseButton
 
   public override void Update()
   {
-    if (_isPressed && _player.MovementVector.sqrMagnitude < _movementLimit * _movementLimit)
+    Vector2 horizontalVel = new(_player.MovementVector.x, _player.MovementVector.z);
+
+    if (_isPressed && horizontalVel.sqrMagnitude < _movementLimit * _movementLimit)
     {
       if (Time.time - _initialTime >= _simpleActionInterval)
       {

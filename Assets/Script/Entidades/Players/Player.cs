@@ -442,7 +442,6 @@ public class Player : CombatEntities
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
     DashSlashBoostButton.Update();
-    print(ActionLayer.Current);
     ScanWithCamera();
   }
 
