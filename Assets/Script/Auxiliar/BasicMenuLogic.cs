@@ -10,7 +10,17 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === MENU GAMEOVER ===
   public void Respawn()
   {
+    if (AudioManager.Instance != null && somMenu != null)
+      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
     GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.Invoke();
+  }
+
+  public void OpenMenuGameOver()
+  {
+    if(AudioManager.Instance != null && somMenu != null)
+    {
+      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+    }
   }
 
   public void ResetScene()
