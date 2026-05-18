@@ -442,6 +442,7 @@ public class Player : CombatEntities
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
     DashSlashBoostButton.Update();
+    print(ActionLayer.Current);
     ScanWithCamera();
   }
 
@@ -527,9 +528,6 @@ public class Player : CombatEntities
     return null;
   }
 
-  /// <summary>
-  /// Fábrica do delegate do camera scanner, separado para manter o Start legível.
-  /// </summary>
   private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
     ray =>
     {
