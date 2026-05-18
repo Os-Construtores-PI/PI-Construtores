@@ -8,10 +8,9 @@ public class PlayerActionStateJump : IState<Player>
 
   public void Enter(Player player)
   {
-    var move = player.MovementVector;
-    var bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
+    Vector3 move = player.MovementVector;
+    PlayerActionStateBounce bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
     bool isBounce = bounceState != null && player.GroundSlamImpactSpeed > 0f;
-
     float jumpY;
 
     if (isBounce)
@@ -43,8 +42,7 @@ public class PlayerActionStateJump : IState<Player>
     player.CurrentJumpCount++;
     player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
     player.MovementVector = move;
-    player.LocomotionLayer.ChangeState(player.AirborneS, player);
-    player.ActionLayer.ExitState(this, player); // ← libera para o próximo pulo
+    player.ActionLayer.ExitState(this, player);
   }
 
   public void Exit(Player player) { }

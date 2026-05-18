@@ -54,7 +54,7 @@ public class PlayerActionStateBoost : IState<Player>
       EnterShakeFrequency,
       EnterShakeDuration
     );
-    //player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 1);
+    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 1);
     SetBoostCamera(player, active: true);
   }
 
@@ -66,7 +66,7 @@ public class PlayerActionStateBoost : IState<Player>
 
     player.SpeedLines.Invoke(false);
     player.TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
-    //player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Boost);
+    player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Boost);
 
     player.MovementVector *= 2f;
     SetBoostCamera(player, active: false);

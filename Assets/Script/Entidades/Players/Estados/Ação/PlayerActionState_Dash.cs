@@ -119,7 +119,10 @@ public class PlayerActionStateDash : IState<Player>
   {
     player.CanDash = true;
     player.IsDashing = false;
-    player.LocomotionLayer.ChangeState(player.AirborneS, player);
+    if (player.ActionLayer.GetActive<PlayerActionStateBoost>() == null)
+    {
+      player.LocomotionLayer.ChangeState(player.AirborneS, player);
+    }
     player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Dash);
