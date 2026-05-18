@@ -106,6 +106,7 @@ public static class Constants
   {
     public const string Idle = nameof(Idle);
     public const string Walk = nameof(Walk);
+    public const string WasVerticalBoosted = nameof(WasVerticalBoosted);
     public const string Jump = nameof(Jump);
     public const string DoubleJump = nameof(DoubleJump);
     public const string Hit = nameof(Hit);
