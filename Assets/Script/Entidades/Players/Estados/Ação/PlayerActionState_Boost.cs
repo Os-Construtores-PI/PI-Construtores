@@ -54,7 +54,7 @@ public class PlayerActionStateBoost : IState<Player>
       EnterShakeFrequency,
       EnterShakeDuration
     );
-    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 1);
+    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 0.15f);
     SetBoostCamera(player, active: true);
   }
 
