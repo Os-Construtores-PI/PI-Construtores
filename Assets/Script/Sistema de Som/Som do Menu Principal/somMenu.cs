@@ -15,4 +15,5 @@ public class somMenu : ScriptableObject
   public AudioClip tutorialBack;
   public AudioClip gameOverMenu;
   public AudioClip amestinstSong;
+  public AudioClip portalSong;
 }
