@@ -3,10 +3,8 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class WolfBasicEnemy : Enemies
+public class WolfBasicEnemy : NavBasedEnemy
 {
-  private NavMeshAgent _agent; // controla o movimento do inimigo via NavMesh
-
   private Transform _player; // Referência ao Player (Pandora)
   private EyeWolf _vision; // Script responsável pela visão do Lobo
 

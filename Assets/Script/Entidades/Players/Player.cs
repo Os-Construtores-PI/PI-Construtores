@@ -694,6 +694,12 @@ public class Player : CombatEntities
     if (CurrentJumpCount >= MaxJumpCount)
       return;
 
+    if (CurrentJumpCount > 0)
+    {
+      ActionLayer.PushState(Jump, this);
+      return;
+    }
+
     bool didHit = Physics.Raycast(
       new Ray(transform.position, Vector3.down),
       out RaycastHit hit,
@@ -708,14 +714,12 @@ public class Player : CombatEntities
     float distanceToGround = hit.distance;
     float velocityY = CharacterController.velocity.y;
 
-    // Próximo do chão ou subindo → pulo imediato
     if (distanceToGround <= GroundProximityThreshold || velocityY > 0.01f)
     {
       ActionLayer.PushState(Jump, this);
       return;
     }
 
-    // Caindo e perto de aterrissar → registra pulo antecipado (coyote-like)
     if (velocityY < -0.01f)
     {
       float timeToReach = distanceToGround / Mathf.Abs(velocityY);

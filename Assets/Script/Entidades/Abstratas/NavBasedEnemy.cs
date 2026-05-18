@@ -4,19 +4,11 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public abstract class NavBasedEnemy : Enemies
 {
-  protected NavMeshAgent agent;
+  protected NavMeshAgent _agent;
 
   public override void Awake()
   {
     base.Awake();
-    TryGetComponent(out agent);
-  }
-
-  public void FixedUpdate()
-  {
-    if (target != null && agent)
-    {
-      agent.SetDestination(target.position);
-    }
+    TryGetComponent(out _agent);
   }
 }
