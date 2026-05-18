@@ -147,17 +147,38 @@ public class Player : CombatEntities
   //  ESTADO INTERNO DO PLAYER
   // ─────────────────────────────────────────────────────────────
   #region Estado Interno
-  internal Vector3 MovementVector;
-  internal Vector3 Direction;
-  internal Vector3 DashDirection;
-  internal Vector2 MoveInput;
-  internal Vector3 LastWallNormal;
-  internal bool IsRunning;
-  internal bool IsImpulsioned;
-  internal bool WallSpeedApplied;
-  internal bool TouchingWall;
-  internal bool IsDashBlocked;
-  internal int CurrentJumpCount = 0;
+  [HideInInspector]
+  public Vector3 MovementVector;
+
+  [HideInInspector]
+  public Vector3 Direction;
+
+  [HideInInspector]
+  public Vector3 DashDirection;
+
+  [HideInInspector]
+  public Vector2 MoveInput;
+
+  [HideInInspector]
+  public Vector3 LastWallNormal;
+
+  [HideInInspector]
+  public bool IsRunning;
+
+  [HideInInspector]
+  public bool IsImpulsioned;
+
+  [HideInInspector]
+  public bool WallSpeedApplied;
+
+  [HideInInspector]
+  public bool TouchingWall;
+
+  [HideInInspector]
+  public bool IsDashBlocked;
+
+  [HideInInspector]
+  public int CurrentJumpCount = 0;
 
   [SerializeField]
   internal bool IsGrounded;
@@ -179,10 +200,19 @@ public class Player : CombatEntities
     set => _canDash = value;
   }
 
+  [HideInInspector]
   public bool IsDashing = false;
+
+  [HideInInspector]
   public float MaxDashCount = 1f;
+
+  [HideInInspector]
   public float CurrentDashCount = 0f;
+
+  [HideInInspector]
   public float DashDuration;
+
+  [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
 
