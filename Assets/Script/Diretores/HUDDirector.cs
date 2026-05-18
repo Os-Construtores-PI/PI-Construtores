@@ -29,6 +29,10 @@ public class HudDirector : MonoBehaviour
   [SerializeField]
   private List<IconImage> icons = new();
 
+  [Header("Audio")]
+  [SerializeField]
+  private somMenu somMenu;
+
   // ─── Estado Interno ─────────────────────────────────────────────────────────
 
   /// <summary>Mapa: playerID → (panelName → lista de GameObjects do painel)</summary>
@@ -607,6 +611,11 @@ public class HudDirector : MonoBehaviour
   private void DeathPanel()
   {
     CursorOptions(visible: true);
+    if(AudioManager.Instance != null && somMenu != null)
+    {
+      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+    }
+
     ForEachPlayer(player =>
     {
       ShowPanel(Constants.HudPanelNames.GameOver, player.ID, independent: true);
