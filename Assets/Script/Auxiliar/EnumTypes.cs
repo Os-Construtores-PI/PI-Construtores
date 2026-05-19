@@ -116,6 +116,8 @@ public enum EffectType
 public enum TrailType
 {
   MovementTrail,
+  MovementSupport1Trail,
+  MovementSupport2Trail,
 }
 
 public enum PlayerAudioType
