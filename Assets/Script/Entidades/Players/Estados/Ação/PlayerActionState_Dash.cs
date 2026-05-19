@@ -81,7 +81,7 @@ public class PlayerActionStateDash : IState<Player>
     player.IsDashing = true;
     player.CanDash = false;
 
-    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Dash, player.DashDuration);
+    player.EffectsSystem.PlayEffect(EffectType.DashEffect, player.DashDuration);
     player.CurrentDashCount += 1;
     player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
@@ -125,7 +125,7 @@ public class PlayerActionStateDash : IState<Player>
     }
     player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
-    player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Dash);
+    player.EffectsSystem.StopEffect(EffectType.DashEffect);
     Vector3 postDash =
       new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
     player.MovementVector += postDash;

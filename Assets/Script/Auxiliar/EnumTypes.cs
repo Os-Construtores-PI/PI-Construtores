@@ -101,3 +101,25 @@ public enum BillboardType
   LookAtCamera,
   CameraForward,
 }
+
+// LookUp
+
+public enum EffectType
+{
+  DashEffect,
+  JumpEffect,
+  BoostEffect,
+  ChargingEffect,
+  SpeedEffect,
+}
+
+public enum TrailType
+{
+  MovementTrail,
+}
+
+public enum PlayerAudioType
+{
+  Jump,
+  Dash,
+}

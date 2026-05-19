@@ -32,6 +32,7 @@ public class PlayerActionStateBoost : IState<Player>
   private readonly float _rotationSpeed = 30f;
   private readonly float _boostUsage = 20f;
   private readonly float _slopeLimit = 30f;
+  private readonly float _maxVelocity = 100;
   private float _velocity;
 
   public bool WasLaunched;
@@ -44,17 +45,18 @@ public class PlayerActionStateBoost : IState<Player>
   {
     WasLaunched = false;
     _velocity = player.DashSlashBoostButton.Value;
+    float velocityFraction = _velocity / _maxVelocity;
 
     player.LocomotionLayer.ChangeState(player.HLockedS, player);
     player.SpeedLines.Invoke(true);
-    player.TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
+    player.TrailsSystem.PlayEffect(TrailType.MovementTrail);
     player.CustomShake.Invoke(
       player.ID,
-      EnterShakeAmplitude,
-      EnterShakeFrequency,
+      EnterShakeAmplitude * velocityFraction,
+      EnterShakeFrequency * velocityFraction,
       EnterShakeDuration
     );
-    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Boost, 0.15f);
+    player.EffectsSystem.PlayEffect(EffectType.BoostEffect, 0.15f);
     SetBoostCamera(player, active: true);
   }
 
@@ -65,8 +67,8 @@ public class PlayerActionStateBoost : IState<Player>
     player.LocomotionLayer.ChangeState(player.GroundedS, player);
 
     player.SpeedLines.Invoke(false);
-    player.TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
-    player.EffectsSystem.StopEffect(Constants.EffectsNames.Player.Boost);
+    player.TrailsSystem.StopEffect(TrailType.MovementTrail);
+    player.EffectsSystem.StopEffect(EffectType.BoostEffect);
 
     Vector3 mv = player.MovementVector;
     player.MovementVector = new Vector3(mv.x * 2f, mv.y, mv.z * 2f);

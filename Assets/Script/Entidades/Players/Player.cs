@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -11,7 +12,7 @@ using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
-[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(Animator), typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
@@ -85,8 +86,13 @@ public class Player : CombatEntities
   //  COMPONENTES
   // ─────────────────────────────────────────────────────────────
   #region Componentes
+
+  [Header("Componentes")]
   [SerializeField]
   private Transform _cameraTarget;
+
+  [SerializeField]
+  private AudioSource _playerAudioSource;
 
   [HideInInspector]
   public CharacterController CharacterController;
@@ -127,20 +133,20 @@ public class Player : CombatEntities
   public StackStateMachine<Player> ActionLayer = new();
 
   // Action states
-  public PlayerActionStateDash Dash = new();
-  public PlayerActionStateInteraction Interaction = new();
-  public PlayerActionStateWallSliding WallSliding = new();
-  public PlayerActionStateGroundSlam GroundSlam = new();
-  public PlayerActionStateBoost Boost = new();
-  public PlayerActionStateBounce Bounce = new();
-  public PlayerActionStateJump Jump = new();
+  public readonly PlayerActionStateDash Dash = new();
+  public readonly PlayerActionStateInteraction Interaction = new();
+  public readonly PlayerActionStateWallSliding WallSliding = new();
+  public readonly PlayerActionStateGroundSlam GroundSlam = new();
+  public readonly PlayerActionStateBoost Boost = new();
+  public readonly PlayerActionStateBounce Bounce = new();
+  public readonly PlayerActionStateJump Jump = new();
   public BoostSlashDashButton DashSlashBoostButton;
 
   // Locomotion states
-  public PlayerLocomotionStateGrounded GroundedS = new();
-  public PlayerLocomotionStateAirborne AirborneS = new();
-  public PlayerLocomotionStateLocked LockedS = new();
-  public PlayerLocomotionStateHLocked HLockedS = new();
+  public readonly PlayerLocomotionStateGrounded GroundedS = new();
+  public readonly PlayerLocomotionStateAirborne AirborneS = new();
+  public readonly PlayerLocomotionStateLocked LockedS = new();
+  public readonly PlayerLocomotionStateHLocked HLockedS = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -290,6 +296,7 @@ public class Player : CombatEntities
   //  INTERAÇÃO
   // ─────────────────────────────────────────────────────────────
   #region Interação
+  [HideInInspector]
   public InteractableObject InteractionObject;
   protected InteractableObject _lastInteractionObject;
   protected Type _interactionObjectType;
@@ -340,6 +347,17 @@ public class Player : CombatEntities
   public readonly UnityEvent<bool> SpeedLines = new();
   public readonly UnityEvent<bool> RunningShake = new();
   public readonly UnityEvent<int, float, float, float> CustomShake = new();
+  #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  EVENTOS
+  // ─────────────────────────────────────────────────────────────
+  #region Sons
+  [Header("Sons do Jogador")]
+  [SerializeField]
+  private List<PlayerSFX> _playerSFX = new();
+
+  public readonly SoundsWorker<PlayerAudioType> PlayerSoundSystem = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -428,7 +446,11 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+
+    // Systems
     TrailsSystem.InitTrails(transform.Find("Trails"));
+    PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
+
     _modelTransform = transform.Find("Model");
   }
 
@@ -503,10 +525,10 @@ public class Player : CombatEntities
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
     DashSlashBoostButton.StartedChargingEv.AddListener(() =>
-      EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
+      EffectsSystem.PlayEffect(EffectType.ChargingEffect, 1)
     );
     DashSlashBoostButton.StoppedChargingEv.AddListener(() =>
-      EffectsSystem.StopEffect(Constants.EffectsNames.Player.Charging)
+      EffectsSystem.StopEffect(EffectType.ChargingEffect)
     );
 
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
@@ -617,13 +639,13 @@ public class Player : CombatEntities
       SpeedLines.Invoke(true);
 
       RunningShake.Invoke(true);
-      TrailsSystem.PlayEffect(Constants.TrailsNames.Movement);
+      TrailsSystem.PlayEffect(TrailType.MovementTrail);
     }
     else if (context.canceled)
     {
       IsRunning = false;
       RunningShake.Invoke(false);
-      TrailsSystem.StopEffect(Constants.TrailsNames.Movement);
+      TrailsSystem.StopEffect(TrailType.MovementTrail);
       SpeedLines.Invoke(false);
     }
   }

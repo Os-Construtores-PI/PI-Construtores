@@ -23,6 +23,29 @@ public static class Tiers
   }
 }
 
+public static class Lookups
+{
+  public static class Effects
+  {
+    public static Dictionary<string, EffectType> LookupTable = new()
+    {
+      { EffectType.JumpEffect.ToString(), EffectType.JumpEffect },
+      { EffectType.DashEffect.ToString(), EffectType.DashEffect },
+      { EffectType.ChargingEffect.ToString(), EffectType.ChargingEffect },
+      { EffectType.BoostEffect.ToString(), EffectType.BoostEffect },
+      { EffectType.SpeedEffect.ToString(), EffectType.SpeedEffect },
+    };
+  }
+
+  public static class Trails
+  {
+    public static Dictionary<string, TrailType> LookupTable = new()
+    {
+      { TrailType.MovementTrail.ToString(), TrailType.MovementTrail },
+    };
+  }
+}
+
 public static class CodeBaseFour
 {
   public static List<Code> Codes = new()
@@ -124,22 +147,6 @@ public static class Constants
     public const string VelocityX = nameof(VelocityX);
   }
 
-  public static class EffectsNames
-  {
-    public static class Player
-    {
-      public const string Dash = nameof(Dash);
-      public const string Jump = nameof(Jump);
-      public const string Boost = nameof(Boost);
-      public const string Charging = nameof(Charging);
-    }
-
-    public static class Interface
-    {
-      public const string Speed = nameof(Speed);
-    }
-  }
-
   public static class PlayerShakes
   {
     public static class Damage
@@ -155,11 +162,6 @@ public static class Constants
       public const float Frequency = 0.7f;
       public const float StopDelay = 0.50f;
     }
-  }
-
-  public static class TrailsNames
-  {
-    public const string Movement = nameof(Movement);
   }
 
   public static class Values

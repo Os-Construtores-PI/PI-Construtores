@@ -13,7 +13,7 @@ public class CameraLogic : Entities
   private CinemachineCamera _currentCinemachineCamera;
   private CinemachineCamera _lockOnCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
-  private readonly Dictionary<string, ParticleSystem> effects = new();
+  private readonly Dictionary<EffectType, ParticleSystem> effects = new();
 
   public override void Awake()
   {
@@ -33,7 +33,7 @@ public class CameraLogic : Entities
   {
     if (Time.timeScale < 1)
     {
-      foreach (KeyValuePair<string, ParticleSystem> pair in effects)
+      foreach (KeyValuePair<EffectType, ParticleSystem> pair in effects)
       {
         pair.Value.Stop();
       }
@@ -63,7 +63,10 @@ public class CameraLogic : Entities
   {
     foreach (ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())
     {
-      effects.Add(particle.name, particle);
+      if (Lookups.Effects.LookupTable.TryGetValue(particle.tag, out EffectType effectType))
+      {
+        effects.Add(effectType, particle);
+      }
     }
   }
 
@@ -71,18 +74,18 @@ public class CameraLogic : Entities
   {
     if (set)
     {
-      effects[Constants.EffectsNames.Interface.Speed].Play();
+      effects[EffectType.SpeedEffect].Play();
     }
     else
     {
-      effects[Constants.EffectsNames.Interface.Speed].Stop();
+      effects[EffectType.SpeedEffect].Stop();
     }
   }
 
-  private IEnumerator StopEffectsRoutine(string effect, float waitTime)
+  private IEnumerator StopEffectsRoutine(EffectType effectType, float waitTime)
   {
     yield return new WaitForSeconds(waitTime);
-    effects[effect].Stop();
+    effects[effectType].Stop();
   }
 
   private void SetDistanceCulling()

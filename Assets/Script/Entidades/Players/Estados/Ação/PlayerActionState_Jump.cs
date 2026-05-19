@@ -40,7 +40,7 @@ public class PlayerActionStateJump : IState<Player>
       player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
     player.CurrentJumpCount++;
-    player.EffectsSystem.PlayEffect(Constants.EffectsNames.Player.Jump, 1);
+    player.EffectsSystem.PlayEffect(EffectType.JumpEffect, 1);
     player.MovementVector = move;
     player.ActionLayer.ExitState(this, player);
   }
