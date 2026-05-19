@@ -56,7 +56,7 @@ public class PlayerActionStateBoost : IState<Player>
       EnterShakeFrequency * velocityFraction,
       EnterShakeDuration
     );
-    player.EffectsSystem.PlayEffect(EffectType.BoostEffect, 0.15f);
+    //player.EffectsSystem.PlayEffect(EffectType.BoostEffect, 0.15f);
     SetBoostCamera(player, active: true);
   }
 
@@ -68,7 +68,7 @@ public class PlayerActionStateBoost : IState<Player>
 
     player.SpeedLines.Invoke(false);
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
-    player.EffectsSystem.StopEffect(EffectType.BoostEffect);
+    //player.EffectsSystem.StopEffect(EffectType.BoostEffect);
 
     Vector3 mv = player.MovementVector;
     player.MovementVector = new Vector3(mv.x * 2f, mv.y, mv.z * 2f);
