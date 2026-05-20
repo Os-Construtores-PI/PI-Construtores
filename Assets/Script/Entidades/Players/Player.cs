@@ -424,19 +424,18 @@ public class Player : CombatEntities
   {
     base.Awake();
     canPulse = false;
-    GravityValue = -16.62f;
-    InitialGravityValue = GravityValue;
 
     CharacterController = GetComponent<CharacterController>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
     DetectarDispositivo(PlayerInput);
-    DashSlashBoostButton = new(this, 100, 20, .5f);
+    DashSlashBoostButton = new(this, 100, 50, .5f);
   }
 
   public override void Start()
   {
+    InitialGravityValue = GravityValue;
     base.Start();
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
@@ -622,7 +621,7 @@ public class Player : CombatEntities
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
-    if (MoveInput.y < 0)
+    if (MoveInput.y < -.5)
     {
       ActionLayer.ExitStateDeferred(Boost, this);
     }

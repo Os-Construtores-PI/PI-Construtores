@@ -29,13 +29,11 @@ public class PlayerActionStateBoost : IState<Player>
 
   private readonly HashSet<ActionType> _incompatibleActions = new();
 
-  private readonly float _rotationSpeed = 30f;
+  private readonly float _rotationSpeed = 50f;
   private readonly float _boostUsage = 20f;
   private readonly float _slopeLimit = 30f;
   private readonly float _maxVelocity = 100;
   private float _velocity;
-
-  public bool WasLaunched;
 
   #endregion
 
@@ -46,7 +44,6 @@ public class PlayerActionStateBoost : IState<Player>
 
   public void Enter(Player player)
   {
-    WasLaunched = false;
     _velocity = player.DashSlashBoostButton.Value;
     float velocityFraction = _velocity / _maxVelocity;
 
@@ -89,13 +86,9 @@ public class PlayerActionStateBoost : IState<Player>
   {
     player.DashSlashBoostButton.Value -= _boostUsage * Time.deltaTime;
 
-    if (!player.IsGrounded)
-      WasLaunched = true;
-
-    bool landedAfterLaunch = player.IsGrounded && WasLaunched;
     bool boostDepleted = player.DashSlashBoostButton.Value <= 0f;
 
-    if (landedAfterLaunch || boostDepleted)
+    if (boostDepleted)
       player.ActionLayer.ExitState(this, player);
   }
 

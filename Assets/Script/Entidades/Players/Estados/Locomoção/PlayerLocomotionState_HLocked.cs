@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerLocomotionStateHLocked : ILocomotionState<Player>
 {
-  public ActionType Type => ActionType.None;
+  public ActionType Type => ActionType.Locked;
 
   public HashSet<ActionType> IncompatibleActions => new();
 
@@ -14,6 +14,11 @@ public class PlayerLocomotionStateHLocked : ILocomotionState<Player>
   public void FixedUpdate(Player player)
   {
     ILocomotionState<Player>.ApplyGravity(player);
+    if (player.IsGrounded)
+    {
+      player.CurrentJumpCount = 0;
+      player.CurrentDashCount = 0;
+    }
   }
 
   public void Update(Player player) { }

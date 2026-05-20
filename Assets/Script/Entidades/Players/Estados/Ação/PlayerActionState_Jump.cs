@@ -4,7 +4,8 @@ using UnityEngine;
 public class PlayerActionStateJump : IState<Player>
 {
   public ActionType Type => ActionType.Jump;
-  public HashSet<ActionType> IncompatibleActions => new();
+  public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
+  private HashSet<ActionType> _incompatibleActions = new();
 
   public void Enter(Player player)
   {
