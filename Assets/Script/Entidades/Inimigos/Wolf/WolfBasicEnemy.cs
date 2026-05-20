@@ -60,6 +60,12 @@ public class WolfBasicEnemy : NavBasedEnemy
   private float _dashCooldown = 1.2f; // tempo minimo entre ataques
   private float _dashTimer = 0f;
 
+  [Header("Patrulha Idle")]
+  [SerializeField] private float _minIdleTime = 1.5f;
+  [SerializeField] private float _maxIdleTime = 4f;
+
+  private bool _isWaiting = false;
+
   protected new void Awake()
   {
     base.Awake();
@@ -89,11 +95,18 @@ public class WolfBasicEnemy : NavBasedEnemy
         if (_vision._encontrouPlayer && _vision._playerDetectado != null)
         {
           _currentState = WolfState.Chase; // Muda para perseguição
+
+          _isWaiting = false;
+          _agent.isStopped = false;
+          _animimator.SetBool("isIdle", false);
+          _animimator.SetBool("isWalking", true);
           _memoryTimer = _chaseMemoryTime; // Reseta a memoria de perseguição
         }
-        else if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
+        else if(!_isWaiting &&
+          !_agent.pathPending &&
+          _agent.remainingDistance <= _agent.stoppingDistance)
         {
-          Patrol(); // Se não tem destina ou já chegou, escolhe novo ponto de patrulha
+          StartCoroutine(WaitOnPatrol()); // Se não tem destina ou já chegou, escolhe novo ponto de patrulha
         }
         break;
 
@@ -134,10 +147,23 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void Patrol()
   {
-    _agent.speed = _patrolSpeed; // Define velocidade baixa
-    Vector3 randomPoint = _startPosition + UnityEngine.Random.insideUnitSphere * _patrolRadius;
-    randomPoint.y = _startPosition.y; // Mantém no mesmo nível do chão
-    _agent.SetDestination(randomPoint); // Move para o ponto aleatório
+    if (!_agent.isOnNavMesh)
+      return;
+
+    _agent.speed = _patrolSpeed;
+
+    Vector3 randomPoint =
+      _startPosition + UnityEngine.Random.insideUnitSphere * _patrolRadius;
+
+    randomPoint.y = _startPosition.y;
+
+    if(NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+    {
+      _agent.SetDestination(hit.position);
+
+      _animimator.SetBool("isWalking", true);
+      _animimator.SetBool("isIdle", false);
+    }
   }
 
   private void Chase(Transform target)
@@ -153,6 +179,8 @@ public class WolfBasicEnemy : NavBasedEnemy
   {
     _isAttacking = true;
     _animimator.SetBool("isAttacking", true);
+    _animimator.SetBool("isWalking", false);
+    _animimator.SetBool("isIdle", false);
 
     _agent.isStopped = true;
     _agent.velocity = Vector3.zero;
@@ -217,5 +245,44 @@ public class WolfBasicEnemy : NavBasedEnemy
 
     _isAttacking = false;
     _animimator.SetBool("isAttacking", false);
+
+    if(_currentState == WolfState.Chase)
+    {
+      _animimator.SetBool("isWalking", true);
+      _animimator.SetBool("isIdle", false);
+    }
+    else
+    {
+      _animimator.SetBool("isWalking", false);
+      _animimator.SetBool("isIdle", true);
+    }
+  }
+
+  private IEnumerator WaitOnPatrol()
+  {
+    _isWaiting = true;
+
+    _agent.isStopped = true;
+
+    _animimator.SetBool("isWalking", false);
+    _animimator.SetBool("isIdle", true);
+
+    float waitTime = Random.Range(_minIdleTime,_maxIdleTime);
+
+    yield return new WaitForSeconds(waitTime);
+
+    if(_currentState != WolfState.Patrol)
+    {
+      _isWaiting = false;
+      yield break;
+    }
+
+    _agent.isStopped = false;
+
+    _animimator.SetBool("isIdle", false);
+
+    Patrol();
+
+    _isWaiting = false;
   }
 }
