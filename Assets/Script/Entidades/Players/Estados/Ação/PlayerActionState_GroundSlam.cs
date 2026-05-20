@@ -17,7 +17,7 @@ public class PlayerActionStateGroundSlam : IState<Player>
     _momentum = new(player.MovementVector.x, player.MovementVector.z);
     _deactivated = false;
     player.GroundSlamImpactSpeed = 0f;
-    player.LocomotionLayer.ChangeState(player.LockedS, player);
+    player.LocomotionLayer.ChangeState(player.Locked, player);
   }
 
   public void Update(Player player) { }
@@ -37,7 +37,7 @@ public class PlayerActionStateGroundSlam : IState<Player>
     else if (!_deactivated)
     {
       _deactivated = true;
-      player.LocomotionLayer.ChangeState(player.GroundedS, player);
+      player.LocomotionLayer.ChangeState(player.Moving, player);
       player.ActionLayer.ExitState(this, player);
     }
   }

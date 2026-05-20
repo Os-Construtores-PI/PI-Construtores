@@ -70,7 +70,7 @@ public abstract class Enemies : CombatEntities, ILockable
   private Collider _collider;
 
   [SerializeField]
-  private float _knockbackForce = 40f;
+  private float _knockbackForce = 50f;
   public float KnockBackForce => _knockbackForce;
 
   private readonly Timer _knockbackTimer = new();

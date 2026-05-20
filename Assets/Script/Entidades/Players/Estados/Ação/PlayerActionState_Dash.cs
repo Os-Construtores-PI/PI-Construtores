@@ -31,7 +31,7 @@ public class PlayerActionStateDash : IState<Player>
       _firstTime = true;
     }
 
-    player.LocomotionLayer.ChangeState(player.LockedS, player);
+    player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.CanTakeDamage = false;
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
     player.DashHitboxCollider.enabled = true;
@@ -121,7 +121,7 @@ public class PlayerActionStateDash : IState<Player>
     player.IsDashing = false;
     if (player.ActionLayer.GetActive<PlayerActionStateBoost>() == null)
     {
-      player.LocomotionLayer.ChangeState(player.AirborneS, player);
+      player.LocomotionLayer.ChangeState(player.Moving, player);
     }
     player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);

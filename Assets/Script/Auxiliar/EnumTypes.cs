@@ -67,7 +67,7 @@ public enum GameMode
 
 public enum ActionType
 {
-  None,
+  Locked,
   Idle,
   Move,
   Jump,
@@ -116,6 +116,8 @@ public enum EffectType
 public enum TrailType
 {
   MovementTrail,
+  MovementSupport1Trail,
+  MovementSupport2Trail,
 }
 
 public enum PlayerAudioType

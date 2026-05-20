@@ -348,7 +348,7 @@ public class IncreaseButton : PressAndReleaseButton
   {
     Vector2 horizontalVel = new(_player.MovementVector.x, _player.MovementVector.z);
 
-    if (_isPressed && horizontalVel.sqrMagnitude < _movementLimit * _movementLimit)
+    if (_isPressed && horizontalVel.sqrMagnitude < (_movementLimit * _movementLimit))
     {
       if (Time.time - _initialTime >= _simpleActionInterval)
       {
@@ -368,7 +368,7 @@ public class IncreaseButton : PressAndReleaseButton
 
   public override void OnInputAction(InputAction.CallbackContext context)
   {
-    if (context.started)
+    if (context.started && !_isPressed)
     {
       _initialTime = Time.time;
       _isPressed = true;

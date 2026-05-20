@@ -143,10 +143,9 @@ public class Player : CombatEntities
   public BoostSlashDashButton DashSlashBoostButton;
 
   // Locomotion states
-  public readonly PlayerLocomotionStateGrounded GroundedS = new();
-  public readonly PlayerLocomotionStateAirborne AirborneS = new();
-  public readonly PlayerLocomotionStateLocked LockedS = new();
-  public readonly PlayerLocomotionStateHLocked HLockedS = new();
+  public readonly PlayerLocomotionStateMoving Moving = new();
+  public readonly PlayerLocomotionStateLocked Locked = new();
+  public readonly PlayerLocomotionStateHLocked HLocked = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -269,7 +268,7 @@ public class Player : CombatEntities
   private const float WallScanDistance = 5f;
 
   // Parâmetros do ground check em TryJump
-  private const float GroundCheckMaxDistance = 50f;
+  private const float GroundCheckMaxDistance = 200f;
   private const float GroundProximityThreshold = 1.1f;
   private const float CoyoteTimeThreshold = 0.2f;
 
@@ -425,20 +424,18 @@ public class Player : CombatEntities
   {
     base.Awake();
     canPulse = false;
-    GravityValue = -16.62f;
-    InitialGravityValue = GravityValue;
 
     CharacterController = GetComponent<CharacterController>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
     DetectarDispositivo(PlayerInput);
-    DashSlashBoostButton = new(this, 100, 20, .5f);
-    LocomotionLayer.ChangeState(GroundedS, this);
+    DashSlashBoostButton = new(this, 100, 50, .5f);
   }
 
   public override void Start()
   {
+    InitialGravityValue = GravityValue;
     base.Start();
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
@@ -452,6 +449,9 @@ public class Player : CombatEntities
     PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
 
     _modelTransform = transform.Find("Model");
+
+    //LocomotionLayer
+    LocomotionLayer.ChangeState(Moving, this);
   }
 
   public override void Update()
@@ -463,6 +463,7 @@ public class Player : CombatEntities
 #endif
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+
     DashSlashBoostButton.Update();
     ScanWithCamera();
   }
@@ -620,6 +621,11 @@ public class Player : CombatEntities
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
+    if (MoveInput.y < -.5)
+    {
+      print(MoveInput.y);
+      ActionLayer.ExitStateDeferred(Boost, this);
+    }
   }
 
   public void OnDash(InputAction.CallbackContext context) =>

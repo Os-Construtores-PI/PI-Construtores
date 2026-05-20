@@ -42,6 +42,8 @@ public static class Lookups
     public static Dictionary<string, TrailType> LookupTable = new()
     {
       { TrailType.MovementTrail.ToString(), TrailType.MovementTrail },
+      { TrailType.MovementSupport1Trail.ToString(), TrailType.MovementSupport1Trail },
+      { TrailType.MovementSupport2Trail.ToString(), TrailType.MovementSupport2Trail },
     };
   }
 }
