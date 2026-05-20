@@ -623,7 +623,6 @@ public class Player : CombatEntities
     MoveInput = context.ReadValue<Vector2>();
     if (MoveInput.y < -.5)
     {
-      print(MoveInput.y);
       ActionLayer.ExitStateDeferred(Boost, this);
     }
   }
