@@ -67,7 +67,7 @@ public enum GameMode
 
 public enum ActionType
 {
-  None,
+  Locked,
   Idle,
   Move,
   Jump,
