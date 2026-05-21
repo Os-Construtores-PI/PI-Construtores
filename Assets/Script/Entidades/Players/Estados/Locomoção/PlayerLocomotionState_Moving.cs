@@ -27,7 +27,9 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     _wasGrounded = player.IsGrounded;
 
     if (player.IsGrounded)
+    {
       OnLanded(player);
+    }
   }
 
   public void Exit(Player player)

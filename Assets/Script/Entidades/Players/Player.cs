@@ -267,11 +267,6 @@ public class Player : CombatEntities
   // Parâmetro do wall scanner
   private const float WallScanDistance = 5f;
 
-  // Parâmetros do ground check em TryJump
-  private const float GroundCheckMaxDistance = 200f;
-  private const float GroundProximityThreshold = 1.1f;
-  private const float CoyoteTimeThreshold = 0.2f;
-
   private Camera _selectedCamera = null;
   private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
 
@@ -748,38 +743,7 @@ public class Player : CombatEntities
     if (CurrentJumpCount >= MaxJumpCount)
       return;
 
-    if (CurrentJumpCount > 0)
-    {
-      ActionLayer.PushState(Jump, this);
-      return;
-    }
-
-    bool didHit = Physics.Raycast(
-      new Ray(transform.position, Vector3.down),
-      out RaycastHit hit,
-      GroundCheckMaxDistance,
-      LayerMask.GetMask("Default", "Ground"),
-      QueryTriggerInteraction.Ignore
-    );
-
-    if (!didHit)
-      return;
-
-    float distanceToGround = hit.distance;
-    float velocityY = CharacterController.velocity.y;
-
-    if (distanceToGround <= GroundProximityThreshold || velocityY > 0.01f)
-    {
-      ActionLayer.PushState(Jump, this);
-      return;
-    }
-
-    if (velocityY < -0.01f)
-    {
-      float timeToReach = distanceToGround / Mathf.Abs(velocityY);
-      if (timeToReach <= CoyoteTimeThreshold)
-        ActionLayer.PushState(Jump, this);
-    }
+    ActionLayer.PushState(Jump, this);
   }
   #endregion
 
