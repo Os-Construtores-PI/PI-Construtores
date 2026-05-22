@@ -83,7 +83,6 @@ public class PlayerActionStateDash : IState<Player>
 
     player.EffectsSystem.PlayEffect(EffectType.DashEffect, player.DashDuration);
     player.CurrentDashCount += 1;
-    player.CanMove = false;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
 
     if (player.DashHudScript != null)

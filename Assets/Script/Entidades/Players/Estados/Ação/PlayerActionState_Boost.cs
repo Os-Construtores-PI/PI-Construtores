@@ -5,46 +5,42 @@ using UnityEngine;
 public class PlayerActionStateBoost : IState<Player>
 {
   #region IState
-
   public ActionType Type => ActionType.Boost;
   public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
-
   #endregion
 
   #region Constants
-
   private const int MainCameraPriority = 20;
   private const int BoostCameraPriority = 20;
   private const int InactivePriority = 0;
 
-  // Shake
-
   private const float EnterShakeAmplitude = 1.5f;
   private const float EnterShakeFrequency = .4f;
   private const float EnterShakeDuration = .25f;
-
   #endregion
 
   #region Fields
-
   private readonly HashSet<ActionType> _incompatibleActions = new();
-
   private readonly float _rotationSpeed = 50f;
   private readonly float _boostUsage = 20f;
   private readonly float _slopeLimit = 30f;
-  private readonly float _maxVelocity = 100;
-  private float _velocity;
+  private readonly float _maxVelocity = 100f;
+  private readonly float _forcedDuration = 1.5f;
+  private float _playerOriginalSpeed;
 
+  private float _velocity;
+  private float _forcedTimer;
+  private bool _isFree;
   #endregion
 
-  //TODO: Fazer não cancelar quando cair
-  //TODO: Testar fazer funcionar só com o botão pressionado
-
   #region IState Callbacks
-
   public void Enter(Player player)
   {
     _velocity = player.DashSlashBoostButton.Value;
+    _playerOriginalSpeed = player.Speed;
+    _forcedTimer = _forcedDuration;
+    _isFree = false;
+
     float velocityFraction = _velocity / _maxVelocity;
 
     player.LocomotionLayer.ChangeState(player.HLocked, player);
@@ -56,51 +52,67 @@ public class PlayerActionStateBoost : IState<Player>
       EnterShakeDuration
     );
 
-    //Systems
     player.TrailsSystem.PlayEffect(TrailType.MovementTrail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
-    //player.EffectsSystem.PlayEffect(EffectType.BoostEffect, 0.15f);
+
     SetBoostCamera(player, active: true);
   }
 
   public void Exit(Player player)
   {
     _velocity = 0f;
+    _forcedTimer = 0f;
+    _isFree = false;
 
-    player.LocomotionLayer.ChangeState(player.Moving, player);
-
+    player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
     player.SpeedLines.Invoke(false);
+
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
-    //player.EffectsSystem.StopEffect(EffectType.BoostEffect);
 
     Vector3 mv = player.MovementVector;
     player.MovementVector = new Vector3(mv.x * 2f, mv.y, mv.z * 2f);
-
-    SetBoostCamera(player, active: false);
   }
 
   public void Update(Player player)
   {
     player.DashSlashBoostButton.Value -= _boostUsage * Time.deltaTime;
-
-    bool boostDepleted = player.DashSlashBoostButton.Value <= 0f;
-
-    if (boostDepleted)
+    if (player.DashSlashBoostButton.Value <= 0f)
+    {
       player.ActionLayer.ExitState(this, player);
+      return;
+    }
+
+    if (!_isFree)
+    {
+      _forcedTimer -= Time.deltaTime;
+      if (_forcedTimer <= 0f)
+      {
+        TransitionToFreeMovement(player);
+      }
+    }
   }
 
   public void FixedUpdate(Player player)
   {
+    if (_isFree)
+      return;
+
     RotatePlayer(player);
     ApplyVelocity(player);
   }
-
   #endregion
 
   #region Private Methods
+  private void TransitionToFreeMovement(Player player)
+  {
+    _isFree = true;
+    player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
+    player.LocomotionLayer.ChangeState(player.Moving, player);
+    SetBoostCamera(player, false);
+  }
 
   private void RotatePlayer(Player player)
   {
@@ -128,13 +140,11 @@ public class PlayerActionStateBoost : IState<Player>
   private bool OnSlope(Player player, out RaycastHit hit)
   {
     float reach = player.CharacterController.height / 2f + 1f;
-
     if (Physics.Raycast(player.transform.position, Vector3.down, out hit, reach))
     {
       float angle = Vector3.Angle(hit.normal, Vector3.up);
       return angle > 0f && angle <= _slopeLimit;
     }
-
     return false;
   }
 
@@ -143,6 +153,5 @@ public class PlayerActionStateBoost : IState<Player>
     player.MainCamera.Priority = active ? InactivePriority : MainCameraPriority;
     player.BoostCamera.Priority = active ? BoostCameraPriority : InactivePriority;
   }
-
   #endregion
 }

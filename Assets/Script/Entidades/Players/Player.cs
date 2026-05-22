@@ -21,10 +21,9 @@ public class Player : CombatEntities
   // ─────────────────────────────────────────────────────────────
   #region Movimento – Stats
   private float _speed = 10f;
-  private float _runningSpeed = 20f;
 
   [HideInInspector]
-  [Stat(nameof(Speed))]
+  [Stat(StatType.Speed)]
   public float Speed
   {
     get => _speed;
@@ -32,12 +31,10 @@ public class Player : CombatEntities
   }
 
   [HideInInspector]
-  [Stat(nameof(RunningSpeed))]
-  public float RunningSpeed
-  {
-    get => _runningSpeed;
-    set => _runningSpeed = value;
-  }
+  public float RunSpeedMultiplier;
+
+  [HideInInspector]
+  public float RunAccelMultiplier;
 
   [HideInInspector]
   public QualityTier WallSpeedMultiplier = QualityTier.RARE;
@@ -59,7 +56,7 @@ public class Player : CombatEntities
   private float _jumpForce = 10f;
 
   [HideInInspector]
-  [Stat(nameof(JumpForce))]
+  [Stat(StatType.JumpForce)]
   public float JumpForce
   {
     get => _jumpForce;
@@ -191,14 +188,7 @@ public class Player : CombatEntities
   private bool _canMove = true;
   private bool _canDash = true;
 
-  [Stat(nameof(CanMove))]
-  public bool CanMove
-  {
-    get => _canMove;
-    set => _canMove = value;
-  }
-
-  [Stat(nameof(CanDash))]
+  [Stat(StatType.CanDash)]
   public bool CanDash
   {
     get => _canDash;

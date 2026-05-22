@@ -68,7 +68,7 @@ public class SavedPlayerData
       savedStats.Add(
         new SavedStatEntry()
         {
-          name = kvp.Key,
+          statType = kvp.Key,
           type = "float",
           value = kvp.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
         }
@@ -81,7 +81,7 @@ public class SavedPlayerData
       savedStats.Add(
         new SavedStatEntry()
         {
-          name = kvp.Key,
+          statType = kvp.Key,
           type = "bool",
           value = kvp.Value.ToString(),
         }
@@ -104,14 +104,14 @@ public class SavedPlayerData
           )
         )
         {
-          stats.SetStat(stat.name, floatValue);
+          stats.SetStat(stat.statType, floatValue);
         }
       }
       else if (stat.type == "bool")
       {
         if (bool.TryParse(stat.value, out bool boolValue))
         {
-          stats.SetStat(stat.name, boolValue);
+          stats.SetStat(stat.statType, boolValue);
         }
       }
     }
@@ -134,7 +134,7 @@ public class SavedItemEntry
 [System.Serializable]
 public class SavedStatEntry
 {
-  public string name;
+  public StatType statType;
   public string type; // "float" ou "bool"
   public string value; // usamos string pra serializar genérico
 }

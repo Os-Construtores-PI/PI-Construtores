@@ -11,11 +11,28 @@ public enum ErrorType
 
 public enum QualityTier
 {
+  NONE,
   COMMON,
   UNCOMMON,
   RARE,
   EPIC,
   LEGENDARY,
+}
+
+public enum StatType
+{
+  Speed,
+  RunSpeedMultiplier,
+  RunAccelMultiplier,
+  Regen,
+  CanDash,
+  RegenInterval,
+  DamagedCooldown,
+  CombatCooldown,
+  JumpForce,
+  Health,
+  MaxHealth,
+  Defense,
 }
 
 public enum ItemUsageType
@@ -41,6 +58,7 @@ public enum HealthHUDType
 
 public enum ModifyTYPE
 {
+  CUSTOM,
   POSITIVE,
   NEGATIVE,
 }

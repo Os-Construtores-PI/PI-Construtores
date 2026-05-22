@@ -11,31 +11,26 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
   private bool _coyoteStarted = false;
   private const float CoyoteInterval = 0.3f;
 
-  // ─── Movement ─────────────────────────────────────────────────────────────
-  private Dictionary<bool, float> _speeds = new();
-  private Dictionary<bool, float> _accels = new();
-
   // ─── Enter / Exit ─────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
-    _speeds[false] = player.Speed;
-    _speeds[true] = player.RunningSpeed;
-    _accels[false] = player.Acceleration;
-    _accels[true] = player.AccelerationRunning;
-
     _wasGrounded = player.IsGrounded;
 
+    player.Stats.AddStat(StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
+    player.Stats.AddStat(StatType.RunAccelMultiplier, player.RunAccelMultiplier);
+
     if (player.IsGrounded)
-    {
       OnLanded(player);
-    }
   }
 
   public void Exit(Player player)
   {
     _coyoteTimer.Stop();
     _coyoteStarted = false;
+
+    player.Stats.RemoveStat<float>(StatType.RunSpeedMultiplier);
+    player.Stats.RemoveStat<float>(StatType.RunAccelMultiplier);
   }
 
   public void Update(Player player) { }
@@ -118,8 +113,14 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     if (!player.IsGrounded && player.IsImpulsioned && player.MoveInput == Vector2.zero)
       return;
 
-    float speed = _speeds[player.IsRunning];
-    float accel = player.IsGrounded ? _accels[player.IsRunning] : player.Acceleration;
+    float speedMult = GetStatValue(player, StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
+    float accelMult = GetStatValue(player, StatType.RunAccelMultiplier, player.RunAccelMultiplier);
+
+    float speed = player.IsRunning ? player.Speed * speedMult : player.Speed;
+    Debug.Log(speed);
+    float accel = player.IsRunning
+      ? (player.IsGrounded ? player.Acceleration * accelMult : player.Acceleration)
+      : (player.IsGrounded ? player.Acceleration : player.Acceleration);
     float friction = player.IsGrounded ? player.Friction : player.AirFriction;
 
     if (player.MoveInput == Vector2.zero)
@@ -145,5 +146,13 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
       m.y,
       QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, accel)
     );
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  private static float GetStatValue(Player player, StatType statType, float fallback)
+  {
+    player.Stats.TryGetNum(statType, out float value);
+    return value > 0f ? value : fallback;
   }
 }

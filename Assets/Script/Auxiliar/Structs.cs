@@ -22,25 +22,25 @@ public struct Spawner
 [Serializable]
 public struct StatModification
 {
-  public string StatName;
+  public StatType StatType;
   public QualityTier Tier;
   public ModifyTYPE ModifyType;
   public bool IsTemporary;
-  public float RemainingTime; // Tempo restante em segundos (se for temporário)
+  public float RemainingTime;
 
   public StatModification(
-    string statName,
+    StatType statType,
     QualityTier tier,
     ModifyTYPE modifyType,
     bool isTemporary,
-    float duration = 0f
+    float remainingTime = 0f
   )
   {
-    StatName = statName;
+    StatType = statType;
     Tier = tier;
     ModifyType = modifyType;
     IsTemporary = isTemporary;
-    RemainingTime = duration;
+    RemainingTime = remainingTime;
   }
 
   public override readonly string ToString()
@@ -48,7 +48,7 @@ public struct StatModification
     string tempText = IsTemporary
       ? $" (temporário, {RemainingTime:0.0}s restantes)"
       : " (permanente)";
-    return $"[{StatName}] {Tier} {ModifyType}{tempText}";
+    return $"[{StatType}] {Tier} {ModifyType}{tempText}";
   }
 }
 

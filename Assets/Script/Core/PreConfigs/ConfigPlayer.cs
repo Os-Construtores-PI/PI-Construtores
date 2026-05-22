@@ -19,23 +19,23 @@ public class ConfigPlayer : ScriptableObject
 
   [Header("Combate")]
   [SerializeField]
-  private float cooldownCombate;
+  private float cooldownCombate = 2;
 
   [SerializeField]
-  private float cooldownDano;
+  private float cooldownDano = 2;
 
   [Header("Movimento [ANDAR]")]
   [SerializeField]
-  private float velocidade;
+  private float velocidade = 30f;
 
   [SerializeField]
-  private float velocidadeCorrida;
+  private float multiplicadorVelocidadeCorrida = 1.5f;
 
   [SerializeField]
   private float aceleracao;
 
   [SerializeField]
-  private float aceleracaoCorrida;
+  private float multiplicadorAceleracaoCorrida = 1.5f;
 
   [SerializeField]
   private float friccaoTerra;
@@ -100,9 +100,9 @@ public class ConfigPlayer : ScriptableObject
     player.EnableRegen = habilitarRegeneracao;
     player.RegenerationInterval = intervaloRegeneracao;
     player.Speed = velocidade;
-    player.RunningSpeed = velocidadeCorrida;
+    player.RunSpeedMultiplier = multiplicadorVelocidadeCorrida;
     player.Acceleration = aceleracao;
-    player.AccelerationRunning = aceleracaoCorrida;
+    player.RunAccelMultiplier = multiplicadorAceleracaoCorrida;
     player.Friction = friccaoTerra;
     player.AirFriction = friccaoAr;
     player.JumpForce = forcaPulo;

@@ -97,18 +97,18 @@ public static class StringtoTypes
 
 public static class StatTypeMap
 {
-  public static readonly Dictionary<Constants.StatsNames, Type> Map = new()
+  public static readonly Dictionary<StatType, Type> Map = new()
   {
-    { Constants.StatsNames.CanDash, typeof(bool) },
-    { Constants.StatsNames.EnableRegen, typeof(bool) },
-    { Constants.StatsNames.Speed, typeof(float) },
-    { Constants.StatsNames.Health, typeof(float) },
-    { Constants.StatsNames.MaxHealth, typeof(float) },
-    { Constants.StatsNames.Defense, typeof(float) },
-    { Constants.StatsNames.JumpForce, typeof(float) },
+    { StatType.CanDash, typeof(bool) },
+    { StatType.Regen, typeof(bool) },
+    { StatType.Speed, typeof(float) },
+    { StatType.Health, typeof(float) },
+    { StatType.MaxHealth, typeof(float) },
+    { StatType.Defense, typeof(float) },
+    { StatType.JumpForce, typeof(float) },
   };
 
-  public static Type GetType(Constants.StatsNames stat) => Map[stat];
+  public static Type GetType(StatType stat) => Map[stat];
 }
 
 public static class Constants
@@ -226,17 +226,6 @@ public static class Constants
     public static HashSet<Type> types = new() { };
   }
 
-  public enum StatsNames
-  {
-    CanDash,
-    Speed,
-    Health,
-    Defense,
-    MaxHealth,
-    JumpForce,
-    EnableRegen,
-  }
-
   public enum Tags
   {
     Player,
@@ -328,7 +317,7 @@ public static class QualityOfLife
 
 public static class ReflectionHelpers
 {
-  public static PropertyInfo GetPropertyByStatName(this Type type, string statName)
+  public static PropertyInfo GetPropertyByStatName(this Type type, StatType statType)
   {
     var properties = type.GetProperties(
       BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
@@ -336,7 +325,7 @@ public static class ReflectionHelpers
     foreach (var prop in properties)
     {
       var attr = prop.GetCustomAttribute<StatAttribute>();
-      if (attr != null && attr.Name == statName)
+      if (attr != null && attr.Type == statType)
         return prop;
     }
     return null;
