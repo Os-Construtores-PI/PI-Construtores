@@ -3,54 +3,78 @@ using UnityEngine;
 
 public class EnemySpawner : BasePool
 {
-  public static EnemySpawner enemySpawner;
-
   [SerializeField]
   protected List<Spawner> spawners;
-  protected new int amount;
 
-  public override void Awake()
+  public static EnemySpawner Instance;
+
+  protected override void Awake()
   {
     base.Awake();
-    enemySpawner = this;
+    Instance = this;
+    InitSpawners();
   }
 
-  private void Start()
+  private void InitSpawners()
   {
-    InitSpawner();
-    SetupInstance();
-  }
-
-  protected void SetupInstance()
-  {
-    _deactivatedObjects = new();
-    GameObject tmp;
-    foreach (Spawner sp in spawners)
+    if (spawners == null)
+      return;
+    foreach (var sp in spawners)
     {
-      amount = sp.positions.Count;
-      for (int i = 0; i < amount; i++)
+      sp.positions.Clear();
+      GameObject[] found = GameObject.FindGameObjectsWithTag(sp.spawner_tag);
+      foreach (var go in found)
       {
-        Transform tmpMarker = sp.positions[i];
-        tmp = Instantiate(sp.obj, tmpMarker.position, tmpMarker.rotation, _parent);
-        if (tmp.TryGetComponent(out Enemies enemy))
+        sp.positions.Add(go.transform);
+      }
+    }
+  }
+
+  protected override void PopulatePool(int amount)
+  {
+    _inactiveObjects.Clear();
+    _activeObjects.Clear();
+
+    foreach (var sp in spawners)
+    {
+      if (sp.obj == null)
+        continue;
+
+      foreach (var marker in sp.positions)
+      {
+        var enemy = Instantiate(sp.obj, marker.position, marker.rotation, _parent);
+        if (enemy.TryGetComponent(out Enemies e))
         {
-          enemy.spawnpos = tmpMarker.position;
+          e.spawnpos = marker.position;
         }
-        tmp.SetActive(false);
-        _deactivatedObjects.Add(tmp);
+        enemy.SetActive(false);
+        _inactiveObjects.Add(enemy);
       }
     }
   }
 
-  private void InitSpawner()
+  public GameObject Spawn(int index)
   {
-    foreach (Spawner sp in spawners)
-    {
-      GameObject[] tempposarray = GameObject.FindGameObjectsWithTag(sp.spawner_tag);
-      foreach (GameObject tempos in tempposarray)
-      {
-        sp.positions.Add(tempos.transform);
-      }
-    }
+    if (index < 0 || index >= _inactiveObjects.Count)
+      return null;
+
+    var obj = _inactiveObjects[index];
+    _inactiveObjects.RemoveAt(index);
+    _activeObjects.Add(obj);
+
+    obj.SetActive(true);
+    return obj;
+  }
+
+  public void ReturnToPool(int index)
+  {
+    if (index < 0 || index >= _activeObjects.Count)
+      return;
+
+    var obj = _activeObjects[index];
+    _activeObjects.RemoveAt(index);
+    _inactiveObjects.Add(obj);
+
+    obj.SetActive(false);
   }
 }

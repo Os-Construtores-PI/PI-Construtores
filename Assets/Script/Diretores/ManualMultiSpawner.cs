@@ -6,42 +6,65 @@ public class ManualPlayersSpawner : BasePool
   [SerializeField]
   private Transform spawnPosition;
 
+  protected override void PopulatePool(int amount)
+  {
+    _inactiveObjects.Clear();
+    _activeObjects.Clear();
+  }
+
   public void SetObjects(List<GameObject> gameObjects)
   {
-    _deactivatedObjects = new();
-    _amount = gameObjects.Count;
+    _inactiveObjects.Clear();
+    _activeObjects.Clear();
+
+    if (gameObjects == null || gameObjects.Count == 0)
+      return;
 
     for (int i = 0; i < gameObjects.Count; i++)
     {
-      GameObject tmp = Instantiate(gameObjects[i], _parent);
-      tmp.SetActive(false);
-      _deactivatedObjects.Add(tmp);
+      var obj = Instantiate(gameObjects[i], _parent);
+      obj.SetActive(false);
+      _inactiveObjects.Add(obj);
     }
   }
 
   public GameObject Spawn(int index)
   {
-    if (index < 0 || index >= _deactivatedObjects.Count)
+    if (index < 0 || index >= _inactiveObjects.Count)
       return null;
 
-    GameObject obj = _deactivatedObjects[index];
+    var obj = _inactiveObjects[index];
+    _inactiveObjects.RemoveAt(index);
+    _activeObjects.Add(obj);
+
     obj.SetActive(true);
     if (spawnPosition != null)
-    {
       obj.transform.position = spawnPosition.position;
-      Physics.SyncTransforms();
-    }
+
     return obj;
+  }
+
+  public void ReturnToPool(int index)
+  {
+    if (index < 0 || index >= _activeObjects.Count)
+      return;
+
+    var obj = _activeObjects[index];
+    _activeObjects.RemoveAt(index);
+    _inactiveObjects.Add(obj);
+
+    obj.SetActive(false);
   }
 
   public GameObject GetDeactivatedObject(int index)
   {
-    if (index < 0 || index >= _deactivatedObjects.Count)
+    if (index < 0 || index >= _inactiveObjects.Count)
       return null;
-    return _deactivatedObjects[index];
+    return _inactiveObjects[index];
   }
 
-  public int DeactivatedObjectsCount => _deactivatedObjects.Count;
+  public int DeactivatedObjectsCount => _inactiveObjects.Count;
+  public int ActiveObjectsCount => _activeObjects.Count;
 
   public Transform GetSpawnPosition() => spawnPosition;
 }

@@ -47,7 +47,7 @@ public class TimedMovingObject : MonoBehaviour
     if (_timedTargets.Count == 1)
     {
       Vector3 posicaoOriginal = transform.position;
-      var t = _timedTargets[0];
+      TimedPlatformTarget t = _timedTargets[0];
 
       timedSequence.AppendInterval(t.StopTime);
       timedSequence.Append(
@@ -65,7 +65,7 @@ public class TimedMovingObject : MonoBehaviour
     }
     for (int i = 0; i < _timedTargets.Count; i++)
     {
-      var currentTarget = _timedTargets[i];
+      TimedPlatformTarget currentTarget = _timedTargets[i];
       timedSequence.AppendInterval(currentTarget.StopTime);
       int nextIndex = (i + 1) % _timedTargets.Count;
       Transform nextTransform = _timedTargets[nextIndex].Target;
@@ -84,7 +84,7 @@ public class TimedMovingObject : MonoBehaviour
 
     for (int i = 0; i < _timedTargets.Count; i++)
     {
-      var currentTarget = _timedTargets[i];
+      TimedPlatformTarget currentTarget = _timedTargets[i];
 
       // Pula se o target não estiver definido no Inspector
       if (currentTarget.Target == null)
@@ -99,7 +99,7 @@ public class TimedMovingObject : MonoBehaviour
       UnityEditor.Handles.Label(currentPos + Vector3.up * _gizmoSphereSize * 1.5f, $"Ponto {i}");
 #endif
       int nextIndex = (i + 1) % _timedTargets.Count;
-      var nextTarget = _timedTargets[nextIndex];
+      TimedPlatformTarget nextTarget = _timedTargets[nextIndex];
 
       if (nextTarget.Target == null)
         continue;

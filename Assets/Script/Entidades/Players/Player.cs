@@ -806,10 +806,12 @@ public class Player : CombatEntities
 
   private bool ScanEnemies(Vector3 playerPos)
   {
-    int amount = EnemySpawner.enemySpawner.GetAmountPool();
+    if (EnemySpawner.Instance == null)
+      return false;
+    int amount = EnemySpawner.Instance.GetAmountPool();
     for (int i = 0; i < amount; i++)
     {
-      GameObject enemy = EnemySpawner.enemySpawner.GetDisabledObject();
+      GameObject enemy = EnemySpawner.Instance.GetDisabledObject();
       if (enemy == null)
         continue;
       if (Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)

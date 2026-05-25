@@ -117,7 +117,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     float accelMult = GetStatValue(player, StatType.RunAccelMultiplier, player.RunAccelMultiplier);
 
     float speed = player.IsRunning ? player.Speed * speedMult : player.Speed;
-    Debug.Log(speed);
     float accel = player.IsRunning
       ? (player.IsGrounded ? player.Acceleration * accelMult : player.Acceleration)
       : (player.IsGrounded ? player.Acceleration : player.Acceleration);

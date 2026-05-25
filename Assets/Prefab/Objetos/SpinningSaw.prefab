@@ -238,6 +238,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7813307664466158325}
+  - component: {fileID: 7462989755743235440}
+  - component: {fileID: 5692300561888286213}
+  - component: {fileID: 6905412309394521513}
   m_Layer: 0
   m_Name: SpinningSaw
   m_TagString: Untagged
@@ -261,3 +264,59 @@ Transform:
   - {fileID: 7535548133698953975}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7462989755743235440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8291220781220180662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  _maxDamage: 10
+--- !u!65 &5692300561888286213
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8291220781220180662}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.7, y: 0.5, z: 1.7}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6905412309394521513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8291220781220180662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f0aeb75cd7d1613d9720aab1fd9ec2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TimedMovingObject
+  _timedTargets:
+  - Target: {fileID: 0}
+    StopTime: 2
+    TimeToNext: 2
+  _animationType: 1
+  _loopType: 0
+  _gizmoSphereColor: {r: 1, g: 1, b: 1, a: 1}
+  _gizmoSphereSize: 1
+  _gizmoLineColor: {r: 1, g: 1, b: 1, a: 1}
+  _loopNum: -1
