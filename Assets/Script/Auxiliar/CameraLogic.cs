@@ -93,7 +93,7 @@ public class CameraLogic : Entities
     float[] layersDistance = new float[32];
     for (int i = 0; i < layersDistance.Count(); i++)
     {
-      layersDistance[i] = 200;
+      layersDistance[i] = 900;
     }
     if (TryGetComponent(out Camera cam))
     {
