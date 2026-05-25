@@ -20,6 +20,10 @@ public class WolfBasicEnemy : NavBasedEnemy
   public float _chaseMemoryTime = 3f; // tempo (em segundos) que ele continua perseguindo mesmo sem ver o Player
   private float _memoryTimer = 0f; // Contador interno dessa memória
 
+  [Header("Distâncias de Combate")]
+  [SerializeField] private float _attackDistance = 10f;
+  [SerializeField] private float _minAttackDistance = 2f;
+
   // Estados possíveis do Lobo: patrulhando ou perseguindo
 
   [SerializeField]
@@ -157,7 +161,7 @@ public class WolfBasicEnemy : NavBasedEnemy
           Chase(_vision._playerDetectado); // Continua perseguindo
 
           float dis = Vector3.Distance(transform.position, _vision._playerDetectado.position);
-          if (!_isAttacking && _dashTimer <= 0f && dis <= _stopDistance)
+          if (!_isAttacking && _dashTimer <= 0f && dis <= _attackDistance)
           {
             _dashTimer = _dashCooldown; // reseta cooldown
             StartCoroutine(PrepareThenRush(_vision._playerDetectado));
@@ -262,7 +266,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     
     Vector3 disered =
       transform.position
-      + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude + 0.5f);
+      + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude -  1.2f);
 
     if(NavMesh.SamplePosition(
       disered,
@@ -300,23 +304,51 @@ public class WolfBasicEnemy : NavBasedEnemy
     _animimator.SetBool("isAttacking", false);
 
 
-    if(_vision != null && 
-      _vision._encontrouPlayer &&
-      _vision._playerDetectado != null)
+    if (_vision != null &&
+    _vision._encontrouPlayer &&
+    _vision._playerDetectado != null)
     {
+      float distance =
+          Vector3.Distance(
+              transform.position,
+              _vision._playerDetectado.position);
+
+      // PLAYER AINDA ESTÁ PERTO
+      if (distance <= _minAttackDistance)
+      {
+        yield return new WaitForSeconds(0.15f);
+
+        _isAttacking = false;
+
+        yield break;
+      }
+
+      if(distance <= _attackDistance)
+      {
+        yield return new WaitForSeconds(0.15f);
+
+        _isAttacking = false;
+
+        yield break;
+      }
+
+      // PLAYER AFASTOU UM POUCO
+      // VOLTA A PERSEGUIR
       _animimator.SetBool("isWalking", true);
+      _animimator.SetBool("isIdle", false);
 
       _agent.SetDestination(
-        _vision._playerDetectado.position);
+          _vision._playerDetectado.position);
     }
     else
     {
+      // PERDEU PLAYER
       _animimator.SetBool("isWalking", true);
+      _animimator.SetBool("isIdle", false);
 
       _agent.SetDestination(_startPosition);
     }
 
-    _animimator.SetBool("isIdle", false);
   }
 
   private IEnumerator WaitOnPatrol()
