@@ -10,7 +10,7 @@ public class PlayerActionStateBoost : IState<Player>
   #endregion
 
   #region Constants
-  private const int MainCameraPriority = 20;
+  private const int MainCameraPriority = 10;
   private const int BoostCameraPriority = 20;
   private const int InactivePriority = 0;
 
@@ -36,7 +36,7 @@ public class PlayerActionStateBoost : IState<Player>
   #region IState Callbacks
   public void Enter(Player player)
   {
-    _velocity = player.DashSlashBoostButton.Value;
+    _velocity = Mathf.Clamp(player.DashSlashBoostButton.Value, 0f, _maxVelocity);
     _playerOriginalSpeed = player.Speed;
     _forcedTimer = _forcedDuration;
     _isFree = false;
@@ -67,18 +67,19 @@ public class PlayerActionStateBoost : IState<Player>
 
     player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
     player.SpeedLines.Invoke(false);
+    player.DashSlashBoostButton.Value = 0f; // Garante limpeza do recurso
 
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
-
-    Vector3 mv = player.MovementVector;
-    player.MovementVector = new Vector3(mv.x * 2f, mv.y, mv.z * 2f);
+    player.MainCamera.Lens.FieldOfView = 80;
   }
 
   public void Update(Player player)
   {
     player.DashSlashBoostButton.Value -= _boostUsage * Time.deltaTime;
+    player.DashSlashBoostButton.Value = Mathf.Max(0f, player.DashSlashBoostButton.Value);
+
     if (player.DashSlashBoostButton.Value <= 0f)
     {
       player.ActionLayer.ExitState(this, player);
@@ -109,8 +110,14 @@ public class PlayerActionStateBoost : IState<Player>
   private void TransitionToFreeMovement(Player player)
   {
     _isFree = true;
+
+    Vector3 safeMovement = player.MovementVector;
+    safeMovement.y = 0f;
+    player.MovementVector = safeMovement;
+
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
     player.LocomotionLayer.ChangeState(player.Moving, player);
+    player.MainCamera.Lens.FieldOfView = 120;
     SetBoostCamera(player, false);
   }
 
@@ -118,7 +125,7 @@ public class PlayerActionStateBoost : IState<Player>
   {
     player.transform.Rotate(
       Vector3.up,
-      player.MoveInput.x * _rotationSpeed * Time.deltaTime,
+      player.MoveInput.x * _rotationSpeed * Time.fixedDeltaTime,
       Space.World
     );
   }
@@ -139,8 +146,13 @@ public class PlayerActionStateBoost : IState<Player>
 
   private bool OnSlope(Player player, out RaycastHit hit)
   {
-    float reach = player.CharacterController.height / 2f + 1f;
-    if (Physics.Raycast(player.transform.position, Vector3.down, out hit, reach))
+    Vector3 rayOrigin =
+      player.transform.position
+      - Vector3.up
+        * (player.CharacterController.height * 0.5f - player.CharacterController.skinWidth);
+    float reach = player.CharacterController.height * 0.5f + 1f;
+
+    if (Physics.Raycast(rayOrigin, Vector3.down, out hit, reach))
     {
       float angle = Vector3.Angle(hit.normal, Vector3.up);
       return angle > 0f && angle <= _slopeLimit;

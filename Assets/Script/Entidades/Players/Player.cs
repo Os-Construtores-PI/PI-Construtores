@@ -626,17 +626,14 @@ public class Player : CombatEntities
     if (context.performed)
     {
       IsRunning = true;
-      SpeedLines.Invoke(true);
-
-      RunningShake.Invoke(true);
       TrailsSystem.PlayEffect(TrailType.MovementTrail);
+      RunningShake.Invoke(true);
     }
     else if (context.canceled)
     {
       IsRunning = false;
-      RunningShake.Invoke(false);
       TrailsSystem.StopEffect(TrailType.MovementTrail);
-      SpeedLines.Invoke(false);
+      RunningShake.Invoke(false);
     }
   }
 
