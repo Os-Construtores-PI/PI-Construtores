@@ -71,6 +71,7 @@ public class PlayerActionStateBoost : IState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
+    player.MainCamera.Lens.FieldOfView = 80;
 
     Vector3 mv = player.MovementVector;
     player.MovementVector = new Vector3(mv.x * 2f, mv.y, mv.z * 2f);
@@ -111,6 +112,7 @@ public class PlayerActionStateBoost : IState<Player>
     _isFree = true;
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
     player.LocomotionLayer.ChangeState(player.Moving, player);
+    player.MainCamera.Lens.FieldOfView = 120;
     SetBoostCamera(player, false);
   }
 
