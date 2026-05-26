@@ -1,4 +1,5 @@
 using UnityEngine;
+using static Constants.PlayerShakes;
 
 // Componente que aplica dano a qualquer CombatEntities que entrar na área
 public class HitboxComponent : MonoBehaviour
@@ -13,6 +14,9 @@ public class HitboxComponent : MonoBehaviour
 
   [SerializeField] private float _upForce = 1f;
 
+  [Header("Referência do Inimigo")]
+  [SerializeField] private WolfBasicEnemy _enemy;
+
   // Propriedade pública de acesso ao dano
   [HideInInspector]
   public float Damage
@@ -26,10 +30,18 @@ public class HitboxComponent : MonoBehaviour
     Damage = _maxDamage;
   }
 
-  private void OTriggerEnter(Collider other)
+  private void Reset()
+  {
+    _enemy = GetComponentInParent<WolfBasicEnemy>();
+  }
+
+  private void OnTriggerEnter(Collider other)
   {
     if(!other.CompareTag("Player"))
        return;
+
+    if (_enemy == null || !_enemy._isAttacking)
+        return;
     
     Rigidbody rb = other.GetComponent<Rigidbody>();
 
@@ -43,5 +55,7 @@ public class HitboxComponent : MonoBehaviour
 
       rb.AddForce(force, ForceMode.Impulse);
     }
+
   }
+
 }
