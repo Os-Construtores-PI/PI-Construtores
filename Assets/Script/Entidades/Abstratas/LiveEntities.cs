@@ -34,8 +34,6 @@ public abstract class LiveEntities : Entities
       float oldHealth = _health;
       _health = Mathf.Clamp(value, 0f, MaxHealth);
 
-      //Debug.Log($"{name} // Health changed: {oldHealth} -> {_health}");
-
       if (_health < oldHealth)
       {
         _OnDamage.Invoke();

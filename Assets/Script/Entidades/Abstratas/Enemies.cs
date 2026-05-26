@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
+using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -19,7 +21,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
-  public bool IsActive => this.enabled && gameObject.activeInHierarchy;
+  public bool IsActive => enabled && gameObject.activeInHierarchy;
 
   // ==== CONFIGURAÇÕES DE DETECÇÃO ====
   [Header("Configurações de Detecção")]
@@ -65,7 +67,7 @@ public abstract class Enemies : CombatEntities, ILockable
   [HideInInspector]
   public Vector3 spawnpos;
 
-  [Header("ENEMY KNOCKBACK PROPERTIES")]
+  [Header("Knockback")]
   [SerializeField]
   private Collider _collider;
 
@@ -79,11 +81,10 @@ public abstract class Enemies : CombatEntities, ILockable
 
   // === Flash Requisitos ===
   private Renderer[] renderers;
-  private List<Color> originalColors = new List<Color>();
-  private List<Color> originalEmissionColors = new List<Color>();
-  private MaterialPropertyBlock block;
+  private Material[] originalMaterials;
+  private Sequence flashSequence;
 
-  [Header("DAMAGE FLASH PROPERTIES")]
+  [Header("Flash de Dano")]
   [SerializeField]
   private bool canFlash = true;
 
@@ -91,21 +92,16 @@ public abstract class Enemies : CombatEntities, ILockable
   private float flashDuration = 0.1f;
 
   [SerializeField]
-  private Color flashColor = Color.white;
+  private Material flashMaterial;
 
+  [Header("Efeito de Dano")]
   [SerializeField]
-  private Color flashEmission = Color.white; // mais intenso
-  private Sequence flashSequence;
-
-  public override void Awake()
-  {
-    base.Awake();
-    SetupOriginals();
-  }
+  private RectTransform _damagePopupEffect;
 
   public override void Start()
   {
     base.Start();
+    SetupOriginals();
     AddItems();
   }
 
@@ -161,7 +157,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   private void MemoryTimer()
   {
-    if (!playerInArea && !memoryTriggered) // só executa se o player saiu e ainda não rodou
+    if (!playerInArea && !memoryTriggered)
     {
       memoryCooldownWalker += Time.deltaTime;
 
@@ -169,12 +165,11 @@ public abstract class Enemies : CombatEntities, ILockable
       {
         target = transform;
         memoryCooldownWalker = 0.0f;
-        memoryTriggered = true; // marca que já rodou
+        memoryTriggered = true;
       }
     }
     else if (playerInArea)
     {
-      // se o player voltar, reseta o estado
       memoryCooldownWalker = 0.0f;
       memoryTriggered = false;
     }
@@ -211,11 +206,9 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
-    // Se não encontrar alvo, redefine o alvo para si mesmo
     playerInArea = false;
   }
 
-  // Verifica se há algum alvo próximo o suficiente para ataque
   private void UpdateAttackLogic()
   {
     int quantity = Physics.OverlapSphereNonAlloc(
@@ -236,102 +229,110 @@ public abstract class Enemies : CombatEntities, ILockable
   {
     TriggerFlash();
     TriggerSquish();
+    TriggerDamagePopup();
+  }
+
+  private void TriggerDamagePopup()
+  {
+    if (_damagePopupEffect == null)
+      return;
+
+    _damagePopupEffect.DOKill();
+    _damagePopupEffect.localScale = Vector3.zero;
+    _damagePopupEffect.gameObject.SetActive(true);
+
+    Sequence popupSequence = DOTween.Sequence();
+    popupSequence.Append(_damagePopupEffect.DOScale(Vector3.one, 0.1f).SetEase(Ease.OutBack));
+    popupSequence.AppendInterval(0.25f);
+    popupSequence.Append(_damagePopupEffect.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack));
+    popupSequence.OnComplete(() => _damagePopupEffect.gameObject.SetActive(false));
   }
 
   private void TriggerSquish()
   {
+    transform.DOKill();
     Vector3 originalScale = transform.localScale;
-    Vector3 squishScale = new(originalScale.x * 2, originalScale.y / 2, originalScale.z * 2);
+    float squashFactor = 1.8f;
+    float compressFactor = 0.4f;
+
+    Vector3 squishScale = new(
+      originalScale.x * squashFactor,
+      originalScale.y * compressFactor,
+      originalScale.z * squashFactor
+    );
+
     Sequence squishSequence = DOTween.Sequence();
-    squishSequence.Append(transform.DOScale(squishScale, .5f));
-    squishSequence.Append(transform.DOScale(originalScale, 1f));
+
+    // IMPORTANTE: Executar após o Animator
+    squishSequence.Append(
+      transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear).SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform
+        .DOScale(originalScale * 1.08f, 0.12f)
+        .SetEase(Ease.OutBack)
+        .SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform
+        .DOScale(originalScale * 0.97f, 0.08f)
+        .SetEase(Ease.InOutSine)
+        .SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutQuad).SetUpdate(UpdateType.Late)
+    );
     squishSequence.Play();
   }
 
   private void SetupOriginals()
   {
     renderers = GetComponentsInChildren<Renderer>();
-    block = new();
-    foreach (Renderer r in renderers)
+    originalMaterials = new Material[renderers.Length];
+
+    for (int i = 0; i < renderers.Length; i++)
     {
-      r.GetPropertyBlock(block);
-
-      // Cor base
-      Color baseColor = r.sharedMaterial.HasProperty("_BaseColor")
-        ? r.sharedMaterial.GetColor("_BaseColor")
-        : Color.white;
-
-      // Emission (se tiver)
-      Color emissionColor = r.sharedMaterial.HasProperty("_EmissionColor")
-        ? r.sharedMaterial.GetColor("_EmissionColor")
-        : Color.black;
-
-      originalColors.Add(baseColor);
-      originalEmissionColors.Add(emissionColor);
+      originalMaterials[i] = renderers[i].material;
     }
   }
 
   public void TriggerFlash()
   {
-    if (!canFlash)
-    {
+    if (!canFlash || flashMaterial == null)
       return;
-    }
-    // se já tem uma animação rodando, mata ela
+
     if (flashSequence != null && flashSequence.IsActive())
+    {
       flashSequence.Kill();
+      RestoreMaterials();
+    }
 
-    float intensity = 0f;
-
+    ApplyFlashMaterial();
     flashSequence = DOTween.Sequence();
-
-    // Sobe (0 -> 1) e desce (1 -> 0)
-    flashSequence.Append(
-      DOTween.To(
-        () => intensity,
-        x =>
-        {
-          intensity = x;
-          ApplyFlash(intensity);
-        },
-        1f,
-        flashDuration * 0.5f
-      )
-    );
-
-    flashSequence.Append(
-      DOTween.To(
-        () => intensity,
-        x =>
-        {
-          intensity = x;
-          ApplyFlash(intensity);
-        },
-        0f,
-        flashDuration * 0.5f
-      )
-    );
+    flashSequence.AppendInterval(flashDuration);
+    flashSequence.OnComplete(() => RestoreMaterials());
+    flashSequence.Play();
   }
 
-  private void ApplyFlash(float intensity)
+  private void ApplyFlashMaterial()
   {
     for (int i = 0; i < renderers.Length; i++)
     {
-      var r = renderers[i];
-      r.GetPropertyBlock(block);
+      if (renderers[i] != null && flashMaterial != null)
+      {
+        renderers[i].material = flashMaterial;
+      }
+    }
+  }
 
-      Color baseColor = Color.Lerp(originalColors[i], flashColor, intensity);
-      Color emissionColor = Color.Lerp(originalEmissionColors[i], flashEmission, intensity);
-
-      block.SetColor("_BaseColor", baseColor);
-      block.SetColor("_EmissionColor", emissionColor);
-
-      if (emissionColor != Color.black)
-        r.material.EnableKeyword("_EMISSION");
-      else
-        r.material.DisableKeyword("_EMISSION");
-
-      r.SetPropertyBlock(block);
+  private void RestoreMaterials()
+  {
+    for (int i = 0; i < renderers.Length; i++)
+    {
+      if (renderers[i] != null && originalMaterials[i] != null)
+      {
+        renderers[i].material = originalMaterials[i];
+      }
     }
   }
 

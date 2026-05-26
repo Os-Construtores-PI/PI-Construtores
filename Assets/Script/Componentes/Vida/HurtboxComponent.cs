@@ -9,6 +9,7 @@ public class HurtboxComponent : MonoBehaviour
   [HideInInspector]
   public bool CanTakeDamage = true;
 
+  [SerializeField]
   private float _damageCooldown = 1f;
 
   private void Start()
@@ -63,7 +64,6 @@ public class HurtboxComponent : MonoBehaviour
     entity.Health -= hitbox.Damage * (1 - factor);
     entity.Damaged = true;
 
-    // Usa a nova função para entrar em cooldown de dano padrão
     TriggerInvulnerability(_initialCooldown);
   }
 

@@ -9,14 +9,17 @@ public class PlayerActionStateJump : IState<Player>
 
   public void Enter(Player player)
   {
-    Vector3 move = player.MovementVector;
+    Vector3 moveOriginal = player.MovementVector;
+    Vector3 moveSubstitute = moveOriginal;
+    Vector3 moveAddition = new(0, 0, 0);
+
     PlayerActionStateBounce bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
     bool isBounce = bounceState != null && player.GroundSlamImpactSpeed > 0f;
     float jumpY;
 
     if (isBounce)
     {
-      jumpY = bounceState.CalculateBounceImpulse(player, ref move);
+      jumpY = bounceState.CalculateBounceImpulse(player, ref moveSubstitute);
       player.ActionLayer.ExitState(bounceState, player);
     }
     else
@@ -29,12 +32,14 @@ public class PlayerActionStateJump : IState<Player>
     {
       const float horizontalBias = 6.5f;
       var jumpDir = (Vector3.up + player.LastWallNormal * horizontalBias).normalized;
-      move = player.JumpForce * player.WallJumpMultiplier * jumpDir;
+      Vector3 jumpCalculation = player.JumpForce * player.WallJumpMultiplier * jumpDir;
+      moveSubstitute = jumpCalculation;
+      moveAddition.y = jumpCalculation.y;
       player.TouchingWall = false;
     }
     else
     {
-      move.y = jumpY;
+      moveSubstitute.y = jumpY;
     }
 
     if (player.CurrentJumpCount > 0)
@@ -42,7 +47,15 @@ public class PlayerActionStateJump : IState<Player>
 
     player.CurrentJumpCount++;
     player.EffectsSystem.PlayEffect(EffectType.JumpEffect, 1);
-    player.MovementVector = move;
+    if (moveOriginal.y <= 0)
+    {
+      player.MovementVector = moveSubstitute;
+    }
+    else
+    {
+      player.MovementVector += moveAddition;
+    }
+
     player.ActionLayer.ExitState(this, player);
   }
 
