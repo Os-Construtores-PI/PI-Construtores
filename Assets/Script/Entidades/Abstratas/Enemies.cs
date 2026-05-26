@@ -229,7 +229,6 @@ public abstract class Enemies : CombatEntities, ILockable
   private void TriggerSquish()
   {
     Vector3 originalScale = transform.localScale;
-
     float squashFactor = 1.6f;
     float compressFactor = 0.4f;
 
@@ -240,10 +239,26 @@ public abstract class Enemies : CombatEntities, ILockable
     );
 
     Sequence squishSequence = DOTween.Sequence();
-    squishSequence.Append(transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear));
-    squishSequence.Append(transform.DOScale(originalScale * 1.08f, 0.12f).SetEase(Ease.OutBack));
-    squishSequence.Append(transform.DOScale(originalScale * 0.97f, 0.08f).SetEase(Ease.InOutSine));
-    squishSequence.Append(transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutQuad));
+
+    // IMPORTANTE: Executar após o Animator
+    squishSequence.Append(
+      transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear).SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform
+        .DOScale(originalScale * 1.08f, 0.12f)
+        .SetEase(Ease.OutBack)
+        .SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform
+        .DOScale(originalScale * 0.97f, 0.08f)
+        .SetEase(Ease.InOutSine)
+        .SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutQuad).SetUpdate(UpdateType.Late)
+    );
     squishSequence.Play();
   }
 
