@@ -229,7 +229,7 @@ public abstract class Enemies : CombatEntities, ILockable
   private void TriggerSquish()
   {
     Vector3 originalScale = transform.localScale;
-    float squashFactor = 1.6f;
+    float squashFactor = 1.8f;
     float compressFactor = 0.4f;
 
     Vector3 squishScale = new(
