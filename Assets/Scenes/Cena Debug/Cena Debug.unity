@@ -3385,6 +3385,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
@@ -5934,6 +5935,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!135 &531938665
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6006,6 +6008,10 @@ PrefabInstance:
     - target: {fileID: 6946582476469666776, guid: da56bf571fefedb45888e095e229ee4c, type: 3}
       propertyPath: m_Name
       value: Dash Ring Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 7197099276376360130, guid: da56bf571fefedb45888e095e229ee4c, type: 3}
+      propertyPath: _impulseForce
+      value: 83.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6524,6 +6530,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
@@ -8893,6 +8900,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!135 &982812283
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -9375,6 +9383,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!135 &1072524683
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -18030,6 +18039,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
@@ -19356,6 +19366,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 10
   _patrolRadius: 15
   _chaseSpeed: 4
