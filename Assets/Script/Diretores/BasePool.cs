@@ -15,8 +15,8 @@ public abstract class BasePool : MonoBehaviour
 
   #region Internal State
 
-  protected List<GameObject> _inactiveObjects = new List<GameObject>();
-  protected List<GameObject> _activeObjects = new List<GameObject>();
+  protected List<GameObject> _inactiveObjects = new();
+  protected List<GameObject> _activeObjects = new();
 
   public IReadOnlyList<GameObject> InactiveObjects => _inactiveObjects.AsReadOnly();
   public IReadOnlyList<GameObject> ActiveObjects => _activeObjects.AsReadOnly();
