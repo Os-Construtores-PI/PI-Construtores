@@ -266,7 +266,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     
     Vector3 disered =
       transform.position
-      + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude -  1.2f);
+      + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude -  2.0f);
 
     if(NavMesh.SamplePosition(
       disered,
