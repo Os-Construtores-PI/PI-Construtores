@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -94,18 +95,13 @@ public abstract class Enemies : CombatEntities, ILockable
   private Color flashColor = Color.white;
 
   [SerializeField]
-  private Color flashEmission = Color.white; // mais intenso
+  private Color flashEmission = Color.white;
   private Sequence flashSequence;
-
-  public override void Awake()
-  {
-    base.Awake();
-    SetupOriginals();
-  }
 
   public override void Start()
   {
     base.Start();
+    SetupOriginals();
     AddItems();
   }
 
@@ -211,11 +207,9 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
-    // Se não encontrar alvo, redefine o alvo para si mesmo
     playerInArea = false;
   }
 
-  // Verifica se há algum alvo próximo o suficiente para ataque
   private void UpdateAttackLogic()
   {
     int quantity = Physics.OverlapSphereNonAlloc(
@@ -241,76 +235,57 @@ public abstract class Enemies : CombatEntities, ILockable
   private void TriggerSquish()
   {
     Vector3 originalScale = transform.localScale;
-    Vector3 squishScale = new(originalScale.x * 2, originalScale.y / 2, originalScale.z * 2);
+
+    float squashFactor = 1.4f;
+    float compressFactor = 0.6f;
+
+    Vector3 squishScale = new(
+      originalScale.x * squashFactor,
+      originalScale.y * compressFactor,
+      originalScale.z * squashFactor
+    );
+
     Sequence squishSequence = DOTween.Sequence();
-    squishSequence.Append(transform.DOScale(squishScale, .5f));
-    squishSequence.Append(transform.DOScale(originalScale, 1f));
+
+    squishSequence.Append(transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear));
+    squishSequence.Append(transform.DOScale(originalScale * 1.08f, 0.12f).SetEase(Ease.OutBack));
+    squishSequence.Append(transform.DOScale(originalScale * 0.97f, 0.08f).SetEase(Ease.InOutSine));
+    squishSequence.Append(transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutQuad));
     squishSequence.Play();
   }
 
   private void SetupOriginals()
   {
     renderers = GetComponentsInChildren<Renderer>();
-    block = new();
+    block = new MaterialPropertyBlock();
+    originalColors.Clear();
+    originalEmissionColors.Clear();
+
     foreach (Renderer r in renderers)
     {
       r.GetPropertyBlock(block);
 
-      // Cor base
-      Color baseColor = r.sharedMaterial.HasProperty("_BaseColor")
-        ? r.sharedMaterial.GetColor("_BaseColor")
+      // Suporte para múltiplos shaders (URP/Built-in)
+      string baseColorProp =
+        r.sharedMaterial.HasProperty("_BaseColor") ? "_BaseColor"
+        : r.sharedMaterial.HasProperty("_Color") ? "_Color"
+        : null;
+
+      string emissionProp = r.sharedMaterial.HasProperty("_EmissionColor")
+        ? "_EmissionColor"
+        : null;
+
+      Color baseColor = !string.IsNullOrEmpty(baseColorProp)
+        ? r.sharedMaterial.GetColor(baseColorProp)
         : Color.white;
 
-      // Emission (se tiver)
-      Color emissionColor = r.sharedMaterial.HasProperty("_EmissionColor")
-        ? r.sharedMaterial.GetColor("_EmissionColor")
+      Color emissionColor = !string.IsNullOrEmpty(emissionProp)
+        ? r.sharedMaterial.GetColor(emissionProp)
         : Color.black;
 
       originalColors.Add(baseColor);
       originalEmissionColors.Add(emissionColor);
     }
-  }
-
-  public void TriggerFlash()
-  {
-    if (!canFlash)
-    {
-      return;
-    }
-    // se já tem uma animação rodando, mata ela
-    if (flashSequence != null && flashSequence.IsActive())
-      flashSequence.Kill();
-
-    float intensity = 0f;
-
-    flashSequence = DOTween.Sequence();
-
-    // Sobe (0 -> 1) e desce (1 -> 0)
-    flashSequence.Append(
-      DOTween.To(
-        () => intensity,
-        x =>
-        {
-          intensity = x;
-          ApplyFlash(intensity);
-        },
-        1f,
-        flashDuration * 0.5f
-      )
-    );
-
-    flashSequence.Append(
-      DOTween.To(
-        () => intensity,
-        x =>
-        {
-          intensity = x;
-          ApplyFlash(intensity);
-        },
-        0f,
-        flashDuration * 0.5f
-      )
-    );
   }
 
   private void ApplyFlash(float intensity)
@@ -320,19 +295,74 @@ public abstract class Enemies : CombatEntities, ILockable
       var r = renderers[i];
       r.GetPropertyBlock(block);
 
-      Color baseColor = Color.Lerp(originalColors[i], flashColor, intensity);
-      Color emissionColor = Color.Lerp(originalEmissionColors[i], flashEmission, intensity);
+      string baseColorProp =
+        r.sharedMaterial.HasProperty("_BaseColor") ? "_BaseColor"
+        : r.sharedMaterial.HasProperty("_Color") ? "_Color"
+        : null;
+      string emissionProp = r.sharedMaterial.HasProperty("_EmissionColor")
+        ? "_EmissionColor"
+        : null;
 
-      block.SetColor("_BaseColor", baseColor);
-      block.SetColor("_EmissionColor", emissionColor);
+      if (!string.IsNullOrEmpty(baseColorProp))
+      {
+        Color baseColor = Color.Lerp(originalColors[i], flashColor, intensity);
+        block.SetColor(baseColorProp, baseColor);
+      }
 
-      if (emissionColor != Color.black)
-        r.material.EnableKeyword("_EMISSION");
-      else
-        r.material.DisableKeyword("_EMISSION");
+      if (!string.IsNullOrEmpty(emissionProp))
+      {
+        Color emissionColor = Color.Lerp(originalEmissionColors[i], flashEmission, intensity);
+        block.SetColor(emissionProp, emissionColor);
+      }
 
       r.SetPropertyBlock(block);
     }
+  }
+
+  public void TriggerFlash()
+  {
+    if (!canFlash)
+      return;
+
+    // Kill sequence anterior se existir
+    if (flashSequence != null && flashSequence.IsActive())
+      flashSequence.Kill();
+
+    float intensity = 0f;
+
+    flashSequence = DOTween.Sequence();
+
+    flashSequence.Append(
+      DOTween
+        .To(
+          () => intensity,
+          x =>
+          {
+            intensity = x;
+            ApplyFlash(intensity);
+          },
+          1f,
+          flashDuration * 0.5f
+        )
+        .SetEase(Ease.Linear)
+    );
+
+    // Fade out
+    flashSequence.Append(
+      DOTween
+        .To(
+          () => intensity,
+          x =>
+          {
+            intensity = x;
+            ApplyFlash(intensity);
+          },
+          0f,
+          flashDuration * 0.5f
+        )
+        .SetEase(Ease.Linear)
+    );
+    flashSequence.Play();
   }
 
   public void OnTriggerEnter(Collider col)
