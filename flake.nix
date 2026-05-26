@@ -138,18 +138,6 @@
                 "master"
               ];
             };
-
-            # Build — hook customizado, roda no pre-push
-            dotnet-build = {
-              enable = true;
-              name = "dotnet-build";
-              description = "Compiles the project before push";
-              # Explicitly targeting the .sln file avoids ambiguity
-              entry = "dotnet build ./PI-Construtores.sln --configuration Debug --no-restore -v quiet";
-              language = "system";
-              stages = [ "pre-push" ];
-              pass_filenames = false;
-            };
           };
         };
 
