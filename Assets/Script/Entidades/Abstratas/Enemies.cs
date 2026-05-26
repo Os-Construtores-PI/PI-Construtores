@@ -80,9 +80,8 @@ public abstract class Enemies : CombatEntities, ILockable
 
   // === Flash Requisitos ===
   private Renderer[] renderers;
-  private List<Color> originalColors = new List<Color>();
-  private List<Color> originalEmissionColors = new List<Color>();
-  private MaterialPropertyBlock block;
+  private Material[] originalMaterials;
+  private Sequence flashSequence;
 
   [Header("DAMAGE FLASH PROPERTIES")]
   [SerializeField]
@@ -92,11 +91,7 @@ public abstract class Enemies : CombatEntities, ILockable
   private float flashDuration = 0.1f;
 
   [SerializeField]
-  private Color flashColor = Color.white;
-
-  [SerializeField]
-  private Color flashEmission = Color.white;
-  private Sequence flashSequence;
+  private Material flashMaterial;
 
   public override void Start()
   {
@@ -157,7 +152,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   private void MemoryTimer()
   {
-    if (!playerInArea && !memoryTriggered) // só executa se o player saiu e ainda não rodou
+    if (!playerInArea && !memoryTriggered)
     {
       memoryCooldownWalker += Time.deltaTime;
 
@@ -165,12 +160,11 @@ public abstract class Enemies : CombatEntities, ILockable
       {
         target = transform;
         memoryCooldownWalker = 0.0f;
-        memoryTriggered = true; // marca que já rodou
+        memoryTriggered = true;
       }
     }
     else if (playerInArea)
     {
-      // se o player voltar, reseta o estado
       memoryCooldownWalker = 0.0f;
       memoryTriggered = false;
     }
@@ -236,8 +230,8 @@ public abstract class Enemies : CombatEntities, ILockable
   {
     Vector3 originalScale = transform.localScale;
 
-    float squashFactor = 1.4f;
-    float compressFactor = 0.6f;
+    float squashFactor = 1.6f;
+    float compressFactor = 0.4f;
 
     Vector3 squishScale = new(
       originalScale.x * squashFactor,
@@ -246,7 +240,6 @@ public abstract class Enemies : CombatEntities, ILockable
     );
 
     Sequence squishSequence = DOTween.Sequence();
-
     squishSequence.Append(transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear));
     squishSequence.Append(transform.DOScale(originalScale * 1.08f, 0.12f).SetEase(Ease.OutBack));
     squishSequence.Append(transform.DOScale(originalScale * 0.97f, 0.08f).SetEase(Ease.InOutSine));
@@ -257,112 +250,52 @@ public abstract class Enemies : CombatEntities, ILockable
   private void SetupOriginals()
   {
     renderers = GetComponentsInChildren<Renderer>();
-    block = new MaterialPropertyBlock();
-    originalColors.Clear();
-    originalEmissionColors.Clear();
+    originalMaterials = new Material[renderers.Length];
 
-    foreach (Renderer r in renderers)
-    {
-      r.GetPropertyBlock(block);
-
-      // Suporte para múltiplos shaders (URP/Built-in)
-      string baseColorProp =
-        r.sharedMaterial.HasProperty("_BaseColor") ? "_BaseColor"
-        : r.sharedMaterial.HasProperty("_Color") ? "_Color"
-        : null;
-
-      string emissionProp = r.sharedMaterial.HasProperty("_EmissionColor")
-        ? "_EmissionColor"
-        : null;
-
-      Color baseColor = !string.IsNullOrEmpty(baseColorProp)
-        ? r.sharedMaterial.GetColor(baseColorProp)
-        : Color.white;
-
-      Color emissionColor = !string.IsNullOrEmpty(emissionProp)
-        ? r.sharedMaterial.GetColor(emissionProp)
-        : Color.black;
-
-      originalColors.Add(baseColor);
-      originalEmissionColors.Add(emissionColor);
-    }
-  }
-
-  private void ApplyFlash(float intensity)
-  {
     for (int i = 0; i < renderers.Length; i++)
     {
-      var r = renderers[i];
-      r.GetPropertyBlock(block);
-
-      string baseColorProp =
-        r.sharedMaterial.HasProperty("_BaseColor") ? "_BaseColor"
-        : r.sharedMaterial.HasProperty("_Color") ? "_Color"
-        : null;
-      string emissionProp = r.sharedMaterial.HasProperty("_EmissionColor")
-        ? "_EmissionColor"
-        : null;
-
-      if (!string.IsNullOrEmpty(baseColorProp))
-      {
-        Color baseColor = Color.Lerp(originalColors[i], flashColor, intensity);
-        block.SetColor(baseColorProp, baseColor);
-      }
-
-      if (!string.IsNullOrEmpty(emissionProp))
-      {
-        Color emissionColor = Color.Lerp(originalEmissionColors[i], flashEmission, intensity);
-        block.SetColor(emissionProp, emissionColor);
-      }
-
-      r.SetPropertyBlock(block);
+      originalMaterials[i] = renderers[i].material;
     }
   }
 
   public void TriggerFlash()
   {
-    if (!canFlash)
+    if (!canFlash || flashMaterial == null)
       return;
 
-    // Kill sequence anterior se existir
     if (flashSequence != null && flashSequence.IsActive())
+    {
       flashSequence.Kill();
+      RestoreMaterials();
+    }
 
-    float intensity = 0f;
-
+    ApplyFlashMaterial();
     flashSequence = DOTween.Sequence();
-
-    flashSequence.Append(
-      DOTween
-        .To(
-          () => intensity,
-          x =>
-          {
-            intensity = x;
-            ApplyFlash(intensity);
-          },
-          1f,
-          flashDuration * 0.5f
-        )
-        .SetEase(Ease.Linear)
-    );
-
-    // Fade out
-    flashSequence.Append(
-      DOTween
-        .To(
-          () => intensity,
-          x =>
-          {
-            intensity = x;
-            ApplyFlash(intensity);
-          },
-          0f,
-          flashDuration * 0.5f
-        )
-        .SetEase(Ease.Linear)
-    );
+    flashSequence.AppendInterval(flashDuration);
+    flashSequence.OnComplete(() => RestoreMaterials());
     flashSequence.Play();
+  }
+
+  private void ApplyFlashMaterial()
+  {
+    for (int i = 0; i < renderers.Length; i++)
+    {
+      if (renderers[i] != null && flashMaterial != null)
+      {
+        renderers[i].material = flashMaterial;
+      }
+    }
+  }
+
+  private void RestoreMaterials()
+  {
+    for (int i = 0; i < renderers.Length; i++)
+    {
+      if (renderers[i] != null && originalMaterials[i] != null)
+      {
+        renderers[i].material = originalMaterials[i];
+      }
+    }
   }
 
   public void OnTriggerEnter(Collider col)
