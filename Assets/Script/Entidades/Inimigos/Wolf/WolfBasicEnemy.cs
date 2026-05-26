@@ -57,8 +57,6 @@ public class WolfBasicEnemy : NavBasedEnemy
   [SerializeField]
   private float _hitRadiusDuringRush = 1.2f; // raio de acerto
 
-  [SerializeField]
-  private float _attackDamage = 20f;
 
   [SerializeField]
   private float _dashCooldown = 1.2f; // tempo minimo entre ataques

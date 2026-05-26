@@ -237,6 +237,7 @@ public abstract class Enemies : CombatEntities, ILockable
     if (_damagePopupEffect == null)
       return;
 
+    _damagePopupEffect.DOKill();
     _damagePopupEffect.localScale = Vector3.zero;
     _damagePopupEffect.gameObject.SetActive(true);
 
@@ -249,6 +250,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   private void TriggerSquish()
   {
+    transform.DOKill();
     Vector3 originalScale = transform.localScale;
     float squashFactor = 1.8f;
     float compressFactor = 0.4f;
