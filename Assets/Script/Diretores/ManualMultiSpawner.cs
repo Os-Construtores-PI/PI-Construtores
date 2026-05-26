@@ -37,9 +37,17 @@ public class ManualPlayersSpawner : BasePool
     _inactiveObjects.RemoveAt(index);
     _activeObjects.Add(obj);
 
-    obj.SetActive(true);
+    // 🔍 Debug
+    Debug.Log(
+      $"[Spawn] Antes: {obj.transform.position} | spawnPosition: {(spawnPosition ? spawnPosition.position.ToString() : "NULL")}"
+    );
+
     if (spawnPosition != null)
       obj.transform.position = spawnPosition.position;
+
+    obj.SetActive(true);
+
+    Debug.Log($"[Spawn] Depois: {obj.transform.position}");
 
     return obj;
   }
