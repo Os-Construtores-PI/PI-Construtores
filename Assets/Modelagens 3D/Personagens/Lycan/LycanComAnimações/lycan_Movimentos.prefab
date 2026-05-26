@@ -80,12 +80,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3926871323612448157}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.13127166, y: 0.0731268, z: 0.98640037, w: 0.06659269}
+  m_LocalPosition: {x: 0.058146216, y: -0.012874717, z: -0.0070261024}
+  m_LocalScale: {x: 0.046525076, y: 0.046525024, z: 0.046525035}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1242054300206650179}
+  m_Father: {fileID: 5647912769292958662}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &2358878110526515395
 CapsuleCollider:
@@ -123,6 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
   _maxDamage: 15
+  _upForce: 1
 --- !u!1 &5764337430753575459
 GameObject:
   m_ObjectHideFlags: 0
@@ -753,13 +754,13 @@ PrefabInstance:
       addedObject: {fileID: 5262716220932508281}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4162e1f936c657d4da8a46290bc0e55e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4269226575299885060}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4162e1f936c657d4da8a46290bc0e55e, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 6934872632705615672}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4162e1f936c657d4da8a46290bc0e55e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3756787609221679804}
+    - targetCorrespondingSourceObject: {fileID: -2821652440083574930, guid: 4162e1f936c657d4da8a46290bc0e55e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4269226575299885060}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4162e1f936c657d4da8a46290bc0e55e, type: 3}
       insertIndex: -1
@@ -947,3 +948,8 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!4 &5647912769292958662 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2821652440083574930, guid: 4162e1f936c657d4da8a46290bc0e55e, type: 3}
+  m_PrefabInstance: {fileID: 1636513877009970344}
+  m_PrefabAsset: {fileID: 0}
