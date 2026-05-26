@@ -2884,6 +2884,63 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 194485808}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &200667938
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 20.28211
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.49999997
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.8920803
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1175147645601000684, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1947004342118610518, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
+      propertyPath: m_Name
+      value: Spring
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
 --- !u!1 &217912290
 GameObject:
   m_ObjectHideFlags: 0
@@ -3385,6 +3442,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
@@ -5934,6 +5992,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!135 &531938665
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6524,6 +6583,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
@@ -8893,6 +8953,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!135 &982812283
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -9375,6 +9436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!135 &1072524683
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -18030,6 +18092,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 7
   _patrolRadius: 5
   _chaseSpeed: 4
@@ -19356,6 +19419,7 @@ MonoBehaviour:
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
+  _damagePopupEffect: {fileID: 0}
   _stopDistance: 10
   _patrolRadius: 15
   _chaseSpeed: 4
@@ -22231,3 +22295,4 @@ SceneRoots:
   - {fileID: 1580422038}
   - {fileID: 1306257461}
   - {fileID: 687416723}
+  - {fileID: 200667938}
