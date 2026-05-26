@@ -235,6 +235,17 @@ public abstract class Enemies : CombatEntities, ILockable
   public override void DamageHandler()
   {
     TriggerFlash();
+    TriggerSquish();
+  }
+
+  private void TriggerSquish()
+  {
+    Vector3 originalScale = transform.localScale;
+    Vector3 squishScale = new(originalScale.x * 2, originalScale.y / 2, originalScale.z * 2);
+    Sequence squishSequence = DOTween.Sequence();
+    squishSequence.Append(transform.DOScale(squishScale, .5f));
+    squishSequence.Append(transform.DOScale(originalScale, 1f));
+    squishSequence.Play();
   }
 
   private void SetupOriginals()
