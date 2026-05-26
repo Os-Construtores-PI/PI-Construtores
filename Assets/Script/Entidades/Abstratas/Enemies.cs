@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
+using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -20,7 +21,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
-  public bool IsActive => this.enabled && gameObject.activeInHierarchy;
+  public bool IsActive => enabled && gameObject.activeInHierarchy;
 
   // ==== CONFIGURAÇÕES DE DETECÇÃO ====
   [Header("Configurações de Detecção")]
@@ -66,7 +67,7 @@ public abstract class Enemies : CombatEntities, ILockable
   [HideInInspector]
   public Vector3 spawnpos;
 
-  [Header("ENEMY KNOCKBACK PROPERTIES")]
+  [Header("Knockback")]
   [SerializeField]
   private Collider _collider;
 
@@ -83,7 +84,7 @@ public abstract class Enemies : CombatEntities, ILockable
   private Material[] originalMaterials;
   private Sequence flashSequence;
 
-  [Header("DAMAGE FLASH PROPERTIES")]
+  [Header("Flash de Dano")]
   [SerializeField]
   private bool canFlash = true;
 
@@ -92,6 +93,10 @@ public abstract class Enemies : CombatEntities, ILockable
 
   [SerializeField]
   private Material flashMaterial;
+
+  [Header("Efeito de Dano")]
+  [SerializeField]
+  private RectTransform _damagePopupEffect;
 
   public override void Start()
   {
@@ -224,6 +229,22 @@ public abstract class Enemies : CombatEntities, ILockable
   {
     TriggerFlash();
     TriggerSquish();
+    TriggerDamagePopup();
+  }
+
+  private void TriggerDamagePopup()
+  {
+    if (_damagePopupEffect == null)
+      return;
+
+    _damagePopupEffect.localScale = Vector3.zero;
+    _damagePopupEffect.gameObject.SetActive(true);
+
+    Sequence popupSequence = DOTween.Sequence();
+    popupSequence.Append(_damagePopupEffect.DOScale(Vector3.one, 0.1f).SetEase(Ease.OutBack));
+    popupSequence.AppendInterval(0.25f);
+    popupSequence.Append(_damagePopupEffect.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack));
+    popupSequence.OnComplete(() => _damagePopupEffect.gameObject.SetActive(false));
   }
 
   private void TriggerSquish()
