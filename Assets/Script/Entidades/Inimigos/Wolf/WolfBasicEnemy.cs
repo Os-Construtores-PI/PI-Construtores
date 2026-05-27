@@ -5,194 +5,273 @@ using UnityEngine.AI;
 
 public class WolfBasicEnemy : NavBasedEnemy
 {
-  private Transform _player; // Referência ao Player (Pandora)
-  private EyeWolf _vision; // Script responsável pela visão do Lobo
-
-  [Header("Distancia de Parada")]
-  public float _stopDistance = 10f; // distancia em que o Lobo para de se mover
-
-  [Header("Configurações")]
-  public float _patrolRadius = 5f; // distância máxima que o Lobo anda na patrulha
-  public float _chaseSpeed = 4f; // velocidade do lobo ao perseguir o Player
-  public float _patrolSpeed = 2f; // Velocidade do lobo quando está patrulhando
-
-  [Header("Memoria da Perseguição")]
-  public float _chaseMemoryTime = 3f; // tempo (em segundos) que ele continua perseguindo mesmo sem ver o Player
-  private float _memoryTimer = 0f; // Contador interno dessa memória
-
-  [Header("Distâncias de Combate")]
-  [SerializeField] private float _attackDistance = 10f;
-  [SerializeField] private float _minAttackDistance = 2f;
-
-  // Estados possíveis do Lobo: patrulhando ou perseguindo
+  #region Fields & Properties
+  [Header("Referências")]
+  [SerializeField]
+  private Transform _player;
 
   [SerializeField]
-  private Animator _animimator;
+  private EyeWolf _vision;
+
+  [SerializeField]
+  private Animator _animator; // Correção do typo
+
+  [Header("Configurações de Movimento")]
+  [SerializeField]
+  private float _stopDistance = 10f;
+
+  [SerializeField]
+  private float _patrolRadius = 5f;
+
+  [SerializeField]
+  private float _chaseSpeed = 4f;
+
+  [SerializeField]
+  private float _patrolSpeed = 2f;
+
+  [Header("Memória de Perseguição")]
+  [SerializeField]
+  private float _chaseMemoryTime = 3f;
+  private float _memoryTimer = 0f;
+
+  [Header("Combate")]
+  [SerializeField]
+  private float _attackDistance = 10f;
+
+  [SerializeField]
+  private float _minAttackDistance = 2f;
+
+  // Otimização: evita calcular raiz quadrada toda frame
+  private float _attackDistanceSqr => _attackDistance * _attackDistance;
+  private float _minAttackDistanceSqr => _minAttackDistance * _minAttackDistance;
+
+  [Header("Rush (DOTween)")]
+  [SerializeField]
+  private float _prepTime = 0.6f;
+
+  [SerializeField]
+  private float _rushDistance = 4f;
+
+  [SerializeField]
+  private float _rushDuration = 0.35f;
+
+  [SerializeField]
+  private Ease _rushEase = Ease.OutQuad;
+
+  [SerializeField]
+  private float _dashCooldown = 1.2f;
+
+  private float _dashTimer = 0f;
+  private bool _isAttacking = false;
+  private Tweener _currentTweener;
+  private Coroutine _attackCoroutine; // Referência para cancelar se necessário
+
+  [Header("Patrulha e Idle")]
+  [SerializeField]
+  private float _minIdleTime = 1.5f;
+
+  [SerializeField]
+  private float _maxIdleTime = 4f;
+
+  [SerializeField]
+  private int _minPatrolsBeforeIdle = 5;
+
+  [SerializeField]
+  private int _maxPatrolsBeforeIdle = 9;
+
+  private Vector3 _startPosition;
+  private WolfState _currentState = WolfState.Patrol;
+
+  private bool _isWaiting = false;
+  private bool _returningToPost = false;
+  private int _currentPatrolCount = 0;
+  private int _patrolsBeforeIdle;
+  private Coroutine _idleCoroutine;
 
   private enum WolfState
   {
     Patrol,
     Chase,
   }
+  #endregion
 
-  private WolfState _currentState = WolfState.Patrol;
-
-  private Vector3 _startPosition; // Posição inicial do inimigo, usada como centro da patrulha
-  public bool _isAttacking = false;
-  private Tweener _currentTweener;
-
-  [Header("Rush(DOTWEEN)")]
-  [SerializeField]
-  private float _prepTime = 0.6f;
-
-  [SerializeField]
-  private float _rushDistance = 4f; // distancia máxima do Rush
-
-  [SerializeField]
-  private float _rushDuration = 0.35f; // duração do rush
-
-  [SerializeField]
-  private Ease _rushEase = Ease.OutQuad;
-
-  [SerializeField]
-  private float _hitRadiusDuringRush = 1.2f; // raio de acerto
-
-
-  [SerializeField]
-  private float _dashCooldown = 1.2f; // tempo minimo entre ataques
-  private float _dashTimer = 0f;
-
-  [Header("Patrulha Idle")]
-  [SerializeField] private float _minIdleTime = 1.5f;
-  [SerializeField] private float _maxIdleTime = 4f;
-
-  private bool _isWaiting = false;
-  private bool _returningToPost = false;
-
-  [Header("Sistema de Patrulha")]
-  [SerializeField] private int _minPatrolsBeforeIdle = 5;
-  [SerializeField] private int _maxPatrolsBeforeIdle = 9;
-
-  private int _currentPatrolCount = 0;
-  private int _patrolsBeforeIdle;
-
-  private bool _isIndleAnimation = false;
-
-  protected new void Awake()
+  #region Unity Lifecycle
+  public override void Awake()
   {
     base.Awake();
-    _agent = GetComponent<NavMeshAgent>(); // Pega o NavMeshAgent do Lobo
-    _vision = GetComponentInChildren<EyeWolf>(); // Procura o Script EyeWolf em filhos (ex: "cabeça/olhos)
 
-    _animimator = GetComponentInChildren<Animator>();
+    if (_vision == null)
+      _vision = GetComponentInChildren<EyeWolf>();
+    if (_animator == null)
+      _animator = GetComponentInChildren<Animator>();
 
-    _startPosition = transform.position; // Salva a posição inicial do inimigo
+    _startPosition = transform.position;
   }
 
-  protected new void Start()
+  public override void Start()
   {
-    _player = GameObject.FindGameObjectWithTag("Player")?.transform; // Localiza o Player pela tag
-    _patrolsBeforeIdle =
-      Random.Range(_minPatrolsBeforeIdle,
-      _maxPatrolsBeforeIdle + 1);
+    base.Start();
 
-    _animimator.SetBool("isWalking", true);
-    _animimator.SetBool("isIdle", false);
+    if (_player == null)
+      _player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-    Patrol();  // Inicia patrulhando
+    _patrolsBeforeIdle = Random.Range(_minPatrolsBeforeIdle, _maxPatrolsBeforeIdle + 1);
+
+    SetAnimationWalk(true);
+    Patrol();
   }
 
-  // Update is called once per frame
-  protected new void Update()
+  public override void Update()
   {
+    base.Update(); // Garante que lógica da pai seja executada
+
     if (_dashTimer > 0f)
       _dashTimer -= Time.deltaTime;
+
+    // Early exit se não houver player ou se o agente não estiver pronto
+    if (_player == null || _agent == null || !_agent.isOnNavMesh)
+      return;
 
     switch (_currentState)
     {
       case WolfState.Patrol:
-        if (_vision._encontrouPlayer && _vision._playerDetectado != null)
-        {
-          _currentState = WolfState.Chase; // Muda para perseguição
-
-          _isWaiting = false;
-          _agent.isStopped = false;
-          _animimator.SetBool("isIdle", false);
-          _animimator.SetBool("isWalking", true);
-          _memoryTimer = _chaseMemoryTime; // Reseta a memoria de perseguição
-        }
-        if (_returningToPost)
-        {
-          if(!_agent.pathPending &&
-            _agent.remainingDistance <= _agent.stoppingDistance)
-          {
-            _returningToPost = false;
-
-            StartCoroutine(WaitOnPatrol());
-          }
-
-          return;
-        }
-        else if(!_isWaiting &&
-          !_isAttacking &&
-          !_agent.pathPending &&
-          _agent.remainingDistance < _agent.stoppingDistance)
-        {
-          _currentPatrolCount++;
-
-          if(_currentPatrolCount < _patrolsBeforeIdle)
-          {
-            Patrol();
-          }
-
-          else
-          {
-            StartCoroutine(WaitOnPatrol());
-          }
-        }
+        UpdatePatrolState();
         break;
-
       case WolfState.Chase:
-        if (_vision._encontrouPlayer && _vision._playerDetectado != null)
-        {
-          _memoryTimer = _chaseMemoryTime; // Enquanto vê, reseta o timer
-          Chase(_vision._playerDetectado); // Continua perseguindo
-
-          float dis = Vector3.Distance(transform.position, _vision._playerDetectado.position);
-          if (!_isAttacking && _dashTimer <= 0f && dis <= _attackDistance)
-          {
-            _dashTimer = _dashCooldown; // reseta cooldown
-            StartCoroutine(PrepareThenRush(_vision._playerDetectado));
-          }
-        }
-        else
-        {
-          // Se perdeu o player, usa a memória
-          if (_memoryTimer > 0)
-          {
-            _memoryTimer -= Time.deltaTime; // Diminui o contador
-            if (_vision != null && _vision._playerDetectado != null) // Continua indo até a ultima posição conhecida
-            {
-              Chase(_vision._playerDetectado);
-            }
-          }
-          else
-          {
-            // Timer acabou -> volta a patrulhar
-            _currentState = WolfState.Patrol;
-            
-            _returningToPost = true;
-
-            _agent.isStopped = false;
-
-            _animimator.SetBool("isWalking", true);
-            _animimator.SetBool("isIdle", false);
-
-            _agent.SetDestination(_startPosition);
-          }
-        }
+        UpdateChaseState();
         break;
     }
+  }
+
+  protected void OnDisable()
+  {
+    Cleanup();
+  }
+
+  protected void OnDestroy()
+  {
+    Cleanup();
+  }
+  #endregion
+
+  #region State Logic
+  private void UpdatePatrolState()
+  {
+    // Transição para Chase
+    if (_vision != null && _vision._encontrouPlayer && _vision._playerDetectado != null)
+    {
+      SwitchToChase(_vision._playerDetectado);
+      return;
+    }
+
+    // Lógica de Retorno à Base
+    if (_returningToPost)
+    {
+      if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
+      {
+        _returningToPost = false;
+        StartIdleWait();
+      }
+      return;
+    }
+
+    // Chegada no ponto de patrulha
+    if (
+      !_isWaiting
+      && !_isAttacking
+      && !_agent.pathPending
+      && _agent.remainingDistance <= _agent.stoppingDistance
+    )
+    {
+      _currentPatrolCount++;
+
+      if (_currentPatrolCount < _patrolsBeforeIdle)
+      {
+        Patrol();
+      }
+      else
+      {
+        StartIdleWait();
+      }
+    }
+  }
+
+  private void UpdateChaseState()
+  {
+    bool seesPlayer =
+      _vision != null && _vision._encontrouPlayer && _vision._playerDetectado != null;
+
+    if (seesPlayer)
+    {
+      _memoryTimer = _chaseMemoryTime; // Reset timer
+      Chase(_vision._playerDetectado);
+
+      // Lógica de Ataque (Rush)
+      if (!_isAttacking && _dashTimer <= 0f)
+      {
+        float distSqr = Vector3.SqrMagnitude(
+          transform.position - _vision._playerDetectado.position
+        );
+
+        if (distSqr <= _attackDistanceSqr)
+        {
+          _dashTimer = _dashCooldown;
+
+          // Cancela ataque anterior se existir (segurança)
+          if (_attackCoroutine != null)
+            StopCoroutine(_attackCoroutine);
+          _attackCoroutine = StartCoroutine(PrepareThenRush(_vision._playerDetectado));
+        }
+      }
+    }
+    else
+    {
+      // Lógica de Memória (Perdeu a visão mas lembra da última posição)
+      if (_memoryTimer > 0f)
+      {
+        _memoryTimer -= Time.deltaTime;
+        if (_vision?._playerDetectado != null)
+        {
+          Chase(_vision._playerDetectado);
+        }
+      }
+      else
+      {
+        // Esqueceu -> Volta a Patrulhar
+        SwitchToPatrol();
+      }
+    }
+  }
+  #endregion
+
+  #region Actions
+  private void SwitchToChase(Transform target)
+  {
+    _currentState = WolfState.Chase;
+    _isWaiting = false;
+    _returningToPost = false;
+
+    StopIdleCoroutine(); // Interrompe idle se estiver esperando
+
+    _agent.isStopped = false;
+    _agent.speed = _chaseSpeed;
+
+    SetAnimationWalk(true);
+    _memoryTimer = _chaseMemoryTime;
+  }
+
+  private void SwitchToPatrol()
+  {
+    _currentState = WolfState.Patrol;
+    _returningToPost = true;
+
+    _agent.isStopped = false;
+    _agent.speed = _patrolSpeed;
+
+    SetAnimationWalk(true);
+
+    // Retorna para a posição inicial
+    _agent.SetDestination(_startPosition);
   }
 
   private void Patrol()
@@ -201,25 +280,26 @@ public class WolfBasicEnemy : NavBasedEnemy
       return;
 
     _agent.speed = _patrolSpeed;
+    _agent.isStopped = false;
 
-    Vector3 randomPoint =
-      _startPosition + UnityEngine.Random.insideUnitSphere * _patrolRadius;
-
+    // Gera ponto aleatório dentro do raio
+    Vector3 randomPoint = _startPosition + Random.insideUnitSphere * _patrolRadius;
     randomPoint.y = _startPosition.y;
 
-    if(NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+    if (
+      NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, _patrolRadius * 2f, NavMesh.AllAreas)
+    )
     {
       _agent.SetDestination(hit.position);
-
-      _animimator.SetBool("isWalking", true);
-      _animimator.SetBool("isIdle", false);
+      SetAnimationWalk(true);
     }
   }
 
   private void Chase(Transform target)
   {
-    if (target == null)
+    if (target == null || !_agent.isOnNavMesh)
       return;
+
     _agent.speed = _chaseSpeed;
     _agent.isStopped = false;
     _agent.SetDestination(target.position);
@@ -228,20 +308,16 @@ public class WolfBasicEnemy : NavBasedEnemy
   private IEnumerator PrepareThenRush(Transform playerTransform)
   {
     _isAttacking = true;
-    _animimator.SetBool("isAttacking", true);
-    _animimator.SetBool("isWalking", false);
-    _animimator.SetBool("isIdle", false);
+    _animator.SetBool("isAttacking", true);
+    SetAnimationWalk(false);
 
+    // Prepara para o ataque: para o NavMeshAgent
     _agent.isStopped = true;
     _agent.velocity = Vector3.zero;
+    _agent.enabled = false; // Desabilita navegação durante animação
 
-    // desliga o NavMesh
-
-    _agent.enabled = false;
-
-    // gira suavemente para o Player
-
-    Vector3 dir = (playerTransform.position - transform.position);
+    // Rotação suave para o alvo
+    Vector3 dir = playerTransform.position - transform.position;
     dir.y = 0;
 
     if (dir.sqrMagnitude > 0.001f)
@@ -250,162 +326,153 @@ public class WolfBasicEnemy : NavBasedEnemy
       transform.DORotateQuaternion(targetRot, 0.25f);
     }
 
-    // esperar carregar o ataque
-
     yield return new WaitForSeconds(_prepTime);
 
-    // calcula destino do Rush
-
-    Vector3 toPlayer = 
-      (playerTransform.position - transform.position);
-    
-    
+    // Calcula destino do Dash
+    Vector3 toPlayer = (playerTransform.position - transform.position);
     toPlayer.y = 0;
-    
-    Vector3 disered =
-      transform.position
-      + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude -  2.0f);
 
-    if(NavMesh.SamplePosition(
-      disered,
-      out NavMeshHit hit,
-      1.0f,
-      NavMesh.AllAreas))
+    // Garante que não dash através do player (subtrai margem de segurança)
+    float rushMagnitude = Mathf.Min(_rushDistance, toPlayer.magnitude - _minAttackDistance);
+    Vector3 desiredPos = transform.position + toPlayer.normalized * rushMagnitude;
+
+    if (NavMesh.SamplePosition(desiredPos, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
     {
-      disered = hit.position;
+      desiredPos = hit.position;
     }
+    desiredPos.y = transform.position.y;
 
-    disered.y = transform.position.y;
-
-    // executa a rush
-
+    // Executa o Dash com DOTween
     _currentTweener?.Kill();
-    _currentTweener = transform.DOMove(disered, _rushDuration)
-                      .SetEase(_rushEase);
-
-    //float elapsed = 0f;
+    _currentTweener = transform.DOMove(desiredPos, _rushDuration).SetEase(_rushEase);
 
     yield return _currentTweener.WaitForCompletion();
+    yield return new WaitForSeconds(0.05f); // Pequeno delay pós-impacto
 
-    yield return new WaitForSeconds(0.05f);
-
+    // Reabilita NavMesh
     _agent.enabled = true;
-
-
     _agent.isStopped = false;
-
-
     _agent.ResetPath();
 
+    // Reavalia situação pós-ataque
+    yield return EvaluatePostAttack(playerTransform);
+
     _isAttacking = false;
+    _animator.SetBool("isAttacking", false);
+    _attackCoroutine = null;
+  }
 
-    _animimator.SetBool("isAttacking", false);
+  private IEnumerator EvaluatePostAttack(Transform playerTransform)
+  {
+    // Verifica se o player ainda é um alvo válido
+    bool seesPlayer =
+      _vision != null && _vision._encontrouPlayer && _vision._playerDetectado != null;
 
-
-    if (_vision != null &&
-    _vision._encontrouPlayer &&
-    _vision._playerDetectado != null)
+    if (seesPlayer)
     {
-      float distance =
-          Vector3.Distance(
-              transform.position,
-              _vision._playerDetectado.position);
+      float distSqr = Vector3.SqrMagnitude(transform.position - playerTransform.position);
 
-      // PLAYER AINDA ESTÁ PERTO
-      if (distance <= _minAttackDistance)
+      // Se o player ainda está muito perto, não faz nada (combo ou recuo)
+      if (distSqr <= _minAttackDistanceSqr)
       {
         yield return new WaitForSeconds(0.15f);
-
-        _isAttacking = false;
-
         yield break;
       }
 
-      if(distance <= _attackDistance)
+      // Se está na distância de ataque, pode preparar outro
+      if (distSqr <= _attackDistanceSqr)
       {
         yield return new WaitForSeconds(0.15f);
-
-        _isAttacking = false;
-
         yield break;
       }
 
-      // PLAYER AFASTOU UM POUCO
-      // VOLTA A PERSEGUIR
-      _animimator.SetBool("isWalking", true);
-      _animimator.SetBool("isIdle", false);
-
-      _agent.SetDestination(
-          _vision._playerDetectado.position);
+      // Player se afastou um pouco, mas ainda visível: volta a perseguir
+      SetAnimationWalk(true);
+      Chase(playerTransform);
     }
     else
     {
-      // PERDEU PLAYER
-      _animimator.SetBool("isWalking", true);
-      _animimator.SetBool("isIdle", false);
-
-      _agent.SetDestination(_startPosition);
+      // Perdeu o player: volta para base
+      SetAnimationWalk(true);
+      SwitchToPatrol();
     }
+  }
 
+  private void StartIdleWait()
+  {
+    if (_idleCoroutine != null)
+      StopCoroutine(_idleCoroutine);
+    _idleCoroutine = StartCoroutine(WaitOnPatrol());
   }
 
   private IEnumerator WaitOnPatrol()
   {
-    if(_isAttacking || 
-      _currentState != WolfState.Patrol)
-    {
+    if (_isAttacking || _currentState != WolfState.Patrol)
       yield break;
 
-    }
-
     _isWaiting = true;
-    _isIndleAnimation = true;
-
     _agent.isStopped = true;
+    SetAnimationIdle(true);
 
-    // TRANSIÇÃO PARA IDLE
-    _animimator.SetBool("isWalking", false);
-    _animimator.SetBool("isIdle", true);
-
-    AnimatorStateInfo state =
-      _animimator.GetCurrentAnimatorStateInfo(0);
-
+    // Aguarda transição de animação
     yield return null;
-
-    while (_animimator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f)
+    while (_animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f)
     {
       yield return null;
     }
 
-
-
-    float waitTime = Random.Range(_minIdleTime,_maxIdleTime);
-
+    // Tempo de espera aleatório
+    float waitTime = Random.Range(_minIdleTime, _maxIdleTime);
     yield return new WaitForSeconds(waitTime);
 
-    if(_currentState != WolfState.Patrol)
-    {
-      _isWaiting = false;
-      _isIndleAnimation = false;
-
+    // Verifica se o estado não mudou durante a espera
+    if (_currentState != WolfState.Patrol)
       yield break;
-    }
-    
-    _animimator.SetBool("isIdle", false);
-    _animimator.SetBool("isWalking", true);
+
+    SetAnimationIdle(false);
+    SetAnimationWalk(true);
 
     _agent.isStopped = false;
-
     _currentPatrolCount = 0;
-
-    _patrolsBeforeIdle = 
-      Random.Range(_minPatrolsBeforeIdle,
-      _maxPatrolsBeforeIdle + 1);
-
+    _patrolsBeforeIdle = Random.Range(_minPatrolsBeforeIdle, _maxPatrolsBeforeIdle + 1);
 
     Patrol();
-
     _isWaiting = false;
-    _isIndleAnimation = false;
+    _idleCoroutine = null;
   }
+  #endregion
+
+  #region Helpers & Cleanup
+  private void SetAnimationWalk(bool value)
+  {
+    if (_animator != null)
+      _animator.SetBool("isWalking", value);
+  }
+
+  private void SetAnimationIdle(bool value)
+  {
+    if (_animator != null)
+      _animator.SetBool("isIdle", value);
+  }
+
+  private void StopIdleCoroutine()
+  {
+    if (_idleCoroutine != null)
+    {
+      StopCoroutine(_idleCoroutine);
+      _idleCoroutine = null;
+      _isWaiting = false;
+    }
+  }
+
+  private void Cleanup()
+  {
+    _currentTweener?.Kill();
+    _currentTweener = null;
+
+    if (_attackCoroutine != null)
+      StopCoroutine(_attackCoroutine);
+    StopIdleCoroutine();
+  }
+  #endregion
 }
