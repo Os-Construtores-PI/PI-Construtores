@@ -230,6 +230,7 @@ public static class Constants
     Player,
     Enemy,
     RunningWall,
+    Rail,
   }
 }
 

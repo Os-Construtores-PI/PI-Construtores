@@ -96,6 +96,7 @@ public enum ActionType
   GroundSlam,
   Boost,
   Bounce,
+  RailSlide,
 }
 
 public enum InputType

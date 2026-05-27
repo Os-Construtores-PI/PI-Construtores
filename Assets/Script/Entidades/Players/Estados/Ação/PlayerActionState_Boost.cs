@@ -43,7 +43,7 @@ public class PlayerActionStateBoost : IState<Player>
 
     float velocityFraction = _velocity / _maxVelocity;
 
-    player.LocomotionLayer.ChangeState(player.HLocked, player);
+    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
     player.SpeedLines.Invoke(true);
     player.CustomShake.Invoke(
       player.ID,

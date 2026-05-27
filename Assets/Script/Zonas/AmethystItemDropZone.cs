@@ -28,13 +28,28 @@ public class AmethystItemDropZone : ItemDropZone
   [SerializeField]
   private float _boostGrace = 10f;
 
+  [Header("Respawn")]
+  [SerializeField]
+  private float _respawnDuration = 5f;
+
   [Header("Áudio")]
   [SerializeField]
   private somMenu _somMenu;
 
-  private Tweener _currentTweener;
+  private Vector3 _initialScale;
+
+  private Tween _currentTweener;
   private Sequence _currentSequence;
+  private Tween _respawnTween;
   #endregion
+
+  public override void Initialize()
+  {
+    base.Initialize();
+    _initialScale = transform.localScale;
+  }
+
+  protected override void AfterCollect() { }
 
   protected override void AddItem(Player player)
   {
@@ -42,28 +57,22 @@ public class AmethystItemDropZone : ItemDropZone
       return;
 
     PlayAudioFeedback();
-
     DisableInteraction();
-
     ApplyGameplayEffects(player);
-
     PlayVisualFeedback();
   }
 
   private void PlayAudioFeedback()
   {
     if (AudioManager.Instance != null && _somMenu != null && _somMenu.amestinstSong != null)
-    {
       AudioManager.Instance.PlaySFX(_somMenu.amestinstSong);
-    }
   }
 
   private void DisableInteraction()
   {
     if (_boxCollider != null)
-    {
       _boxCollider.enabled = false;
-    }
+
     enabled = false;
   }
 
@@ -86,37 +95,29 @@ public class AmethystItemDropZone : ItemDropZone
 
   private void PlayVisualFeedback()
   {
-    Vector3 initialScale = transform.localScale;
-
     KillExistingAnimations();
 
     _currentSequence = DOTween.Sequence();
 
-    _currentSequence.Append(
-      transform.DOShakePosition(
-        _shakeDuration,
-        _shakeStrength,
-        _shakeVibrato,
-        _shakeRandomness,
-        false,
-        true
+    _currentSequence
+      .Append(
+        transform.DOShakePosition(
+          _shakeDuration,
+          _shakeStrength,
+          _shakeVibrato,
+          _shakeRandomness,
+          false,
+          true
+        )
       )
-    );
-
-    _currentSequence.Append(
-      transform.DOScale(initialScale * _scaleMultiplier, _shrinkDuration / 2f).SetEase(Ease.OutBack)
-    );
-
-    _currentSequence.Append(
-      transform.DOScale(Vector3.zero, _shrinkDuration / 2f).SetEase(Ease.InBack)
-    );
-
-    _currentSequence.AppendCallback(() =>
-    {
-      HandlePostAnimation();
-    });
-
-    _currentSequence.Play();
+      .Append(
+        transform
+          .DOScale(_initialScale * _scaleMultiplier, _shrinkDuration / 2f)
+          .SetEase(Ease.OutBack)
+      )
+      .Append(transform.DOScale(Vector3.zero, _shrinkDuration / 2f).SetEase(Ease.InBack))
+      .AppendCallback(HandlePostAnimation)
+      .Play();
   }
 
   private void HandlePostAnimation()
@@ -124,27 +125,27 @@ public class AmethystItemDropZone : ItemDropZone
     if (_destroyOnCollect)
     {
       Destroy(gameObject);
+      return;
     }
-    else
-    {
-      ResetZone();
-    }
+
+    _respawnTween = DOVirtual.DelayedCall(_respawnDuration, ResetZone);
+  }
+
+  public override void ResetZone()
+  {
+    transform.localScale = _initialScale;
+    base.ResetZone();
   }
 
   private void KillExistingAnimations()
   {
     _currentTweener?.Kill();
     _currentSequence?.Kill();
+    _respawnTween?.Kill();
     DOTween.Kill(transform);
   }
 
-  public void OnDisable()
-  {
-    KillExistingAnimations();
-  }
+  private void OnDisable() => KillExistingAnimations();
 
-  public void OnDestroy()
-  {
-    KillExistingAnimations();
-  }
+  private void OnDestroy() => KillExistingAnimations();
 }
