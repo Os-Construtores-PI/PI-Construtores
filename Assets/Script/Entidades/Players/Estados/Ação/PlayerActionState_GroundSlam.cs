@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class PlayerActionStateGroundSlam : IState<Player>
 {
   public ActionType Type => ActionType.GroundSlam;
   public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash, ActionType.Jump };
 
-  private const float SlamForce = 75f;
-  private const float MaxImpactCap = 30f;
+  [SerializeField]
+  private float SlamForce = 75f;
+
+  [SerializeField]
+  private float MaxImpactCap = 30f;
 
   private bool _deactivated = false;
   private Vector2 _momentum;

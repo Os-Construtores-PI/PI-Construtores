@@ -2,30 +2,45 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
+[System.Serializable]
 public class PlayerActionStateBoost : IState<Player>
 {
   #region IState
   public ActionType Type => ActionType.Boost;
   public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
+  private readonly HashSet<ActionType> _incompatibleActions = new();
   #endregion
 
-  #region Constants
+  #region Fields
   private const int MainCameraPriority = 10;
   private const int BoostCameraPriority = 20;
   private const int InactivePriority = 0;
 
-  private const float EnterShakeAmplitude = 1.5f;
-  private const float EnterShakeFrequency = .4f;
-  private const float EnterShakeDuration = .25f;
-  #endregion
+  [SerializeField]
+  private float EnterShakeAmplitude = 1.5f;
 
-  #region Fields
-  private readonly HashSet<ActionType> _incompatibleActions = new();
-  private readonly float _rotationSpeed = 50f;
-  private readonly float _boostUsage = 20f;
-  private readonly float _slopeLimit = 30f;
-  private readonly float _maxVelocity = 100f;
-  private readonly float _forcedDuration = 1.5f;
+  [SerializeField]
+  private float EnterShakeFrequency = .4f;
+
+  [SerializeField]
+  private float EnterShakeDuration = .25f;
+
+  [SerializeField]
+  private float _rotationSpeed = 50f;
+
+  [SerializeField]
+  private float _boostUsage = 20f;
+
+  [SerializeField]
+  private float _slopeLimit = 30f;
+
+  [SerializeField]
+  private float _maxVelocity = 100f;
+
+  [SerializeField]
+  private float _forcedDuration = 1.5f;
+
+  [SerializeField]
   private float _playerOriginalSpeed;
 
   private float _velocity;

@@ -2,18 +2,32 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
+[System.Serializable]
 public class PlayerActionStateDash : IState<Player>
 {
   private float timeToExit;
   private float timeToExitWalker = 0.0f;
-  private float _disableDamageCooldown = 4;
-  private readonly float _distanceThresold = 2;
   private float _initialDashSpeed;
   private float _initialDashDistance;
   private bool _firstTime;
+
+  //
+  [SerializeField]
+  private float _disableDamageCooldown = 4;
+
+  [SerializeField]
+  private readonly float _distanceThresold = 2;
+
+  [SerializeField]
   private float _minDashSpeed = 40f;
+
+  [SerializeField]
   private float _maxDashSpeed = 60f;
+
+  [SerializeField]
   private float _maxReferenceDistance = 20f;
+
+  [SerializeField]
   private float _speedExponent = 0.1f;
 
   public ActionType Type => ActionType.Dash;
