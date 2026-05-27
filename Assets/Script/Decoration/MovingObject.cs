@@ -5,7 +5,7 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Core.PathCore;
 using UnityEngine;
 
-public class MobileObject : MonoBehaviour // Alterado para MonoBehaviour para exemplo, mantenha sua base se preferir
+public class MovingObject : MonoBehaviour // Alterado para MonoBehaviour para exemplo, mantenha sua base se preferir
 {
   private readonly List<Vector3> _targets = new();
 
