@@ -65,9 +65,10 @@ public class PlayerActionStateBoost : IState<Player>
     _forcedTimer = 0f;
     _isFree = false;
 
+    TransitionToFreeMovement(player);
+
     player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
     player.SpeedLines.Invoke(false);
-    player.DashSlashBoostButton.Value = 0f; // Garante limpeza do recurso
 
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
