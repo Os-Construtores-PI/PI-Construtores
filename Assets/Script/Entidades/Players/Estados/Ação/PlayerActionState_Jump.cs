@@ -4,58 +4,56 @@ using UnityEngine;
 public class PlayerActionStateJump : IState<Player>
 {
   public ActionType Type => ActionType.Jump;
+
   public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
-  private HashSet<ActionType> _incompatibleActions = new();
+  private readonly HashSet<ActionType> _incompatibleActions = new();
+
+  private const float JumpHeightMultiplierPerExtraJump = 0.35f;
+  private const float WallJumpHorizontalBias = 6.5f;
 
   public void Enter(Player player)
   {
-    Vector3 moveOriginal = player.MovementVector;
-    Vector3 moveSubstitute = moveOriginal;
-    Vector3 moveAddition = new(0, 0, 0);
-
-    PlayerActionStateBounce bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
-    bool isBounce = bounceState != null && player.GroundSlamImpactSpeed > 0f;
+    Vector3 targetVelocity = player.MovementVector;
     float jumpY;
 
-    if (isBounce)
+    PlayerActionStateBounce bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
+    bool isBouncing = bounceState != null && player.GroundSlamImpactSpeed > 0f;
+
+    if (isBouncing)
     {
-      jumpY = bounceState.CalculateBounceImpulse(player, ref moveSubstitute);
+      jumpY = bounceState.CalculateBounceImpulse(player, ref targetVelocity);
       player.ActionLayer.ExitState(bounceState, player);
     }
     else
     {
-      float jumpMultiplier = 1f + player.CurrentJumpCount * 0.35f;
+      // Pulo normal ou múltiplo
+      float jumpMultiplier = 1f + player.CurrentJumpCount * JumpHeightMultiplierPerExtraJump;
       jumpY = player.JumpForce * jumpMultiplier;
     }
 
+    // 2️⃣ Lógica de Wall Jump
     if (player.TouchingWall)
     {
-      const float horizontalBias = 6.5f;
-      var jumpDir = (Vector3.up + player.LastWallNormal * horizontalBias).normalized;
-      Vector3 jumpCalculation = player.JumpForce * player.WallJumpMultiplier * jumpDir;
-      moveSubstitute = jumpCalculation;
-      moveAddition.y = jumpCalculation.y;
+      Vector3 jumpDir = (Vector3.up + player.LastWallNormal * WallJumpHorizontalBias).normalized;
+      targetVelocity = jumpDir * player.JumpForce * player.WallJumpMultiplier;
       player.TouchingWall = false;
     }
     else
     {
-      moveSubstitute.y = jumpY;
+      targetVelocity.y = jumpY;
     }
 
     if (player.CurrentJumpCount > 0)
-      player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
+      player.AnimatorComponent?.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
     player.CurrentJumpCount++;
-    player.EffectsSystem.PlayEffect(EffectType.JumpEffect, 1);
-    if (moveOriginal.y <= 0)
-    {
-      player.MovementVector = moveSubstitute;
-    }
-    else
-    {
-      player.MovementVector += moveAddition;
-    }
+    player.EffectsSystem?.PlayEffect(EffectType.JumpEffect, 1);
 
+    player.MovementVector = new Vector3(
+      player.MovementVector.x,
+      targetVelocity.y,
+      player.MovementVector.z
+    );
     player.ActionLayer.ExitState(this, player);
   }
 

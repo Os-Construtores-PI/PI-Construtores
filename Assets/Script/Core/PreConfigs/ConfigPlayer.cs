@@ -7,9 +7,6 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private float vidaMaxima;
 
-  [SerializeField]
-  private float defesa;
-
   [Header("Regeneração")]
   [SerializeField]
   private bool habilitarRegeneracao;
@@ -96,7 +93,6 @@ public class ConfigPlayer : ScriptableObject
   public void SetConfig(Player player)
   {
     player.MaxHealth = vidaMaxima;
-    player.Defense = defesa;
     player.EnableRegen = habilitarRegeneracao;
     player.RegenerationInterval = intervaloRegeneracao;
     player.Speed = velocidade;

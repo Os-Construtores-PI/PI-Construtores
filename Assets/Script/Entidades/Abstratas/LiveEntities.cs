@@ -4,9 +4,6 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 
-/// <summary>
-/// Base para entidades vivas que possuem saúde, defesa e sistema de stats com reflexão.
-/// </summary>
 public abstract class LiveEntities : Entities
 {
   [Header("Debug - Vida Atual")]
@@ -48,27 +45,12 @@ public abstract class LiveEntities : Entities
   }
 
   [HideInInspector]
-  [Stat(StatType.Defense)]
-  public float Defense
-  {
-    get => _defense;
-    set
-    {
-      Debug.Log($"{name} // Defense changed: {_defense} -> {value}");
-      _defense = Mathf.Clamp(value, 0f, MAX_DEFENSE);
-    }
-  }
-
-  [HideInInspector]
   [Stat(StatType.MaxHealth)]
   public float MaxHealth
   {
     get => _maxHealth;
     set => _maxHealth = Mathf.Max(1f, value);
   }
-
-  [HideInInspector]
-  public readonly float MAX_DEFENSE = 100f;
 
   #endregion
 

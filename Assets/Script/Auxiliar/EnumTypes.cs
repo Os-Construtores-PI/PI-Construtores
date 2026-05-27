@@ -32,7 +32,6 @@ public enum StatType
   JumpForce,
   Health,
   MaxHealth,
-  Defense,
 }
 
 public enum ItemUsageType

@@ -59,9 +59,7 @@ public class HurtboxComponent : MonoBehaviour
     if (!collider.TryGetComponent(out HitboxComponent hitbox) || !CanTakeDamage)
       return;
 
-    float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
-
-    entity.Health -= hitbox.Damage * (1 - factor);
+    entity.Health -= hitbox.Damage;
     entity.Damaged = true;
 
     TriggerInvulnerability(_initialCooldown);

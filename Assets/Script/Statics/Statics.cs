@@ -104,7 +104,6 @@ public static class StatTypeMap
     { StatType.Speed, typeof(float) },
     { StatType.Health, typeof(float) },
     { StatType.MaxHealth, typeof(float) },
-    { StatType.Defense, typeof(float) },
     { StatType.JumpForce, typeof(float) },
   };
 
