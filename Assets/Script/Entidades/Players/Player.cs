@@ -8,6 +8,7 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
 using UnityEngine.SceneManagement;
+using UnityEngine.Splines;
 using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
@@ -137,12 +138,13 @@ public class Player : CombatEntities
   public readonly PlayerActionStateBoost Boost = new();
   public readonly PlayerActionStateBounce Bounce = new();
   public readonly PlayerActionStateJump Jump = new();
+  public readonly PlayerActionStateRailSlide RailSlide = new();
   public BoostSlashDashButton DashSlashBoostButton;
 
   // Locomotion states
   public readonly PlayerLocomotionStateMoving Moving = new();
   public readonly PlayerLocomotionStateLocked Locked = new();
-  public readonly PlayerLocomotionStateHLocked HLocked = new();
+  public readonly PlayerLocomotionStateHLocked LockedInHorizontal = new();
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -230,6 +232,15 @@ public class Player : CombatEntities
   public TrailsWorker TrailsSystem = new();
   #endregion
 
+
+  // ─────────────────────────────────────────────────────────────
+  //  Rail
+  // ─────────────────────────────────────────────────────────────
+  #region
+  public SplineContainer CurrentRail;
+  public SplineContainer NextRailCanditate;
+  #endregion
+
   // ─────────────────────────────────────────────────────────────
   //  FLAGS DE CONTEXTO
   // ─────────────────────────────────────────────────────────────
@@ -263,6 +274,7 @@ public class Player : CombatEntities
   private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
+  private Scanner<Vector3, bool> _railScanner;
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -922,6 +934,20 @@ public class Player : CombatEntities
     RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
   }
   #endregion
+
+  // ─────────────────────────────────────────────────────────────
+  //  Colisão
+  // ─────────────────────────────────────────────────────────────
+  #region
+  public void OnControllerColliderHit(ControllerColliderHit hit)
+  {
+    if (hit.gameObject.CompareTag(Constants.Tags.Rail.ToString()))
+    {
+      ActionLayer.PushState(RailSlide, this);
+    }
+  }
+  #endregion
+
 
   // ─────────────────────────────────────────────────────────────
   //  MORTE

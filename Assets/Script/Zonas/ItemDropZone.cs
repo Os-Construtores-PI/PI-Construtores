@@ -62,6 +62,7 @@ public class ItemDropZone : Item
 
   public override void Awake()
   {
+    base.Awake(); // era chamado sem base
     Initialize();
   }
 
@@ -127,9 +128,7 @@ public class ItemDropZone : Item
       return;
 
     if (other.TryGetComponent(out Player player))
-    {
       TryCollect(player);
-    }
   }
 
   protected virtual bool TryCollect(Player player)
@@ -141,27 +140,24 @@ public class ItemDropZone : Item
       return false;
 
     _isCollected = true;
-
     AddItem(player);
-
     OnItemCollected?.Invoke(itemData, quantity, player);
-
-    if (_destroyOnCollect)
-    {
-      Destroy(gameObject, 0.1f);
-    }
-    else
-    {
-      DisableZone();
-    }
+    AfterCollect();
 
     return true;
   }
 
-  protected virtual bool CanCollect(Player player)
+  // Ponto de extensão: subclasses customizam o ciclo de vida pós-coleta aqui.
+  // O comportamento padrão usa _destroyOnCollect.
+  protected virtual void AfterCollect()
   {
-    return true;
+    if (_destroyOnCollect)
+      Destroy(gameObject);
+    else
+      DisableZone();
   }
+
+  protected virtual bool CanCollect(Player player) => true;
 
   protected virtual void AddItem(Player player)
   {
