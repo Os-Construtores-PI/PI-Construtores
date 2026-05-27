@@ -3,7 +3,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class RandomSpinObject : BaseRenderedGameObject
+public class TimedSpinObject : BaseRenderedGameObject
 {
   [SerializeField]
   private ActTransition _transitionListener;
@@ -63,7 +63,7 @@ public class RandomSpinObject : BaseRenderedGameObject
     Vector3 angleVector = new Vector3(0, 360 * _spins + pathRotation, 0);
 
     Sequence animationSequence = DOTween.Sequence();
-    animationSequence.AppendInterval(3f);
+    animationSequence.AppendInterval(_intervalDuration);
     animationSequence.Append(
       transform
         .DORotate(angleVector, _rotationDuration, RotateMode.FastBeyond360)
