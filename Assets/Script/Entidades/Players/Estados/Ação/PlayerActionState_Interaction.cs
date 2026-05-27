@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+[System.Serializable]
 public class PlayerActionStateInteraction : IState<Player>
 {
   public ActionType Type => ActionType.Interact;

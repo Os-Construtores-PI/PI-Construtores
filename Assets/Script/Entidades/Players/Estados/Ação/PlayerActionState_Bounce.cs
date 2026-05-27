@@ -1,15 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class PlayerActionStateBounce : IState<Player>
 {
   public ActionType Type => ActionType.Bounce;
   public HashSet<ActionType> IncompatibleActions => new();
 
-  private const float BounceWindowDuration = 0.4f;
-  private const int MaxBounceCombo = 3;
-  private const float BounceFrontImpulse = 30f;
-  private const float BounceConversionRate = 0.85f;
+  [SerializeField]
+  private float BounceWindowDuration = 0.4f;
+
+  [SerializeField]
+  private int MaxBounceCombo = 3;
+
+  [SerializeField]
+  private float BounceFrontImpulse = 30f;
+
+  [SerializeField]
+  private float BounceConversionRate = 0.85f;
   private readonly float[] ComboBonus = { 0f, 0.25f, 0.55f, 0.90f };
 
   public int Combo { get; private set; } = 0;

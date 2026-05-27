@@ -131,14 +131,16 @@ public class Player : CombatEntities
   public StackStateMachine<Player> ActionLayer = new();
 
   // Action states
-  public readonly PlayerActionStateDash Dash = new();
-  public readonly PlayerActionStateInteraction Interaction = new();
-  public readonly PlayerActionStateWallSliding WallSliding = new();
-  public readonly PlayerActionStateGroundSlam GroundSlam = new();
-  public readonly PlayerActionStateBoost Boost = new();
-  public readonly PlayerActionStateBounce Bounce = new();
-  public readonly PlayerActionStateJump Jump = new();
-  public readonly PlayerActionStateRailSlide RailSlide = new();
+
+  [Header("Estados")]
+  public PlayerActionStateDash Dash = new();
+  public PlayerActionStateInteraction Interaction = new();
+  public PlayerActionStateWallSliding WallSliding = new();
+  public PlayerActionStateGroundSlam GroundSlam = new();
+  public PlayerActionStateBoost Boost = new();
+  public PlayerActionStateBounce Bounce = new();
+  public PlayerActionStateJump Jump = new();
+  public PlayerActionStateRailSlide RailSlide = new();
   public BoostSlashDashButton DashSlashBoostButton;
 
   // Locomotion states

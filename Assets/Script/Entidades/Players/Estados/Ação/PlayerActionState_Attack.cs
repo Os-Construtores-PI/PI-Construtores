@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+[System.Serializable]
 public class PlayerActionPandoraAttackState : IState<Player>
 {
   public ActionType Type => ActionType.Attack;

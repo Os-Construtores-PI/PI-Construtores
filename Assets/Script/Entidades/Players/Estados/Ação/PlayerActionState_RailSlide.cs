@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
 
+[System.Serializable]
 public class PlayerActionStateRailSlide : IState<Player>
 {
   public ActionType Type => ActionType.RailSlide;

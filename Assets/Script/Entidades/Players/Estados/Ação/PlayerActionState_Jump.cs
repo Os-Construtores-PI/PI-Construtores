@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class PlayerActionStateJump : IState<Player>
 {
   public ActionType Type => ActionType.Jump;
@@ -8,8 +9,11 @@ public class PlayerActionStateJump : IState<Player>
   public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
   private readonly HashSet<ActionType> _incompatibleActions = new();
 
-  private const float JumpHeightMultiplierPerExtraJump = 0.35f;
-  private const float WallJumpHorizontalBias = 6.5f;
+  [SerializeField]
+  private float _jumpHeightMultiplierPerExtraJump = 0.35f;
+
+  [SerializeField]
+  private float _wallJumpHorizontalBias = 6.5f;
 
   public void Enter(Player player)
   {
@@ -27,14 +31,14 @@ public class PlayerActionStateJump : IState<Player>
     else
     {
       // Pulo normal ou múltiplo
-      float jumpMultiplier = 1f + player.CurrentJumpCount * JumpHeightMultiplierPerExtraJump;
+      float jumpMultiplier = 1f + player.CurrentJumpCount * _jumpHeightMultiplierPerExtraJump;
       jumpY = player.JumpForce * jumpMultiplier;
     }
 
     // 2️⃣ Lógica de Wall Jump
     if (player.TouchingWall)
     {
-      Vector3 jumpDir = (Vector3.up + player.LastWallNormal * WallJumpHorizontalBias).normalized;
+      Vector3 jumpDir = (Vector3.up + player.LastWallNormal * _wallJumpHorizontalBias).normalized;
       targetVelocity = jumpDir * player.JumpForce * player.WallJumpMultiplier;
       player.TouchingWall = false;
     }
