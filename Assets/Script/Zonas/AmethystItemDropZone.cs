@@ -3,49 +3,148 @@ using UnityEngine;
 
 public class AmethystItemDropZone : ItemDropZone
 {
-  private readonly float _scaleMultiplier = 1.5f;
-  private readonly float _durationScale = .25f;
+  #region Fields
+  [Header("Visual")]
+  [SerializeField]
+  private float _scaleMultiplier = 1.5f;
 
+  [SerializeField]
+  private float _shrinkDuration = 0.25f;
+
+  [Header("Feedback")]
+  [SerializeField]
+  private float _shakeDuration = 0.15f;
+
+  [SerializeField]
+  private float _shakeStrength = 0.3f;
+
+  [SerializeField]
+  private int _shakeVibrato = 20;
+
+  [SerializeField]
+  private float _shakeRandomness = 45f;
+
+  [Header("Gameplay")]
   [SerializeField]
   private float _boostGrace = 10f;
 
+  [Header("Áudio")]
   [SerializeField]
-  private somMenu somMenu;
+  private somMenu _somMenu;
+
+  private Tweener _currentTweener;
+  private Sequence _currentSequence;
+  #endregion
 
   protected override void AddItem(Player player)
   {
-    if(AudioManager.Instance != null && somMenu != null)
-    {
-      AudioManager.Instance.PlaySFX(somMenu.amestinstSong);
-    }
+    if (player == null)
+      return;
 
+    PlayAudioFeedback();
+
+    DisableInteraction();
+
+    ApplyGameplayEffects(player);
+
+    PlayVisualFeedback();
+  }
+
+  private void PlayAudioFeedback()
+  {
+    if (AudioManager.Instance != null && _somMenu != null && _somMenu.amestinstSong != null)
+    {
+      AudioManager.Instance.PlaySFX(_somMenu.amestinstSong);
+    }
+  }
+
+  private void DisableInteraction()
+  {
+    if (_boxCollider != null)
+    {
+      _boxCollider.enabled = false;
+    }
+    enabled = false;
+  }
+
+  private void ApplyGameplayEffects(Player player)
+  {
+    player.AddAmethysts(quantity, transform.position);
+
+    if (player.DashSlashBoostButton != null)
+    {
+      player.DashSlashBoostButton.Value += _boostGrace;
+    }
+    else
+    {
+      Debug.LogWarning(
+        "[AmethystItemDropZone] DashSlashBoostButton não configurado no Player.",
+        player
+      );
+    }
+  }
+
+  private void PlayVisualFeedback()
+  {
     Vector3 initialScale = transform.localScale;
 
-    player.AddAmethysts(quantity, transform.position);
-    player.DashSlashBoostButton.Value += _boostGrace;
-    _boxCollider.enabled = false;
+    KillExistingAnimations();
 
-    Sequence sequence = DOTween.Sequence();
+    _currentSequence = DOTween.Sequence();
 
-    sequence.Append(
+    _currentSequence.Append(
       transform.DOShakePosition(
-        duration: 0.15f,
-        strength: 0.3f,
-        vibrato: 20,
-        randomness: 45,
-        snapping: false,
-        fadeOut: true
+        _shakeDuration,
+        _shakeStrength,
+        _shakeVibrato,
+        _shakeRandomness,
+        false,
+        true
       )
     );
 
-    sequence.Append(
-      transform.DOScale(initialScale * _scaleMultiplier, _durationScale / 2).SetEase(Ease.OutBack)
+    _currentSequence.Append(
+      transform.DOScale(initialScale * _scaleMultiplier, _shrinkDuration / 2f).SetEase(Ease.OutBack)
     );
 
-    sequence.Append(transform.DOScale(0, _durationScale / 2).SetEase(Ease.InBack));
+    _currentSequence.Append(
+      transform.DOScale(Vector3.zero, _shrinkDuration / 2f).SetEase(Ease.InBack)
+    );
 
-    sequence.AppendCallback(() => gameObject.SetActive(false));
+    _currentSequence.AppendCallback(() =>
+    {
+      HandlePostAnimation();
+    });
 
-    sequence.Play();
+    _currentSequence.Play();
+  }
+
+  private void HandlePostAnimation()
+  {
+    if (_destroyOnCollect)
+    {
+      Destroy(gameObject);
+    }
+    else
+    {
+      ResetZone();
+    }
+  }
+
+  private void KillExistingAnimations()
+  {
+    _currentTweener?.Kill();
+    _currentSequence?.Kill();
+    DOTween.Kill(transform);
+  }
+
+  public void OnDisable()
+  {
+    KillExistingAnimations();
+  }
+
+  public void OnDestroy()
+  {
+    KillExistingAnimations();
   }
 }

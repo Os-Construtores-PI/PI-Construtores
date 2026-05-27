@@ -1,86 +1,207 @@
 using UnityEngine;
+using UnityEngine.Events;
 
-// Classe que representa uma zona onde um item pode ser pego (drop zone)
 public class ItemDropZone : Item
 {
-  protected GameObject _visualInstance;
-  protected BoxCollider _boxCollider;
-  protected Rigidbody _rb;
+  #region Fields & Events
+  [Header("Visual")]
+  [SerializeField]
+  private float _visualScaleMultiplier = 1f;
 
   [SerializeField]
-  protected int quantity;
+  protected bool _destroyOnCollect = true;
 
+  [Header("Colisão")]
+  [SerializeField]
+  private Vector3 _colliderSizeMultiplier = new(1.5f, 1.2f, 1.5f);
+
+  [SerializeField]
+  private Vector3 _colliderOffset = Vector3.zero;
+
+  [Header("Quantidade")]
+  [SerializeField]
+  protected int quantity = 1;
+
+  public UnityEvent<ItemData, int, Player> OnItemCollected;
+
+  private GameObject _visualInstance;
+  protected BoxCollider _boxCollider;
+  private bool _isCollected = false;
+  #endregion
+
+  #region Unity Lifecycle
 #if UNITY_EDITOR
-  public void OnDrawGizmos()
+  private void OnDrawGizmosSelected()
   {
-    if (Application.isPlaying || itemData == null || itemData.item == null)
+    if (itemData == null || itemData.item == null)
       return;
 
-    MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
-    if (mf != null && mf.sharedMesh != null)
-    {
-      Vector3 visualScale = itemData.item.transform.localScale;
+    Gizmos.color = new Color(1f, 0.8f, 0.2f, 0.7f);
 
-      Gizmos.color = Color.white;
-      Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
+    if (_boxCollider != null)
+    {
+      Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+      Gizmos.DrawWireCube(_boxCollider.center + _colliderOffset, _boxCollider.size);
+    }
+    else if (Application.isPlaying)
+    {
+      MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
+      if (mf?.sharedMesh != null)
+      {
+        Vector3 scale = itemData.item.transform.localScale * _visualScaleMultiplier;
+        Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, scale);
+      }
     }
   }
 
-  public void OnValidate()
+  private void OnValidate()
   {
-    // Força a atualização do Scene View quando você altera variáveis no Inspetor
-    UnityEditor.SceneView.RepaintAll();
+    _colliderSizeMultiplier = Vector3.Max(_colliderSizeMultiplier, Vector3.one * 0.1f);
   }
 #endif
 
-  public void Initialize()
+  public override void Awake()
   {
-    // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
-    if (_boxCollider == null)
-    {
-      _boxCollider = gameObject.AddComponent<BoxCollider>();
-      _boxCollider.isTrigger = true;
-    }
-    if (_rb == null)
-    {
-      // Rigidbody kinemático para interagir com física sem ser afetado por forças
-      _rb = gameObject.AddComponent<Rigidbody>();
-
-      _rb.isKinematic = true;
-    }
-
-    // Instancia o modelo visual do item se definido no ScriptableObject
-    if (itemData != null && itemData.item != null && transform.childCount < 1)
-    {
-      _visualInstance = Instantiate(itemData.item, transform);
-      _visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-
-      // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
-      if (itemData.item.TryGetComponent<MeshRenderer>(out var mesh))
-      {
-        _boxCollider.size = mesh.bounds.size * 3;
-        _boxCollider.center = Vector3.zero;
-      }
-    }
+    Initialize();
   }
 
   public override void Start()
   {
     base.Start();
-    Initialize();
+    if (_boxCollider == null)
+      Initialize();
+  }
+  #endregion
+
+  #region Initialization
+  public virtual void Initialize()
+  {
+    SetupCollider();
+    InstantiateVisual();
   }
 
-  // Método chamado quando outra colisão entra no trigger
-  public void OnTriggerEnter(Collider other)
+  private void SetupCollider()
   {
+    if (_boxCollider == null)
+    {
+      _boxCollider = gameObject.AddComponent<BoxCollider>();
+      _boxCollider.isTrigger = true;
+    }
+
+    if (itemData?.item != null)
+    {
+      MeshRenderer meshRenderer = itemData.item.GetComponentInChildren<MeshRenderer>();
+      if (meshRenderer != null)
+      {
+        Bounds bounds = meshRenderer.bounds;
+        Vector3 localSize = transform.InverseTransformVector(bounds.size);
+        _boxCollider.size = Vector3.Scale(localSize, _colliderSizeMultiplier);
+        _boxCollider.center = _colliderOffset;
+        return;
+      }
+    }
+
+    _boxCollider.size = Vector3.one * 2f;
+    _boxCollider.center = _colliderOffset;
+  }
+
+  private void InstantiateVisual()
+  {
+    if (itemData?.item == null || transform.childCount > 0)
+      return;
+
+    _visualInstance = Instantiate(itemData.item, transform);
+    _visualInstance.name = $"Visual_{itemData.item.name}";
+    _visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+    _visualInstance.transform.localScale = Vector3.one * _visualScaleMultiplier;
+
+    foreach (var rb in _visualInstance.GetComponentsInChildren<Rigidbody>())
+      rb.isKinematic = true;
+  }
+  #endregion
+
+  #region Collection Logic
+  private void OnTriggerEnter(Collider other)
+  {
+    if (_isCollected)
+      return;
+
     if (other.TryGetComponent(out Player player))
     {
-      if (itemData != null)
-      {
-        AddItem(player);
-      }
+      TryCollect(player);
     }
   }
 
-  protected virtual void AddItem(Player player) { }
+  protected virtual bool TryCollect(Player player)
+  {
+    if (player == null || itemData == null)
+      return false;
+
+    if (!CanCollect(player))
+      return false;
+
+    _isCollected = true;
+
+    AddItem(player);
+
+    OnItemCollected?.Invoke(itemData, quantity, player);
+
+    if (_destroyOnCollect)
+    {
+      Destroy(gameObject, 0.1f);
+    }
+    else
+    {
+      DisableZone();
+    }
+
+    return true;
+  }
+
+  protected virtual bool CanCollect(Player player)
+  {
+    return true;
+  }
+
+  protected virtual void AddItem(Player player)
+  {
+    if (player.Inventory != null)
+    {
+      player.Inventory.AddItem(itemData, quantity);
+    }
+    else
+    {
+      Debug.LogWarning(
+        $"[ItemDropZone] Player '{player.name}' não possui Inventory configurado.",
+        player
+      );
+    }
+  }
+
+  protected virtual void DisableZone()
+  {
+    _isCollected = true;
+    enabled = false;
+    if (_boxCollider != null)
+      _boxCollider.enabled = false;
+    if (_visualInstance != null)
+      _visualInstance.SetActive(false);
+  }
+
+  public virtual void ResetZone()
+  {
+    _isCollected = false;
+    enabled = true;
+    if (_boxCollider != null)
+      _boxCollider.enabled = true;
+    if (_visualInstance != null)
+      _visualInstance.SetActive(true);
+  }
+  #endregion
+
+  #region Public API
+  public void SetQuantity(int newQuantity) => quantity = Mathf.Max(1, newQuantity);
+
+  public bool IsCollected => _isCollected;
+  #endregion
 }
