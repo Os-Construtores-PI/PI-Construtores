@@ -16,6 +16,7 @@ public class PlayerActionStateBoost : IState<Player>
   private const int BoostCameraPriority = 20;
   private const int InactivePriority = 0;
 
+  [Header("Enter")]
   [SerializeField]
   private float EnterShakeAmplitude = 1.5f;
 
@@ -25,6 +26,7 @@ public class PlayerActionStateBoost : IState<Player>
   [SerializeField]
   private float EnterShakeDuration = .25f;
 
+  [Header("Boost Opções")]
   [SerializeField]
   private float _rotationSpeed = 50f;
 
