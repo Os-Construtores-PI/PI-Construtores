@@ -3,10 +3,9 @@ using UnityEngine;
 using UnityEngine.Splines;
 
 [RequireComponent(typeof(SplineContainer))]
-[RequireComponent(typeof(Collider))]
 public class RailObject : MonoBehaviour
 {
-  [Header("⚙️ Configurações do Rail")]
+  [Header("Configurações do Rail")]
   [Tooltip("Velocidade de slide exclusiva deste rail (m/s)")]
   [SerializeField]
   private float slideSpeed = 12f;
@@ -23,7 +22,7 @@ public class RailObject : MonoBehaviour
   [SerializeField]
   private float transitionRadius = 3f;
 
-  [Header("🎯 Collider")]
+  [Header("Collider")]
   [Tooltip("Layer para detectar entrada do player")]
   [SerializeField]
   private LayerMask playerLayer;

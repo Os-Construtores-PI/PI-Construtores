@@ -27346,6 +27346,46 @@ MonoBehaviour:
   GroundSlamHitboxCollider: {fileID: 5232564754573124142}
   AnimatorComponent: {fileID: 4498598552815147647}
   PlayerInput: {fileID: 4848141862502818215}
+  Dash:
+    _disableDamageCooldown: 4
+    _minDashSpeed: 40
+    _maxDashSpeed: 60
+    _maxReferenceDistance: 20
+    _speedExponent: 0.1
+  GroundSlam:
+    SlamForce: 75
+    MaxImpactCap: 30
+  Boost:
+    EnterShakeAmplitude: 1.5
+    EnterShakeFrequency: 0.4
+    EnterShakeDuration: 0.25
+    _rotationSpeed: 50
+    _boostUsage: 20
+    _slopeLimit: 30
+    _maxVelocity: 100
+    _forcedDuration: 1.5
+    _playerOriginalSpeed: 0
+  Bounce:
+    BounceWindowDuration: 0.4
+    MaxBounceCombo: 3
+    BounceFrontImpulse: 30
+    BounceConversionRate: 0.85
+  Jump:
+    _jumpHeightMultiplierPerExtraJump: 0.35
+    _wallJumpHorizontalBias: 6.5
+  RailSlide:
+    exitVelocityMultiplier: 2
+    modelOffset: {x: 0, y: 1.2, z: 0}
+  DashSlashBoostButton:
+    StartedChargingEv:
+      m_PersistentCalls:
+        m_Calls: []
+    ChargingEv:
+      m_PersistentCalls:
+        m_Calls: []
+    StoppedChargingEv:
+      m_PersistentCalls:
+        m_Calls: []
   MovementVector: {x: 0, y: 0, z: 0}
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
@@ -27358,6 +27398,7 @@ MonoBehaviour:
   IsDashBlocked: 0
   CurrentJumpCount: 0
   IsGrounded: 0
+  WantsToCancelRailSlide: 0
   IsDashing: 0
   MaxDashCount: 1
   CurrentDashCount: 0
@@ -27365,12 +27406,20 @@ MonoBehaviour:
   _modelTransform: {fileID: 6707445767027251514}
   _ultimoDispositivo: 0
   JumpInteractionPressed: 0
+  CurrentRail: {fileID: 0}
+  NextRailCanditate: {fileID: 0}
   enemyScanRadius: 10
   InteractionObject: {fileID: 0}
   _playerSFX: []
   CanAttack: 1
   WillAttack: 1
   _willInvertYAxis: 1
+  railScanRadius: 8
+  railLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  requireChainable: 1
+  ignoreCurrentRail: 1
 --- !u!54 &-2005523811532062704
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -33025,6 +33074,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CanTakeDamage: 1
+  _damageCooldown: 1
 --- !u!65 &3666272637302261351
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34570,7 +34620,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
   _maxDamage: 10
-  _upForce: 1
 --- !u!65 &8688263318238171917
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34903,7 +34952,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
   _maxDamage: 20
-  _upForce: 1
 --- !u!1 &7420621060131513517
 GameObject:
   m_ObjectHideFlags: 0
