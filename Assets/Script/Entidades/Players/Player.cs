@@ -186,8 +186,11 @@ public class Player : CombatEntities
   [HideInInspector]
   public int CurrentJumpCount = 0;
 
-  [SerializeField]
-  internal bool IsGrounded;
+  [HideInInspector]
+  public bool IsGrounded;
+
+  [HideInInspector]
+  public bool WantsToCancelRailSlide;
 
   private bool _canMove = true;
   private bool _canDash = true;
@@ -523,6 +526,7 @@ public class Player : CombatEntities
   {
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
+    TickDirector.Instance.OnFiveTick.AddListener(_ => _railScanner.Scan(transform.position));
 
     DashSlashBoostButton.StartedChargingEv.AddListener(() =>
       EffectsSystem.PlayEffect(EffectType.ChargingEffect, 1)
@@ -534,6 +538,7 @@ public class Player : CombatEntities
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
     _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
     _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(ScanWallRays);
+    _railScanner = new Scanner<Vector3, bool>(BuildRailScanner());
   }
 
   private RaycastHit? ScanWallRays((Ray left, Ray right) rays)
@@ -609,6 +614,94 @@ public class Player : CombatEntities
 
       return (false, default);
     };
+
+  // ─────────────────────────────────────────────────────────────
+  //  RAIL SCANNER – BuildRailScanner
+  // ─────────────────────────────────────────────────────────────
+  #region Rail Scanner – BuildRailScanner
+
+  [Header("Scanner – Rails")]
+  [SerializeField]
+  private float railScanRadius = 8f;
+
+  [SerializeField]
+  private LayerMask railLayer;
+
+  [SerializeField]
+  private bool requireChainable = true;
+
+  [SerializeField]
+  private bool ignoreCurrentRail = true;
+
+  private Func<Vector3, bool> BuildRailScanner() =>
+    position =>
+    {
+      Collider[] results = _railScanBuffer ??= new Collider[10];
+
+      int count = Physics.OverlapSphereNonAlloc(
+        position,
+        railScanRadius,
+        results,
+        railLayer,
+        QueryTriggerInteraction.Collide
+      );
+
+      RailObject bestCandidate = null;
+      float bestScore = float.MaxValue;
+
+      for (int i = 0; i < count; i++)
+      {
+        var railComp = results[i].GetComponent<RailObject>();
+        if (railComp == null)
+          continue;
+
+        var railSpline = results[i].GetComponent<SplineContainer>();
+        if (railSpline == null)
+          continue;
+
+        if (ignoreCurrentRail && CurrentRail != null && railSpline == CurrentRail)
+          continue;
+
+        if (requireChainable && !railComp.CanChain)
+          continue;
+
+        float score = CalculateRailTransitionScore(position, railSpline);
+
+        if (score < bestScore)
+        {
+          bestScore = score;
+          bestCandidate = railComp;
+        }
+      }
+
+      NextRailCanditate = bestCandidate?.GetComponent<SplineContainer>();
+
+      return NextRailCanditate != null;
+    };
+
+  private float CalculateRailTransitionScore(Vector3 fromPosition, SplineContainer rail)
+  {
+    float distance = Vector3.Distance(fromPosition, rail.transform.position);
+
+    if (MovementVector != Vector3.zero)
+    {
+      Vector3 toRail = (rail.transform.position - fromPosition).normalized;
+      float alignment = Vector3.Dot(MovementVector.normalized, toRail);
+
+      if (alignment > 0.5f)
+        distance *= 0.7f;
+    }
+
+    float heightDiff = Mathf.Abs(rail.transform.position.y - fromPosition.y);
+    if (heightDiff < 2f)
+      distance *= 0.9f;
+
+    return distance;
+  }
+
+  private Collider[] _railScanBuffer;
+
+  #endregion
   #endregion
 
   // ─────────────────────────────────────────────────────────────

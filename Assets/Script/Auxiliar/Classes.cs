@@ -396,6 +396,7 @@ public class IncreaseButton : PressAndReleaseButton
   private bool WasQuickPress() => Time.time - _initialTime < _simpleActionInterval;
 }
 
+[Serializable]
 public class BoostSlashDashButton : IncreaseButton
 {
   public float SpeedMultiplier => Value > 0f ? 2 : 1f;
@@ -406,7 +407,10 @@ public class BoostSlashDashButton : IncreaseButton
     float sumVelocity,
     float simpleActionInterval
   )
-    : base(player, maxValue, sumVelocity, simpleActionInterval) { }
+    : base(player, maxValue, sumVelocity, simpleActionInterval)
+  {
+    Value = _maxValue;
+  }
 
   protected override void SimpleAction()
   {

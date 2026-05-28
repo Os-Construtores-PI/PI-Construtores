@@ -17111,6 +17111,72 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7813307664466158325, guid: 8fe26f324f857e92aaf752df47725d04, type: 3}
   m_PrefabInstance: {fileID: 464864434}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &474016945
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 474016946}
+  - component: {fileID: 474016947}
+  - component: {fileID: 474016948}
+  m_Layer: 0
+  m_Name: Zone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &474016946
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474016945}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 19.979996, z: 0}
+  m_LocalScale: {x: 19.45, y: 19.45, z: 19.45}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1046593165}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &474016947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474016945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 182928b4f2496e649b4895d71f9769e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CheckpointZone
+--- !u!65 &474016948
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474016945}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &483481740
 GameObject:
   m_ObjectHideFlags: 0
@@ -34185,7 +34251,8 @@ Transform:
   m_LocalPosition: {x: 104.913475, y: -116.35663, z: -705.71295}
   m_LocalScale: {x: 1.5, y: 1, z: 1.72}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 474016946}
   m_Father: {fileID: 483481741}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1057679732
@@ -39425,6 +39492,7 @@ GameObject:
   - component: {fileID: 1244607878}
   - component: {fileID: 1244607877}
   - component: {fileID: 1244607876}
+  - component: {fileID: 1244607879}
   m_Layer: 0
   m_Name: Rail
   m_TagString: Untagged
@@ -39474,10 +39542,10 @@ MonoBehaviour:
         z: 1.8000001
       Rotation:
         value:
-          x: 0
-          y: -0.70710677
-          z: -0
-          w: 0.70710677
+          x: -0.06123736
+          y: -0.7044501
+          z: 0.06123736
+          w: 0.7044501
     - Position:
         x: -18
         y: 0
@@ -39546,10 +39614,10 @@ MonoBehaviour:
         z: 2.8
       Rotation:
         value:
-          x: 0
-          y: 0.7071067
-          z: 0
-          w: 0.70710677
+          x: -0.061237376
+          y: 0.7044501
+          z: -0.06123738
+          w: 0.70445013
     m_MetaData:
     - Mode: 0
       Tension: 0.5
@@ -39676,6 +39744,26 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1244607872}
   m_Mesh: {fileID: 0}
+--- !u!114 &1244607879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244607872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ced3eb6a320a2474aaa804795b5f4ad1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  slideSpeed: 20
+  direction: 0
+  canChain: 1
+  transitionRadius: 3
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 262208
+  triggerRadius: 1.5
 --- !u!1 &1260859209
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 
@@ -7,33 +8,143 @@ public class PlayerActionStateRailSlide : IState<Player>
 {
   public ActionType Type => ActionType.RailSlide;
 
-  private readonly HashSet<ActionType> _incompatibleAction = new() { { ActionType.Dash } };
-  public HashSet<ActionType> IncompatibleActions => _incompatibleAction;
+  private readonly HashSet<ActionType> _incompatibleActions = new() { ActionType.Dash };
+  public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
 
+  private RailObject _currentRailObject;
   private SplineContainer _currentRail;
   private float _currentRailLength;
+  private float _t;
+  private float _direction = 1f;
+  private bool _isActive;
+
+  [SerializeField]
+  private float exitVelocityMultiplier = 1.2f;
 
   public void Enter(Player player)
   {
-    if (player.CurrentRail == null)
+    player.WantsToCancelRailSlide = false;
+
+    if (player.CurrentRail == null || player.CurrentRail.Spline.Count == 0)
     {
-      _currentRail = null;
-      _currentRailLength = default;
+      _isActive = false;
       player.ActionLayer.ExitState(this, player);
       return;
     }
 
-    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
+    _currentRailObject = player.CurrentRail.GetComponent<RailObject>();
+    if (_currentRailObject == null)
+    {
+      player.ActionLayer.ExitState(this, player);
+      return;
+    }
+
     _currentRail = player.CurrentRail;
     _currentRailLength = _currentRail.Spline.GetLength();
+
+    float3 localPlayerPos = _currentRail.transform.InverseTransformPoint(player.transform.position);
+    SplineUtility.GetNearestPoint(
+      _currentRail.Spline,
+      localPlayerPos,
+      out float3 nearestLocal,
+      out _t
+    );
+    player.transform.position = _currentRail.transform.TransformPoint(nearestLocal);
+    float3 tangentLocal = _currentRail.Spline.EvaluateTangent(_t);
+    Vector3 tangentWorld = _currentRail.transform.TransformDirection(tangentLocal);
+    float angle = Vector3.Angle(tangentWorld, player.transform.forward);
+    _direction = angle > 90f ? -1f : 1f;
+
+    _isActive = true;
+    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
   }
 
   public void Exit(Player player)
   {
+    _currentRailObject = null;
+    _currentRail = null;
+    _isActive = false;
+    player.CharacterController.enabled = true;
+    player.CurrentJumpCount = 0;
+    player.CurrentDashCount = 0;
     player.LocomotionLayer.ChangeState(player.Moving, player);
   }
 
   public void FixedUpdate(Player player) { }
 
-  public void Update(Player player) { }
+  public void Update(Player player)
+  {
+    if (!_isActive || _currentRail == null)
+      return;
+
+    if (player.WantsToCancelRailSlide)
+    {
+      player.WantsToCancelRailSlide = false;
+      TryTransitionOrExit(player);
+      return;
+    }
+
+    float distanceThisFrame = _currentRailObject.SlideSpeed * Time.deltaTime;
+    _t += distanceThisFrame * _direction / _currentRailLength;
+
+    if (_t >= 1f || _t <= 0f)
+    {
+      _t = Mathf.Clamp01(_t);
+      ExitWithMomentum(player);
+      return;
+    }
+
+    Vector3 position = _currentRail.transform.TransformPoint(
+      _currentRail.Spline.EvaluatePosition(_t)
+    );
+    Vector3 tangent = _currentRail.transform.TransformDirection(
+      _currentRail.Spline.EvaluateTangent(_t)
+    );
+    Vector3 up = _currentRail.transform.TransformDirection(
+      _currentRail.Spline.EvaluateUpVector(_t)
+    );
+
+    player.transform.position = position;
+    player.CharacterController.enabled = false;
+
+    if (tangent != Vector3.zero)
+      player.transform.rotation = Quaternion.LookRotation(tangent * _direction, up);
+  }
+
+  private void TryTransitionOrExit(Player player)
+  {
+    if (player.NextRailCanditate != null && _currentRailObject.CanChain)
+    {
+      float distance = Vector3.Distance(
+        player.transform.position,
+        player.NextRailCanditate.transform.position
+      );
+
+      if (distance <= _currentRailObject.TransitionRadius)
+      {
+        TransitionToNextRail(player);
+        return;
+      }
+    }
+
+    ExitWithMomentum(player);
+  }
+
+  private void TransitionToNextRail(Player player)
+  {
+    player.CurrentRail = player.NextRailCanditate;
+    player.NextRailCanditate = null;
+    player.ActionLayer.ExitState(this, player);
+    player.ActionLayer.PushStateDeferred(player.RailSlide, player);
+  }
+
+  private void ExitWithMomentum(Player player)
+  {
+    Vector3 tangent = _currentRail.transform.TransformDirection(
+      _currentRail.Spline.EvaluateTangent(_t)
+    );
+    float exitSpeed = _currentRailObject.SlideSpeed * exitVelocityMultiplier;
+    player.MovementVector += tangent.normalized * _direction * exitSpeed;
+    player.ActionLayer.ExitState(this, player);
+  }
 }
