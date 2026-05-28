@@ -21,6 +21,9 @@ public class PlayerActionStateRailSlide : IState<Player>
   [SerializeField]
   private float exitVelocityMultiplier = 1.2f;
 
+  [SerializeField]
+  private Vector3 modelOffset = new(0f, 2f, 0f);
+
   public void Enter(Player player)
   {
     player.WantsToCancelRailSlide = false;
@@ -49,14 +52,23 @@ public class PlayerActionStateRailSlide : IState<Player>
       out float3 nearestLocal,
       out _t
     );
+
     player.transform.position = _currentRail.transform.TransformPoint(nearestLocal);
+    player.CharacterController.enabled = false;
+
+    player.CurrentJumpCount = 0;
+    player.CurrentDashCount = 0;
+
+    if (player.TryGetComponent<Rigidbody>(out var rb))
+      rb.interpolation = RigidbodyInterpolation.Interpolate;
+
     float3 tangentLocal = _currentRail.Spline.EvaluateTangent(_t);
     Vector3 tangentWorld = _currentRail.transform.TransformDirection(tangentLocal);
     float angle = Vector3.Angle(tangentWorld, player.transform.forward);
     _direction = angle > 90f ? -1f : 1f;
 
     _isActive = true;
-    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
+    player.LocomotionLayer.ChangeState(player.Locked, player);
   }
 
   public void Exit(Player player)
@@ -65,14 +77,21 @@ public class PlayerActionStateRailSlide : IState<Player>
     _currentRail = null;
     _isActive = false;
     player.CharacterController.enabled = true;
+    player.transform.up = Vector3.up;
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
+
+    if (player.TryGetComponent<Rigidbody>(out var rb))
+      rb.interpolation = RigidbodyInterpolation.Interpolate;
+
     player.LocomotionLayer.ChangeState(player.Moving, player);
   }
 
+  public void Update(Player player) => UpdateMovement(player);
+
   public void FixedUpdate(Player player) { }
 
-  public void Update(Player player)
+  private void UpdateMovement(Player player)
   {
     if (!_isActive || _currentRail == null)
       return;
@@ -104,11 +123,13 @@ public class PlayerActionStateRailSlide : IState<Player>
       _currentRail.Spline.EvaluateUpVector(_t)
     );
 
-    player.transform.position = position;
-    player.CharacterController.enabled = false;
-
-    if (tangent != Vector3.zero)
+    if (tangent.sqrMagnitude > 0.0001f)
       player.transform.rotation = Quaternion.LookRotation(tangent * _direction, up);
+
+    Vector3 right = Vector3.Cross(up, tangent.normalized).normalized;
+    Vector3 stableOffset =
+      (up * modelOffset.y) + (right * modelOffset.x) + (tangent.normalized * modelOffset.z);
+    player.transform.position = position + stableOffset;
   }
 
   private void TryTransitionOrExit(Player player)
