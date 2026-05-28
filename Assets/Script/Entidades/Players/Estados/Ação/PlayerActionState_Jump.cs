@@ -30,12 +30,10 @@ public class PlayerActionStateJump : IState<Player>
     }
     else
     {
-      // Pulo normal ou múltiplo
       float jumpMultiplier = 1f + player.CurrentJumpCount * _jumpHeightMultiplierPerExtraJump;
       jumpY = player.JumpForce * jumpMultiplier;
     }
 
-    // 2️⃣ Lógica de Wall Jump
     if (player.TouchingWall)
     {
       Vector3 jumpDir = (Vector3.up + player.LastWallNormal * _wallJumpHorizontalBias).normalized;
@@ -51,6 +49,10 @@ public class PlayerActionStateJump : IState<Player>
       player.AnimatorComponent?.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
     player.CurrentJumpCount++;
+
+    if (player.ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+      player.WantsToCancelRailSlide = true;
+
     player.EffectsSystem?.PlayEffect(EffectType.JumpEffect, 1);
 
     player.MovementVector = new Vector3(
