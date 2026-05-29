@@ -140,6 +140,7 @@ public static class Constants
   public static class AnimatorBoolNames
   {
     public const string IsGrounded = nameof(IsGrounded);
+    public const string IsSliding = nameof(IsSliding);
   }
 
   public static class AnimatorFloatNames

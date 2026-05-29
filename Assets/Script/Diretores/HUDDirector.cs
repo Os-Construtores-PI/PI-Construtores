@@ -611,7 +611,7 @@ public class HudDirector : MonoBehaviour
   private void DeathPanel()
   {
     CursorOptions(visible: true);
-    if(AudioManager.Instance != null && somMenu != null)
+    if (AudioManager.Instance != null && somMenu != null)
     {
       AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
     }

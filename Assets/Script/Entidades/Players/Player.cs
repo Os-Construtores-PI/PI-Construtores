@@ -64,20 +64,40 @@ public class Player : CombatEntities
     set => _jumpForce = value;
   }
 
-  internal int MaxJumpCount = 2;
-  internal float WallJumpMultiplier = 5f;
-  internal float GravityValue;
-  internal float GravityUpMultiplier = 2.2f;
-  internal float GravityDownMultiplier = 0.6f;
-  internal float MaxFallSpeed = -26f;
-  internal float InitialGravityValue;
+  [HideInInspector]
+  public int MaxJumpCount = 2;
+
+  [HideInInspector]
+  public float WallJumpMultiplier = 5f;
+
+  [HideInInspector]
+  public float GravityValue;
+
+  [HideInInspector]
+  public float GravityUpMultiplier = 2.2f;
+
+  [HideInInspector]
+  public float GravityDownMultiplier = 0.6f;
+
+  [HideInInspector]
+  public float MaxFallSpeed = -26f;
+
+  [HideInInspector]
+  public float InitialGravityValue;
   #endregion
 
   #region Movimento – Dash
-  internal float DashSpeed = 30f;
-  internal float DashDistance = 5f;
-  internal float DashCooldown = 1f;
-  internal ShiftDashScript DashHudScript;
+  [HideInInspector]
+  public float DashSpeed = 30f;
+
+  [HideInInspector]
+  public float DashDistance = 5f;
+
+  [HideInInspector]
+  public float DashCooldown = 1f;
+
+  [HideInInspector]
+  public ShiftDashScript DashHudScript;
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -242,7 +262,10 @@ public class Player : CombatEntities
   //  Rail
   // ─────────────────────────────────────────────────────────────
   #region
+  [HideInInspector]
   public SplineContainer CurrentRail;
+
+  [HideInInspector]
   public SplineContainer NextRailCanditate;
   #endregion
 
@@ -279,7 +302,26 @@ public class Player : CombatEntities
   private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
-  private Scanner<Vector3, bool> _railScanner;
+
+  // ─────────────────────────────────────────────────────────────
+  //  SCANNERS – Rail Entry
+  // ─────────────────────────────────────────────────────────────
+  #region Scanners – Rail Entry
+  private Scanner<Vector3, RailObject> _railEntryScanner;
+
+  [Header("Scanner -- Trilho")]
+  [SerializeField]
+  private float _railEntryRadius = 1.2f;
+
+  [SerializeField]
+  private float _railEntryForwardOffset = 0.8f;
+
+  [SerializeField]
+  private float _railEntryMinDot = 0.3f;
+
+  [SerializeField]
+  private LayerMask _railLayerMask;
+  #endregion
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -318,14 +360,15 @@ public class Player : CombatEntities
 
   public void SetAmethysts(int value, Vector3? amethystPos)
   {
-    if (amethysts == value)
+    int clamped = Mathf.Max(0, value);
+    if (amethysts == clamped)
       return;
 
     Vector3? positionInCamera = amethystPos.HasValue
       ? _myCamera.WorldToScreenPoint(amethystPos.Value)
-      : (Vector3?)null;
+      : null;
 
-    amethysts = Mathf.Max(0, value);
+    amethysts = clamped;
     GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
   }
 
@@ -431,6 +474,8 @@ public class Player : CombatEntities
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
+    _railLayerMask = LayerMask.GetMask("Default");
+
     DetectarDispositivo(PlayerInput);
     DashSlashBoostButton = new(this, 100, 50, .5f);
   }
@@ -524,9 +569,9 @@ public class Player : CombatEntities
 
   private void SetupScanners()
   {
+    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanRailEntry());
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-    TickDirector.Instance.OnFiveTick.AddListener(_ => _railScanner.Scan(transform.position));
 
     DashSlashBoostButton.StartedChargingEv.AddListener(() =>
       EffectsSystem.PlayEffect(EffectType.ChargingEffect, 1)
@@ -538,7 +583,8 @@ public class Player : CombatEntities
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
     _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
     _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(ScanWallRays);
-    _railScanner = new Scanner<Vector3, bool>(BuildRailScanner());
+
+    _railEntryScanner = new Scanner<Vector3, RailObject>(BuildRailEntryScanner());
   }
 
   private RaycastHit? ScanWallRays((Ray left, Ray right) rays)
@@ -615,93 +661,65 @@ public class Player : CombatEntities
       return (false, default);
     };
 
-  // ─────────────────────────────────────────────────────────────
-  //  RAIL SCANNER – BuildRailScanner
-  // ─────────────────────────────────────────────────────────────
-  #region Rail Scanner – BuildRailScanner
-
-  [Header("Scanner – Rails")]
-  [SerializeField]
-  private float railScanRadius = 8f;
-
-  [SerializeField]
-  private LayerMask railLayer;
-
-  [SerializeField]
-  private bool requireChainable = true;
-
-  [SerializeField]
-  private bool ignoreCurrentRail = true;
-
-  private Func<Vector3, bool> BuildRailScanner() =>
-    position =>
+  private Func<Vector3, RailObject> BuildRailEntryScanner() =>
+    playerPos =>
     {
-      Collider[] results = _railScanBuffer ??= new Collider[10];
+      if (CurrentRail != null)
+        return null;
+      if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+        return null;
 
-      int count = Physics.OverlapSphereNonAlloc(
-        position,
-        railScanRadius,
-        results,
-        railLayer,
-        QueryTriggerInteraction.Collide
+      if (MovementVector.sqrMagnitude < 0.01f)
+        return null;
+
+      float detectionRadius = _railEntryRadius;
+      float forwardOffset = _railEntryForwardOffset;
+
+      Vector3 moveDir = MovementVector.normalized;
+      Vector3 scanOrigin = playerPos + moveDir * forwardOffset;
+
+      var hits = Physics.OverlapSphere(
+        scanOrigin,
+        detectionRadius,
+        _railLayerMask,
+        QueryTriggerInteraction.Ignore
       );
 
-      RailObject bestCandidate = null;
-      float bestScore = float.MaxValue;
+      RailObject bestRail = null;
+      float bestDot = _railEntryMinDot;
 
-      for (int i = 0; i < count; i++)
+      foreach (var hit in hits)
       {
-        var railComp = results[i].GetComponent<RailObject>();
-        if (railComp == null)
+        if (!hit.TryGetComponent(out RailObject rail))
           continue;
 
-        var railSpline = results[i].GetComponent<SplineContainer>();
-        if (railSpline == null)
-          continue;
+        Vector3 toRail = (hit.transform.position - playerPos).normalized;
+        float moveDot = Vector3.Dot(toRail, moveDir);
 
-        if (ignoreCurrentRail && CurrentRail != null && railSpline == CurrentRail)
-          continue;
-
-        if (requireChainable && !railComp.CanChain)
-          continue;
-
-        float score = CalculateRailTransitionScore(position, railSpline);
-
-        if (score < bestScore)
+        if (moveDot >= bestDot)
         {
-          bestScore = score;
-          bestCandidate = railComp;
+          bestRail = rail;
+          bestDot = moveDot;
         }
       }
 
-      NextRailCanditate = bestCandidate?.GetComponent<SplineContainer>();
-
-      return NextRailCanditate != null;
+      return bestRail;
     };
 
-  private float CalculateRailTransitionScore(Vector3 fromPosition, SplineContainer rail)
+  private void ScanRailEntry()
   {
-    float distance = Vector3.Distance(fromPosition, rail.transform.position);
+    var (executed, rail) = _railEntryScanner.Scan(transform.position);
 
-    if (MovementVector != Vector3.zero)
+    if (executed && rail != null)
     {
-      Vector3 toRail = (rail.transform.position - fromPosition).normalized;
-      float alignment = Vector3.Dot(MovementVector.normalized, toRail);
+      ActionLayer.PushState(RailSlide, this);
 
-      if (alignment > 0.5f)
-        distance *= 0.7f;
+#if UNITY_EDITOR
+      Debug.Log($"[RailEntry] Detected: {rail.name} at {Time.time:F2}");
+#endif
     }
-
-    float heightDiff = Mathf.Abs(rail.transform.position.y - fromPosition.y);
-    if (heightDiff < 2f)
-      distance *= 0.9f;
-
-    return distance;
   }
 
-  private Collider[] _railScanBuffer;
-
-  #endregion
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -1027,19 +1045,6 @@ public class Player : CombatEntities
       (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
     );
     RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
-  }
-  #endregion
-
-  // ─────────────────────────────────────────────────────────────
-  //  Colisão
-  // ─────────────────────────────────────────────────────────────
-  #region
-  public void OnControllerColliderHit(ControllerColliderHit hit)
-  {
-    if (hit.gameObject.CompareTag(Constants.Tags.Rail.ToString()))
-    {
-      ActionLayer.PushState(RailSlide, this);
-    }
   }
   #endregion
 

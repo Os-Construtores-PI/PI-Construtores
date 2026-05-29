@@ -8,7 +8,11 @@ public class PlayerActionStateRailSlide : IState<Player>
 {
   public ActionType Type => ActionType.RailSlide;
 
-  private readonly HashSet<ActionType> _incompatibleActions = new() { ActionType.Dash };
+  private readonly HashSet<ActionType> _incompatibleActions = new()
+  {
+    ActionType.Dash,
+    ActionType.GroundSlam,
+  };
   public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
 
   private RailObject _currentRailObject;
@@ -55,7 +59,7 @@ public class PlayerActionStateRailSlide : IState<Player>
 
     player.transform.position = _currentRail.transform.TransformPoint(nearestLocal);
     player.CharacterController.enabled = false;
-
+    player.AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsSliding, true);
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
 
@@ -76,7 +80,9 @@ public class PlayerActionStateRailSlide : IState<Player>
     _currentRailObject = null;
     _currentRail = null;
     _isActive = false;
+
     player.CharacterController.enabled = true;
+    player.AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsSliding, false);
     player.transform.up = Vector3.up;
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
@@ -109,7 +115,7 @@ public class PlayerActionStateRailSlide : IState<Player>
     if (_t >= 1f || _t <= 0f)
     {
       _t = Mathf.Clamp01(_t);
-      ExitWithMomentum(player);
+      TryTransitionOrExit(player);
       return;
     }
 
@@ -134,18 +140,35 @@ public class PlayerActionStateRailSlide : IState<Player>
 
   private void TryTransitionOrExit(Player player)
   {
-    if (player.NextRailCanditate != null && _currentRailObject.CanChain)
+    if (_currentRail == null || _currentRailObject == null || !player.NextRailCanditate)
     {
-      float distance = Vector3.Distance(
-        player.transform.position,
-        player.NextRailCanditate.transform.position
-      );
+      ExitWithMomentum(player);
+      return;
+    }
 
-      if (distance <= _currentRailObject.TransitionRadius)
-      {
-        TransitionToNextRail(player);
-        return;
-      }
+    if (!_currentRailObject.CanChain)
+    {
+      ExitWithMomentum(player);
+      return;
+    }
+
+    var nextSpline = player.NextRailCanditate.Spline;
+    if (nextSpline.Count == 0)
+    {
+      ExitWithMomentum(player);
+      return;
+    }
+
+    Vector3 nextEntryPoint = player.NextRailCanditate.transform.TransformPoint(
+      (Vector3)nextSpline.EvaluatePosition(0f)
+    );
+
+    float distance = Vector3.Distance(player.transform.position, nextEntryPoint);
+
+    if (distance <= _currentRailObject.TransitionRadius)
+    {
+      TransitionToNextRail(player);
+      return;
     }
 
     ExitWithMomentum(player);
@@ -153,14 +176,39 @@ public class PlayerActionStateRailSlide : IState<Player>
 
   private void TransitionToNextRail(Player player)
   {
-    player.CurrentRail = player.NextRailCanditate;
+    if (player.NextRailCanditate == null)
+    {
+      ExitWithMomentum(player);
+      return;
+    }
+
+    var nextRailObject = player.NextRailCanditate.GetComponent<RailObject>();
+    if (nextRailObject == null)
+    {
+      ExitWithMomentum(player);
+      return;
+    }
+
+    if (!nextRailObject.TryAttachPlayer(player))
+    {
+      Debug.LogWarning($"[RailSlide] TryAttachPlayer failed for {nextRailObject.name}");
+      ExitWithMomentum(player);
+      return;
+    }
+
     player.NextRailCanditate = null;
     player.ActionLayer.ExitState(this, player);
-    player.ActionLayer.PushStateDeferred(player.RailSlide, player);
+    player.ActionLayer.PushState(player.RailSlide, player);
   }
 
   private void ExitWithMomentum(Player player)
   {
+    if (_currentRail == null || _currentRailObject == null)
+    {
+      player.ActionLayer.ExitState(this, player);
+      return;
+    }
+
     Vector3 tangent = _currentRail.transform.TransformDirection(
       _currentRail.Spline.EvaluateTangent(_t)
     );

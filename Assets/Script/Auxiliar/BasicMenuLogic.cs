@@ -17,7 +17,7 @@ public class BasicMenuLogic : MonoBehaviour
 
   public void OpenMenuGameOver()
   {
-    if(AudioManager.Instance != null && somMenu != null)
+    if (AudioManager.Instance != null && somMenu != null)
     {
       AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
     }
