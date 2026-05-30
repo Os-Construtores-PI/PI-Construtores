@@ -156,7 +156,7 @@
           env = {
             DOTNET_CLI_TELEMETRY_OPTOUT = "1";
             DOTNET_NOLOGO = "1";
-            DOTNET_ROLL_FORWARD = "LatestMinor";
+            DOTNET_ROLL_FORWARD = "Major";
           };
 
           shellHook = hooks.shellHook + ''
