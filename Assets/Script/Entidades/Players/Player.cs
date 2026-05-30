@@ -21,7 +21,7 @@ public class Player : CombatEntities
   //  MOVIMENTO
   // ─────────────────────────────────────────────────────────────
   #region Movimento – Stats
-  private float _speed = 10f;
+  private float _speed;
 
   [HideInInspector]
   [Stat(StatType.Speed)]
@@ -38,23 +38,23 @@ public class Player : CombatEntities
   public float RunAccelMultiplier;
 
   [HideInInspector]
-  public QualityTier WallSpeedMultiplier = QualityTier.RARE;
+  public QualityTier WallSpeedMultiplier;
 
   [HideInInspector]
-  public float Acceleration = 5f;
+  public float Acceleration;
 
   [HideInInspector]
-  public float AccelerationRunning = 10f;
+  public float AccelerationRunning;
 
   [HideInInspector]
-  public float Friction = 2f;
+  public float Friction;
 
   [HideInInspector]
-  public float AirFriction = 2f;
+  public float AirFriction;
   #endregion
 
   #region Movimento – Pulo
-  private float _jumpForce = 10f;
+  private float _jumpForce;
 
   [HideInInspector]
   [Stat(StatType.JumpForce)]
@@ -65,22 +65,22 @@ public class Player : CombatEntities
   }
 
   [HideInInspector]
-  public int MaxJumpCount = 2;
+  public int MaxJumpCount;
 
   [HideInInspector]
-  public float WallJumpMultiplier = 5f;
+  public float WallJumpMultiplier;
 
   [HideInInspector]
   public float GravityValue;
 
   [HideInInspector]
-  public float GravityUpMultiplier = 2.2f;
+  public float GravityUpMultiplier;
 
   [HideInInspector]
-  public float GravityDownMultiplier = 0.6f;
+  public float GravityDownMultiplier;
 
   [HideInInspector]
-  public float MaxFallSpeed = -26f;
+  public float MaxFallSpeed;
 
   [HideInInspector]
   public float InitialGravityValue;
@@ -88,13 +88,13 @@ public class Player : CombatEntities
 
   #region Movimento – Dash
   [HideInInspector]
-  public float DashSpeed = 30f;
+  public float DashSpeed;
 
   [HideInInspector]
-  public float DashDistance = 5f;
+  public float DashDistance;
 
   [HideInInspector]
-  public float DashCooldown = 1f;
+  public float DashCooldown;
 
   [HideInInspector]
   public ShiftDashScript DashHudScript;
@@ -259,17 +259,6 @@ public class Player : CombatEntities
 
 
   // ─────────────────────────────────────────────────────────────
-  //  Rail
-  // ─────────────────────────────────────────────────────────────
-  #region
-  [HideInInspector]
-  public SplineContainer CurrentRail;
-
-  [HideInInspector]
-  public SplineContainer NextRailCanditate;
-  #endregion
-
-  // ─────────────────────────────────────────────────────────────
   //  FLAGS DE CONTEXTO
   // ─────────────────────────────────────────────────────────────
   #region Flags de Contexto
@@ -394,7 +383,7 @@ public class Player : CombatEntities
   #endregion
 
   // ─────────────────────────────────────────────────────────────
-  //  EVENTOS
+  //  SONS
   // ─────────────────────────────────────────────────────────────
   #region Sons
   [Header("Sons do Jogador")]
@@ -434,7 +423,7 @@ public class Player : CombatEntities
   // ─────────────────────────────────────────────────────────────
   #region Wall Running
   [Header("Wall Exit")]
-  internal float WallExitDuration = 0.2f;
+  internal float WallExitDuration;
   #endregion
 
   // ─────────────────────────────────────────────────────────────
@@ -497,7 +486,6 @@ public class Player : CombatEntities
 
     _modelTransform = transform.Find("Model");
 
-    //LocomotionLayer
     LocomotionLayer.ChangeState(Moving, this);
   }
 
@@ -569,7 +557,7 @@ public class Player : CombatEntities
 
   private void SetupScanners()
   {
-    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanRailEntry());
+    TickDirector.Instance.OnTick.AddListener(_ => ScanRailEntry());
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
@@ -583,7 +571,6 @@ public class Player : CombatEntities
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
     _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
     _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(ScanWallRays);
-
     _railEntryScanner = new Scanner<Vector3, RailObject>(BuildRailEntryScanner());
   }
 
@@ -664,18 +651,21 @@ public class Player : CombatEntities
   private Func<Vector3, RailObject> BuildRailEntryScanner() =>
     playerPos =>
     {
-      if (CurrentRail != null)
+      if (RailSlide.CurrentRail != null)
         return null;
       if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
         return null;
 
-      if (MovementVector.sqrMagnitude < 0.01f)
+      Vector3 moveDir =
+        MovementVector.sqrMagnitude > 0.01f
+          ? MovementVector.normalized
+          : CharacterController.velocity.normalized;
+
+      if (moveDir.sqrMagnitude < 0.01f)
         return null;
 
       float detectionRadius = _railEntryRadius;
       float forwardOffset = _railEntryForwardOffset;
-
-      Vector3 moveDir = MovementVector.normalized;
       Vector3 scanOrigin = playerPos + moveDir * forwardOffset;
 
       var hits = Physics.OverlapSphere(
@@ -686,20 +676,32 @@ public class Player : CombatEntities
       );
 
       RailObject bestRail = null;
-      float bestDot = _railEntryMinDot;
+      float bestScore = -1f;
 
       foreach (var hit in hits)
       {
         if (!hit.TryGetComponent(out RailObject rail))
           continue;
 
-        Vector3 toRail = (hit.transform.position - playerPos).normalized;
-        float moveDot = Vector3.Dot(toRail, moveDir);
+        if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
+          continue;
 
-        if (moveDot >= bestDot)
+        float distance = Vector3.Distance(playerPos, nearestPoint);
+        if (distance > detectionRadius)
+          continue;
+
+        Vector3 toNearest = (nearestPoint - playerPos).normalized;
+        float alignment = Vector3.Dot(toNearest, moveDir);
+
+        if (alignment >= _railEntryMinDot)
         {
-          bestRail = rail;
-          bestDot = moveDot;
+          float score = alignment - (distance / detectionRadius) * 0.2f;
+
+          if (score > bestScore)
+          {
+            bestScore = score;
+            bestRail = rail;
+          }
         }
       }
 
@@ -712,10 +714,11 @@ public class Player : CombatEntities
 
     if (executed && rail != null)
     {
+      RailSlide.CurrentRail = rail.GetComponent<SplineContainer>();
       ActionLayer.PushState(RailSlide, this);
 
 #if UNITY_EDITOR
-      Debug.Log($"[RailEntry] Detected: {rail.name} at {Time.time:F2}");
+      Debug.Log($"[RailEntry] Attached: {rail.name} | CurrentRail={RailSlide.CurrentRail?.name}");
 #endif
     }
   }
@@ -1037,7 +1040,6 @@ public class Player : CombatEntities
 
     SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
 
-    // NOTE: Shake
     _OnDamage.AddListener(() =>
       hudDir.CameraShake(ID, Damage.Amplitude, Damage.Frequency, Damage.Duration)
     );
@@ -1047,7 +1049,6 @@ public class Player : CombatEntities
     RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
   }
   #endregion
-
 
   // ─────────────────────────────────────────────────────────────
   //  MORTE

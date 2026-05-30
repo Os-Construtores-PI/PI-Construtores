@@ -7,6 +7,7 @@ public class PlayerActionStateGroundSlam : IState<Player>
   public ActionType Type => ActionType.GroundSlam;
   public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash, ActionType.Jump };
 
+  [Header("Força de Impacto no Chão")]
   [SerializeField]
   private float SlamForce = 75f;
 

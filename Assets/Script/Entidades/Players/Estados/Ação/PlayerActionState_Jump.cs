@@ -8,18 +8,18 @@ public class PlayerActionStateJump : IState<Player>
   public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
   private readonly HashSet<ActionType> _incompatibleActions = new();
 
+  [Header("Multiplicador a cada Pulo")]
   [SerializeField]
   private float _jumpHeightMultiplierPerExtraJump = 0.35f;
 
+  [Header("Opções de WallJump")]
   [SerializeField]
   private float _wallJumpHorizontalBias = 6.5f;
 
-  // Quanto do momentum horizontal do rail é preservado no pulo.
-  // 1.0 = preserva tudo; 0.0 = ignora o rail e usa a lógica padrão.
+  [Header("Opções do Rail")]
   [SerializeField]
   private float _railMomentumPreservation = 1f;
 
-  // Multiplicador extra de altura ao pular de um rail (feeling de catapulta)
   [SerializeField]
   private float _railJumpHeightBonus = 1.25f;
 
@@ -49,30 +49,6 @@ public class PlayerActionStateJump : IState<Player>
       Vector3 jumpDir = (Vector3.up + player.LastWallNormal * _wallJumpHorizontalBias).normalized;
       targetVelocity = jumpDir * player.JumpForce * player.WallJumpMultiplier;
       player.TouchingWall = false;
-    }
-    // ─── Rail Jump (Sonic/JSR) ────────────────────────────────────────────
-    // Se o player acabou de sair de um rail (janela de 300ms), herda o momentum
-    // horizontal do rail e aplica bonus de altura — a tangente da ponta do spline
-    // determina para onde ele vai voar, não o input atual.
-    else if (player.Moving.RailExitMomentumTimer.TimeLeft > 0f)
-    {
-      Vector3 railMomentum = player.RailSlide.RailExitMomentum;
-      Vector3 railHorizontal = new(railMomentum.x, 0f, railMomentum.z);
-
-      float railVertical = Mathf.Max(railMomentum.y, 0f);
-      jumpY = (player.JumpForce * _railJumpHeightBonus) + railVertical;
-
-      Vector3 currentHorizontal = new(player.MovementVector.x, 0f, player.MovementVector.z);
-      Vector3 finalHorizontal = Vector3.Lerp(
-        currentHorizontal,
-        railHorizontal,
-        _railMomentumPreservation
-      );
-
-      targetVelocity = new Vector3(finalHorizontal.x, jumpY, finalHorizontal.z);
-
-      player.RailSlide.RailExitMomentum = Vector3.zero;
-      player.Moving.RailExitMomentumTimer.Stop();
     }
     else
     {

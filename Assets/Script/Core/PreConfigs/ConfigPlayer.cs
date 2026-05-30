@@ -69,6 +69,12 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private float cooldownDash;
 
+  [SerializeField]
+  private float distanciaDash;
+
+  [SerializeField]
+  private int maximoDeDashes;
+
   [Header("MECÂNICA [TROCA DE JOGADOR]")]
   [SerializeField]
   private float cooldownTrocaJogador;
@@ -110,7 +116,11 @@ public class ConfigPlayer : ScriptableObject
     player.DashDuration = duracaoDash;
     player.DashSpeed = velocidadeDash;
     player.DashCooldown = cooldownDash;
-    // TODO: Adicionar Troca de Jogador na Config
+    player.DashDistance = distanciaDash;
+    player.MaxDashCount = maximoDeDashes;
+    player.AttackCooldown = cooldownAtaque;
+    player.CombatCooldown = cooldownCombate;
+    player.DamagedCooldown = cooldownDano;
     player.WallSpeedMultiplier = multiplicadorVelocidadeParede;
     player.WallJumpMultiplier = multiplicadorForcaPuloParede;
     player.WallExitDuration = duracaoSaidaParede;

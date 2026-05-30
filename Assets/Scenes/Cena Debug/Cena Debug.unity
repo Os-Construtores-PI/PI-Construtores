@@ -13446,6 +13446,7 @@ GameObject:
   - component: {fileID: 938304312}
   - component: {fileID: 938304311}
   - component: {fileID: 938304310}
+  - component: {fileID: 938304316}
   m_Layer: 0
   m_Name: Rail.3
   m_TagString: Untagged
@@ -13465,14 +13466,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced3eb6a320a2474aaa804795b5f4ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailObject
-  slideSpeed: 30
-  direction: 0
-  canChain: 1
-  transitionRadius: 10
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 262208
-  triggerRadius: 1
+  slideSpeed: 40
+  defaultDirection: 0
 --- !u!114 &938304311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13717,6 +13712,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 161.732, z: 0}
+--- !u!64 &938304316
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 938304309}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!43 &952243514
 Mesh:
   m_ObjectHideFlags: 0
@@ -23193,6 +23210,7 @@ GameObject:
   - component: {fileID: 1451545663}
   - component: {fileID: 1451545662}
   - component: {fileID: 1451545661}
+  - component: {fileID: 1451545667}
   m_Layer: 0
   m_Name: Rail.2
   m_TagString: Untagged
@@ -23212,14 +23230,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced3eb6a320a2474aaa804795b5f4ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailObject
-  slideSpeed: 30
-  direction: 0
-  canChain: 1
-  transitionRadius: 10
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 262208
-  triggerRadius: 1
+  slideSpeed: 40
+  defaultDirection: 0
 --- !u!114 &1451545662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23464,6 +23476,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 337.678, z: 0}
+--- !u!64 &1451545667
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451545660}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!4 &1470223614 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 704053778179725206, guid: da56bf571fefedb45888e095e229ee4c, type: 3}
@@ -35083,14 +35117,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced3eb6a320a2474aaa804795b5f4ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailObject
-  slideSpeed: 30
-  direction: 0
-  canChain: 1
-  transitionRadius: 10
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 262208
-  triggerRadius: 1
+  slideSpeed: 40
+  defaultDirection: 0
 --- !u!114 &429321204473590814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35103,14 +35131,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced3eb6a320a2474aaa804795b5f4ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RailObject
-  slideSpeed: 30
-  direction: 0
-  canChain: 1
-  transitionRadius: 10
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 262208
-  triggerRadius: 1
+  slideSpeed: 40
+  defaultDirection: 0
 --- !u!224 &454259654317075679
 RectTransform:
   m_ObjectHideFlags: 0
@@ -35236,6 +35258,7 @@ GameObject:
   - component: {fileID: 9096931220015932078}
   - component: {fileID: 5314395034315738341}
   - component: {fileID: 429321204147590203}
+  - component: {fileID: 9096931220015932079}
   m_Layer: 0
   m_Name: Rail
   m_TagString: Untagged
@@ -35257,6 +35280,7 @@ GameObject:
   - component: {fileID: 9096931219824149131}
   - component: {fileID: 5314395034115583168}
   - component: {fileID: 429321204473590814}
+  - component: {fileID: 9096931219824149132}
   m_Layer: 0
   m_Name: Rail.1
   m_TagString: Untagged
@@ -39235,6 +39259,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &9096931219824149132
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 607588036999662327}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!23 &9096931220015932078
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -39284,6 +39330,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &9096931220015932079
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 607588036809992914}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!23 &9099402571842719346
 MeshRenderer:
   m_ObjectHideFlags: 0

@@ -27334,6 +27334,17 @@ MonoBehaviour:
   AccelerationRunning: 10
   Friction: 2
   AirFriction: 2
+  MaxJumpCount: 2
+  WallJumpMultiplier: 5
+  GravityValue: 0
+  GravityUpMultiplier: 2.2
+  GravityDownMultiplier: 0.6
+  MaxFallSpeed: -26
+  InitialGravityValue: 0
+  DashSpeed: 30
+  DashDistance: 5
+  DashCooldown: 1
+  DashHudScript: {fileID: 0}
   _cameraTarget: {fileID: 6230178497730834178}
   _playerAudioSource: {fileID: 151097714311735710}
   CharacterController: {fileID: 0}
@@ -27373,9 +27384,16 @@ MonoBehaviour:
   Jump:
     _jumpHeightMultiplierPerExtraJump: 0.35
     _wallJumpHorizontalBias: 6.5
+    _railMomentumPreservation: 1
+    _railJumpHeightBonus: 1.25
   RailSlide:
-    modelOffset: {x: 0, y: 1.2, z: 0}
+    CurrentRail: {fileID: 0}
+    _snapDuration: 0.12
+    _speedRampDuration: 0.25
     exitVelocityMultiplier: 1.2
+    exitVerticalBias: 1.6
+    exitMinHorizontalSpeed: 8
+    modelOffset: {x: 0, y: 1.2, z: 0}
   DashSlashBoostButton:
     StartedChargingEv:
       m_PersistentCalls:
@@ -27406,20 +27424,18 @@ MonoBehaviour:
   _modelTransform: {fileID: 6707445767027251514}
   _ultimoDispositivo: 0
   JumpInteractionPressed: 0
-  CurrentRail: {fileID: 0}
-  NextRailCanditate: {fileID: 0}
   enemyScanRadius: 10
+  _railEntryRadius: 2.2
+  _railEntryForwardOffset: 0.6
+  _railEntryMinDot: 0.3
+  _railLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
   InteractionObject: {fileID: 0}
   _playerSFX: []
   CanAttack: 1
   WillAttack: 1
   _willInvertYAxis: 1
-  railScanRadius: 8
-  railLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  requireChainable: 1
-  ignoreCurrentRail: 1
 --- !u!54 &-2005523811532062704
 Rigidbody:
   m_ObjectHideFlags: 0

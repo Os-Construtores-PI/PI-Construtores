@@ -11,13 +11,15 @@ public class PlayerActionStateDash : IState<Player>
   private float _initialDashDistance;
   private bool _firstTime;
 
-  //
+  [Header("Opções de Hitbox")]
   [SerializeField]
   private float _disableDamageCooldown = 4;
 
+  [Header("Distância Minima para Dash")]
   [SerializeField]
   private readonly float _distanceThresold = 2;
 
+  [Header("Velocidades de Dash")]
   [SerializeField]
   private float _minDashSpeed = 40f;
 

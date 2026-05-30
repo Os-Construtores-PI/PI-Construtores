@@ -42,9 +42,7 @@ public class PlayerActionStateBoost : IState<Player>
   [SerializeField]
   private float _forcedDuration = 1.5f;
 
-  [SerializeField]
   private float _playerOriginalSpeed;
-
   private float _velocity;
   private float _forcedTimer;
   private bool _isFree;

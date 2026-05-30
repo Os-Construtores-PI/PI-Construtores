@@ -7,15 +7,19 @@ public class PlayerActionStateBounce : IState<Player>
   public ActionType Type => ActionType.Bounce;
   public HashSet<ActionType> IncompatibleActions => new();
 
+  [Header("Janela de Bounce")]
   [SerializeField]
   private float BounceWindowDuration = 0.4f;
 
+  [Header("Máximo de Combos")]
   [SerializeField]
   private int MaxBounceCombo = 3;
 
+  [Header("Força horizontal pra frente")]
   [SerializeField]
   private float BounceFrontImpulse = 30f;
 
+  [Header("Conversão de Impacto para Bounce")]
   [SerializeField]
   private float BounceConversionRate = 0.85f;
   private readonly float[] ComboBonus = { 0f, 0.25f, 0.55f, 0.90f };

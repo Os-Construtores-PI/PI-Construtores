@@ -6,28 +6,16 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
   public ActionType Type => ActionType.Move;
   public HashSet<ActionType> IncompatibleActions => new();
 
-  [HideInInspector]
-  public readonly Timer RailExitMomentumTimer = new();
-
-  [HideInInspector]
-  public readonly Timer RailGraceTimer = new();
-
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
   private bool _coyoteStarted = false;
   private const float CoyoteInterval = 0.3f;
-  private const float RailGraceDuration = 0.45f;
 
   // ─── Enter / Exit ─────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
     _wasGrounded = player.IsGrounded;
-
-    if (RailExitMomentumTimer.TimeLeft > 0f)
-    {
-      RailGraceTimer.Start(RailGraceDuration);
-    }
 
     player.Stats.AddStat(StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
     player.Stats.AddStat(StatType.RunAccelMultiplier, player.RunAccelMultiplier);
@@ -40,7 +28,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
   {
     _coyoteTimer.Stop();
     _coyoteStarted = false;
-    RailGraceTimer.Stop();
 
     player.Stats.RemoveStat<float>(StatType.RunSpeedMultiplier);
     player.Stats.RemoveStat<float>(StatType.RunAccelMultiplier);
@@ -52,10 +39,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
 
   public void FixedUpdate(Player player)
   {
-    RailGraceTimer.Tick(Time.deltaTime);
-
-    RailExitMomentumTimer.Tick(Time.deltaTime);
-
     if (player.IsGrounded)
       HandleGrounded(player);
     else
@@ -76,7 +59,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     _wasGrounded = true;
     _coyoteStarted = false;
     _coyoteTimer.Stop();
-    RailGraceTimer.Stop();
   }
 
   private void OnLanded(Player player)
@@ -87,8 +69,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     player.CanDash = true;
     player.JumpInteractionPressed = false;
 
-    player.RailSlide.RailExitMomentum = Vector3.zero;
-    RailExitMomentumTimer.Stop();
     var move = player.MovementVector;
     move.y = -1f;
     player.MovementVector = move;
@@ -140,15 +120,10 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     float accel = player.IsRunning
       ? (player.IsGrounded ? player.Acceleration * accelMult : player.Acceleration)
       : (player.IsGrounded ? player.Acceleration : player.Acceleration);
-
-    bool inRailGrace = !player.IsGrounded && RailGraceTimer.TimeLeft > 0f;
-    float friction = inRailGrace ? 0f : (player.IsGrounded ? player.Friction : player.AirFriction);
+    float friction = player.IsGrounded ? player.Friction : player.AirFriction;
 
     if (player.MoveInput == Vector2.zero)
     {
-      if (inRailGrace)
-        return;
-
       var move = player.MovementVector;
       move.x = QualityOfLife.PlayerFriction(move.x, friction, player.MoveInput);
       move.z = QualityOfLife.PlayerFriction(move.z, friction, player.MoveInput);
@@ -158,36 +133,17 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
 
     Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
 
-    if (inRailGrace)
-    {
-      float graceAccel = accel * 0.35f;
-      var m = player.MovementVector;
-      player.MovementVector = new Vector3(
-        QualityOfLife.SmoothStepLerp(m.x, direction.x * speed, graceAccel),
-        m.y,
-        QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, graceAccel)
-      );
-
-      // Rotação também mais lenta no ar pós-rail
-      player.transform.rotation = Quaternion.Slerp(
-        player.transform.rotation,
-        Quaternion.LookRotation(direction),
-        4f * Time.deltaTime
-      );
-      return;
-    }
-
     player.transform.rotation = Quaternion.Slerp(
       player.transform.rotation,
       Quaternion.LookRotation(direction),
       10f * Time.deltaTime
     );
 
-    var mv = player.MovementVector;
+    var m = player.MovementVector;
     player.MovementVector = new Vector3(
-      QualityOfLife.SmoothStepLerp(mv.x, direction.x * speed, accel),
-      mv.y,
-      QualityOfLife.SmoothStepLerp(mv.z, direction.z * speed, accel)
+      QualityOfLife.SmoothStepLerp(m.x, direction.x * speed, accel),
+      m.y,
+      QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, accel)
     );
   }
 
