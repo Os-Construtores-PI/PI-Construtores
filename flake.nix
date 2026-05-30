@@ -149,7 +149,6 @@
           name = "unity-csharp";
           packages = with pkgs; [
             dotnet-sdk_9
-            roslyn-ls
             csharpier
             netcoredbg
             dotnet-outdated

@@ -41,7 +41,13 @@ public class RailObject : MonoBehaviour
 
   private SplineContainer _spline;
   private static readonly List<RailObject> _allRails = new();
-  private RailObject _cachedNextCandidate;
+
+  // Candidato para cada ponta do spline:
+  // _cachedNextAtEnd   → melhor vizinho quando o player sai pela ponta t=1
+  // _cachedNextAtStart → melhor vizinho quando o player sai pela ponta t=0
+  private RailObject _cachedNextAtEnd;
+  private RailObject _cachedNextAtStart;
+
   private Collider _triggerCollider;
 
   public enum RailDirection
@@ -100,7 +106,7 @@ public class RailObject : MonoBehaviour
 
     if (_triggerCollider is BoxCollider box)
     {
-      box.center = bounds.center; // já está em local space
+      box.center = bounds.center;
       box.size = bounds.size;
     }
   }
@@ -122,7 +128,8 @@ public class RailObject : MonoBehaviour
     float angle = Vector3.Angle(tangentWorld, player.transform.forward);
     direction = angle > 90f ? RailDirection.Backward : RailDirection.Forward;
 
-    player.NextRailCanditate = _cachedNextCandidate?.GetComponent<SplineContainer>();
+    player.NextRailCanditate = GetNextCandidateForDirection(direction)
+      ?.GetComponent<SplineContainer>();
 
     player.CurrentRail = _spline;
     player.ActionLayer.PushState(player.RailSlide, player);
@@ -145,41 +152,50 @@ public class RailObject : MonoBehaviour
     }
   }
 
+  public RailObject GetNextCandidateForDirection(RailDirection dir)
+  {
+    return dir == RailDirection.Forward ? _cachedNextAtEnd : _cachedNextAtStart;
+  }
+
   public void BakeNeighbors(RailObject[] allRails)
   {
-    _cachedNextCandidate = null;
-    float bestScore = float.MaxValue;
+    _cachedNextAtEnd = null;
+    _cachedNextAtStart = null;
+
+    float bestScoreEnd = float.MaxValue;
+    float bestScoreStart = float.MaxValue;
 
     foreach (var rail in allRails)
     {
-      if (rail == null)
-        continue; // referência morta do Editor
-      if (rail == this)
-        continue;
-      if (!rail.CanChain)
+      if (rail == null || rail == this || !rail.CanChain)
         continue;
 
       float dist = Vector3.Distance(transform.position, rail.transform.position);
-      if (dist > transitionRadius)
+      if (dist > transitionRadius * 4f)
         continue;
 
-      float score = ScoreCandidate(rail);
-      if (score < bestScore)
+      float scoreEnd = ScoreExitPoint(rail, exitT: 1f);
+      if (scoreEnd < bestScoreEnd && scoreEnd <= transitionRadius)
       {
-        bestScore = score;
-        _cachedNextCandidate = rail;
+        bestScoreEnd = scoreEnd;
+        _cachedNextAtEnd = rail;
+      }
+
+      float scoreStart = ScoreExitPoint(rail, exitT: 0f);
+      if (scoreStart < bestScoreStart && scoreStart <= transitionRadius)
+      {
+        bestScoreStart = scoreStart;
+        _cachedNextAtStart = rail;
       }
     }
   }
 
-  private float ScoreCandidate(RailObject other)
+  private float ScoreExitPoint(RailObject other, float exitT)
   {
     var spline = GetComponent<SplineContainer>().Spline;
     var otherSpline = other.GetComponent<SplineContainer>().Spline;
 
-    Vector3 exitPoint = transform.TransformPoint(
-      spline.EvaluatePosition(direction == RailDirection.Forward ? 1f : 0f)
-    );
+    Vector3 exitPoint = transform.TransformPoint(spline.EvaluatePosition(exitT));
     Vector3 entryA = other.transform.TransformPoint(otherSpline.EvaluatePosition(0f));
     Vector3 entryB = other.transform.TransformPoint(otherSpline.EvaluatePosition(1f));
 
@@ -188,6 +204,11 @@ public class RailObject : MonoBehaviour
 
   public bool TryAttachPlayer(Player player)
   {
+    return TryAttachPlayer(player, preferredDirection: null);
+  }
+
+  public bool TryAttachPlayer(Player player, RailDirection? preferredDirection)
+  {
     if (player.CurrentRail == _spline)
     {
       Debug.LogWarning($"[RailObject] Player already attached to THIS rail: {name}");
@@ -195,10 +216,9 @@ public class RailObject : MonoBehaviour
     }
 
     float3 localPlayerPos = _spline.transform.InverseTransformPoint(player.transform.position);
-
     SplineUtility.GetNearestPoint(_spline.Spline, localPlayerPos, out float3 pos, out float t);
 
-    float snapThreshold = 2f; // metros
+    float snapThreshold = 2f;
     if (
       Vector3.Distance(player.transform.position, _spline.transform.TransformPoint(pos))
       > snapThreshold
@@ -216,10 +236,18 @@ public class RailObject : MonoBehaviour
       return false;
     }
 
-    float angle = Vector3.Angle(tangentWorld, player.transform.forward);
-    direction = angle > 90f ? RailDirection.Backward : RailDirection.Forward;
+    if (preferredDirection.HasValue)
+    {
+      direction = preferredDirection.Value;
+    }
+    else
+    {
+      float angle = Vector3.Angle(tangentWorld, player.transform.forward);
+      direction = angle > 90f ? RailDirection.Backward : RailDirection.Forward;
+    }
 
-    player.NextRailCanditate = _cachedNextCandidate?.GetComponent<SplineContainer>();
+    player.NextRailCanditate = GetNextCandidateForDirection(direction)
+      ?.GetComponent<SplineContainer>();
 
     player.CurrentRail = _spline;
 
@@ -236,6 +264,24 @@ public class RailObject : MonoBehaviour
     Gizmos.DrawWireSphere(transform.position, transitionRadius);
     Gizmos.color = Color.yellow;
     Gizmos.DrawWireSphere(transform.position, triggerRadius);
+
+    var splineContainer = GetComponent<SplineContainer>();
+    if (splineContainer == null || splineContainer.Spline.Count == 0)
+      return;
+
+    if (_cachedNextAtEnd != null)
+    {
+      Gizmos.color = Color.green;
+      Vector3 exitEnd = transform.TransformPoint(splineContainer.Spline.EvaluatePosition(1f));
+      Gizmos.DrawLine(exitEnd, _cachedNextAtEnd.transform.position);
+    }
+
+    if (_cachedNextAtStart != null)
+    {
+      Gizmos.color = Color.magenta;
+      Vector3 exitStart = transform.TransformPoint(splineContainer.Spline.EvaluatePosition(0f));
+      Gizmos.DrawLine(exitStart, _cachedNextAtStart.transform.position);
+    }
   }
 #endif
 }
