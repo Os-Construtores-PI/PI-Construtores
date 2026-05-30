@@ -117,13 +117,16 @@ public class WolfBasicEnemy : NavBasedEnemy
 
     _patrolsBeforeIdle = Random.Range(_minPatrolsBeforeIdle, _maxPatrolsBeforeIdle + 1);
 
-    SetAnimationWalk(true);
+    SetAnimationState(true, false);
     Patrol();
   }
 
   public override void Update()
   {
     base.Update(); // Garante que lógica da pai seja executada
+
+    if (_player == null)
+      _player = GameObject.FindGameObjectWithTag("Player")?.transform; // acha de fato o transform da Pandora
 
     if (_dashTimer > 0f)
       _dashTimer -= Time.deltaTime;
@@ -256,7 +259,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     _agent.isStopped = false;
     _agent.speed = _chaseSpeed;
 
-    SetAnimationWalk(true);
+    SetAnimationState(true, false);
     _memoryTimer = _chaseMemoryTime;
   }
 
@@ -268,7 +271,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     _agent.isStopped = false;
     _agent.speed = _patrolSpeed;
 
-    SetAnimationWalk(true);
+    SetAnimationState(true, false);
 
     // Retorna para a posição inicial
     _agent.SetDestination(_startPosition);
@@ -291,7 +294,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     )
     {
       _agent.SetDestination(hit.position);
-      SetAnimationWalk(true);
+      SetAnimationState(true, false);
     }
   }
 
@@ -309,7 +312,7 @@ public class WolfBasicEnemy : NavBasedEnemy
   {
     _isAttacking = true;
     _animator.SetBool("isAttacking", true);
-    SetAnimationWalk(false);
+    SetAnimationState(false, false);
 
     // Prepara para o ataque: para o NavMeshAgent
     _agent.isStopped = true;
@@ -387,13 +390,13 @@ public class WolfBasicEnemy : NavBasedEnemy
       }
 
       // Player se afastou um pouco, mas ainda visível: volta a perseguir
-      SetAnimationWalk(true);
+      SetAnimationState(true, false);
       Chase(playerTransform);
     }
     else
     {
       // Perdeu o player: volta para base
-      SetAnimationWalk(true);
+      SetAnimationState(true, false);
       SwitchToPatrol();
     }
   }
@@ -412,7 +415,7 @@ public class WolfBasicEnemy : NavBasedEnemy
 
     _isWaiting = true;
     _agent.isStopped = true;
-    SetAnimationIdle(true);
+    SetAnimationState(false, true);
 
     // Aguarda transição de animação
     yield return null;
@@ -429,8 +432,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     if (_currentState != WolfState.Patrol)
       yield break;
 
-    SetAnimationIdle(false);
-    SetAnimationWalk(true);
+    SetAnimationState(true, false);
 
     _agent.isStopped = false;
     _currentPatrolCount = 0;
@@ -443,16 +445,13 @@ public class WolfBasicEnemy : NavBasedEnemy
   #endregion
 
   #region Helpers & Cleanup
-  private void SetAnimationWalk(bool value)
+  private void SetAnimationState(bool walking, bool idle)
   {
-    if (_animator != null)
-      _animator.SetBool("isWalking", value);
-  }
+    if(_animator == null)
+       return;
 
-  private void SetAnimationIdle(bool value)
-  {
-    if (_animator != null)
-      _animator.SetBool("isIdle", value);
+    _animator.SetBool("isWalking", walking);
+    _animator.SetBool("isIdle", idle);
   }
 
   private void StopIdleCoroutine()
