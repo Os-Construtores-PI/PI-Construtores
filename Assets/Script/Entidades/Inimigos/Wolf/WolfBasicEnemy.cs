@@ -95,6 +95,8 @@ public class WolfBasicEnemy : NavBasedEnemy
   }
   #endregion
 
+  
+
   #region Unity Lifecycle
   public override void Awake()
   {
@@ -124,6 +126,8 @@ public class WolfBasicEnemy : NavBasedEnemy
   public override void Update()
   {
     base.Update(); // Garante que lógica da pai seja executada
+
+    
 
     if (_player == null)
       _player = GameObject.FindGameObjectWithTag("Player")?.transform; // acha de fato o transform da Pandora
@@ -298,6 +302,8 @@ public class WolfBasicEnemy : NavBasedEnemy
     }
   }
 
+  
+
   private void Chase(Transform target)
   {
     if (target == null || !_agent.isOnNavMesh)
@@ -311,7 +317,11 @@ public class WolfBasicEnemy : NavBasedEnemy
   private IEnumerator PrepareThenRush(Transform playerTransform)
   {
     _isAttacking = true;
-    _animator.SetBool("isAttacking", true);
+
+
+    _animator.SetTrigger("AttackCombo");
+
+
     SetAnimationState(false, false);
 
     // Prepara para o ataque: para o NavMeshAgent
@@ -361,7 +371,9 @@ public class WolfBasicEnemy : NavBasedEnemy
     yield return EvaluatePostAttack(playerTransform);
 
     _isAttacking = false;
-    _animator.SetBool("isAttacking", false);
+    _animator.SetInteger(
+      "AttackIndex",
+      -1);
     _attackCoroutine = null;
   }
 
