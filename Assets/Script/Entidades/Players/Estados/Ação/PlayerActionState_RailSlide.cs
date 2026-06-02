@@ -88,7 +88,7 @@ public class PlayerActionStateRailSlide : IState<Player>
     _currentSpeed = Mathf.Max(entrySpeed, minRailSpeed);
 
     player.CharacterController.enabled = false;
-    player.AnimatorComponent.SetBool(IsSlidingHash, true); // String direta ao invés de Constants
+    player.AnimatorComponent.SetBool(IsSlidingHash, true);
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
 
