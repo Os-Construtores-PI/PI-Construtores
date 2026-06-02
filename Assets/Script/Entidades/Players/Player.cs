@@ -17,14 +17,33 @@ using static TutorialGlobal;
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
-  // ─────────────────────────────────────────────────────────────
-  //  MOVIMENTO
-  // ─────────────────────────────────────────────────────────────
-  #region Movimento – Stats
+  #region Constantes (Substituição de Magic Values)
+  // Valores numéricos
+  private const float DASH_BTN_ARG_1 = 100f;
+  private const float DASH_BTN_ARG_2 = 50f;
+  private const float DASH_BTN_ARG_3 = 0.5f;
+  private const float MOVE_DEADZONE = 0.5f;
+  private const float HUD_INIT_DELAY = 0.1f;
+  private const float CAMERA_SCAN_BUFFER = 2f;
+  private const float RAIL_SCORE_WEIGHT = 0.2f;
+  private const float SQR_EPSILON = 0.01f;
+
+  // Layers
+  private const string LAYER_OBJECT = "Object";
+  private const string LAYER_ENTITY = "Entity";
+  private const string LAYER_DEFAULT = "Default";
+  private const string LAYER_RUNNING_WALL = "RunningWall";
+
+  // Tags
+  private const string TAG_PLAYER = "Player";
+  private const string TAG_DASH_HUD = "DashHUDIcon";
+  private const string TAG_GAME_CONTROLLER = "GameController";
+  #endregion
+
+  #region Movimento - Stats
   private float _speed;
 
-  [HideInInspector]
-  [Stat(StatType.Speed)]
+  [HideInInspector, Stat(StatType.Speed)]
   public float Speed
   {
     get => _speed;
@@ -53,11 +72,10 @@ public class Player : CombatEntities
   public float AirFriction;
   #endregion
 
-  #region Movimento – Pulo
+  #region Movimento - Pulo
   private float _jumpForce;
 
-  [HideInInspector]
-  [Stat(StatType.JumpForce)]
+  [HideInInspector, Stat(StatType.JumpForce)]
   public float JumpForce
   {
     get => _jumpForce;
@@ -86,7 +104,7 @@ public class Player : CombatEntities
   public float InitialGravityValue;
   #endregion
 
-  #region Movimento – Dash
+  #region Movimento - Dash
   [HideInInspector]
   public float DashSpeed;
 
@@ -100,11 +118,7 @@ public class Player : CombatEntities
   public ShiftDashScript DashHudScript;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  COMPONENTES
-  // ─────────────────────────────────────────────────────────────
   #region Componentes
-
   [Header("Componentes")]
   [SerializeField]
   private Transform _cameraTarget;
@@ -132,7 +146,6 @@ public class Player : CombatEntities
   public Collider GroundSlamHitboxCollider;
   public Animator AnimatorComponent;
   public PlayerInput PlayerInput;
-
   protected Camera _myCamera;
 
   public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
@@ -143,14 +156,9 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  STATE MACHINES
-  // ─────────────────────────────────────────────────────────────
   #region State Machines & Estados
   public StateMachine<Player> LocomotionLayer = new();
   public StackStateMachine<Player> ActionLayer = new();
-
-  // Action states
 
   [Header("Estados")]
   public PlayerActionStateDash Dash = new();
@@ -163,15 +171,11 @@ public class Player : CombatEntities
   public PlayerActionStateRailSlide RailSlide = new();
   public BoostSlashDashButton DashSlashBoostButton;
 
-  // Locomotion states
   public readonly PlayerLocomotionStateMoving Moving = new();
   public readonly PlayerLocomotionStateLocked Locked = new();
   public readonly PlayerLocomotionStateHLocked LockedInHorizontal = new();
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  ESTADO INTERNO DO PLAYER
-  // ─────────────────────────────────────────────────────────────
   #region Estado Interno
   [HideInInspector]
   public Vector3 MovementVector;
@@ -237,30 +241,19 @@ public class Player : CombatEntities
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
-
   public InputType _ultimoDispositivo = InputType.Keyboard;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  FLAGS DE INPUT DE PULO
-  // ─────────────────────────────────────────────────────────────
-  #region Flags de Input – Pulo
+  #region Flags de Input - Pulo
   public bool JumpInteractionPressed = false;
 
   public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  Trails
-  // ─────────────────────────────────────────────────────────────
   #region Trails
   public TrailsWorker TrailsSystem = new();
   #endregion
 
-
-  // ─────────────────────────────────────────────────────────────
-  //  FLAGS DE CONTEXTO
-  // ─────────────────────────────────────────────────────────────
   #region Flags de Contexto
   public bool CameraLocked { get; set; } = false;
   public bool IsHardLocked { get; set; } = false;
@@ -269,20 +262,14 @@ public class Player : CombatEntities
   public bool BlockJumpByDialogue { get; set; } = false;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  SCANNERS
-  // ─────────────────────────────────────────────────────────────
-  #region Scanners – Declarações
-  [Header("Scanner – Inimigos")]
+  #region Scanners
+  [Header("Scanner - Inimigos")]
   [SerializeField, Min(10)]
   private float enemyScanRadius = 10f;
 
-  // Parâmetros do camera scanner (centralizados para fácil ajuste)
   private const float CameraScanSphereRadius = 6f;
   private const float CameraScanMaxDistance = 20f;
   private const float CameraScanDotThreshold = 0.5f;
-
-  // Parâmetro do wall scanner
   private const float WallScanDistance = 5f;
 
   private Camera _selectedCamera = null;
@@ -292,13 +279,7 @@ public class Player : CombatEntities
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
 
-  // ─────────────────────────────────────────────────────────────
-  //  SCANNERS – Rail Entry
-  // ─────────────────────────────────────────────────────────────
-  #region Scanners – Rail Entry
-  private Scanner<Vector3, RailObject> _railEntryScanner;
-
-  [Header("Scanner -- Trilho")]
+  [Header("Scanner - Trilho")]
   [SerializeField]
   private float _railEntryRadius = 1.2f;
 
@@ -310,12 +291,10 @@ public class Player : CombatEntities
 
   [SerializeField]
   private LayerMask _railLayerMask;
-  #endregion
+
+  private Scanner<Vector3, RailObject> _railEntryScanner;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  LOCK-ON
-  // ─────────────────────────────────────────────────────────────
   #region Lock-On
   public ILockable LockedTarget;
   private ILockable _lockCandidate;
@@ -324,9 +303,6 @@ public class Player : CombatEntities
   protected RaycastHit _playerRayHit;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INTERAÇÃO
-  // ─────────────────────────────────────────────────────────────
   #region Interação
   [HideInInspector]
   public InteractableObject InteractionObject;
@@ -335,15 +311,10 @@ public class Player : CombatEntities
   protected (bool success, RaycastHit hit) _lastValidResult;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INVENTÁRIO & COLETÁVEIS
-  // ─────────────────────────────────────────────────────────────
-  #region Inventário
+  #region Inventário & Coletáveis
   private readonly Inventory _inventory = new();
   public Inventory Inventory => _inventory;
-  #endregion
 
-  #region Coletáveis – Ametistas
   private int amethysts = 0;
   public int Amethysts => amethysts;
 
@@ -356,7 +327,6 @@ public class Player : CombatEntities
     Vector3? positionInCamera = amethystPos.HasValue
       ? _myCamera.WorldToScreenPoint(amethystPos.Value)
       : null;
-
     amethysts = clamped;
     GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
   }
@@ -373,29 +343,19 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  EVENTOS
-  // ─────────────────────────────────────────────────────────────
   #region Eventos
   public readonly UnityEvent<bool> SpeedLines = new();
   public readonly UnityEvent<bool> RunningShake = new();
   public readonly UnityEvent<int, float, float, float> CustomShake = new();
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  SONS
-  // ─────────────────────────────────────────────────────────────
   #region Sons
   [Header("Sons do Jogador")]
   [SerializeField]
   private List<PlayerSFX> _playerSFX = new();
-
   public readonly SoundsWorker<PlayerAudioType> PlayerSoundSystem = new();
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  ATAQUE
-  // ─────────────────────────────────────────────────────────────
   #region Ataque
   internal float AttackCooldown;
   public bool CanAttack = true;
@@ -408,7 +368,6 @@ public class Player : CombatEntities
       ActionLayer.PushState(Dash, this);
       return;
     }
-
     if (CanExecuteAttack())
       OnExecuteAttack();
   }
@@ -418,18 +377,12 @@ public class Player : CombatEntities
   protected virtual void OnExecuteAttack() { }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  WALL RUNNING
-  // ─────────────────────────────────────────────────────────────
   #region Wall Running
   [Header("Wall Exit")]
   internal float WallExitDuration;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  CAMERA
-  // ─────────────────────────────────────────────────────────────
-  #region Camera – Configuração
+  #region Camera
   [Header("Inverter Y Camera")]
   [SerializeField]
   private bool _willInvertYAxis = false;
@@ -450,10 +403,7 @@ public class Player : CombatEntities
   public void LockCamera(bool state) => CameraLocked = state;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  UNITY LIFECYCLE
-  // ─────────────────────────────────────────────────────────────
-  #region Unity – Awake / Start / Update / FixedUpdate / OnDestroy
+  #region Unity Lifecycle
   public override void Awake()
   {
     base.Awake();
@@ -463,27 +413,28 @@ public class Player : CombatEntities
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
-    _railLayerMask = LayerMask.GetMask("Default");
-
+    _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
     DetectarDispositivo(PlayerInput);
-    DashSlashBoostButton = new(this, 100, 50, .5f);
+
+    // Uso de constantes para os argumentos do botão
+    DashSlashBoostButton = new(this, DASH_BTN_ARG_1, DASH_BTN_ARG_2, DASH_BTN_ARG_3);
   }
 
   public override void Start()
   {
     InitialGravityValue = GravityValue;
     base.Start();
+
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
-    StartCoroutine(DelayedSetupHUD(.1f));
+    StartCoroutine(DelayedSetupHUD(HUD_INIT_DELAY));
+
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
 
-    // Systems
     TrailsSystem.InitTrails(transform.Find("Trails"));
     PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
-
     _modelTransform = transform.Find("Model");
 
     LocomotionLayer.ChangeState(Moving, this);
@@ -498,8 +449,6 @@ public class Player : CombatEntities
 #endif
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
-    print(LocomotionLayer.CurrentState);
-
     DashSlashBoostButton.Update();
     ScanWithCamera();
   }
@@ -519,10 +468,7 @@ public class Player : CombatEntities
   public void OnDestroy() => DOTween.Kill(this);
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INICIALIZAÇÃO AUXILIAR (Start helpers)
-  // ─────────────────────────────────────────────────────────────
-  #region Inicialização Auxiliar
+  #region Helpers de Inicialização
   private void UpdateAnimator()
   {
     Vector3 vel = CharacterController.velocity;
@@ -539,12 +485,12 @@ public class Player : CombatEntities
     if (DashHudScript != null)
       return;
 
-    GameObject go = GameObject.FindWithTag("DashHUDIcon");
+    GameObject go = GameObject.FindWithTag(TAG_DASH_HUD);
     if (go)
       DashHudScript = go.GetComponent<ShiftDashScript>();
     else
       Debug.LogWarning(
-        "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag."
+        "[Player] DashHUDIcon não encontrado. Arraste a instância ou coloque a tag."
       );
   }
 
@@ -577,22 +523,29 @@ public class Player : CombatEntities
 
   private RaycastHit? ScanWallRays((Ray left, Ray right) rays)
   {
-    int mask = LayerMask.GetMask("RunningWall");
-    var interaction = QueryTriggerInteraction.Ignore;
-
-    if (Physics.Raycast(rays.left, out RaycastHit hit, WallScanDistance, mask, interaction))
+    int mask = LayerMask.GetMask(LAYER_RUNNING_WALL);
+    if (
+      Physics.Raycast(
+        rays.left,
+        out RaycastHit hit,
+        WallScanDistance,
+        mask,
+        QueryTriggerInteraction.Ignore
+      )
+    )
       return hit;
-    if (Physics.Raycast(rays.right, out hit, WallScanDistance, mask, interaction))
+    if (
+      Physics.Raycast(rays.right, out hit, WallScanDistance, mask, QueryTriggerInteraction.Ignore)
+    )
       return hit;
-
     return null;
   }
 
   private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
     ray =>
     {
-      LayerMask targetsMask = LayerMask.GetMask("Object", "Entity");
-      LayerMask obstacleMask = LayerMask.GetMask("Default");
+      LayerMask targetsMask = LayerMask.GetMask(LAYER_OBJECT, LAYER_ENTITY);
+      LayerMask obstacleMask = LayerMask.GetMask(LAYER_DEFAULT);
 
       int hitCount = Physics.SphereCastNonAlloc(
         ray.origin,
@@ -609,7 +562,7 @@ public class Player : CombatEntities
       for (int i = 0; i < hitCount; i++)
       {
         Collider col = _sphereCastResults[i].collider;
-        if (col.CompareTag("Player"))
+        if (col.CompareTag(TAG_PLAYER))
           continue;
 
         Vector3 targetCenter = col.bounds.center;
@@ -631,12 +584,13 @@ public class Player : CombatEntities
       if (bestTarget != null)
       {
         Vector3 finalDir = (bestTarget.bounds.center - ray.origin).normalized;
+        // Adiciona buffer constante ao distance para evitar falhas de precisão
         if (
           Physics.Raycast(
             ray.origin,
             finalDir,
             out RaycastHit finalHit,
-            CameraScanMaxDistance + 2f,
+            CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
             targetsMask | obstacleMask
           )
         )
@@ -645,33 +599,29 @@ public class Player : CombatEntities
             return (true, finalHit);
         }
       }
-
       return (false, default);
     };
 
   private Func<Vector3, RailObject> BuildRailEntryScanner() =>
     playerPos =>
     {
-      if (RailSlide.CurrentRail != null)
-        return null;
-      if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+      if (
+        RailSlide.CurrentRail != null
+        || ActionLayer.GetActive<PlayerActionStateRailSlide>() != null
+      )
         return null;
 
       Vector3 moveDir =
-        MovementVector.sqrMagnitude > 0.01f
+        MovementVector.sqrMagnitude > SQR_EPSILON
           ? MovementVector.normalized
           : CharacterController.velocity.normalized;
-
-      if (moveDir.sqrMagnitude < 0.01f)
+      if (moveDir.sqrMagnitude < SQR_EPSILON)
         return null;
 
-      float detectionRadius = _railEntryRadius;
-      float forwardOffset = _railEntryForwardOffset;
-      Vector3 scanOrigin = playerPos + moveDir * forwardOffset;
-
+      Vector3 scanOrigin = playerPos + moveDir * _railEntryForwardOffset;
       var hits = Physics.OverlapSphere(
         scanOrigin,
-        detectionRadius,
+        _railEntryRadius,
         _railLayerMask,
         QueryTriggerInteraction.Ignore
       );
@@ -683,21 +633,18 @@ public class Player : CombatEntities
       {
         if (!hit.TryGetComponent(out RailObject rail))
           continue;
-
         if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
           continue;
 
         float distance = Vector3.Distance(playerPos, nearestPoint);
-        if (distance > detectionRadius)
+        if (distance > _railEntryRadius)
           continue;
 
-        Vector3 toNearest = (nearestPoint - playerPos).normalized;
-        float alignment = Vector3.Dot(toNearest, moveDir);
-
+        float alignment = Vector3.Dot((nearestPoint - playerPos).normalized, moveDir);
         if (alignment >= _railEntryMinDot)
         {
-          float score = alignment - distance / detectionRadius * 0.2f;
-
+          // Cálculo de score usando peso constante
+          float score = alignment - (distance / _railEntryRadius) * RAIL_SCORE_WEIGHT;
           if (score > bestScore)
           {
             bestScore = score;
@@ -705,40 +652,30 @@ public class Player : CombatEntities
           }
         }
       }
-
       return bestRail;
     };
 
   private void ScanRailEntry()
   {
     var (executed, rail) = _railEntryScanner.Scan(transform.position);
-
     if (executed && rail != null)
     {
       RailSlide.CurrentRail = rail.GetComponent<SplineContainer>();
       ActionLayer.PushState(RailSlide, this);
-
-#if UNITY_EDITOR
-      Debug.Log($"[RailEntry] Attached: {rail.name} | CurrentRail={RailSlide.CurrentRail?.name}");
-#endif
     }
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INPUT CALLBACKS
-  // ─────────────────────────────────────────────────────────────
   #region Input Callbacks
   public void OnMove(InputAction.CallbackContext context)
   {
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
-    if (MoveInput.y < .5f)
-    {
+
+    // Cancela boost se o input vertical for menor que a deadzone
+    if (MoveInput.y < MOVE_DEADZONE)
       ActionLayer.ExitState(Boost, this);
-    }
   }
 
   public void OnDash(InputAction.CallbackContext context) =>
@@ -780,10 +717,8 @@ public class Player : CombatEntities
 
     if (!context.started)
       return;
-
     if (!IsGrounded)
       JumpInteractionPressed = true;
-
     TryJump();
   }
 
@@ -812,10 +747,7 @@ public class Player : CombatEntities
     DetectarDispositivo(PlayerInput);
   }
 
-  public void OnDisable()
-  {
-    PlayerInput.onControlsChanged -= DetectarDispositivo;
-  }
+  public void OnDisable() => PlayerInput.onControlsChanged -= DetectarDispositivo;
 
   private void DetectarDispositivo(PlayerInput input)
   {
@@ -826,12 +758,13 @@ public class Player : CombatEntities
         break;
       case "Gamepad":
         var gp = Gamepad.current;
-        if (gp == null)
-          break;
-        _ultimoDispositivo =
-          (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-            ? InputType.JoystickPlaystation
-            : InputType.JoystickXbox;
+        if (gp != null)
+        {
+          _ultimoDispositivo =
+            (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
+              ? InputType.JoystickPlaystation
+              : InputType.JoystickXbox;
+        }
         break;
       default:
         _ultimoDispositivo = InputType.Keyboard;
@@ -841,9 +774,6 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  PULO
-  // ─────────────────────────────────────────────────────────────
   #region Pulo
   private void TryJump()
   {
@@ -855,18 +785,13 @@ public class Player : CombatEntities
       )
     )
       return;
-
     if (CurrentJumpCount >= MaxJumpCount)
       return;
-
     ActionLayer.PushState(Jump, this);
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  LOCK-ON (métodos)
-  // ─────────────────────────────────────────────────────────────
-  #region Lock-On – Métodos
+  #region Lock-On
   private void SetLockOn(ILockable target)
   {
     LockedTarget = target;
@@ -892,9 +817,6 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  PAUSE
-  // ─────────────────────────────────────────────────────────────
   #region Pause
   private void Pause()
   {
@@ -906,16 +828,12 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  SCAN (câmera, inimigos, paredes)
-  // ─────────────────────────────────────────────────────────────
   #region Scan
   private void ScanWalls()
   {
     (bool executed, RaycastHit? hit) = _wallScanner.Scan(
       (new Ray(transform.position, transform.right), new Ray(transform.position, -transform.right))
     );
-
     if (!executed)
       return;
 
@@ -935,12 +853,11 @@ public class Player : CombatEntities
     if (EnemySpawner.Instance == null)
       return false;
     int amount = EnemySpawner.Instance.GetAmountPool();
+
     for (int i = 0; i < amount; i++)
     {
       GameObject enemy = EnemySpawner.Instance.GetDisabledObject();
-      if (enemy == null)
-        continue;
-      if (Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
+      if (enemy != null && Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
         enemy.SetActive(true);
     }
     return true;
@@ -976,7 +893,6 @@ public class Player : CombatEntities
 
     bool foundSomething = false;
 
-    // ── Lock-on ──────────────────────────────────────────────────────
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
@@ -992,7 +908,6 @@ public class Player : CombatEntities
     else
       DisableLockIn();
 
-    // ── Interagível ───────────────────────────────────────────────────
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
       if (interactable is not LockableInteractableObject && interactable.IsActive)
@@ -1006,7 +921,6 @@ public class Player : CombatEntities
     else
       ClearInteractable();
 
-    // ── Mantém lock-on válido ─────────────────────────────────────────
     if (_isLockOnActive && LockedTarget != null)
     {
       float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
@@ -1024,9 +938,6 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  HUD & FEEDBACK
-  // ─────────────────────────────────────────────────────────────
   #region HUD & Feedback
   private IEnumerator DelayedSetupHUD(float duration)
   {
@@ -1036,11 +947,10 @@ public class Player : CombatEntities
 
   private void SetupHUD()
   {
-    if (!GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
+    if (!GameObject.FindWithTag(TAG_GAME_CONTROLLER).TryGetComponent(out HudDirector hudDir))
       return;
 
     SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
-
     _OnDamage.AddListener(() =>
       hudDir.CameraShake(ID, Damage.Amplitude, Damage.Frequency, Damage.Duration)
     );
@@ -1051,9 +961,6 @@ public class Player : CombatEntities
   }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  MORTE
-  // ─────────────────────────────────────────────────────────────
   #region Morte
   public override void DeathHandler()
   {

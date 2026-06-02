@@ -113,6 +113,7 @@ public class PlayerActionStateRailSlide : IState<Player>
     player.transform.up = Vector3.up;
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
+    player.Stats.ModifyStatByMultiplierCoroutine(StatType.JumpForce, 2, 1f);
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
   }
