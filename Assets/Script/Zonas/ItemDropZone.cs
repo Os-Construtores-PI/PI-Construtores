@@ -62,7 +62,7 @@ public class ItemDropZone : Item
 
   public override void Awake()
   {
-    base.Awake(); // era chamado sem base
+    base.Awake();
     Initialize();
   }
 

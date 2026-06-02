@@ -42,10 +42,14 @@ public class PlayerActionStateBoost : IState<Player>
   [SerializeField]
   private float _forcedDuration = 1.5f;
 
+  [SerializeField]
+  private SphereCollider _boostCollider;
+
   private float _playerOriginalSpeed;
   private float _velocity;
   private float _forcedTimer;
   private bool _isFree;
+
   #endregion
 
   #region IState Callbacks
@@ -60,6 +64,7 @@ public class PlayerActionStateBoost : IState<Player>
 
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
     player.SpeedLines.Invoke(true);
+    _boostCollider.enabled = true;
     player.CustomShake.Invoke(
       player.ID,
       EnterShakeAmplitude * velocityFraction,
@@ -84,7 +89,7 @@ public class PlayerActionStateBoost : IState<Player>
 
     player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
     player.SpeedLines.Invoke(false);
-
+    _boostCollider.enabled = false;
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
