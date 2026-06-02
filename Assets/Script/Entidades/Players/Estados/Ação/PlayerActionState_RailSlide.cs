@@ -6,6 +6,8 @@ using UnityEngine.Splines;
 [System.Serializable]
 public class PlayerActionStateRailSlide : IState<Player>
 {
+  private static readonly int IsSlidingHash = Animator.StringToHash("IsSliding");
+
   public ActionType Type => ActionType.RailSlide;
 
   private readonly HashSet<ActionType> _incompatibleActions = new()
@@ -86,12 +88,9 @@ public class PlayerActionStateRailSlide : IState<Player>
     _currentSpeed = Mathf.Max(entrySpeed, minRailSpeed);
 
     player.CharacterController.enabled = false;
-    player.AnimatorComponent.SetBool("IsSliding", true); // String direta ao invés de Constants
+    player.AnimatorComponent.SetBool(IsSlidingHash, true); // String direta ao invés de Constants
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
-
-    if (player.TryGetComponent<Rigidbody>(out var rb))
-      rb.interpolation = RigidbodyInterpolation.Interpolate;
 
     float3 tangentLocal = CurrentRail.Spline.EvaluateTangent(_t);
     Vector3 tangentWorld = CurrentRail.transform.TransformDirection(tangentLocal);
@@ -115,13 +114,13 @@ public class PlayerActionStateRailSlide : IState<Player>
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
 
-    if (player.TryGetComponent<Rigidbody>(out var rb))
-      rb.interpolation = RigidbodyInterpolation.Interpolate;
-
     player.LocomotionLayer.ChangeState(player.Moving, player);
   }
 
-  public void Update(Player player) => UpdateMovement(player);
+  public void Update(Player player)
+  {
+    UpdateMovement(player);
+  }
 
   public void FixedUpdate(Player player) { }
 
@@ -144,7 +143,7 @@ public class PlayerActionStateRailSlide : IState<Player>
     _currentSpeed = Mathf.MoveTowards(
       _currentSpeed,
       targetSpeed,
-      (targetSpeed / _speedRampDuration) * Time.deltaTime
+      targetSpeed / _speedRampDuration * Time.deltaTime
     );
 
     float distanceThisFrame = _currentSpeed * Time.deltaTime;
@@ -157,7 +156,6 @@ public class PlayerActionStateRailSlide : IState<Player>
       return;
     }
 
-    // Posição e orientação ao longo do spline
     Vector3 splinePos = CurrentRail.transform.TransformPoint(
       CurrentRail.Spline.EvaluatePosition(_t)
     );
@@ -171,7 +169,6 @@ public class PlayerActionStateRailSlide : IState<Player>
 
     Vector3 finalPos = splinePos + ComputeOffsetFromVectors(up, tangent);
 
-    // Snap suave na entrada
     if (_isSnapping)
     {
       _snapProgress += Time.deltaTime / _snapDuration;
@@ -202,8 +199,7 @@ public class PlayerActionStateRailSlide : IState<Player>
     Vector3 exitDir = tangent.normalized * _direction;
     float exitSpeed = _currentSpeed * exitVelocityMultiplier;
 
-    // Componente horizontal
-    Vector3 horizontal = new Vector3(exitDir.x, 0f, exitDir.z);
+    Vector3 horizontal = new(exitDir.x, 0f, exitDir.z);
     if (horizontal.sqrMagnitude < 0.001f)
       horizontal = player.transform.forward;
 
@@ -211,8 +207,6 @@ public class PlayerActionStateRailSlide : IState<Player>
       horizontal.normalized * Mathf.Max(horizontal.magnitude * exitSpeed, exitMinHorizontalSpeed);
 
     float verticalComponent = exitDir.y * exitSpeed * exitVerticalBias;
-
-    Vector3 exitVelocity = new Vector3(horizontal.x, verticalComponent, horizontal.z);
 
     player.MovementVector = new Vector3(
       horizontal.x,

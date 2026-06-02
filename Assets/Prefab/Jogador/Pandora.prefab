@@ -26985,6 +26985,7 @@ GameObject:
   - component: {fileID: 6754862074013953145}
   - component: {fileID: -2005523811532062704}
   - component: {fileID: 151097714311735710}
+  - component: {fileID: 1571673813378275627}
   m_Layer: 6
   m_Name: Pandora
   m_TagString: Player
@@ -27375,6 +27376,7 @@ MonoBehaviour:
     _slopeLimit: 30
     _maxVelocity: 100
     _forcedDuration: 1.5
+    _boostCollider: {fileID: 1571673813378275627}
   Bounce:
     BounceWindowDuration: 0.4
     MaxBounceCombo: 3
@@ -27424,7 +27426,7 @@ MonoBehaviour:
   _ultimoDispositivo: 0
   JumpInteractionPressed: 0
   enemyScanRadius: 10
-  _railEntryRadius: 2.2
+  _railEntryRadius: 3
   _railEntryForwardOffset: 0.6
   _railEntryMinDot: 0.3
   _railLayerMask:
@@ -27559,6 +27561,27 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!135 &1571673813378275627
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Radius: 10
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4291314761729171403
 GameObject:
   m_ObjectHideFlags: 0
