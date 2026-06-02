@@ -53,7 +53,7 @@ public class PlayerActionStateBoost : IState<Player>
 
   [Tooltip("Valor mínimo do input de movimento para permitir o cancelamento antecipado do boost.")]
   [SerializeField]
-  private float _cancelInputThreshold = 0.1f;
+  private float _cancelInputThreshold = 0.4f;
 
   [Tooltip("Distância extra do raycast para detectar o chão em alta velocidade.")]
   [SerializeField]
@@ -109,7 +109,7 @@ public class PlayerActionStateBoost : IState<Player>
     _canCancel = false;
 
     player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
-
+    player.LocomotionLayer.ChangeState(player.Moving, player);
     player.SpeedLines.Invoke(false);
     if (_boostCollider != null)
       _boostCollider.enabled = false;
