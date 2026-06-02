@@ -49,6 +49,7 @@ public class PlayerActionStateBoost : IState<Player>
   private float _velocity;
   private float _forcedTimer;
   private bool _isFree;
+  private bool _canCancel;
 
   #endregion
 
@@ -84,6 +85,7 @@ public class PlayerActionStateBoost : IState<Player>
     _velocity = 0f;
     _forcedTimer = 0f;
     _isFree = false;
+    _canCancel = false;
 
     TransitionToFreeMovement(player);
 
@@ -105,6 +107,11 @@ public class PlayerActionStateBoost : IState<Player>
     {
       player.ActionLayer.ExitState(this, player);
       return;
+    }
+
+    if (player.MoveInput.y <= 0.1 && _canCancel)
+    {
+      player.ActionLayer.ExitState(this, player);
     }
 
     if (!_isFree)
@@ -135,6 +142,7 @@ public class PlayerActionStateBoost : IState<Player>
     Vector3 safeMovement = player.MovementVector;
     safeMovement.y = 0f;
     player.MovementVector = safeMovement;
+    _canCancel = true;
 
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
     player.LocomotionLayer.ChangeState(player.Moving, player);

@@ -498,6 +498,7 @@ public class Player : CombatEntities
 #endif
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+    print(LocomotionLayer.CurrentState);
 
     DashSlashBoostButton.Update();
     ScanWithCamera();
@@ -695,7 +696,7 @@ public class Player : CombatEntities
 
         if (alignment >= _railEntryMinDot)
         {
-          float score = alignment - (distance / detectionRadius) * 0.2f;
+          float score = alignment - distance / detectionRadius * 0.2f;
 
           if (score > bestScore)
           {
@@ -734,9 +735,9 @@ public class Player : CombatEntities
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
-    if (MoveInput.y < -.5)
+    if (MoveInput.y < .5f)
     {
-      ActionLayer.ExitStateDeferred(Boost, this);
+      ActionLayer.ExitState(Boost, this);
     }
   }
 
