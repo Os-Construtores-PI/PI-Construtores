@@ -310,7 +310,6 @@ public class WolfBasicEnemy : NavBasedEnemy
     _agent.velocity = Vector3.zero;
     _agent.enabled = false;
 
-    // Rotate toward player
     Vector3 dir = playerTransform.position - transform.position;
     dir.y = 0f;
     if (dir.sqrMagnitude > 0.001f)
@@ -339,7 +338,6 @@ public class WolfBasicEnemy : NavBasedEnemy
     yield return _currentTweener.WaitForCompletion();
     yield return new WaitForSeconds(0.05f);
 
-    // Re-enable navigation
     _agent.enabled = true;
     _agent.isStopped = false;
     _agent.ResetPath();
@@ -401,7 +399,6 @@ public class WolfBasicEnemy : NavBasedEnemy
     _agent.isStopped = true;
     SetAnimationState(isWalking: false, isIdle: true);
 
-    // Wait for current animation to finish
     yield return null;
     while (_animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f)
       yield return null;
