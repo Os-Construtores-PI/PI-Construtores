@@ -55,10 +55,6 @@ public class PlayerActionStateRailSlide : IState<Player>
   {
     player.WantsToCancelRailSlide = false;
 
-    Debug.Log(
-      $"[RailSlide.Enter] CurrentRail={CurrentRail?.name} | SplineCount={CurrentRail?.Spline.Count}"
-    );
-
     if (CurrentRail == null || CurrentRail.Spline.Count == 0)
     {
       Debug.LogWarning("[RailSlide.Enter] CurrentRail inválido! Saindo sem snap.");
