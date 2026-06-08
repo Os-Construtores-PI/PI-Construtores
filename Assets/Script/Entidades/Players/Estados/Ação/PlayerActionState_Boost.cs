@@ -34,7 +34,10 @@ public class PlayerActionStateBoost : IState<Player>
 
   [Header("Boost Settings")]
   [SerializeField]
-  private float _boostUsage = 20f;
+  private float _initialBoostUsage = 20f;
+
+  [SerializeField]
+  private float _continuousBoostUsage = 10f;
 
   [SerializeField]
   private float _maxVelocity = 100f;
@@ -65,11 +68,8 @@ public class PlayerActionStateBoost : IState<Player>
     float velocityFraction = _velocity / _maxVelocity;
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
-
-    Vector3 safeMovement = player.MovementVector;
-    safeMovement.y = 0f;
-    player.MovementVector = safeMovement;
-
+    player.MovementVector += player.transform.forward * _velocity;
+    player.DashSlashBoostButton.Value -= _initialBoostUsage;
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
 
     player.SpeedLines.Invoke(true);
@@ -87,8 +87,6 @@ public class PlayerActionStateBoost : IState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementTrail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
-
-    SetBoostCamera(player, active: true);
     player.MainCamera.Lens.FieldOfView = _boostFOV;
   }
 
@@ -108,13 +106,12 @@ public class PlayerActionStateBoost : IState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
 
-    SetBoostCamera(player, active: false);
     player.MainCamera.Lens.FieldOfView = _defaultFOV;
   }
 
   public void Update(Player player)
   {
-    player.DashSlashBoostButton.Value -= _boostUsage * Time.deltaTime;
+    player.DashSlashBoostButton.Value -= _continuousBoostUsage * Time.deltaTime;
     player.DashSlashBoostButton.Value = Mathf.Max(0f, player.DashSlashBoostButton.Value);
 
     if (player.DashSlashBoostButton.Value <= 0f)
@@ -132,20 +129,5 @@ public class PlayerActionStateBoost : IState<Player>
 
   public void FixedUpdate(Player player) { }
 
-  #endregion
-
-  #region Private Methods
-  private static void SetBoostCamera(Player player, bool active)
-  {
-    if (player.MainCamera != null)
-    {
-      player.MainCamera.Priority = active ? InactivePriority : MainCameraPriority;
-    }
-
-    if (player.BoostCamera != null)
-    {
-      player.BoostCamera.Priority = active ? BoostCameraPriority : InactivePriority;
-    }
-  }
   #endregion
 }
