@@ -52,8 +52,8 @@ MonoBehaviour:
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 832
-  _encontrouPlayer: 0
-  _playerDetectado: {fileID: 0}
+  FoundPlayer: 0
+  DetectedPlayer: {fileID: 0}
 --- !u!1 &613300676009821489
 GameObject:
   m_ObjectHideFlags: 0
@@ -1026,15 +1026,14 @@ MonoBehaviour:
   visionInterval: 0.5
   attackInterval: 1
   spawnpos: {x: 0, y: 0, z: 0}
-  _collider: {fileID: 0}
+  _collider: {fileID: 8835980009536403483}
   _knockbackForce: 50
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
   _damagePopupEffect: {fileID: 0}
-  _player: {fileID: 0}
-  _vision: {fileID: 0}
-  _animator: {fileID: 0}
+  _vision: {fileID: 2803687888766019626}
+  _animator: {fileID: 5541610149168451512}
   _stopDistance: 10
   _patrolRadius: 5
   _chaseSpeed: 2
