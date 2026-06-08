@@ -205,6 +205,11 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void UpdateChaseState()
   {
+
+    if (_isAttacking)
+      return;
+    
+
     bool seesPlayer =
       _vision != null && _vision._encontrouPlayer && _vision._playerDetectado != null;
 
@@ -306,6 +311,9 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void Chase(Transform target)
   {
+    if(_isAttacking)
+      return;
+
     if (target == null || !_agent.isOnNavMesh)
       return;
 
@@ -317,6 +325,11 @@ public class WolfBasicEnemy : NavBasedEnemy
   private IEnumerator PrepareThenRush(Transform playerTransform)
   {
     _isAttacking = true;
+
+    _animator.SetBool("isWalking", false);
+    _animator.SetBool("isIdle", false);
+
+    _animator.SetBool("isAttacking", true);
 
 
     _animator.SetTrigger("AttackCombo");
@@ -375,6 +388,10 @@ public class WolfBasicEnemy : NavBasedEnemy
       "AttackIndex",
       -1);
     _attackCoroutine = null;
+
+    _isAttacking = false;
+
+    _animator.SetBool("isAttacking", false);
   }
 
   private IEnumerator EvaluatePostAttack(Transform playerTransform)
