@@ -2,17 +2,20 @@ using UnityEngine;
 
 public class EyeWolf : MonoBehaviour
 {
-  [Header("Config do Campo de Vis�o")]
-  public float _visionRange = 10f; // alcance de vis�o
-  public float _visionAngle = 120f; // angulo de vis�o
+  [Header("Config do Campo de Visão")]
+  public float _visionRange = 10f;
+  public float _visionAngle = 120f;
 
   [Header("Camadas de Detecção")]
-  public LayerMask _targetMask; // layer do player ou entities
-  public LayerMask _obstacleMask; // layer de obstáculos
+  public LayerMask _targetMask;
+  public LayerMask _obstacleMask;
 
   [Header("Debug")]
-  public bool _encontrouPlayer;
-  public Transform _playerDetectado;
+  [HideInInspector]
+  public bool FoundPlayer;
+
+  [HideInInspector]
+  public Transform DetectedPlayer;
 
   private Transform target;
 
@@ -33,8 +36,8 @@ public class EyeWolf : MonoBehaviour
 
   public void ProcurarAlvos()
   {
-    _encontrouPlayer = false;
-    _playerDetectado = null;
+    FoundPlayer = false;
+    DetectedPlayer = null;
 
     Collider[] targetsInArea = Physics.OverlapSphere(transform.position, _visionRange, _targetMask);
 
@@ -42,18 +45,18 @@ public class EyeWolf : MonoBehaviour
     {
       Transform t = col.transform;
       if (
-        _playerDetectado != null
+        DetectedPlayer != null
         && Vector3.Distance(transform.position, t.position) <= _visionRange
       )
       {
-        _encontrouPlayer = true;
-        _playerDetectado = t;
+        FoundPlayer = true;
+        DetectedPlayer = t;
         return;
       }
       if (CanSeeTarget(t))
       {
-        _encontrouPlayer = true;
-        _playerDetectado = t;
+        FoundPlayer = true;
+        DetectedPlayer = t;
         return;
       }
     }
@@ -85,10 +88,10 @@ public class EyeWolf : MonoBehaviour
     Vector3 angleA = DirecaodoAngulo(-_visionAngle / 2);
     Vector3 angleB = DirecaodoAngulo(_visionAngle / 2);
 
-    if (_encontrouPlayer && _playerDetectado != null)
+    if (FoundPlayer && DetectedPlayer != null)
     {
       Gizmos.color = Color.red;
-      Gizmos.DrawLine(transform.position, _playerDetectado.position);
+      Gizmos.DrawLine(transform.position, DetectedPlayer.position);
     }
   }
 
@@ -101,7 +104,7 @@ public class EyeWolf : MonoBehaviour
   // Permite definir o target manualmente (opcional)
   public void SetTarget(Transform t)
   {
-    _playerDetectado = t;
-    _encontrouPlayer = t != null;
+    DetectedPlayer = t;
+    FoundPlayer = t != null;
   }
 }
