@@ -26,10 +26,10 @@ public abstract class Enemies : CombatEntities, ILockable
   // ==== CONFIGURAÇÕES DE DETECÇÃO ====
   [Header("Configurações de Detecção")]
   [SerializeField]
-  private LayerMask layer; // Camada usada para detectar alvos (ex: jogadores)
+  private LayerMask layer;
 
   [SerializeField, Min(10)]
-  private float radius; // Raio da detecção de visão
+  private float radius;
 
   [SerializeField]
   private float attackRange = 2f; // Raio da detecção de ataque

@@ -16,13 +16,6 @@ public class PlayerActionStateJump : IState<Player>
   [SerializeField]
   private float _wallJumpHorizontalBias = 6.5f;
 
-  [Header("Opções do Rail")]
-  [SerializeField]
-  private float _railMomentumPreservation = 1f;
-
-  [SerializeField]
-  private float _railJumpHeightBonus = 1.25f;
-
   public void Enter(Player player)
   {
     Vector3 targetVelocity = player.MovementVector;
