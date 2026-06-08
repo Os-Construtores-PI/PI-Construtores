@@ -52,8 +52,8 @@ MonoBehaviour:
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 832
-  _encontrouPlayer: 0
-  _playerDetectado: {fileID: 0}
+  FoundPlayer: 0
+  DetectedPlayer: {fileID: 0}
 --- !u!1 &613300676009821489
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,7 +983,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 3.57
-  m_BaseOffset: 2
+  m_BaseOffset: 1.66
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &1758655156328760059
@@ -1032,7 +1032,6 @@ MonoBehaviour:
   flashDuration: 0.1
   flashMaterial: {fileID: 0}
   _damagePopupEffect: {fileID: 0}
-  _player: {fileID: 0}
   _vision: {fileID: 0}
   _animator: {fileID: 0}
   _stopDistance: 10
