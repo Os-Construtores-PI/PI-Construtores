@@ -303,6 +303,8 @@ public class WolfBasicEnemy : NavBasedEnemy
   private IEnumerator PrepareThenRush(Transform playerTransform)
   {
     _isAttacking = true;
+
+    _animator.SetBool("isAttacking", true);
     _animator.SetTrigger("AttackCombo");
     SetAnimationState(isWalking: false, isIdle: false);
 
@@ -345,6 +347,8 @@ public class WolfBasicEnemy : NavBasedEnemy
     yield return EvaluatePostAttack(playerTransform);
 
     _isAttacking = false;
+
+    _animator.SetBool("isAttacking", false);
     _animator.SetInteger("AttackIndex", -1);
     _attackCoroutine = null;
   }
