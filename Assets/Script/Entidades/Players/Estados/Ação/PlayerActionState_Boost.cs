@@ -11,9 +11,6 @@ public class PlayerActionStateBoost : IState<Player>
   #endregion
 
   #region Fields
-  private const int MainCameraPriority = 10;
-  private const int BoostCameraPriority = 20;
-  private const int InactivePriority = 0;
 
   [Header("Camera")]
   [SerializeField]
@@ -42,34 +39,31 @@ public class PlayerActionStateBoost : IState<Player>
   [SerializeField]
   private float _maxVelocity = 100f;
 
-  [Tooltip("Valor mínimo do input de movimento para permitir o cancelamento antecipado do boost.")]
+  [Tooltip("Velocidade de rotação em graus por segundo durante o boost.")]
   [SerializeField]
-  private float _cancelInputThreshold = 0.4f;
-
-  [SerializeField]
-  private float _timeToAllowCancel = 5f;
+  private float _rotationSpeed = 180f;
 
   [SerializeField]
   private SphereCollider _boostCollider;
 
   private float _playerOriginalSpeed;
   private float _velocity;
-  private bool _canCancel = false;
-  private Timer _cancelTimer = new();
+
+  private Quaternion _boostRotation;
   #endregion
 
   #region IState Callbacks
   public void Enter(Player player)
   {
-    _velocity = Mathf.Clamp(player.DashSlashBoostButton.Value, 0f, _maxVelocity);
+    _velocity = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
     _playerOriginalSpeed = player.Speed;
-    _cancelTimer.Start(_timeToAllowCancel);
+    _boostRotation = player.transform.rotation;
 
     float velocityFraction = _velocity / _maxVelocity;
 
-    player.LocomotionLayer.ChangeState(player.Moving, player);
-    player.MovementVector += player.transform.forward * _velocity;
-    player.DashSlashBoostButton.Value -= _initialBoostUsage;
+    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
+
+    player.BoostValue -= _initialBoostUsage;
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
 
     player.SpeedLines.Invoke(true);
@@ -93,7 +87,10 @@ public class PlayerActionStateBoost : IState<Player>
   public void Exit(Player player)
   {
     _velocity = 0f;
-    _cancelTimer.Stop();
+
+    float currentYVelocity = player.MovementVector.y;
+    player.MovementVector = Vector3.zero;
+    player.MovementVector.y = currentYVelocity;
 
     player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
     player.LocomotionLayer.ChangeState(player.Moving, player);
@@ -111,16 +108,31 @@ public class PlayerActionStateBoost : IState<Player>
 
   public void Update(Player player)
   {
-    player.DashSlashBoostButton.Value -= _continuousBoostUsage * Time.deltaTime;
-    player.DashSlashBoostButton.Value = Mathf.Max(0f, player.DashSlashBoostButton.Value);
+    player.BoostValue -= _continuousBoostUsage * Time.deltaTime;
+    player.BoostValue = Mathf.Max(0f, player.BoostValue);
 
-    if (player.DashSlashBoostButton.Value <= 0f)
+    if (player.BoostValue <= 0f)
     {
       player.ActionLayer.ExitState(this, player);
       return;
     }
 
-    if (player.MoveInput.y <= _cancelInputThreshold && _cancelTimer.Tick(Time.deltaTime))
+    float turnInput = player.MoveInput.x;
+    if (Mathf.Abs(turnInput) > 0.01f)
+    {
+      _boostRotation *= Quaternion.AngleAxis(
+        turnInput * _rotationSpeed * Time.deltaTime,
+        Vector3.up
+      );
+      player.transform.rotation = _boostRotation;
+    }
+
+    Vector3 newMovementVector = player.transform.forward * _velocity;
+    newMovementVector.y = player.MovementVector.y;
+
+    player.MovementVector = newMovementVector;
+
+    if (!player.PlayerInput.actions.FindAction("Dash / Boost").IsPressed())
     {
       player.ActionLayer.ExitState(this, player);
       return;

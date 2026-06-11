@@ -27368,14 +27368,15 @@ MonoBehaviour:
     SlamForce: 200
     MaxImpactCap: 30
   Boost:
-    EnterShakeAmplitude: 2.5
-    EnterShakeFrequency: 0.4
-    EnterShakeDuration: 0.25
-    _rotationSpeed: 50
-    _boostUsage: 10
-    _slopeLimit: 30
+    _defaultFOV: 80
+    _boostFOV: 120
+    _enterShakeAmplitude: 1.5
+    _enterShakeFrequency: 0.4
+    _enterShakeDuration: 0.25
+    _initialBoostUsage: 20
+    _continuousBoostUsage: 10
     _maxVelocity: 100
-    _forcedDuration: 1.5
+    _rotationSpeed: 100
     _boostCollider: {fileID: 1571673813378275627}
   Bounce:
     BounceWindowDuration: 0.4
@@ -27385,8 +27386,6 @@ MonoBehaviour:
   Jump:
     _jumpHeightMultiplierPerExtraJump: 0.35
     _wallJumpHorizontalBias: 6.5
-    _railMomentumPreservation: 1
-    _railJumpHeightBonus: 1.25
   RailSlide:
     CurrentRail: {fileID: 0}
     _snapDuration: 0.12
@@ -27395,16 +27394,6 @@ MonoBehaviour:
     exitVerticalBias: 1.6
     exitMinHorizontalSpeed: 8
     modelOffset: {x: 0, y: 1.2, z: 0}
-  DashSlashBoostButton:
-    StartedChargingEv:
-      m_PersistentCalls:
-        m_Calls: []
-    ChargingEv:
-      m_PersistentCalls:
-        m_Calls: []
-    StoppedChargingEv:
-      m_PersistentCalls:
-        m_Calls: []
   MovementVector: {x: 0, y: 0, z: 0}
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
@@ -27425,6 +27414,11 @@ MonoBehaviour:
   _modelTransform: {fileID: 6707445767027251514}
   _ultimoDispositivo: 0
   JumpInteractionPressed: 0
+  BoostChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  _maxBoostValue: 100
+  _initialBoostValue: 100
   enemyScanRadius: 10
   _railEntryRadius: 3
   _railEntryForwardOffset: 0.6

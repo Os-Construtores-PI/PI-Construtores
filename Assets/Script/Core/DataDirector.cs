@@ -294,7 +294,7 @@ public sealed class DataDirector : MonoBehaviour
     // estado
     player.transform.position = data.position;
     player.Health = data.health;
-    player.SetAmethysts(data.amethystsCount, null);
+    player.SetAmethysts(data.amethystsCount);
 
     // inventário
     player.Inventory.ClearItems();

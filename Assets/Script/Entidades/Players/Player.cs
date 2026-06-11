@@ -18,11 +18,7 @@ using static TutorialGlobal;
 public class Player : CombatEntities
 {
   #region Constantes (Substituição de Magic Values)
-  // Valores numéricos
-  private const float DASH_BTN_ARG_1 = 100f;
-  private const float DASH_BTN_ARG_2 = 50f;
-  private const float DASH_BTN_ARG_3 = 0.5f;
-  private const float MOVE_DEADZONE = 0.5f;
+
   private const float HUD_INIT_DELAY = 0.1f;
   private const float CAMERA_SCAN_BUFFER = 2f;
   private const float RAIL_SCORE_WEIGHT = 0.2f;
@@ -169,7 +165,6 @@ public class Player : CombatEntities
   public PlayerActionStateBounce Bounce = new();
   public PlayerActionStateJump Jump = new();
   public PlayerActionStateRailSlide RailSlide = new();
-  public BoostSlashDashButton DashSlashBoostButton;
 
   public readonly PlayerLocomotionStateMoving Moving = new();
   public readonly PlayerLocomotionStateLocked Locked = new();
@@ -262,6 +257,38 @@ public class Player : CombatEntities
   public bool BlockJumpByDialogue { get; set; } = false;
   #endregion
 
+  #region Boost
+
+  [HideInInspector]
+  public UnityEvent<float> BoostChanged;
+
+  [Header("Boost Value Options")]
+  [SerializeField]
+  private float _maxBoostValue = 100f;
+
+  public float MaxBoostValue
+  {
+    get => _maxBoostValue;
+  }
+
+  [SerializeField]
+  private float _initialBoostValue = 100f;
+
+  [HideInInspector]
+  public float BoostValue
+  {
+    get { return _boostValue; }
+    set
+    {
+      _boostValue = Mathf.Clamp(value, 0f, _maxBoostValue);
+      BoostChanged.Invoke(_boostValue / _maxBoostValue);
+    }
+  }
+
+  private float _boostValue = 0f;
+
+  #endregion Boost
+
   #region Scanners
   [Header("Scanner - Inimigos")]
   [SerializeField, Min(10)]
@@ -315,30 +342,26 @@ public class Player : CombatEntities
   private readonly Inventory _inventory = new();
   public Inventory Inventory => _inventory;
 
-  private int amethysts = 0;
-  public int Amethysts => amethysts;
+  private int _amethysts = 0;
+  public int Amethysts => _amethysts;
 
-  public void SetAmethysts(int value, Vector3? amethystPos)
+  public void SetAmethysts(int value)
   {
     int clamped = Mathf.Max(0, value);
-    if (amethysts == clamped)
+    if (_amethysts == clamped)
       return;
 
-    Vector3? positionInCamera = amethystPos.HasValue
-      ? _myCamera.WorldToScreenPoint(amethystPos.Value)
-      : null;
-    amethysts = clamped;
-    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
+    _amethysts = clamped;
+    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(_amethysts);
   }
 
-  public void AddAmethysts(int amount, Vector3? amethystPos) =>
-    SetAmethysts(amethysts + amount, amethystPos);
+  public void AddAmethysts(int amount) => SetAmethysts(_amethysts + amount);
 
   public bool SpendAmethysts(int amount)
   {
-    if (amount <= 0 || amethysts < amount)
+    if (amount <= 0 || _amethysts < amount)
       return false;
-    SetAmethysts(amethysts - amount, null);
+    SetAmethysts(_amethysts - amount);
     return true;
   }
   #endregion
@@ -415,9 +438,6 @@ public class Player : CombatEntities
 
     _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
     DetectarDispositivo(PlayerInput);
-
-    // Uso de constantes para os argumentos do botão
-    DashSlashBoostButton = new(this, DASH_BTN_ARG_1, DASH_BTN_ARG_2, DASH_BTN_ARG_3);
   }
 
   public override void Start()
@@ -436,6 +456,7 @@ public class Player : CombatEntities
     TrailsSystem.InitTrails(transform.Find("Trails"));
     PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
     _modelTransform = transform.Find("Model");
+    BoostValue = _initialBoostValue;
 
     LocomotionLayer.ChangeState(Moving, this);
   }
@@ -449,7 +470,6 @@ public class Player : CombatEntities
 #endif
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
-    DashSlashBoostButton.Update();
     ScanWithCamera();
   }
 
@@ -507,13 +527,6 @@ public class Player : CombatEntities
     TickDirector.Instance.OnTick.AddListener(_ => ScanRailEntry());
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-
-    DashSlashBoostButton.StartedChargingEv.AddListener(() =>
-      EffectsSystem.PlayEffect(EffectType.ChargingEffect, 1)
-    );
-    DashSlashBoostButton.StoppedChargingEv.AddListener(() =>
-      EffectsSystem.StopEffect(EffectType.ChargingEffect)
-    );
 
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
     _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
@@ -672,14 +685,25 @@ public class Player : CombatEntities
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
-
-    // Cancela boost se o input vertical for menor que a deadzone
-    if (MoveInput.y < MOVE_DEADZONE)
-      ActionLayer.ExitState(Boost, this);
   }
 
-  public void OnDash(InputAction.CallbackContext context) =>
-    DashSlashBoostButton.OnInputAction(context);
+  public void OnDash(InputAction.CallbackContext context)
+  {
+    if (!context.performed)
+      return;
+
+    if (IsGrounded)
+    {
+      ActionLayer.PushState(Boost, this);
+      return;
+    }
+
+    if (!CanDash || CurrentDashCount >= MaxDashCount || IsDashBlocked)
+    {
+      return;
+    }
+    ActionLayer.PushState(Dash, this);
+  }
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {

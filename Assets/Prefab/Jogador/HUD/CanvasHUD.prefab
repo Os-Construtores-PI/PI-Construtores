@@ -1132,7 +1132,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
   m_sharedMaterial: {fileID: -9140512969687513639, guid: ad73a7cb3f7c3d943841eae62553a30d, type: 2}
@@ -3683,60 +3683,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonDialogueIconPrefab
   _buttonType: 0
---- !u!1 &4809692004995601774
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7204869610484786590}
-  - component: {fileID: 1583450739935485501}
-  m_Layer: 5
-  m_Name: AmethystContainer
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &7204869610484786590
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4809692004995601774}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5183756367300349173}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -46.30008, y: 56}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1583450739935485501
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4809692004995601774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 335623eb458c28242a97c4350cbeac09, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ManualSingleSpawner
-  _initialAmount: 20
-  _parent: {fileID: 7204869610484786590}
-  objectToPool: {fileID: 2780598921457071657, guid: 464ab654b32b2f53bb39fa270be0649b, type: 3}
-  FinishedInstancing:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &4972823705227797154
 GameObject:
   m_ObjectHideFlags: 0
@@ -5399,7 +5345,6 @@ Transform:
   m_Children:
   - {fileID: 45527958876803552}
   - {fileID: 2777628990315604128}
-  - {fileID: 7204869610484786590}
   m_Father: {fileID: 6857790662425431923}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8901565318657899551
@@ -5415,15 +5360,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _amethystText: {fileID: 1625168339469772839}
-  _amethystContainer: {fileID: 7204869610484786590}
-  _amethystSprite: {fileID: -6019821000861472939, guid: fe3a50788e5e78640bd92ed3601e3393, type: 3}
-  _amethystSpawner: {fileID: 1583450739935485501}
-  _translationDuration: 0.75
-  _rotationDuration: 0.5
   _scaleDuration: 0.35
-  _scaleEasing: 29
-  _rotationEasing: 18
-  _translationEasing: 17
 --- !u!1 &8458558145543125182
 GameObject:
   m_ObjectHideFlags: 0

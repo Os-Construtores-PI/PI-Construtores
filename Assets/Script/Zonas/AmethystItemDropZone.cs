@@ -78,19 +78,8 @@ public class AmethystItemDropZone : ItemDropZone
 
   private void ApplyGameplayEffects(Player player)
   {
-    player.AddAmethysts(quantity, transform.position);
-
-    if (player.DashSlashBoostButton != null)
-    {
-      player.DashSlashBoostButton.Value += _boostGrace;
-    }
-    else
-    {
-      Debug.LogWarning(
-        "[AmethystItemDropZone] DashSlashBoostButton não configurado no Player.",
-        player
-      );
-    }
+    player.AddAmethysts(quantity);
+    player.BoostValue += _boostGrace;
   }
 
   private void PlayVisualFeedback()

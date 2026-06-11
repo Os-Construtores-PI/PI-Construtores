@@ -19,7 +19,7 @@ public class GlobalEventBus : MonoBehaviour
   public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
   public readonly UnityEvent<int, bool, Vector3> PLAYERTRIGGEREDLOCKONVISIBILITY = new();
   public readonly UnityEvent<bool> PLAYERTRIGGEREDOPTIONS = new();
-  public readonly UnityEvent<int, Vector3?> AMETHYSTSAMOUNTCHANGED = new();
+  public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
   public readonly UnityEvent<string> PLAYERINPUTCHANGED = new();
   public readonly UnityEvent<Player, List<string>, float> PLAYERTRIGGEREDDIALOGUE = new();
   public readonly UnityEvent<Player, bool> PLAYERTRIGGEREDLOCKDIALOGUE = new();
