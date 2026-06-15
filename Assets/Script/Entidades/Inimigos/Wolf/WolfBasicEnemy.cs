@@ -67,6 +67,9 @@ public class WolfBasicEnemy : NavBasedEnemy
   [SerializeField]
   private int _maxPatrolsBeforeIdle = 9;
 
+  [SerializeField] Rigidbody _rb;
+  private Vector3 _patrolTarget;
+
   #endregion
 
   #region Private Fields
@@ -102,10 +105,13 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   public override void Awake()
   {
+
     base.Awake();
 
     _vision ??= GetComponentInChildren<EyeWolf>();
     _animator ??= GetComponentInChildren<Animator>();
+
+    _rb ??= GetComponent<Rigidbody>();
 
     _startPosition = transform.position;
   }
@@ -231,6 +237,16 @@ public class WolfBasicEnemy : NavBasedEnemy
     }
   }
 
+  private void MoveToPatrolPoint()
+  {
+    Vector3 dir =
+      (_patrolTarget - transform.position).normalized;
+
+    _rb.MovePosition(
+      transform.position +
+      dir * _patrolSpeed * Time.deltaTime);
+  }
+
   #endregion
 
   #region State Transitions
@@ -268,32 +284,24 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void Patrol()
   {
-    if (!_agent.isOnNavMesh)
-      return;
+    Vector3 randomPoint =
+      _startPosition +
+      Random.insideUnitSphere * _patrolRadius;
 
-    _agent.speed = _patrolSpeed;
-    _agent.isStopped = false;
+    randomPoint.y = transform.position.y;
 
-    Vector3 randomPoint = _startPosition + Random.insideUnitSphere * _patrolRadius;
-    randomPoint.y = _startPosition.y;
-
-    if (
-      NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, _patrolRadius * 2f, NavMesh.AllAreas)
-    )
-    {
-      _agent.SetDestination(hit.position);
-      SetAnimationState(isWalking: true, isIdle: false);
-    }
+    _patrolTarget = randomPoint;
   }
 
   private void Chase(Transform target)
   {
-    if (target == null || !_agent.isOnNavMesh)
-      return;
+    if(target == null) return;
 
-    _agent.speed = _chaseSpeed;
-    _agent.isStopped = false;
-    _agent.SetDestination(target.position);
+    Vector3 direction = (target.position - transform.position).normalized;
+
+    _rb.MovePosition(
+      transform.position +
+      direction * _chaseSpeed * Time.deltaTime);
   }
 
   #endregion
