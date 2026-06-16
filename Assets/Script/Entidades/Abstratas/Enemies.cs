@@ -66,19 +66,6 @@ public abstract class Enemies : CombatEntities, ILockable
   // ==== Referência para o Scanner ==== //
   [HideInInspector]
   public Vector3 spawnpos;
-
-  [Header("Knockback")]
-  [SerializeField]
-  private Collider _collider;
-
-  [SerializeField]
-  private float _knockbackForce = 50f;
-  public float KnockBackForce => _knockbackForce;
-
-  private readonly Timer _knockbackTimer = new();
-  private readonly float _knockbackCooldown = 2f;
-  private bool _canKnockback = true;
-
   // === Flash Requisitos ===
   private Renderer[] renderers;
   private Material[] originalMaterials;
@@ -132,7 +119,6 @@ public abstract class Enemies : CombatEntities, ILockable
       AttackTimer();
       MemoryTimer();
     }
-    KnockbackTimer();
   }
 
   private void VisionTimer()
@@ -172,18 +158,6 @@ public abstract class Enemies : CombatEntities, ILockable
     {
       memoryCooldownWalker = 0.0f;
       memoryTriggered = false;
-    }
-  }
-
-  private void KnockbackTimer()
-  {
-    if (!_canKnockback)
-    {
-      if (_knockbackTimer.Tick(Time.deltaTime))
-      {
-        _canKnockback = true;
-        _collider.enabled = true;
-      }
     }
   }
 
@@ -261,7 +235,7 @@ public abstract class Enemies : CombatEntities, ILockable
       originalScale.z * squashFactor
     );
 
-    Sequence squishSequence = DOTween.Sequence();
+    Sequence squishSequence = DOTween.Sequence().SetUpdate(true);
 
     // IMPORTANTE: Executar após o Animator
     squishSequence.Append(
@@ -308,7 +282,7 @@ public abstract class Enemies : CombatEntities, ILockable
     }
 
     ApplyFlashMaterial();
-    flashSequence = DOTween.Sequence();
+    flashSequence = DOTween.Sequence().SetUpdate(true);
     flashSequence.AppendInterval(flashDuration);
     flashSequence.OnComplete(() => RestoreMaterials());
     flashSequence.Play();
@@ -332,23 +306,6 @@ public abstract class Enemies : CombatEntities, ILockable
       if (renderers[i] != null && originalMaterials[i] != null)
       {
         renderers[i].material = originalMaterials[i];
-      }
-    }
-  }
-
-  public void OnTriggerEnter(Collider col)
-  {
-    if (col.TryGetComponent(out Player player))
-    {
-      if (_canKnockback)
-      {
-        _canKnockback = false;
-        player.CurrentDashCount = 0;
-        player.IsDashing = false;
-        player.CurrentJumpCount = 0;
-        player.MovementVector = Vector3.up * KnockBackForce;
-        _collider.enabled = false;
-        _knockbackTimer.Start(_knockbackCooldown);
       }
     }
   }

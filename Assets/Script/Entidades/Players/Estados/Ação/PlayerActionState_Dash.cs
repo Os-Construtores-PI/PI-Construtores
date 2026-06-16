@@ -32,6 +32,35 @@ public class PlayerActionStateDash : IState<Player>
   [SerializeField]
   private float _speedExponent = 0.1f;
 
+  [Header("Dash Bounce Settings")]
+  [SerializeField]
+  private float _bounceUpwardForce = 6f;
+
+  [SerializeField]
+  private float _graceTimeDuration = 0.35f;
+
+  [SerializeField]
+  private float _graceTimeScale = .2f;
+
+  [SerializeField]
+  private float _graceTimeScaleDuration = .05f;
+
+  [SerializeField]
+  private float _verticalSmoothing = 0.15f;
+
+  [SerializeField]
+  private AnimationCurve _verticalImpulseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+  private bool _hasHit;
+  private float _currentGraceTime;
+  private Player _currentPlayer;
+  private HitboxComponent _hitboxComponent;
+
+  private float _currentVerticalVelocity;
+  private float _targetVerticalVelocity;
+  private float _verticalImpulseStartTime;
+  private Tween _verticalTween;
+
   public ActionType Type => ActionType.Dash;
   public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
 
@@ -40,12 +69,27 @@ public class PlayerActionStateDash : IState<Player>
     if (player.IsHardLocked)
       return;
 
+    _currentPlayer = player;
+
     if (!_firstTime)
     {
       _initialDashSpeed = player.DashSpeed;
       _initialDashDistance = player.DashDistance;
       _firstTime = true;
     }
+
+    if (player.DashHitboxCollider.TryGetComponent(out HitboxComponent hitbox))
+    {
+      _hitboxComponent = hitbox;
+      _hitboxComponent.Hit.RemoveAllListeners();
+      _hitboxComponent.Hit.AddListener(OnDashHitDetected);
+    }
+
+    _hasHit = false;
+    _currentGraceTime = 0f;
+    timeToExitWalker = 0f;
+    _currentVerticalVelocity = 0f;
+    _targetVerticalVelocity = 0f;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.CanTakeDamage = false;
@@ -111,17 +155,53 @@ public class PlayerActionStateDash : IState<Player>
 
   public void FixedUpdate(Player player)
   {
-    if (player.LockedTarget != null)
+    if (_hasHit && _currentGraceTime > 0f)
     {
-      Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
-      if (diff.sqrMagnitude > 0.1f)
+      _currentGraceTime -= Time.fixedDeltaTime;
+
+      _currentVerticalVelocity = Mathf.Lerp(
+        _currentVerticalVelocity,
+        _targetVerticalVelocity,
+        _verticalSmoothing
+      );
+
+      Vector3 verticalMovement = Vector3.up * _currentVerticalVelocity * Time.fixedDeltaTime;
+      player.CharacterController.Move(verticalMovement);
+
+      Vector3 newDir = Vector3.zero;
+      if (player.LockedTarget != null)
       {
-        player.DashDirection = diff.normalized;
+        newDir = (player.LockedTarget.transform.position - player.transform.position).normalized;
+      }
+      else if (player.MoveInput != Vector2.zero)
+      {
+        newDir = CalculateRawInputDirection(player);
+      }
+
+      if (newDir != Vector3.zero)
+      {
+        player.DashDirection = newDir;
         player.transform.rotation = Quaternion.Slerp(
           player.transform.rotation,
           Quaternion.LookRotation(player.DashDirection),
-          40f * Time.fixedDeltaTime
+          15f * Time.fixedDeltaTime
         );
+      }
+    }
+    else
+    {
+      if (player.LockedTarget != null)
+      {
+        Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
+        if (diff.sqrMagnitude > 0.1f)
+        {
+          player.DashDirection = diff.normalized;
+          player.transform.rotation = Quaternion.Slerp(
+            player.transform.rotation,
+            Quaternion.LookRotation(player.DashDirection),
+            40f * Time.fixedDeltaTime
+          );
+        }
       }
     }
 
@@ -132,20 +212,67 @@ public class PlayerActionStateDash : IState<Player>
 
   public void Exit(Player player)
   {
+    _verticalTween?.Kill();
+    _verticalTween = null;
+
+    if (_hitboxComponent != null)
+    {
+      _hitboxComponent.Hit.RemoveListener(OnDashHitDetected);
+      _hitboxComponent = null;
+    }
+    _currentPlayer = null;
+
     player.CanDash = true;
     player.IsDashing = false;
-    if (player.ActionLayer.GetActive<PlayerActionStateBoost>() == null)
-    {
-      player.LocomotionLayer.ChangeState(player.Moving, player);
-    }
+
+    player.LocomotionLayer.ChangeState(player.Moving, player);
+
     player.DashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(EffectType.DashEffect);
-    Vector3 postDash =
-      new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
-    player.MovementVector += postDash;
+
+    if (!_hasHit)
+    {
+      Vector3 postDash =
+        new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
+      player.MovementVector += postDash;
+    }
+    else
+    {
+      player.MovementVector += Vector3.up * _currentVerticalVelocity * 0.5f;
+    }
 
     ResetDashHUD(player.DashHudScript);
+  }
+
+  private void OnDashHitDetected()
+  {
+    if (_currentPlayer == null || _hasHit)
+      return;
+
+    _hasHit = true;
+    _currentGraceTime = _graceTimeDuration;
+    _verticalImpulseStartTime = Time.time;
+
+    timeToExit += _graceTimeDuration;
+
+    _currentPlayer.DashHitboxCollider.enabled = false;
+
+    _currentPlayer.MovementVector = new Vector3(0, _currentPlayer.MovementVector.y, 0);
+
+    _targetVerticalVelocity = _bounceUpwardForce;
+    _currentVerticalVelocity = 0f;
+
+    _verticalTween?.Kill();
+    _verticalTween = DOTween.To(
+      () => _targetVerticalVelocity,
+      x => _targetVerticalVelocity = x,
+      0f,
+      _graceTimeDuration
+    ).SetEase(_verticalImpulseCurve);
+
+    Time.timeScale = _graceTimeScale;
+    DOVirtual.DelayedCall(_graceTimeScaleDuration, () => Time.timeScale = 1f);
   }
 
   private Vector3 CalculateRawInputDirection(Player player)
@@ -164,9 +291,16 @@ public class PlayerActionStateDash : IState<Player>
     if (timeToExitWalker < timeToExit && player.IsDashing)
     {
       timeToExitWalker += Time.fixedDeltaTime;
-      player.CharacterController.Move(
-        player.DashSpeed * Time.fixedDeltaTime * player.DashDirection
-      );
+
+      if (_hasHit && _currentGraceTime > 0f)
+      {
+      }
+      else
+      {
+        player.CharacterController.Move(
+          player.DashSpeed * Time.fixedDeltaTime * player.DashDirection
+        );
+      }
     }
     else
     {

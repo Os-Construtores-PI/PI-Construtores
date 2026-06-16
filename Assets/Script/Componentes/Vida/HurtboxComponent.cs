@@ -59,8 +59,12 @@ public class HurtboxComponent : MonoBehaviour
     if (!collider.TryGetComponent(out HitboxComponent hitbox) || !CanTakeDamage)
       return;
 
+    // Aplica o dano
     entity.Health -= hitbox.Damage;
     entity.Damaged = true;
+
+    // NOTIFICA O HIT: Invoca o evento da hitbox para notificar o estado (ex: dash)
+    hitbox.Hit.Invoke();
 
     TriggerInvulnerability(_initialCooldown);
   }
