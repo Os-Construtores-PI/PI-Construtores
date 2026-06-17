@@ -60,7 +60,6 @@ public class PlayerActionStateDash : IState<Player>
   public ActionType Type => ActionType.Dash;
   public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
 
-  /// <summary>Inicia o dash: calcula direção, velocidade, duração e prepara o hitbox.</summary>
   public void Enter(Player player)
   {
     if (player.IsHardLocked)
@@ -150,7 +149,6 @@ public class PlayerActionStateDash : IState<Player>
     }
   }
 
-  /// <summary>Move o player durante o dash ou aplica o impulso vertical do bounce.</summary>
   public void FixedUpdate(Player player)
   {
     if (_hasHit && _currentGraceTime > 0f)
@@ -203,7 +201,6 @@ public class PlayerActionStateDash : IState<Player>
 
   public void Update(Player player) { }
 
-  /// <summary>Encerra o dash e restaura o estado normal de movimento do player.</summary>
   public void Exit(Player player)
   {
     _verticalTween?.Kill();

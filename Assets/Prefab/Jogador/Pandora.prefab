@@ -27337,7 +27337,6 @@ MonoBehaviour:
   AirFriction: 2
   MaxJumpCount: 2
   WallJumpMultiplier: 5
-  GravityValue: 0
   GravityUpMultiplier: 2.2
   GravityDownMultiplier: 0.6
   MaxFallSpeed: -26
@@ -27364,36 +27363,27 @@ MonoBehaviour:
     _maxDashSpeed: 80
     _maxReferenceDistance: 20
     _speedExponent: 0.1
-    _bounceUpwardForce: 60
-    _graceTimeDuration: 0.3
-    _graceTimeScale: 0.05
-    _graceTimeScaleDuration: 0.3
+    _bounceUpwardForce: 45
+    _graceTimeDuration: 0.35
+    _hitStopTimeScale: 0.05
+    _hitStopTimeScaleDuration: 0.2
     _verticalImpulseCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 0.25967616
-        outSlope: 0.25967616
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.3051846
-      - serializedVersion: 3
-        time: 0.8822966
-        value: 0.20019197
-        inSlope: 0.5867301
-        outSlope: 0.5867301
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.18394788
-        outWeight: 0.33333334
+        outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 2
+        outSlope: 2
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
