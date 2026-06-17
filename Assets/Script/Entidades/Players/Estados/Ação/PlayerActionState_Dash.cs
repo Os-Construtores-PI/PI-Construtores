@@ -32,7 +32,7 @@ public class PlayerActionStateDash : IState<Player>
   [SerializeField]
   private float _speedExponent = 0.1f;
 
-  [Header("Dash Bounce Settings")]
+  [Header("Configurações de Quicada e GraceTime")]
   [SerializeField]
   private float _bounceUpwardForce = 6f;
 
@@ -40,13 +40,10 @@ public class PlayerActionStateDash : IState<Player>
   private float _graceTimeDuration = 0.35f;
 
   [SerializeField]
-  private float _graceTimeScale = .2f;
+  private float _hitStopTimeScale = .2f;
 
   [SerializeField]
-  private float _graceTimeScaleDuration = .05f;
-
-  [SerializeField]
-  private float _verticalSmoothing = 0.15f;
+  private float _hitStopTimeScaleDuration = .05f;
 
   [SerializeField]
   private AnimationCurve _verticalImpulseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -58,12 +55,12 @@ public class PlayerActionStateDash : IState<Player>
 
   private float _currentVerticalVelocity;
   private float _targetVerticalVelocity;
-  private float _verticalImpulseStartTime;
   private Tween _verticalTween;
 
   public ActionType Type => ActionType.Dash;
   public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
 
+  /// <summary>Inicia o dash: calcula direção, velocidade, duração e prepara o hitbox.</summary>
   public void Enter(Player player)
   {
     if (player.IsHardLocked)
@@ -153,17 +150,13 @@ public class PlayerActionStateDash : IState<Player>
     }
   }
 
+  /// <summary>Move o player durante o dash ou aplica o impulso vertical do bounce.</summary>
   public void FixedUpdate(Player player)
   {
     if (_hasHit && _currentGraceTime > 0f)
     {
       _currentGraceTime -= Time.fixedDeltaTime;
-
-      _currentVerticalVelocity = Mathf.Lerp(
-        _currentVerticalVelocity,
-        _targetVerticalVelocity,
-        _verticalSmoothing
-      );
+      _currentVerticalVelocity = _targetVerticalVelocity;
 
       Vector3 verticalMovement = Vector3.up * _currentVerticalVelocity * Time.fixedDeltaTime;
       player.CharacterController.Move(verticalMovement);
@@ -210,6 +203,7 @@ public class PlayerActionStateDash : IState<Player>
 
   public void Update(Player player) { }
 
+  /// <summary>Encerra o dash e restaura o estado normal de movimento do player.</summary>
   public void Exit(Player player)
   {
     _verticalTween?.Kill();
@@ -239,7 +233,7 @@ public class PlayerActionStateDash : IState<Player>
     }
     else
     {
-      player.MovementVector += Vector3.up * _currentVerticalVelocity * 0.5f;
+      player.MovementVector = new Vector3(player.MovementVector.x, _currentVerticalVelocity * 0.5f, player.MovementVector.z);
     }
 
     ResetDashHUD(player.DashHudScript);
@@ -252,16 +246,15 @@ public class PlayerActionStateDash : IState<Player>
 
     _hasHit = true;
     _currentGraceTime = _graceTimeDuration;
-    _verticalImpulseStartTime = Time.time;
 
     timeToExit += _graceTimeDuration;
 
     _currentPlayer.DashHitboxCollider.enabled = false;
-
-    _currentPlayer.MovementVector = new Vector3(0, _currentPlayer.MovementVector.y, 0);
+    _currentPlayer.MovementVector = Vector3.zero;
+    _currentPlayer.CurrentDashCount = 0;
 
     _targetVerticalVelocity = _bounceUpwardForce;
-    _currentVerticalVelocity = 0f;
+    _currentVerticalVelocity = _bounceUpwardForce;
 
     _verticalTween?.Kill();
     _verticalTween = DOTween.To(
@@ -271,8 +264,8 @@ public class PlayerActionStateDash : IState<Player>
       _graceTimeDuration
     ).SetEase(_verticalImpulseCurve);
 
-    Time.timeScale = _graceTimeScale;
-    DOVirtual.DelayedCall(_graceTimeScaleDuration, () => Time.timeScale = 1f);
+    Time.timeScale = _hitStopTimeScale;
+    DOVirtual.DelayedCall(_hitStopTimeScaleDuration, () => Time.timeScale = 1f);
   }
 
   private Vector3 CalculateRawInputDirection(Player player)
@@ -292,10 +285,7 @@ public class PlayerActionStateDash : IState<Player>
     {
       timeToExitWalker += Time.fixedDeltaTime;
 
-      if (_hasHit && _currentGraceTime > 0f)
-      {
-      }
-      else
+      if (!(_hasHit && _currentGraceTime > 0f))
       {
         player.CharacterController.Move(
           player.DashSpeed * Time.fixedDeltaTime * player.DashDirection

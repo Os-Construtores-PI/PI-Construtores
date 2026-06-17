@@ -84,8 +84,8 @@ public class Player : CombatEntities
   [HideInInspector]
   public float WallJumpMultiplier;
 
-  [HideInInspector]
-  public float GravityValue;
+  [HideInInspector,Stat(StatType.Gravity)]
+  public float GravityValue { get; set; }
 
   [HideInInspector]
   public float GravityUpMultiplier;
@@ -295,7 +295,7 @@ public class Player : CombatEntities
   private float enemyScanRadius = 10f;
 
   private const float CameraScanSphereRadius = 6f;
-  private const float CameraScanMaxDistance = 20f;
+  private const float CameraScanMaxDistance = 100f;
   private const float CameraScanDotThreshold = 0.5f;
   private const float WallScanDistance = 5f;
 

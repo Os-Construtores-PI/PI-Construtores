@@ -31,6 +31,7 @@ public enum StatType
   CombatCooldown,
   JumpForce,
   Health,
+  Gravity,
   MaxHealth,
 }
 
