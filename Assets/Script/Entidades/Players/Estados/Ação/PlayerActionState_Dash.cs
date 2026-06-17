@@ -250,6 +250,7 @@ public class PlayerActionStateDash : IState<Player>
 
     _currentPlayer.DashHitboxCollider.enabled = false;
     _currentPlayer.MovementVector = Vector3.zero;
+    _currentPlayer.CurrentDashCount = 0;
     _currentPlayer.transform.up = Vector3.up;
 
     _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(0f) * _bounceUpwardForce;
