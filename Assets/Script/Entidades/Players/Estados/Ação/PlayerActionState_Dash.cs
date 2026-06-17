@@ -154,7 +154,9 @@ public class PlayerActionStateDash : IState<Player>
     if (_hasHit && _currentGraceTime > 0f)
     {
       _currentGraceTime -= Time.fixedDeltaTime;
-      _currentVerticalVelocity = _targetVerticalVelocity;
+
+      float elapsedT = 1f - Mathf.Clamp01(_currentGraceTime / _graceTimeDuration);
+      _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(elapsedT) * _bounceUpwardForce;
 
       Vector3 verticalMovement = Vector3.up * _currentVerticalVelocity * Time.fixedDeltaTime;
       player.CharacterController.Move(verticalMovement);
@@ -248,18 +250,9 @@ public class PlayerActionStateDash : IState<Player>
 
     _currentPlayer.DashHitboxCollider.enabled = false;
     _currentPlayer.MovementVector = Vector3.zero;
-    _currentPlayer.CurrentDashCount = 0;
+    _currentPlayer.transform.up = Vector3.up;
 
-    _targetVerticalVelocity = _bounceUpwardForce;
-    _currentVerticalVelocity = _bounceUpwardForce;
-
-    _verticalTween?.Kill();
-    _verticalTween = DOTween.To(
-      () => _targetVerticalVelocity,
-      x => _targetVerticalVelocity = x,
-      0f,
-      _graceTimeDuration
-    ).SetEase(_verticalImpulseCurve);
+    _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(0f) * _bounceUpwardForce;
 
     Time.timeScale = _hitStopTimeScale;
     DOVirtual.DelayedCall(_hitStopTimeScaleDuration, () => Time.timeScale = 1f);
