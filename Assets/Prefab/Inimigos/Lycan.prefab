@@ -99,6 +99,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  Hit:
+    m_PersistentCalls:
+      m_Calls: []
   _maxDamage: 25
 --- !u!136 &6961253378331736362
 CapsuleCollider:
@@ -168,6 +171,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  Hit:
+    m_PersistentCalls:
+      m_Calls: []
   _maxDamage: 25
 --- !u!136 &4396666372110037767
 CapsuleCollider:
@@ -940,9 +946,9 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!136 &8835980009536403483
 CapsuleCollider:
@@ -1029,8 +1035,6 @@ MonoBehaviour:
   visionInterval: 0.5
   attackInterval: 1
   spawnpos: {x: 0, y: 0, z: 0}
-  _collider: {fileID: 8835980009536403483}
-  _knockbackForce: 50
   canFlash: 1
   flashDuration: 0.1
   flashMaterial: {fileID: 2100000, guid: 95120fc78f952614684e7d0a09b4bf7c, type: 2}
@@ -1053,6 +1057,7 @@ MonoBehaviour:
   _maxIdleTime: 4
   _minPatrolsBeforeIdle: 5
   _maxPatrolsBeforeIdle: 9
+  _rb: {fileID: 5305230127500805634}
 --- !u!95 &5541610149168451512
 Animator:
   serializedVersion: 7

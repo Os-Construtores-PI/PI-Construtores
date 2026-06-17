@@ -1,7 +1,6 @@
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class WolfBasicEnemy : NavBasedEnemy
 {
@@ -82,6 +81,8 @@ public class WolfBasicEnemy : NavBasedEnemy
   private Coroutine _idleCoroutine;
   private Transform _playerTransform;
 
+  private Transform _currentTarget;
+
   private Vector3 _startPosition;
   private WolfState _currentState = WolfState.Patrol;
 
@@ -138,8 +139,6 @@ public class WolfBasicEnemy : NavBasedEnemy
     if (_dashTimer > 0f)
       _dashTimer -= Time.deltaTime;
 
-    if (_playerTransform == null || _agent == null || !_agent.isOnNavMesh)
-      return;
 
     switch (_currentState)
     {
@@ -148,6 +147,26 @@ public class WolfBasicEnemy : NavBasedEnemy
         break;
       case WolfState.Chase:
         UpdateChaseState();
+        break;
+    }
+  }
+
+  private void FixedUpdate()
+  {
+    if (_isAttacking)
+      return;
+
+    if (_isWaiting)
+      return;
+
+    switch (_currentState)
+    {
+      case WolfState.Patrol:
+        MoveToPatrolPoint();
+        break;
+
+      case WolfState.Chase:
+        MoveToTarget();
         break;
     }
   }
@@ -162,40 +181,23 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void UpdatePatrolState()
   {
+    if(_vision !=  null && _vision.DetectedPlayer != null)
+    {
+      StopIdleCoroutine();
+
+      SetAnimationState(false, false);
+
+      SwitchToChase(_vision.DetectedPlayer);
+      return;
+    } 
+
     if (_vision != null && _vision.DetectedPlayer != null)
     {
       SwitchToChase(_vision.DetectedPlayer);
       return;
     }
 
-    if (_returningToPost)
-    {
-      if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
-      {
-        _returningToPost = false;
-        StartIdleWait();
-      }
-      return;
-    }
-
-    if (
-      !_isWaiting
-      && !_isAttacking
-      && !_agent.pathPending
-      && _agent.remainingDistance <= _agent.stoppingDistance
-    )
-    {
-      _currentPatrolCount++;
-
-      if (_currentPatrolCount < _patrolsBeforeIdle)
-      {
-        Patrol();
-      }
-      else
-      {
-        StartIdleWait();
-      }
-    }
+    
   }
 
   private void UpdateChaseState()
@@ -239,12 +241,36 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void MoveToPatrolPoint()
   {
-    Vector3 dir =
+    float distance =
+      Vector3.Distance(
+        transform.position,
+        _patrolTarget);
+
+    if( distance < 1f)
+    {
+      _currentPatrolCount++;
+
+      if(_currentPatrolCount >= _patrolsBeforeIdle)
+      {
+        StartIdleWait();
+        return;
+      }
+
+      Patrol();
+      return;
+    }
+
+    Vector3 dir = 
       (_patrolTarget - transform.position).normalized;
+
+    dir.y = 0;
 
     _rb.MovePosition(
       transform.position +
-      dir * _patrolSpeed * Time.deltaTime);
+      dir * _patrolSpeed * Time.fixedDeltaTime);
+
+    RotateTowards(_patrolTarget);
+
   }
 
   #endregion
@@ -259,8 +285,7 @@ public class WolfBasicEnemy : NavBasedEnemy
 
     StopIdleCoroutine();
 
-    _agent.isStopped = false;
-    _agent.speed = _chaseSpeed;
+    
 
     SetAnimationState(isWalking: true, isIdle: false);
     _memoryTimer = _chaseMemoryTime;
@@ -271,11 +296,10 @@ public class WolfBasicEnemy : NavBasedEnemy
     _currentState = WolfState.Patrol;
     _returningToPost = true;
 
-    _agent.isStopped = false;
-    _agent.speed = _patrolSpeed;
+    
 
     SetAnimationState(isWalking: true, isIdle: false);
-    _agent.SetDestination(_startPosition);
+    
   }
 
   #endregion
@@ -295,30 +319,59 @@ public class WolfBasicEnemy : NavBasedEnemy
 
   private void Chase(Transform target)
   {
-    if(target == null) return;
+    _currentTarget = target;
+  }
 
-    Vector3 direction = (target.position - transform.position).normalized;
+
+  private void MoveToTarget()
+  {
+    if (_currentTarget == null)
+      return;
+
+    Vector3 dir =
+      (_currentTarget.position - transform.position).normalized;
+
+    dir.y = 0;
 
     _rb.MovePosition(
       transform.position +
-      direction * _chaseSpeed * Time.deltaTime);
+      dir * _chaseSpeed * Time.fixedDeltaTime);
+
+    RotateTowards(_currentTarget.position);
   }
 
+  private void RotateTowards(Vector3 targetPos)
+  {
+    Vector3 dir = targetPos - transform.position;
+    dir.y = 0;
+
+    if (dir.sqrMagnitude < 0.01f)
+      return;
+
+    Quaternion targetRot =
+      Quaternion.LookRotation(dir);
+
+    transform.rotation =
+      Quaternion.Slerp(
+        transform.rotation,
+        targetRot,
+        8f * Time.deltaTime);
+  }
   #endregion
 
   #region Attack & Animation
 
   private IEnumerator PrepareThenRush(Transform playerTransform)
   {
+    StopIdleCoroutine();
+    _isWaiting = false;
+
     _isAttacking = true;
 
     _animator.SetBool("isAttacking", true);
     _animator.SetTrigger("AttackCombo");
     SetAnimationState(isWalking: false, isIdle: false);
 
-    _agent.isStopped = true;
-    _agent.velocity = Vector3.zero;
-    _agent.enabled = false;
 
     Vector3 dir = playerTransform.position - transform.position;
     dir.y = 0f;
@@ -336,11 +389,7 @@ public class WolfBasicEnemy : NavBasedEnemy
     float rushMagnitude = Mathf.Min(_rushDistance, toPlayer.magnitude - _minAttackDistance);
     Vector3 desiredPos = transform.position + toPlayer.normalized * rushMagnitude;
 
-    if (NavMesh.SamplePosition(desiredPos, out NavMeshHit hit, 1f, NavMesh.AllAreas))
-    {
-      desiredPos = hit.position;
-    }
-    desiredPos.y = transform.position.y;
+    
 
     _currentTweener?.Kill();
     _currentTweener = transform.DOMove(desiredPos, _rushDuration).SetEase(_rushEase);
@@ -348,15 +397,25 @@ public class WolfBasicEnemy : NavBasedEnemy
     yield return _currentTweener.WaitForCompletion();
     yield return new WaitForSeconds(0.05f);
 
-    _agent.enabled = true;
-    _agent.isStopped = false;
-    _agent.ResetPath();
+   
 
     yield return EvaluatePostAttack(playerTransform);
 
+    if(_currentState == WolfState.Chase)
+    {
+      _animator.SetBool("isWalking", true);
+      _animator.SetBool("isIdle", false);
+    }
+    else
+    {
+      _animator.SetBool("isWalking", true);
+      _animator.SetBool("isIdle", true);
+    }
+    
+    _animator.SetBool("isAttacking", false);
+
     _isAttacking = false;
 
-    _animator.SetBool("isAttacking", false);
     _animator.SetInteger("AttackIndex", -1);
     _attackCoroutine = null;
   }
@@ -408,12 +467,12 @@ public class WolfBasicEnemy : NavBasedEnemy
       yield break;
 
     _isWaiting = true;
-    _agent.isStopped = true;
+    
     SetAnimationState(isWalking: false, isIdle: true);
 
     yield return null;
-    while (_animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f)
-      yield return null;
+
+    yield return new WaitForSeconds(0.5f);
 
     float waitTime = Random.Range(_minIdleTime, _maxIdleTime);
     yield return new WaitForSeconds(waitTime);
@@ -423,7 +482,7 @@ public class WolfBasicEnemy : NavBasedEnemy
 
     SetAnimationState(isWalking: true, isIdle: false);
 
-    _agent.isStopped = false;
+    
     _currentPatrolCount = 0;
     _patrolsBeforeIdle = Random.Range(_minPatrolsBeforeIdle, _maxPatrolsBeforeIdle + 1);
 
