@@ -45,7 +45,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private Collider _boostHitboxCollider;
 
   [SerializeField]
-  private SphereCollider _boostCollider;
+  private SphereCollider _boostCollectionCollider;
 
   private float _playerOriginalSpeed;
   private float _velocity;
@@ -64,9 +64,14 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
     player.SpeedLines.Invoke(true);
 
-    if (_boostCollider != null)
+    if (_boostCollectionCollider != null)
     {
-      _boostCollider.enabled = true;
+      _boostCollectionCollider.enabled = true;
+    }
+
+    if (player.HurtboxCollider != null)
+    {
+      player.HurtboxCollider.TriggerInvulnerability(1000f);
     }
 
     if (_boostHitboxCollider != null)
@@ -100,9 +105,14 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     player.SpeedLines.Invoke(false);
 
-    if (_boostCollider != null)
+    if (_boostCollectionCollider != null)
     {
-      _boostCollider.enabled = false;
+      _boostCollectionCollider.enabled = false;
+    }
+
+    if (player.HurtboxCollider != null)
+    {
+      player.HurtboxCollider.ResetInvulnerability();
     }
 
     if (_boostHitboxCollider != null)

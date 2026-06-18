@@ -17,7 +17,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   [Header("Opções de Hitbox")]
   [SerializeField]
-  private float _disableDamageCooldown = 4;
+  private float _disableDamageCooldown = 6;
 
   [Header("Distância Minima para Dash")]
   [SerializeField]
@@ -92,7 +92,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _targetVerticalVelocity = 0f;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
-    player.HurtboxCollider.CanTakeDamage = false;
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
     _dashHitboxCollider.enabled = true;
 
