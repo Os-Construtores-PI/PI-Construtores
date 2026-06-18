@@ -11,6 +11,10 @@ public class PlayerActionStateDash : IPlayerState<Player>
   private float _initialDashDistance;
   private bool _firstTime;
 
+  [Header("Componentes")]
+  [SerializeField]
+  private Collider _dashHitboxCollider;
+
   [Header("Opções de Hitbox")]
   [SerializeField]
   private float _disableDamageCooldown = 4;
@@ -40,10 +44,10 @@ public class PlayerActionStateDash : IPlayerState<Player>
   private float _graceTimeDuration = 0.35f;
 
   [SerializeField]
-  private float _hitStopTimeScale = .2f;
+  private float _hitStopTimeScale = .05f;
 
   [SerializeField]
-  private float _hitStopTimeScaleDuration = .05f;
+  private float _hitStopTimeScaleDuration = .35f;
 
   [SerializeField]
   private AnimationCurve _verticalImpulseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -74,7 +78,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
       _firstTime = true;
     }
 
-    if (player.DashHitboxCollider.TryGetComponent(out HitboxComponent hitbox))
+    if (_dashHitboxCollider.TryGetComponent(out HitboxComponent hitbox))
     {
       _hitboxComponent = hitbox;
       _hitboxComponent.Hit.RemoveAllListeners();
@@ -90,7 +94,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.CanTakeDamage = false;
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
-    player.DashHitboxCollider.enabled = true;
+    _dashHitboxCollider.enabled = true;
 
     Vector3 targetDir = Vector3.zero;
 
@@ -220,7 +224,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
-    player.DashHitboxCollider.enabled = false;
+    _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(EffectType.DashEffect);
 
@@ -252,7 +256,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
     timeToExit += _graceTimeDuration;
 
-    _currentPlayer.DashHitboxCollider.enabled = false;
+    _dashHitboxCollider.enabled = false;
     _currentPlayer.MovementVector = Vector3.zero;
     _currentPlayer.CurrentDashCount = 0;
     _currentPlayer.transform.up = Vector3.up;

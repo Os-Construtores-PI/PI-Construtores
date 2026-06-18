@@ -27424,11 +27424,10 @@ MonoBehaviour:
   _cinemachineInput: {fileID: 0}
   _cinemachineOrbital: {fileID: 0}
   HurtboxCollider: {fileID: 7322801009794671605}
-  DashHitboxCollider: {fileID: 8688263318238171917}
-  GroundSlamHitboxCollider: {fileID: 5232564754573124142}
   AnimatorComponent: {fileID: 4498598552815147647}
   PlayerInput: {fileID: 4848141862502818215}
   Dash:
+    _dashHitboxCollider: {fileID: 8688263318238171917}
     _disableDamageCooldown: 4
     _minDashSpeed: 40
     _maxDashSpeed: 80
@@ -27451,8 +27450,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.16602719
-        value: 0.71842104
+        time: 0.57302487
+        value: 0.24140841
         inSlope: 1.1787212
         outSlope: 1.1787212
         tangentMode: 0
@@ -27472,6 +27471,7 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   GroundSlam:
+    _groundSlamHitboxCollider: {fileID: 5232564754573124142}
     SlamForce: 200
     MaxImpactCap: 30
   Boost:

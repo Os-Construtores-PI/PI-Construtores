@@ -22,15 +22,15 @@ public abstract class Enemies : CombatEntities, ILockable
 
   [Header("Knockback")]
   [SerializeField]
-  private float _knockbackForce = 60;
+  protected float _knockbackForce = 60;
 
   [SerializeField]
-  private float _knockbackRadius = 10f;
+  protected float _knockbackRadius = 10f;
 
   [SerializeField, Range(1f, 20f)]
-  private float _verticalMultiplier = 1f;
+  protected float _verticalMultiplier = 1f;
 
-  private Collider[] knockbackResult = new Collider[10];
+  protected Collider[] knockbackResult = new Collider[10];
 
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
@@ -226,31 +226,9 @@ public abstract class Enemies : CombatEntities, ILockable
     TriggerDamagePopup();
   }
 
-  private void TriggerKnockback()
-  {
-    int quantity = Physics.OverlapSphereNonAlloc(
-      transform.position,
-      _knockbackRadius,
-      knockbackResult,
-      LayerMask.GetMask("Entity", "Player"),
-      QueryTriggerInteraction.Collide
-    );
+  protected virtual void TriggerKnockback() { }
 
-    for (int i = 0; i < quantity; i++)
-    {
-      Collider hit = knockbackResult[i];
-      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
-        continue;
-
-      Vector3 forceDir = (transform.position - hit.transform.position).normalized;
-      forceDir.y *= _verticalMultiplier;
-
-      _rb.AddForce(forceDir.normalized * _knockbackForce, ForceMode.Impulse);
-      return;
-    }
-  }
-
-  private void TriggerDamagePopup()
+  protected virtual void TriggerDamagePopup()
   {
     if (_damagePopupEffect == null)
       return;
@@ -266,7 +244,7 @@ public abstract class Enemies : CombatEntities, ILockable
     popupSequence.OnComplete(() => _damagePopupEffect.gameObject.SetActive(false));
   }
 
-  private void TriggerSquish()
+  protected virtual void TriggerSquish()
   {
     transform.DOKill();
     Vector3 originalScale = transform.localScale;
@@ -281,7 +259,6 @@ public abstract class Enemies : CombatEntities, ILockable
 
     Sequence squishSequence = DOTween.Sequence().SetUpdate(true);
 
-    // IMPORTANTE: Executar após o Animator
     squishSequence.Append(
       transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear).SetUpdate(UpdateType.Late)
     );
@@ -314,7 +291,7 @@ public abstract class Enemies : CombatEntities, ILockable
     }
   }
 
-  public void TriggerFlash()
+  protected virtual void TriggerFlash()
   {
     if (!canFlash || flashMaterial == null)
       return;

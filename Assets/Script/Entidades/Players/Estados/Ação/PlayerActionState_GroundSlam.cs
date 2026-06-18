@@ -8,6 +8,10 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
   public HashSet<PlayerActionType> IncompatibleActions =>
     new() { PlayerActionType.Dash, PlayerActionType.Jump };
 
+  [Header("Componentes")]
+  [SerializeField]
+  private Collider _groundSlamHitboxCollider;
+
   [Header("Força de Impacto no Chão")]
   [SerializeField]
   private float SlamForce = 75f;
@@ -33,7 +37,7 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
     if (!player.IsGrounded)
     {
       player.MovementVector = new(_momentum.x, -SlamForce, _momentum.y);
-      player.GroundSlamHitboxCollider.enabled = true;
+      _groundSlamHitboxCollider.enabled = true;
       float currentFallSpeed = Mathf.Abs(player.MovementVector.y);
       player.GroundSlamImpactSpeed = Mathf.Min(
         Mathf.Max(player.GroundSlamImpactSpeed, currentFallSpeed),
@@ -50,6 +54,6 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
 
   public void Exit(Player player)
   {
-    player.GroundSlamHitboxCollider.enabled = false;
+    _groundSlamHitboxCollider.enabled = false;
   }
 }

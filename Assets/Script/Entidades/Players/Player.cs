@@ -138,8 +138,6 @@ public class Player : CombatEntities
   public CinemachineOrbitalFollow _cinemachineOrbital;
 
   public HurtboxComponent HurtboxCollider;
-  public Collider DashHitboxCollider;
-  public Collider GroundSlamHitboxCollider;
   public Animator AnimatorComponent;
   public PlayerInput PlayerInput;
   protected Camera _myCamera;
