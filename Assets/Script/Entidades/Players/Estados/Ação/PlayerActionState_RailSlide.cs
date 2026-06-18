@@ -4,18 +4,18 @@ using UnityEngine;
 using UnityEngine.Splines;
 
 [System.Serializable]
-public class PlayerActionStateRailSlide : IState<Player>
+public class PlayerActionStateRailSlide : IPlayerState<Player>
 {
   private static readonly int IsSlidingHash = Animator.StringToHash("IsSliding");
 
-  public ActionType Type => ActionType.RailSlide;
+  public PlayerActionType Type => PlayerActionType.RailSlide;
 
-  private readonly HashSet<ActionType> _incompatibleActions = new()
+  private readonly HashSet<PlayerActionType> _incompatibleActions = new()
   {
-    ActionType.Dash,
-    ActionType.GroundSlam,
+    PlayerActionType.Dash,
+    PlayerActionType.GroundSlam,
   };
-  public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
+  public HashSet<PlayerActionType> IncompatibleActions => _incompatibleActions;
 
   [HideInInspector]
   public SplineContainer CurrentRail;

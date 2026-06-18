@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateBounce : IState<Player>
+public class PlayerActionStateBounce : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.Bounce;
-  public HashSet<ActionType> IncompatibleActions => new();
+  public PlayerActionType Type => PlayerActionType.Bounce;
+  public HashSet<PlayerActionType> IncompatibleActions => new();
 
   [Header("Janela de Bounce")]
   [SerializeField]

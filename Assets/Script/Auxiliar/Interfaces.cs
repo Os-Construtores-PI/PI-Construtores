@@ -3,8 +3,6 @@ using UnityEngine;
 
 public interface IState<T>
 {
-  ActionType Type { get; }
-  HashSet<ActionType> IncompatibleActions { get; }
   virtual int Priority => 0;
   void Enter(T entity);
   void Update(T entity);
@@ -12,7 +10,19 @@ public interface IState<T>
   void Exit(T entity);
 }
 
-public interface ILocomotionState<T> : IState<T>
+public interface IPlayerState<T> : IState<T>
+{
+  PlayerActionType Type { get; }
+  HashSet<PlayerActionType> IncompatibleActions { get; }
+}
+
+public interface IWolfState<T> : IState<T>
+{
+  WolfActionType Type { get; }
+  HashSet<WolfActionType> IncompatibleActions { get; }
+}
+
+public interface ILocomotionState<T> : IPlayerState<T>
 {
   protected static void ApplyGravity(Player player)
   {

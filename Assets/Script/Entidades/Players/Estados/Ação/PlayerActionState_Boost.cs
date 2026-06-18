@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateBoost : IState<Player>
+public class PlayerActionStateBoost : IPlayerState<Player>
 {
   #region IState
-  public ActionType Type => ActionType.Boost;
-  public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
-  private readonly HashSet<ActionType> _incompatibleActions = new();
+  public PlayerActionType Type => PlayerActionType.Boost;
+  public HashSet<PlayerActionType> IncompatibleActions => _incompatibleActions;
+  private readonly HashSet<PlayerActionType> _incompatibleActions = new();
   #endregion
 
   #region Fields
@@ -31,9 +31,6 @@ public class PlayerActionStateBoost : IState<Player>
 
   [Header("Boost Settings")]
   [SerializeField]
-  private float _initialBoostUsage = 20f;
-
-  [SerializeField]
   private float _continuousBoostUsage = 10f;
 
   [SerializeField]
@@ -42,6 +39,10 @@ public class PlayerActionStateBoost : IState<Player>
   [Tooltip("Velocidade de rotação em graus por segundo durante o boost.")]
   [SerializeField]
   private float _rotationSpeed = 180f;
+
+  [Header("Boost Componentes")]
+  [SerializeField]
+  private Collider _boostHitboxCollider;
 
   [SerializeField]
   private SphereCollider _boostCollider;
@@ -58,18 +59,20 @@ public class PlayerActionStateBoost : IState<Player>
     _velocity = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
     _playerOriginalSpeed = player.Speed;
     _boostRotation = player.transform.rotation;
-
     float velocityFraction = _velocity / _maxVelocity;
-
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
-
-    player.BoostValue -= _initialBoostUsage;
     player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
-
     player.SpeedLines.Invoke(true);
 
     if (_boostCollider != null)
+    {
       _boostCollider.enabled = true;
+    }
+
+    if (_boostHitboxCollider != null)
+    {
+      _boostHitboxCollider.enabled = true;
+    }
 
     player.CustomShake.Invoke(
       player.ID,
@@ -96,8 +99,16 @@ public class PlayerActionStateBoost : IState<Player>
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
     player.SpeedLines.Invoke(false);
+
     if (_boostCollider != null)
+    {
       _boostCollider.enabled = false;
+    }
+
+    if (_boostHitboxCollider != null)
+    {
+      _boostHitboxCollider.enabled = false;
+    }
 
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);

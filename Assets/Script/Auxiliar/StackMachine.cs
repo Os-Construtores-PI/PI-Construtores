@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StackStateMachine<T> : StateMachine<T>
+public class StackStateMachine<T> : PlayerStateMachine<T>
 {
   // ── Constants ────────────────────────────────────────────────────────────
 
@@ -10,12 +10,12 @@ public class StackStateMachine<T> : StateMachine<T>
 
   // ── Fields ───────────────────────────────────────────────────────────────
 
-  private readonly Stack<IState<T>> _stateStack = new(3);
+  private readonly Stack<IPlayerState<T>> _stateStack = new(3);
   private readonly Queue<Action> _pendingOps = new();
 
   // ── Properties ───────────────────────────────────────────────────────────
 
-  public IState<T> Current => _stateStack.Count > 0 ? _stateStack.Peek() : null;
+  public IPlayerState<T> Current => _stateStack.Count > 0 ? _stateStack.Peek() : null;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ public class StackStateMachine<T> : StateMachine<T>
   // ── State Queries ────────────────────────────────────────────────────────
 
   public TState GetActive<TState>()
-    where TState : class, IState<T>
+    where TState : class, IPlayerState<T>
   {
     foreach (var state in _stateStack)
       if (state is TState match)
@@ -47,7 +47,7 @@ public class StackStateMachine<T> : StateMachine<T>
 
   // ── Push ─────────────────────────────────────────────────────────────────
 
-  public void PushState(IState<T> newState, T entity)
+  public void PushState(IPlayerState<T> newState, T entity)
   {
     if (IsDuplicate(newState) || HasIncompatibleState(newState) || IsOverCapacity())
       return;
@@ -56,7 +56,7 @@ public class StackStateMachine<T> : StateMachine<T>
     newState.Enter(entity);
   }
 
-  public void PushStateDeferred(IState<T> newState, T entity) =>
+  public void PushStateDeferred(IPlayerState<T> newState, T entity) =>
     _pendingOps.Enqueue(() => PushState(newState, entity));
 
   // ── Pop ──────────────────────────────────────────────────────────────────
@@ -73,9 +73,9 @@ public class StackStateMachine<T> : StateMachine<T>
   public void PopStateDeferred(T entity) => _pendingOps.Enqueue(() => PopState(entity));
 
   // ── Exit ─────────────────────────────────────────────────────────────────
-  public void ExitState(IState<T> state, T entity)
+  public void ExitState(IPlayerState<T> state, T entity)
   {
-    var temp = new List<IState<T>>(_stateStack);
+    var temp = new List<IPlayerState<T>>(_stateStack);
     int index = temp.IndexOf(state);
 
     if (index < 0)
@@ -87,7 +87,7 @@ public class StackStateMachine<T> : StateMachine<T>
     RebuildStack(temp);
   }
 
-  public void ExitStateDeferred(IState<T> state, T entity) =>
+  public void ExitStateDeferred(IPlayerState<T> state, T entity) =>
     _pendingOps.Enqueue(() => ExitState(state, entity));
 
   // ── Private Helpers ──────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ public class StackStateMachine<T> : StateMachine<T>
       _pendingOps.Dequeue().Invoke();
   }
 
-  private bool IsDuplicate(IState<T> newState)
+  private bool IsDuplicate(IPlayerState<T> newState)
   {
     foreach (var s in _stateStack)
       if (s.GetType() == newState.GetType())
@@ -107,7 +107,7 @@ public class StackStateMachine<T> : StateMachine<T>
     return false;
   }
 
-  private bool HasIncompatibleState(IState<T> newState)
+  private bool HasIncompatibleState(IPlayerState<T> newState)
   {
     foreach (var s in _stateStack)
       if (
@@ -121,7 +121,7 @@ public class StackStateMachine<T> : StateMachine<T>
 
   private bool IsOverCapacity() => _stateStack.Count >= MAX_ACTIVE_STATES;
 
-  private void RebuildStack(List<IState<T>> orderedBottomToTop)
+  private void RebuildStack(List<IPlayerState<T>> orderedBottomToTop)
   {
     _stateStack.Clear();
     for (int i = orderedBottomToTop.Count - 1; i >= 0; i--)

@@ -84,7 +84,7 @@ public class Player : CombatEntities
   [HideInInspector]
   public float WallJumpMultiplier;
 
-  [HideInInspector,Stat(StatType.Gravity)]
+  [HideInInspector, Stat(StatType.Gravity)]
   public float GravityValue { get; set; }
 
   [HideInInspector]
@@ -153,7 +153,7 @@ public class Player : CombatEntities
   #endregion
 
   #region State Machines & Estados
-  public StateMachine<Player> LocomotionLayer = new();
+  public PlayerStateMachine<Player> LocomotionLayer = new();
   public StackStateMachine<Player> ActionLayer = new();
 
   [Header("Estados")]

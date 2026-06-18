@@ -3,7 +3,7 @@ using DG.Tweening;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateDash : IState<Player>
+public class PlayerActionStateDash : IPlayerState<Player>
 {
   private float timeToExit;
   private float timeToExitWalker = 0.0f;
@@ -57,8 +57,8 @@ public class PlayerActionStateDash : IState<Player>
   private float _targetVerticalVelocity;
   private Tween _verticalTween;
 
-  public ActionType Type => ActionType.Dash;
-  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
+  public PlayerActionType Type => PlayerActionType.Dash;
+  public HashSet<PlayerActionType> IncompatibleActions => new() { { PlayerActionType.GroundSlam } };
 
   public void Enter(Player player)
   {
@@ -232,7 +232,11 @@ public class PlayerActionStateDash : IState<Player>
     }
     else
     {
-      player.MovementVector = new Vector3(player.MovementVector.x, _currentVerticalVelocity * 0.5f, player.MovementVector.z);
+      player.MovementVector = new Vector3(
+        player.MovementVector.x,
+        _currentVerticalVelocity * 0.5f,
+        player.MovementVector.z
+      );
     }
 
     ResetDashHUD(player.DashHudScript);

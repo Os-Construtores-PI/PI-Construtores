@@ -83,7 +83,7 @@ public enum GameMode
   MULTIPLAYER,
 }
 
-public enum ActionType
+public enum PlayerActionType
 {
   Locked,
   Idle,
@@ -98,6 +98,13 @@ public enum ActionType
   Boost,
   Bounce,
   RailSlide,
+}
+
+public enum WolfActionType
+{
+  Patrol,
+  Chase,
+  Attack,
 }
 
 public enum InputType

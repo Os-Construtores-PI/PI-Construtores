@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateGroundSlam : IState<Player>
+public class PlayerActionStateGroundSlam : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.GroundSlam;
-  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash, ActionType.Jump };
+  public PlayerActionType Type => PlayerActionType.GroundSlam;
+  public HashSet<PlayerActionType> IncompatibleActions =>
+    new() { PlayerActionType.Dash, PlayerActionType.Jump };
 
   [Header("Força de Impacto no Chão")]
   [SerializeField]

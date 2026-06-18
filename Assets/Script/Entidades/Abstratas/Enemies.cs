@@ -5,6 +5,7 @@ using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[RequireComponent(typeof(Rigidbody))]
 public abstract class Enemies : CombatEntities, ILockable
 {
   protected Transform target;
@@ -19,6 +20,18 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField]
   private float _boostGrace = 20f;
 
+  [Header("Knockback")]
+  [SerializeField]
+  private float _knockbackForce = 60;
+
+  [SerializeField]
+  private float _knockbackRadius = 10f;
+
+  [SerializeField, Range(1f, 20f)]
+  private float _verticalMultiplier = 1f;
+
+  private Collider[] knockbackResult = new Collider[10];
+
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
   public bool IsActive => enabled && gameObject.activeInHierarchy;
@@ -32,7 +45,7 @@ public abstract class Enemies : CombatEntities, ILockable
   private float radius;
 
   [SerializeField]
-  private float attackRange = 2f; // Raio da detecção de ataque
+  private float attackRange = 2f;
 
   [SerializeField]
   private float memoryCooldown = 3f;
@@ -43,9 +56,14 @@ public abstract class Enemies : CombatEntities, ILockable
   private bool playerInArea = false;
 
   // ==== COMPORTAMENTO DE IA ====
+
+  [Header("Componentes")]
+  [SerializeField]
+  protected Rigidbody _rb;
+
   [Header("IA")]
   [SerializeField]
-  private bool can_AI = true; // Permite ativar/desativar IA
+  private bool can_AI = true;
 
   [SerializeField]
   private float visionInterval = 0.5f; // Intervalo para verificar visão
@@ -66,6 +84,7 @@ public abstract class Enemies : CombatEntities, ILockable
   // ==== Referência para o Scanner ==== //
   [HideInInspector]
   public Vector3 spawnpos;
+
   // === Flash Requisitos ===
   private Renderer[] renderers;
   private Material[] originalMaterials;
@@ -202,8 +221,33 @@ public abstract class Enemies : CombatEntities, ILockable
   public override void DamageHandler()
   {
     TriggerFlash();
+    TriggerKnockback();
     TriggerSquish();
     TriggerDamagePopup();
+  }
+
+  private void TriggerKnockback()
+  {
+    int quantity = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _knockbackRadius,
+      knockbackResult,
+      LayerMask.GetMask("Entity", "Player"),
+      QueryTriggerInteraction.Collide
+    );
+
+    for (int i = 0; i < quantity; i++)
+    {
+      Collider hit = knockbackResult[i];
+      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
+        continue;
+
+      Vector3 forceDir = (transform.position - hit.transform.position).normalized;
+      forceDir.y *= _verticalMultiplier;
+
+      _rb.AddForce(forceDir.normalized * _knockbackForce, ForceMode.Impulse);
+      return;
+    }
   }
 
   private void TriggerDamagePopup()

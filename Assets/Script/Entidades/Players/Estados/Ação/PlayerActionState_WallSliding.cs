@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerActionStateWallSliding : IState<Player>
+public class PlayerActionStateWallSliding : IPlayerState<Player>
 {
   private readonly Timer wallExitTimer = new();
 
-  public ActionType Type => ActionType.Slide;
+  public PlayerActionType Type => PlayerActionType.Slide;
 
-  public HashSet<ActionType> IncompatibleActions => new();
+  public HashSet<PlayerActionType> IncompatibleActions => new();
 
   private void WallRunningTimer(Player player)
   {
