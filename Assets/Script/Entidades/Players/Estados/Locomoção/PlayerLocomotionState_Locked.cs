@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class PlayerLocomotionStateLocked : ILocomotionState<Player>
 {
-  public ActionType Type => ActionType.Locked;
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public PlayerActionType Type => PlayerActionType.Locked;
+  public HashSet<PlayerActionType> IncompatibleActions => new() { };
 
   public void Enter(Player player) { }
 

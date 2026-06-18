@@ -2,10 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateGroundSlam : IState<Player>
+public class PlayerActionStateGroundSlam : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.GroundSlam;
-  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Dash, ActionType.Jump };
+  public PlayerActionType Type => PlayerActionType.GroundSlam;
+  public HashSet<PlayerActionType> IncompatibleActions =>
+    new() { PlayerActionType.Dash, PlayerActionType.Jump };
+
+  [Header("Componentes")]
+  [SerializeField]
+  private Collider _groundSlamHitboxCollider;
 
   [Header("Força de Impacto no Chão")]
   [SerializeField]
@@ -32,7 +37,7 @@ public class PlayerActionStateGroundSlam : IState<Player>
     if (!player.IsGrounded)
     {
       player.MovementVector = new(_momentum.x, -SlamForce, _momentum.y);
-      player.GroundSlamHitboxCollider.enabled = true;
+      _groundSlamHitboxCollider.enabled = true;
       float currentFallSpeed = Mathf.Abs(player.MovementVector.y);
       player.GroundSlamImpactSpeed = Mathf.Min(
         Mathf.Max(player.GroundSlamImpactSpeed, currentFallSpeed),
@@ -49,6 +54,6 @@ public class PlayerActionStateGroundSlam : IState<Player>
 
   public void Exit(Player player)
   {
-    player.GroundSlamHitboxCollider.enabled = false;
+    _groundSlamHitboxCollider.enabled = false;
   }
 }

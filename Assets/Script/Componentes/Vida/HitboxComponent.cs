@@ -4,7 +4,9 @@ using static Constants.PlayerShakes;
 
 public class HitboxComponent : MonoBehaviour
 {
+  [HideInInspector]
   public UnityEvent Hit = new();
+
   [Header("Parâmetros de Dano")]
   [SerializeField]
   private float _maxDamage = 10f;

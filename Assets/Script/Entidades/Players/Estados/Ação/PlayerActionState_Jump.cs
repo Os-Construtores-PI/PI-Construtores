@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateJump : IState<Player>
+public class PlayerActionStateJump : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.Jump;
-  public HashSet<ActionType> IncompatibleActions => _incompatibleActions;
-  private readonly HashSet<ActionType> _incompatibleActions = new();
+  public PlayerActionType Type => PlayerActionType.Jump;
+  public HashSet<PlayerActionType> IncompatibleActions => _incompatibleActions;
+  private readonly HashSet<PlayerActionType> _incompatibleActions = new();
 
   [Header("Multiplicador a cada Pulo")]
   [SerializeField]

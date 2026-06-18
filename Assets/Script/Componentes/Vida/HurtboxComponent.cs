@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class HurtboxComponent : MonoBehaviour
 {
@@ -63,7 +64,6 @@ public class HurtboxComponent : MonoBehaviour
     entity.Health -= hitbox.Damage;
     entity.Damaged = true;
 
-    // NOTIFICA O HIT: Invoca o evento da hitbox para notificar o estado (ex: dash)
     hitbox.Hit.Invoke();
 
     TriggerInvulnerability(_initialCooldown);

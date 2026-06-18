@@ -44,15 +44,10 @@ public class EyeWolf : MonoBehaviour
     foreach (var col in targetsInArea)
     {
       Transform t = col.transform;
-      if (
-        DetectedPlayer != null
-        && Vector3.Distance(transform.position, t.position) <= _visionRange
-      )
-      {
-        FoundPlayer = true;
-        DetectedPlayer = t;
-        return;
-      }
+
+      if (!t.CompareTag(Constants.Tags.Player.ToString()))
+        continue;
+
       if (CanSeeTarget(t))
       {
         FoundPlayer = true;
@@ -64,13 +59,11 @@ public class EyeWolf : MonoBehaviour
 
   public bool CanSeeTarget(Transform target)
   {
-    Vector3 dirToTarget = ((target.position + Vector3.up * 1.5f) - transform.position).normalized;
+    Vector3 dirToTarget = (target.position + Vector3.up * 1.5f - transform.position).normalized;
     float dist = Vector3.Distance(transform.position, target.position);
 
-    // Angulo
     if (Vector3.Angle(transform.forward, dirToTarget) < _visionAngle / 2)
     {
-      // Angulo
       if (!Physics.Raycast(transform.position, dirToTarget, dist, _obstacleMask))
       {
         return true;

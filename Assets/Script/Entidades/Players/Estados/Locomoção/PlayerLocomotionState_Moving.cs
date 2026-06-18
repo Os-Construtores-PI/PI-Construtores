@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class PlayerLocomotionStateMoving : ILocomotionState<Player>
 {
-  public ActionType Type => ActionType.Move;
-  public HashSet<ActionType> IncompatibleActions => new();
+  public PlayerActionType Type => PlayerActionType.Move;
+  public HashSet<PlayerActionType> IncompatibleActions => new();
 
   // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();

@@ -21863,6 +21863,76 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.011375332, y: 0.0022755796, z: 0.005549053}
     m_Extent: {x: 0.004788764, y: 0.0051044263, z: 0.005582906}
   m_DirtyAABB: 0
+--- !u!1 &3872131717238929182
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 184726637026364975}
+  - component: {fileID: 128975501231292720}
+  - component: {fileID: 1941590432395012080}
+  m_Layer: 10
+  m_Name: BoostHitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &184726637026364975
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3872131717238929182}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8092701047622248497}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &128975501231292720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3872131717238929182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  Hit:
+    m_PersistentCalls:
+      m_Calls: []
+  _maxDamage: 10
+--- !u!65 &1941590432395012080
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3872131717238929182}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 3, y: 3, z: 3}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3963314558630505741
 GameObject:
   m_ObjectHideFlags: 0
@@ -27011,6 +27081,7 @@ Transform:
   - {fileID: 529184069336429120}
   - {fileID: 5505974552461697953}
   - {fileID: 4497387709796139413}
+  - {fileID: 184726637026364975}
   - {fileID: 6230178497730834178}
   - {fileID: 5752165528184936213}
   - {fileID: 3515872002515846543}
@@ -27353,11 +27424,10 @@ MonoBehaviour:
   _cinemachineInput: {fileID: 0}
   _cinemachineOrbital: {fileID: 0}
   HurtboxCollider: {fileID: 7322801009794671605}
-  DashHitboxCollider: {fileID: 8688263318238171917}
-  GroundSlamHitboxCollider: {fileID: 5232564754573124142}
   AnimatorComponent: {fileID: 4498598552815147647}
   PlayerInput: {fileID: 4848141862502818215}
   Dash:
+    _dashHitboxCollider: {fileID: 8688263318238171917}
     _disableDamageCooldown: 4
     _minDashSpeed: 40
     _maxDashSpeed: 80
@@ -27380,8 +27450,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.16602719
-        value: 0.71842104
+        time: 0.57302487
+        value: 0.24140841
         inSlope: 1.1787212
         outSlope: 1.1787212
         tangentMode: 0
@@ -27401,6 +27471,7 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   GroundSlam:
+    _groundSlamHitboxCollider: {fileID: 5232564754573124142}
     SlamForce: 200
     MaxImpactCap: 30
   Boost:
@@ -27409,10 +27480,10 @@ MonoBehaviour:
     _enterShakeAmplitude: 1.5
     _enterShakeFrequency: 0.4
     _enterShakeDuration: 0.25
-    _initialBoostUsage: 20
     _continuousBoostUsage: 10
     _maxVelocity: 100
     _rotationSpeed: 100
+    _boostHitboxCollider: {fileID: 1941590432395012080}
     _boostCollider: {fileID: 1571673813378275627}
   Bounce:
     BounceWindowDuration: 0.4

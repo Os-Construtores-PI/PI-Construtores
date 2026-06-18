@@ -5,6 +5,7 @@ using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[RequireComponent(typeof(Rigidbody))]
 public abstract class Enemies : CombatEntities, ILockable
 {
   protected Transform target;
@@ -19,6 +20,18 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField]
   private float _boostGrace = 20f;
 
+  [Header("Knockback")]
+  [SerializeField]
+  protected float _knockbackForce = 60;
+
+  [SerializeField]
+  protected float _knockbackRadius = 10f;
+
+  [SerializeField, Range(1f, 20f)]
+  protected float _verticalMultiplier = 1f;
+
+  protected Collider[] knockbackResult = new Collider[10];
+
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
   public bool IsActive => enabled && gameObject.activeInHierarchy;
@@ -32,7 +45,7 @@ public abstract class Enemies : CombatEntities, ILockable
   private float radius;
 
   [SerializeField]
-  private float attackRange = 2f; // Raio da detecção de ataque
+  private float attackRange = 2f;
 
   [SerializeField]
   private float memoryCooldown = 3f;
@@ -43,9 +56,14 @@ public abstract class Enemies : CombatEntities, ILockable
   private bool playerInArea = false;
 
   // ==== COMPORTAMENTO DE IA ====
+
+  [Header("Componentes")]
+  [SerializeField]
+  protected Rigidbody _rb;
+
   [Header("IA")]
   [SerializeField]
-  private bool can_AI = true; // Permite ativar/desativar IA
+  private bool can_AI = true;
 
   [SerializeField]
   private float visionInterval = 0.5f; // Intervalo para verificar visão
@@ -66,6 +84,7 @@ public abstract class Enemies : CombatEntities, ILockable
   // ==== Referência para o Scanner ==== //
   [HideInInspector]
   public Vector3 spawnpos;
+
   // === Flash Requisitos ===
   private Renderer[] renderers;
   private Material[] originalMaterials;
@@ -202,11 +221,14 @@ public abstract class Enemies : CombatEntities, ILockable
   public override void DamageHandler()
   {
     TriggerFlash();
+    TriggerKnockback();
     TriggerSquish();
     TriggerDamagePopup();
   }
 
-  private void TriggerDamagePopup()
+  protected virtual void TriggerKnockback() { }
+
+  protected virtual void TriggerDamagePopup()
   {
     if (_damagePopupEffect == null)
       return;
@@ -222,7 +244,7 @@ public abstract class Enemies : CombatEntities, ILockable
     popupSequence.OnComplete(() => _damagePopupEffect.gameObject.SetActive(false));
   }
 
-  private void TriggerSquish()
+  protected virtual void TriggerSquish()
   {
     transform.DOKill();
     Vector3 originalScale = transform.localScale;
@@ -237,7 +259,6 @@ public abstract class Enemies : CombatEntities, ILockable
 
     Sequence squishSequence = DOTween.Sequence().SetUpdate(true);
 
-    // IMPORTANTE: Executar após o Animator
     squishSequence.Append(
       transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear).SetUpdate(UpdateType.Late)
     );
@@ -270,7 +291,7 @@ public abstract class Enemies : CombatEntities, ILockable
     }
   }
 
-  public void TriggerFlash()
+  protected virtual void TriggerFlash()
   {
     if (!canFlash || flashMaterial == null)
       return;

@@ -3,13 +3,17 @@ using DG.Tweening;
 using UnityEngine;
 
 [System.Serializable]
-public class PlayerActionStateDash : IState<Player>
+public class PlayerActionStateDash : IPlayerState<Player>
 {
   private float timeToExit;
   private float timeToExitWalker = 0.0f;
   private float _initialDashSpeed;
   private float _initialDashDistance;
   private bool _firstTime;
+
+  [Header("Componentes")]
+  [SerializeField]
+  private Collider _dashHitboxCollider;
 
   [Header("Opções de Hitbox")]
   [SerializeField]
@@ -40,10 +44,10 @@ public class PlayerActionStateDash : IState<Player>
   private float _graceTimeDuration = 0.35f;
 
   [SerializeField]
-  private float _hitStopTimeScale = .2f;
+  private float _hitStopTimeScale = .05f;
 
   [SerializeField]
-  private float _hitStopTimeScaleDuration = .05f;
+  private float _hitStopTimeScaleDuration = .35f;
 
   [SerializeField]
   private AnimationCurve _verticalImpulseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -57,8 +61,8 @@ public class PlayerActionStateDash : IState<Player>
   private float _targetVerticalVelocity;
   private Tween _verticalTween;
 
-  public ActionType Type => ActionType.Dash;
-  public HashSet<ActionType> IncompatibleActions => new() { { ActionType.GroundSlam } };
+  public PlayerActionType Type => PlayerActionType.Dash;
+  public HashSet<PlayerActionType> IncompatibleActions => new() { { PlayerActionType.GroundSlam } };
 
   public void Enter(Player player)
   {
@@ -74,7 +78,7 @@ public class PlayerActionStateDash : IState<Player>
       _firstTime = true;
     }
 
-    if (player.DashHitboxCollider.TryGetComponent(out HitboxComponent hitbox))
+    if (_dashHitboxCollider.TryGetComponent(out HitboxComponent hitbox))
     {
       _hitboxComponent = hitbox;
       _hitboxComponent.Hit.RemoveAllListeners();
@@ -90,7 +94,7 @@ public class PlayerActionStateDash : IState<Player>
     player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.CanTakeDamage = false;
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
-    player.DashHitboxCollider.enabled = true;
+    _dashHitboxCollider.enabled = true;
 
     Vector3 targetDir = Vector3.zero;
 
@@ -220,7 +224,7 @@ public class PlayerActionStateDash : IState<Player>
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
-    player.DashHitboxCollider.enabled = false;
+    _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(EffectType.DashEffect);
 
@@ -232,7 +236,11 @@ public class PlayerActionStateDash : IState<Player>
     }
     else
     {
-      player.MovementVector = new Vector3(player.MovementVector.x, _currentVerticalVelocity * 0.5f, player.MovementVector.z);
+      player.MovementVector = new Vector3(
+        player.MovementVector.x,
+        _currentVerticalVelocity * 0.5f,
+        player.MovementVector.z
+      );
     }
 
     ResetDashHUD(player.DashHudScript);
@@ -248,7 +256,7 @@ public class PlayerActionStateDash : IState<Player>
 
     timeToExit += _graceTimeDuration;
 
-    _currentPlayer.DashHitboxCollider.enabled = false;
+    _dashHitboxCollider.enabled = false;
     _currentPlayer.MovementVector = Vector3.zero;
     _currentPlayer.CurrentDashCount = 0;
     _currentPlayer.transform.up = Vector3.up;
