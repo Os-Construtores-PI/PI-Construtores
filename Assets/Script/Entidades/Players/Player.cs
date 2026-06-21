@@ -287,6 +287,19 @@ public class Player : CombatEntities
 
   #endregion Boost
 
+  #region Combo
+
+  [Header("Combo")]
+  [SerializeField]
+  private float _maxCombo = 5;
+
+  [SerializeField]
+  private List<HitboxComponent> _hitboxes = new();
+
+  private Timer _comboTimer = new();
+  private float _currentCombo = 0;
+  #endregion
+
   #region Scanners
   [Header("Scanner - Inimigos")]
   [SerializeField, Min(10)]
