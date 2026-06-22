@@ -20,8 +20,8 @@ public class GameDirector : MonoBehaviour
   private void Start()
   {
     Debug.Log("GameDirector START rodou!");
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.AddListener(SetLockPlayer);
+    GlobalEventBus.Instance.Pause.AddListener(SetPauseWorld);
+    GlobalEventBus.Instance.LockDialogue.AddListener(SetLockPlayer);
 
     if (TutorialGlobal.Instance != null)
       TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;

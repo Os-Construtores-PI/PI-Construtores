@@ -21911,7 +21911,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 10
+  _maxDamage: 15
 --- !u!65 &1941590432395012080
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -27526,6 +27526,17 @@ MonoBehaviour:
       m_Calls: []
   _maxBoostValue: 100
   _initialBoostValue: 100
+  _stagesOfCombo:
+  - Multiplier: 2
+    TimeToExitStage: 3
+  - Multiplier: 3
+    TimeToExitStage: 2
+  - Multiplier: 4
+    TimeToExitStage: 1.5
+  _hitboxes:
+  - {fileID: 128975501231292720}
+  - {fileID: 6507626406025360012}
+  - {fileID: 6841662986189966198}
   enemyScanRadius: 10
   _railEntryRadius: 3
   _railEntryForwardOffset: 0.6
@@ -34761,7 +34772,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 10
+  _maxDamage: 15
 --- !u!65 &8688263318238171917
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34777,7 +34788,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3
@@ -35075,7 +35086,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3

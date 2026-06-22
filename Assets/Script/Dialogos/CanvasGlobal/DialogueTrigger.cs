@@ -47,13 +47,13 @@ public class DialogueTrigger : MonoBehaviour
   private void OnEnable()
   {
     if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(OnPauseChangedOn);
+      GlobalEventBus.Instance.Pause.AddListener(OnPauseChangedOn);
   }
 
   private void OnDisable()
   {
     if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(OnPauseChangedOn);
+      GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChangedOn);
   }
 
   private void OnDestroy()

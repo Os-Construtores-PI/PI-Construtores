@@ -287,17 +287,61 @@ public class Player : CombatEntities
 
   #endregion Boost
 
+  #region Score
+
+  private float _currentScore = 0;
+
+  #endregion
+
   #region Combo
 
   [Header("Combo")]
   [SerializeField]
-  private float _maxCombo = 5;
+  private List<ComboStage> _stagesOfCombo = new();
 
   [SerializeField]
   private List<HitboxComponent> _hitboxes = new();
 
-  private Timer _comboTimer = new();
-  private float _currentCombo = 0;
+  private readonly Timer _comboTimer = new();
+  private int _currentComboIndex = -1;
+
+  private void SetupHitboxCombo()
+  {
+    foreach (HitboxComponent hb in _hitboxes)
+      hb.Hit.AddListener(ComboUp);
+  }
+
+  private void ComboTimer()
+  {
+    if (_comboTimer.Tick(Time.deltaTime))
+      ComboDown();
+  }
+
+  private void ComboUp()
+  {
+    int next = _currentComboIndex + 1;
+    if (next >= _stagesOfCombo.Count)
+      return;
+
+    _currentComboIndex = next;
+    ComboStage stage = _stagesOfCombo[_currentComboIndex];
+    _comboTimer.Start(stage.TimeToExitStage);
+    GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex);
+
+    if (_currentComboIndex == _stagesOfCombo.Count - 1)
+      GlobalEventBus.Instance.MaxComboReached.Invoke(ID);
+  }
+
+  private void ComboDown()
+  {
+    _currentComboIndex = -1;
+    _comboTimer.Stop();
+    GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex);
+  }
+
+  public int CurrentComboMultiplier =>
+    _currentComboIndex >= 0 ? _stagesOfCombo[_currentComboIndex].Multiplier : 1;
+
   #endregion
 
   #region Scanners
@@ -363,7 +407,7 @@ public class Player : CombatEntities
       return;
 
     _amethysts = clamped;
-    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(_amethysts);
+    GlobalEventBus.Instance.AmethystsChanged.Invoke(_amethysts);
   }
 
   public void AddAmethysts(int amount) => SetAmethysts(_amethysts + amount);
@@ -463,6 +507,7 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    SetupHitboxCombo();
 
     TrailsSystem.InitTrails(transform.Find("Trails"));
     PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
@@ -479,6 +524,9 @@ public class Player : CombatEntities
     if (Input.GetKeyDown(KeyCode.F1))
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 #endif
+
+    ComboTimer();
+
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
     ScanWithCamera();
@@ -761,7 +809,7 @@ public class Player : CombatEntities
   {
     if (InteractionObject && context.started)
       ActionLayer.PushState(Interaction, this);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(this);
+    GlobalEventBus.Instance.SkipDialogue.Invoke(this);
   }
 
   public void OnAttack(InputAction.CallbackContext context)
@@ -805,7 +853,7 @@ public class Player : CombatEntities
         _ultimoDispositivo = InputType.Keyboard;
         break;
     }
-    GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo.ToString());
+    GlobalEventBus.Instance.InputChanged.Invoke(_ultimoDispositivo.ToString());
   }
   #endregion
 
@@ -840,7 +888,7 @@ public class Player : CombatEntities
     Vector3 targetScreenPosition = set
       ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
       : Vector3.zero;
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.Invoke(ID, set, targetScreenPosition);
+    GlobalEventBus.Instance.LockOnVisibility.Invoke(ID, set, targetScreenPosition);
   }
 
   public void DisableLockIn()
@@ -859,7 +907,7 @@ public class Player : CombatEntities
       return;
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
+    GlobalEventBus.Instance.Pause.Invoke(!GameState.IsPaused);
   }
   #endregion
 
@@ -969,7 +1017,7 @@ public class Player : CombatEntities
   protected void ClearInteractable()
   {
     InteractionObject = null;
-    GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
   }
   #endregion
 
@@ -1000,7 +1048,7 @@ public class Player : CombatEntities
   public override void DeathHandler()
   {
     base.DeathHandler();
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke();
+    GlobalEventBus.Instance.Death.Invoke();
   }
   #endregion
 }

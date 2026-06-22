@@ -12,7 +12,7 @@ public class BasicMenuLogic : MonoBehaviour
   {
     if (AudioManager.Instance != null && somMenu != null)
       AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.Invoke();
+    GlobalEventBus.Instance.Respawn.Invoke();
   }
 
   public void OpenMenuGameOver()
@@ -32,26 +32,26 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === MENU PAUSE ===
   public void OpenOptions()
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.Invoke(true);
+    GlobalEventBus.Instance.Options.Invoke(true);
     AudioManager.Instance.PlaySFX(somMenu.click); // abrir options
   }
 
   public void ContinueGame()
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+    GlobalEventBus.Instance.Pause.Invoke(false);
     AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
   }
 
   private void OnEnable()
   {
     if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(OnPauseChanged);
+      GlobalEventBus.Instance.Pause.AddListener(OnPauseChanged);
   }
 
   private void OnDisable()
   {
     if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(OnPauseChanged);
+      GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChanged);
   }
 
   private void OnPauseChanged(bool isPaused)
@@ -77,7 +77,7 @@ public class BasicMenuLogic : MonoBehaviour
   public void ExitToMainMenu()
   {
     Time.timeScale = 1f;
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+    GlobalEventBus.Instance.Pause.Invoke(false);
 
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();

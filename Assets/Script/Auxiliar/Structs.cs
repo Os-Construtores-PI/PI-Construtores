@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public struct StatEntry
 {
   public string stat_name;
   public QualityTier tier;
 }
 
-[System.Serializable]
+[Serializable]
 public struct Spawner
 {
   public string spawner_tag;
@@ -111,4 +111,12 @@ public struct TimedPlatformTarget
   public Transform Target;
   public float StopTime;
   public float TimeToNext;
+}
+
+
+[Serializable]
+public struct ComboStage
+{
+  public int Multiplier;
+  public float TimeToExitStage;
 }

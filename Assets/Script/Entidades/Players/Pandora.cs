@@ -36,7 +36,7 @@ public class Pandora : Player
     if (InteractionObject != _lastInteractionObject)
     {
       _lastInteractionObject = InteractionObject;
-      GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(true, InteractionObject, ID);
+      GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, InteractionObject, ID);
     }
 
     return (true, hit);

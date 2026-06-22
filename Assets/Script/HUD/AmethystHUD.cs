@@ -20,13 +20,13 @@ public class AmethystHUD : MonoBehaviour
     if (_amethystText == null)
       _amethystText = GetComponentInChildren<TMP_Text>();
 
-    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.AddListener(UpdateText);
+    GlobalEventBus.Instance.AmethystsChanged.AddListener(UpdateText);
   }
 
   public void OnDestroy()
   {
     if (GlobalEventBus.HasInstance)
-      GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.RemoveListener(UpdateText);
+      GlobalEventBus.Instance.AmethystsChanged.RemoveListener(UpdateText);
   }
 
   private void UpdateText(int newCount)

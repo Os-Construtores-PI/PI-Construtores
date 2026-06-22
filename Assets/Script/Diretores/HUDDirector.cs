@@ -50,6 +50,9 @@ public class HudDirector : MonoBehaviour
   /// <summary>Coroutine de parada de shake por playerID.</summary>
   private readonly Dictionary<int, Coroutine> _shakeStopCoroutines = new();
 
+  // no bloco de estado interno, junto dos outros dicionários
+  private readonly Dictionary<int, Coroutine> _tempPanelCoroutines = new();
+
   // ─── Nomes de painéis válidos ───────────────────────────────────────────────
 
   private static readonly HashSet<string> ValidPanelNames = new()
@@ -66,6 +69,9 @@ public class HudDirector : MonoBehaviour
     Constants.HudPanelNames.Cutscene,
     Constants.HudPanelNames.LockOnOverlay,
     Constants.HudPanelNames.BoostBar,
+    Constants.HudPanelNames.MaxComboPopup,
+    Constants.HudPanelNames.Combo,
+    Constants.HudPanelNames.Score,
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -83,15 +89,17 @@ public class HudDirector : MonoBehaviour
     if (!GlobalEventBus.HasInstance)
       return;
 
-    GlobalEventBus.Instance.OBJECTWASSEEN.AddListener(InteractionPopup);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.AddListener(TriggerCinematicBars);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.AddListener(TeleportFade);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(DeathPanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(EndPanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.AddListener(SetLockOnVisibility);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(PausePanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.AddListener(OptionsPausePanel);
+    GlobalEventBus.Instance.ObjectWasSeen.AddListener(InteractionPopup);
+    GlobalEventBus.Instance.Cinematic.AddListener(TriggerCinematicBars);
+    GlobalEventBus.Instance.Teleport.AddListener(TeleportFade);
+    GlobalEventBus.Instance.Death.AddListener(DeathPanel);
+    GlobalEventBus.Instance.Respawn.AddListener(RespawnPanel);
+    GlobalEventBus.Instance.EndGame.AddListener(EndPanel);
+    GlobalEventBus.Instance.LockOnVisibility.AddListener(SetLockOnVisibility);
+    GlobalEventBus.Instance.Pause.AddListener(PausePanel);
+    GlobalEventBus.Instance.Options.AddListener(OptionsPausePanel);
+    GlobalEventBus.Instance.ComboUpdate.AddListener(ComboPanel);
+    GlobalEventBus.Instance.MaxComboReached.AddListener(MaxComboPanel);
   }
 
   private void OnDisable()
@@ -99,15 +107,17 @@ public class HudDirector : MonoBehaviour
     if (!GlobalEventBus.HasInstance)
       return;
 
-    GlobalEventBus.Instance.OBJECTWASSEEN.RemoveListener(InteractionPopup);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.RemoveListener(TriggerCinematicBars);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.RemoveListener(TeleportFade);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(DeathPanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.RemoveListener(RespawnPanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(EndPanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.RemoveListener(SetLockOnVisibility);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(PausePanel);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.RemoveListener(OptionsPausePanel);
+    GlobalEventBus.Instance.ObjectWasSeen.RemoveListener(InteractionPopup);
+    GlobalEventBus.Instance.Cinematic.RemoveListener(TriggerCinematicBars);
+    GlobalEventBus.Instance.Teleport.RemoveListener(TeleportFade);
+    GlobalEventBus.Instance.Death.RemoveListener(DeathPanel);
+    GlobalEventBus.Instance.Respawn.RemoveListener(RespawnPanel);
+    GlobalEventBus.Instance.EndGame.RemoveListener(EndPanel);
+    GlobalEventBus.Instance.LockOnVisibility.RemoveListener(SetLockOnVisibility);
+    GlobalEventBus.Instance.Pause.RemoveListener(PausePanel);
+    GlobalEventBus.Instance.Options.RemoveListener(OptionsPausePanel);
+    GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
+    GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
   }
 
   private void Start()
@@ -244,6 +254,27 @@ public class HudDirector : MonoBehaviour
       fade: false,
       instant: true
     );
+    HidePanel(
+      Constants.HudPanelNames.Combo,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+    HidePanel(
+      Constants.HudPanelNames.MaxComboPopup,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+    HidePanel(
+      Constants.HudPanelNames.Score,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
   }
 
   /// <summary>
@@ -296,6 +327,24 @@ public class HudDirector : MonoBehaviour
     }
 
     EventSystem.current.SetSelectedGameObject(null);
+  }
+
+  private void ShowPanelTemporary(string panelName, int playerID, float duration)
+  {
+    if (_tempPanelCoroutines.TryGetValue(playerID, out var existing) && existing != null)
+      StopCoroutine(existing);
+
+    _tempPanelCoroutines[playerID] = StartCoroutine(
+      TemporaryPanelRoutine(panelName, playerID, duration)
+    );
+  }
+
+  private IEnumerator TemporaryPanelRoutine(string panelName, int playerID, float duration)
+  {
+    ShowPanel(panelName, playerID, independent: true);
+    yield return new WaitForSeconds(duration);
+    HidePanel(panelName, playerID, independent: true);
+    _tempPanelCoroutines[playerID] = null;
   }
 
   // ─── Helpers de painel ──────────────────────────────────────────────────────
@@ -646,6 +695,34 @@ public class HudDirector : MonoBehaviour
       DisableHud(player.ID);
       ShowPanel(Constants.HudPanelNames.EndGame, player.ID, independent: true);
     });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Combo
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private void ComboPanel(int playerID, int comboIndex)
+  {
+    if (comboIndex < 0)
+    {
+      HidePanel(Constants.HudPanelNames.Combo, playerID, independent: true);
+      return;
+    }
+    foreach (var go in GetPanel(playerID, Constants.HudPanelNames.Combo))
+    {
+      foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
+      {
+        if (text.name.Contains("Output", System.StringComparison.OrdinalIgnoreCase))
+          text.text = $"x{comboIndex + 1}";
+      }
+    }
+
+    ShowPanel(Constants.HudPanelNames.Combo, playerID, independent: true);
+  }
+
+  private void MaxComboPanel(int playerID)
+  {
+    ShowPanelTemporary(Constants.HudPanelNames.MaxComboPopup, playerID, duration: 2f);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -179,6 +179,10 @@ public static class Constants
     public const string HealthBar = nameof(HealthBar);
     public const string BoostBar = nameof(BoostBar);
     public const string DashIcon = nameof(DashIcon);
+    public const string Combo = nameof(Combo);
+    public const string Score = nameof(Score);
+    public const string MaxComboPopup = nameof(MaxComboPopup);
+
     public const string EndGame = nameof(EndGame);
     public const string AmethystCounter = nameof(AmethystCounter);
     public const string InteractionPopup = nameof(InteractionPopup);

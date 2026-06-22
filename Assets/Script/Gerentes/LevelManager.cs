@@ -24,9 +24,9 @@ public class LevelManager : MonoBehaviour
     StartLevel();
 
     // Registra listeners
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.AddListener(PlayerDeathHandler);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.AddListener(RespawnPlayers);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.AddListener(PlayerEndGameHandler);
+    GlobalEventBus.Instance.Death.AddListener(PlayerDeathHandler);
+    GlobalEventBus.Instance.Respawn.AddListener(RespawnPlayers);
+    GlobalEventBus.Instance.EndGame.AddListener(PlayerEndGameHandler);
   }
 
   private void OnDestroy()
@@ -36,9 +36,9 @@ public class LevelManager : MonoBehaviour
     if (GlobalEventBus.Instance == null)
       return;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.RemoveListener(PlayerDeathHandler);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.RemoveListener(RespawnPlayers);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.RemoveListener(PlayerEndGameHandler);
+    GlobalEventBus.Instance.Death.RemoveListener(PlayerDeathHandler);
+    GlobalEventBus.Instance.Respawn.RemoveListener(RespawnPlayers);
+    GlobalEventBus.Instance.EndGame.RemoveListener(PlayerEndGameHandler);
 
     Debug.Log("[LevelManager] Listeners removidos do GlobalEventBus.");
   }

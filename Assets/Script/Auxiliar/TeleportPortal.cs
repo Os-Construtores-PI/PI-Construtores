@@ -47,7 +47,7 @@ public class Teleport_Portal : BasePortal
     victim.transform.rotation = targetExit.rotation; // opcional, mantém orientação
     victim.CharacterController.enabled = true;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.ID);
+    GlobalEventBus.Instance.Teleport.Invoke(victim.ID);
   }
 
   private IEnumerator Teleporrt(Player victim)
@@ -74,7 +74,7 @@ public class Teleport_Portal : BasePortal
 
     victim.CharacterController.enabled = true;
 
-    GlobalEventBus.Instance.PLAYERTRIGGEREDTELEPORT.Invoke(victim.ID);
+    GlobalEventBus.Instance.Teleport.Invoke(victim.ID);
 
     yield return new WaitForSeconds(0.5f);
 

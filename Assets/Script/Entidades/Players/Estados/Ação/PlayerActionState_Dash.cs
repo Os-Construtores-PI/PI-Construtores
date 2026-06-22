@@ -81,7 +81,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     if (_dashHitboxCollider.TryGetComponent(out HitboxComponent hitbox))
     {
       _hitboxComponent = hitbox;
-      _hitboxComponent.Hit.RemoveAllListeners();
+      _hitboxComponent.Hit.RemoveListener(OnDashHitDetected);
       _hitboxComponent.Hit.AddListener(OnDashHitDetected);
     }
 

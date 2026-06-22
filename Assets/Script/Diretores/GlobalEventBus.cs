@@ -10,21 +10,24 @@ public class GlobalEventBus : MonoBehaviour
   public static bool HasInstance => Instance != null;
 
   #region Events
-  public readonly UnityEvent<bool, InteractableObject, int> OBJECTWASSEEN = new();
-  public readonly UnityEvent<int, float> PLAYERTRIGGEREDCINEMATIC = new();
-  public readonly UnityEvent<int> PLAYERTRIGGEREDTELEPORT = new();
-  public readonly UnityEvent PLAYERTRIGGEREDDEATH = new();
-  public readonly UnityEvent PLAYERTRIGGEREDRESPAWN = new();
-  public readonly UnityEvent PLAYERTRIGGEREDENDGAME = new();
-  public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
-  public readonly UnityEvent<int, bool, Vector3> PLAYERTRIGGEREDLOCKONVISIBILITY = new();
-  public readonly UnityEvent<bool> PLAYERTRIGGEREDOPTIONS = new();
-  public readonly UnityEvent<int> AMETHYSTSAMOUNTCHANGED = new();
-  public readonly UnityEvent<string> PLAYERINPUTCHANGED = new();
-  public readonly UnityEvent<Player, List<string>, float> PLAYERTRIGGEREDDIALOGUE = new();
-  public readonly UnityEvent<Player, bool> PLAYERTRIGGEREDLOCKDIALOGUE = new();
-  public readonly UnityEvent<Player> PLAYERTRIGGEREDSKIPDIALOGUE = new();
-  public readonly UnityEvent<Player> PLAYERTRIGGEREDENDDIALOGUE = new();
+  public readonly UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
+  public readonly UnityEvent<int, float> Cinematic = new();
+  public readonly UnityEvent<int> Teleport = new();
+  public readonly UnityEvent Death = new();
+  public readonly UnityEvent Respawn = new();
+  public readonly UnityEvent EndGame = new();
+  public readonly UnityEvent<int, int> ComboUpdate = new();
+  public readonly UnityEvent<int> MaxComboReached = new();
+  public readonly UnityEvent<bool> Pause = new();
+  public readonly UnityEvent<int, int> ScoreUpdate = new();
+  public readonly UnityEvent<int, bool, Vector3> LockOnVisibility = new();
+  public readonly UnityEvent<bool> Options = new();
+  public readonly UnityEvent<int> AmethystsChanged = new();
+  public readonly UnityEvent<string> InputChanged = new();
+  public readonly UnityEvent<Player, List<string>, float> Dialogue = new();
+  public readonly UnityEvent<Player, bool> LockDialogue = new();
+  public readonly UnityEvent<Player> SkipDialogue = new();
+  public readonly UnityEvent<Player> EndDialogue = new();
   #endregion
 
   public void Awake()
