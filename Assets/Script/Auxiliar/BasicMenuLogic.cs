@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BasicMenuLogic : MonoBehaviour
@@ -77,6 +78,9 @@ public class BasicMenuLogic : MonoBehaviour
   public void ExitToMainMenu()
   {
     Time.timeScale = 1f;
+
+    DOTween.Kill(transform);
+
     GlobalEventBus.Instance.Pause.Invoke(false);
 
     if (DataDirector.Instance != null)

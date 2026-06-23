@@ -23,6 +23,9 @@ public class MenuDirector : MonoBehaviour
 
   private readonly Dictionary<string, List<GameObject>> panels = new();
 
+  [SerializeField]
+  private LoadingScreen _loadingScreen;
+
   private void Awake()
   {
     Time.timeScale = 1f;
@@ -144,8 +147,24 @@ public class MenuDirector : MonoBehaviour
       root.transform.DOKill();
       root.transform.localScale = Vector3.zero;
 
-      root.transform.DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
-        .OnComplete(() => root.transform.DOScale(Vector3.one, .15f));
+      Sequence seq = DOTween.Sequence();
+
+      Transform currentRoot = root.transform;
+
+      currentRoot
+        .DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
+        .OnComplete(() =>
+        {
+          if (currentRoot != null)
+            currentRoot.DOScale(Vector3.one, .15f);
+        });
+
+      seq.Append(
+        root.transform.DOScale(
+          Vector3.one,
+          .15f));
+
+      seq.SetLink(root);
 
       foreach (var t in root.GetComponentsInChildren<Transform>(true))
       {
@@ -177,7 +196,11 @@ public class MenuDirector : MonoBehaviour
     {
       root.transform.DOKill();
 
-      root.transform.DOScale(Vector3.zero, .25f).OnComplete(() => root.SetActive(false));
+      root.transform.DOScale(Vector3.zero, .25f).SetLink(root).OnComplete(() =>
+      {
+        if (root != null)
+          root.SetActive(false);
+      });
     }
   }
 
@@ -198,6 +221,8 @@ public class MenuDirector : MonoBehaviour
 
   public void ContinueGame()
   {
+    DOTween.KillAll();
+
     int slot = DataDirector.Instance.GetCurrentSlot();
     string level = DataDirector.Instance.GetLastLevelName(slot);
 
@@ -214,7 +239,7 @@ public class MenuDirector : MonoBehaviour
       }
     }
     DataDirector.Instance.SaveHasSave(true);
-    SceneManager.LoadScene(level);
+    _loadingScreen.LoadScene(level);
   }
 
   public void ExitOptions()
@@ -244,7 +269,8 @@ public class MenuDirector : MonoBehaviour
 
   public void LoadScene(string sceneName)
   {
-    SceneManager.LoadScene(sceneName);
+
+    _loadingScreen.LoadScene(sceneName);
   }
 
   public void QuitGame()
@@ -258,7 +284,20 @@ public class MenuDirector : MonoBehaviour
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
-    SceneManager.LoadScene(Constants.SceneNames.FirstLevel);
+    _loadingScreen.LoadScene(Constants.SceneNames.FirstLevel);
+  }
+
+  private void OnDestroy()
+  {
+
+    foreach (var panel in panels)
+    {
+      foreach (var obj in panel.Value)
+      {
+        if(obj != null)
+          obj.transform.DOKill();
+      }
+    }
   }
 
   #endregion
