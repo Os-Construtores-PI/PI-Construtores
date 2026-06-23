@@ -171,27 +171,6 @@ public static class Constants
     public const float GraplingHookSpeed = 10f;
   }
 
-  public static class HudPanelNames
-  {
-    public const string GameOver = nameof(GameOver);
-    public const string Pause = nameof(Pause);
-    public const string Dialogue = nameof(Dialogue);
-    public const string HealthBar = nameof(HealthBar);
-    public const string BoostBar = nameof(BoostBar);
-    public const string DashIcon = nameof(DashIcon);
-    public const string Combo = nameof(Combo);
-    public const string Score = nameof(Score);
-    public const string MaxComboPopup = nameof(MaxComboPopup);
-
-    public const string EndGame = nameof(EndGame);
-    public const string AmethystCounter = nameof(AmethystCounter);
-    public const string InteractionPopup = nameof(InteractionPopup);
-    public const string InteractionLetter = nameof(InteractionLetter);
-    public const string LockOnOverlay = nameof(LockOnOverlay);
-    public const string Cutscene = nameof(Cutscene);
-    public const string TeleportFadePanel = nameof(TeleportFadePanel);
-  }
-
   public static class MenuPanelNames
   {
     public const string Menu = nameof(Menu);
