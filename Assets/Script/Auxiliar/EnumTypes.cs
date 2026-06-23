@@ -65,6 +65,7 @@ public enum HudPanelType
 
 public enum ComboPopupType
 {
+  None,
   Good,
   Great,
   Awesome,
