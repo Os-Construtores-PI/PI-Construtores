@@ -209,7 +209,6 @@ public class Player : CombatEntities
   [HideInInspector]
   public bool WantsToCancelRailSlide;
 
-  private bool _canMove = true;
   private bool _canDash = true;
 
   [Stat(StatType.CanDash)]
@@ -329,13 +328,31 @@ public class Player : CombatEntities
     GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex);
 
     if (_currentComboIndex == _stagesOfCombo.Count - 1)
-      GlobalEventBus.Instance.MaxComboReached.Invoke(ID);
+    {
+      if (IsGrounded)
+      {
+        GlobalEventBus.Instance.MaxComboReached.Invoke(ID, ImpactPopupType.Slam);
+      }
+      else
+      {
+        GlobalEventBus.Instance.MaxComboReached.Invoke(ID, ImpactPopupType.Splash);
+      }
+    }
   }
 
   private void ComboDown()
   {
-    _currentComboIndex = -1;
-    _comboTimer.Stop();
+    _currentComboIndex--;
+
+    if (_currentComboIndex < 0)
+    {
+      _comboTimer.Stop();
+      GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex);
+      return;
+    }
+
+    ComboStage stage = _stagesOfCombo[_currentComboIndex];
+    _comboTimer.Start(stage.TimeToExitStage);
     GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex);
   }
 

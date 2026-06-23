@@ -42,11 +42,33 @@ public enum ItemUsageType
   Passive,
 }
 
-public enum AIType
+public enum HudPanelType
 {
-  NONE,
-  AUTOMATIC,
-  MANUAL,
+  GameOver,
+  Pause,
+  Dialogue,
+  HealthBar,
+  BoostBar,
+  DashIcon,
+  Combo,
+  ComboPopup,
+  Score,
+  MaxComboPopup,
+  EndGame,
+  AmethystCounter,
+  InteractionPopup,
+  InteractionLetter,
+  LockOnOverlay,
+  Cutscene,
+  TeleportFadePanel,
+}
+
+public enum ComboPopupType
+{
+  Good,
+  Great,
+  Awesome,
+  Radical,
 }
 
 public enum HealthHUDType
@@ -67,6 +89,12 @@ public enum TimeTYPE
 {
   PERMANENT,
   TEMPORARY,
+}
+
+public enum ImpactPopupType
+{
+  Slam,
+  Splash,
 }
 
 public enum ColorCode

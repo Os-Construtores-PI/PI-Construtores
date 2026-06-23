@@ -304,3 +304,19 @@ public class ColorPuzzle
 }
 
 #endregion
+
+
+#region extensions
+
+public sealed class HudPanelEqualityComparer : IEqualityComparer<HudPanelType>
+{
+  public static readonly HudPanelEqualityComparer Instance = new();
+
+  private HudPanelEqualityComparer() { }
+
+  public bool Equals(HudPanelType x, HudPanelType y) => x == y;
+
+  public int GetHashCode(HudPanelType obj) => (int)obj;
+}
+
+#endregion
