@@ -57,7 +57,7 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, Coroutine> _shakeStopCoroutines = new();
 
   // no bloco de estado interno, junto dos outros dicionários
-  private readonly Dictionary<int, Sequence> _tempPanelSequences = new();
+  private readonly Dictionary<(int, HudPanelType), Sequence> _tempPanelSequences = new();
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Acesso Público
@@ -285,15 +285,21 @@ public class HudDirector : MonoBehaviour
 
   private void ShowPanelTemporary(HudPanelType panel, int playerID, float duration)
   {
-    if (_tempPanelSequences.TryGetValue(playerID, out var existing))
+    var key = (playerID, panel);
+
+    if (_tempPanelSequences.TryGetValue(key, out var existing))
       existing?.Kill();
 
     ShowPanel(panel, playerID, independent: true);
 
-    _tempPanelSequences[playerID] = DOTween
+    _tempPanelSequences[key] = DOTween
       .Sequence()
       .AppendInterval(duration)
-      .AppendCallback(() => HidePanel(panel, playerID, independent: true))
+      .AppendCallback(() =>
+      {
+        HidePanel(panel, playerID, independent: true);
+        _tempPanelSequences.Remove(key);
+      })
       .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
   }
 
@@ -637,7 +643,7 @@ public class HudDirector : MonoBehaviour
   // Combo
   // ═══════════════════════════════════════════════════════════════════════════
 
-  private void ComboPanel(int playerID, int comboIndex)
+  private void ComboPanel(int playerID, int comboIndex, ComboPopupType comboPopupType)
   {
     if (comboIndex < 0)
     {
@@ -646,32 +652,49 @@ public class HudDirector : MonoBehaviour
     }
 
     var panels = GetPanel(playerID, HudPanelType.Combo);
-    bool alreadyVisible = panels.Count > 0 && panels[0].transform.localScale == Vector3.one;
-    if (!alreadyVisible)
+    if (panels.Count == 0)
+      return;
+
+    if (panels[0].transform.localScale != Vector3.one)
       ShowPanel(HudPanelType.Combo, playerID, independent: true);
 
-    GameObject comboPopup = GetPanel(playerID, HudPanelType.ComboPopup)[0];
-    if (comboPopup != null && comboPopup.TryGetComponent(out Image imageComponent))
-    {
-      imageComponent.sprite = StaticRandomizer.ListRandomizer(_popupComboImages)[0].Sprite;
-      ShowPanelTemporary(HudPanelType.ComboPopup, playerID, 2f);
-    }
+    UpdateComboText(panels, comboIndex);
+    TryShowComboPopup(playerID, comboPopupType);
+  }
 
+  private void UpdateComboText(List<GameObject> panels, int comboIndex)
+  {
     foreach (var go in panels)
+    foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
     {
-      foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
-      {
-        if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
-          continue;
+      if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
+        continue;
 
-        text.text = $"x{comboIndex + 1}";
-
-        text.transform.DOKill();
-        text.transform.localScale = Vector3.one;
-        text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
-          .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
-      }
+      text.text = $"x{comboIndex + 1}";
+      text.transform.DOKill();
+      text.transform.localScale = Vector3.one;
+      text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
+        .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
     }
+  }
+
+  private void TryShowComboPopup(int playerID, ComboPopupType comboPopupType)
+  {
+    if (comboPopupType == ComboPopupType.None)
+      return;
+
+    var popupPanels = GetPanel(playerID, HudPanelType.ComboPopup);
+    if (popupPanels.Count == 0)
+      return;
+
+    var sprite = _popupComboImages.Find(img => img.Type == comboPopupType).Sprite;
+    if (sprite == null)
+      return;
+
+    if (popupPanels[0].TryGetComponent(out Image image))
+      image.sprite = sprite;
+
+    ShowPanelTemporary(HudPanelType.ComboPopup, playerID, 2f);
   }
 
   private void MaxComboPanel(int playerID, ImpactPopupType impactType)

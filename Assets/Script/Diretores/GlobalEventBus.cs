@@ -16,7 +16,7 @@ public class GlobalEventBus : MonoBehaviour
   public readonly UnityEvent Death = new();
   public readonly UnityEvent Respawn = new();
   public readonly UnityEvent EndGame = new();
-  public readonly UnityEvent<int, int> ComboUpdate = new();
+  public readonly UnityEvent<int, int, ComboPopupType> ComboUpdate = new();
   public readonly UnityEvent<int, ImpactPopupType> MaxComboReached = new();
   public readonly UnityEvent<bool> Pause = new();
   public readonly UnityEvent<int, int> ScoreUpdate = new();
