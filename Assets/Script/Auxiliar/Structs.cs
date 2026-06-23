@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [Serializable]
 public struct StatEntry
@@ -113,10 +114,16 @@ public struct TimedPlatformTarget
   public float TimeToNext;
 }
 
-
 [Serializable]
 public struct ComboStage
 {
   public int Multiplier;
   public float TimeToExitStage;
+}
+
+[Serializable]
+public struct ComboPopupImage
+{
+  public Sprite Sprite;
+  public ComboPopupType Type;
 }
