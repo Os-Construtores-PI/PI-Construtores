@@ -320,3 +320,30 @@ public sealed class HudPanelEqualityComparer : IEqualityComparer<HudPanelType>
 }
 
 #endregion
+
+
+#region Eventos
+
+public class PlayerComboEvent : UnityEvent<int, int, ComboPopupType> { }
+
+public class PlayerImpactEvent : UnityEvent<int, ImpactPopupType> { }
+
+public class PlayerScoreEvent : UnityEvent<int, int> { }
+
+public class PlayerLockOnEvent : UnityEvent<int, bool, Vector3> { }
+
+public class PlayerDialogueEvent : UnityEvent<Player, List<string>, float> { }
+
+public class PlayerLockDlgEvent : UnityEvent<Player, bool> { }
+
+public class PlayerSkipDlgEvent : UnityEvent<Player> { }
+
+public class PlayerObjectSeenEvent : UnityEvent<int, bool, InteractableObject> { }
+
+public class PlayerCinematicEvent : UnityEvent<int, float> { }
+
+public class PlayerTeleportEvent : UnityEvent<int> { }
+
+public class PlayerAmethystsEvent : UnityEvent<int> { }
+
+#endregion

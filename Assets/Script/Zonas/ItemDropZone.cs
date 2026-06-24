@@ -29,32 +29,50 @@ public class ItemDropZone : Item
   private bool _isCollected = false;
   #endregion
 
-  #region Unity Lifecycle
 #if UNITY_EDITOR
-  private void OnDrawGizmosSelected()
+  public void OnDrawGizmos()
   {
     if (itemData == null || itemData.item == null)
       return;
 
-    Gizmos.color = new Color(1f, 0.8f, 0.2f, 0.7f);
+    Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
 
     if (_boxCollider != null)
     {
-      Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-      Gizmos.DrawWireCube(_boxCollider.center + _colliderOffset, _boxCollider.size);
+      Gizmos.color = new Color(0f, 1f, 0f, 1f);
+      Gizmos.DrawWireCube(_boxCollider.center, _boxCollider.size);
     }
-    else if (Application.isPlaying)
+
+    Gizmos.color = new Color(1f, 0.5f, 0f, 1f);
+
+    if (_visualInstance != null)
+    {
+      MeshFilter[] meshFilters = _visualInstance.GetComponentsInChildren<MeshFilter>();
+      foreach (var mf in meshFilters)
+      {
+        if (mf?.sharedMesh != null)
+        {
+          Gizmos.DrawWireMesh(
+            mf.sharedMesh,
+            mf.transform.position,
+            mf.transform.rotation,
+            mf.transform.lossyScale
+          );
+        }
+      }
+    }
+    else
     {
       MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
       if (mf?.sharedMesh != null)
       {
-        Vector3 scale = itemData.item.transform.localScale * _visualScaleMultiplier;
+        Vector3 scale = itemData.item.transform.localScale;
         Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, scale);
       }
     }
   }
 
-  private void OnValidate()
+  public void OnValidate()
   {
     _colliderSizeMultiplier = Vector3.Max(_colliderSizeMultiplier, Vector3.one * 0.1f);
   }
@@ -72,13 +90,12 @@ public class ItemDropZone : Item
     if (_boxCollider == null)
       Initialize();
   }
-  #endregion
 
   #region Initialization
   public virtual void Initialize()
   {
-    SetupCollider();
     InstantiateVisual();
+    SetupCollider();
   }
 
   private void SetupCollider()
@@ -89,19 +106,48 @@ public class ItemDropZone : Item
       _boxCollider.isTrigger = true;
     }
 
-    if (itemData?.item != null)
+    // Agora usamos o _visualInstance (que já está na cena) para obter os bounds reais
+    if (_visualInstance != null)
     {
-      MeshRenderer meshRenderer = itemData.item.GetComponentInChildren<MeshRenderer>();
-      if (meshRenderer != null)
+      // CORREÇÃO 3: Pega todos os renderers para suportar itens com múltiplas partes/materiais
+      MeshRenderer[] renderers = _visualInstance.GetComponentsInChildren<MeshRenderer>();
+      if (renderers.Length > 0)
       {
-        Bounds bounds = meshRenderer.bounds;
-        Vector3 localSize = transform.InverseTransformVector(bounds.size);
-        _boxCollider.size = Vector3.Scale(localSize, _colliderSizeMultiplier);
-        _boxCollider.center = _colliderOffset;
+        // Encapsula os bounds de todos os renderers
+        Bounds worldBounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+        {
+          worldBounds.Encapsulate(renderers[i].bounds);
+        }
+
+        // CORREÇÃO 2: Calcula os bounds locais exatos transformando os 8 cantos do bounds mundial.
+        // Isso lida corretamente com rotação e escala, evitando o bug do InverseTransformVector.
+        Vector3 localMin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        Vector3 localMax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+        for (int i = 0; i < 8; i++)
+        {
+          Vector3 corner = new Vector3(
+            (i & 1) == 0 ? worldBounds.min.x : worldBounds.max.x,
+            (i & 2) == 0 ? worldBounds.min.y : worldBounds.max.y,
+            (i & 4) == 0 ? worldBounds.min.z : worldBounds.max.z
+          );
+
+          Vector3 localCorner = transform.InverseTransformPoint(corner);
+          localMin = Vector3.Min(localMin, localCorner);
+          localMax = Vector3.Max(localMax, localCorner);
+        }
+
+        Bounds localBounds = new Bounds();
+        localBounds.SetMinMax(localMin, localMax);
+
+        _boxCollider.size = Vector3.Scale(localBounds.size, _colliderSizeMultiplier);
+        _boxCollider.center = localBounds.center + _colliderOffset;
         return;
       }
     }
 
+    // Fallback caso não haja visual instanciado
     _boxCollider.size = Vector3.one * 2f;
     _boxCollider.center = _colliderOffset;
   }
@@ -147,8 +193,6 @@ public class ItemDropZone : Item
     return true;
   }
 
-  // Ponto de extensão: subclasses customizam o ciclo de vida pós-coleta aqui.
-  // O comportamento padrão usa _destroyOnCollect.
   protected virtual void AfterCollect()
   {
     if (_destroyOnCollect)

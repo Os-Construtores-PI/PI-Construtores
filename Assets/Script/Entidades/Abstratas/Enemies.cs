@@ -30,7 +30,7 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField, Range(1f, 20f)]
   protected float _verticalMultiplier = 1f;
 
-  protected Collider[] knockbackResult = new Collider[10];
+  protected Collider[] scanResult = new Collider[10];
 
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
@@ -74,12 +74,21 @@ public abstract class Enemies : CombatEntities, ILockable
   private float attackIntervalwalker = 0.0f;
 
   // ==== CONFIGURAÇÂO DE LOOTTABLE ==== //
-  protected WeightedTable<string> lootTable = new();
-  protected SerializedDictionary<string, float> items = new()
+  protected WeightedTable<int> _lootTable = new();
+  protected SerializedDictionary<int, float> items = new()
   {
-    { "item bom", 10 },
-    { "item ruim", 90 },
+    { 10, 10 },
+    { 5, 25 },
+    { 1, 90 },
   };
+
+  // ==== Score ==== //
+  [Header("Pontuação")]
+  [SerializeField]
+  private int _scoreWhenDamaged = 50;
+
+  [SerializeField]
+  private int _scoreWhenKilled = 200;
 
   // ==== Referência para o Scanner ==== //
   [HideInInspector]
@@ -113,8 +122,26 @@ public abstract class Enemies : CombatEntities, ILockable
 
   public override void DeathHandler()
   {
-    print(lootTable.PickEntry());
-    print("MORREU");
+    int quantity = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _knockbackRadius,
+      scanResult,
+      LayerMask.GetMask("Entity", "Player"),
+      QueryTriggerInteraction.Collide
+    );
+    for (int i = 0; i < quantity; i++)
+    {
+      Collider hit = scanResult[i];
+      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
+        continue;
+
+      if (hit.TryGetComponent(out Player player))
+      {
+        player.AddScore(_scoreWhenKilled);
+        player.AddAmethysts(_lootTable.PickEntry());
+      }
+    }
+
     gameObject.SetActive(false);
   }
 
@@ -124,7 +151,7 @@ public abstract class Enemies : CombatEntities, ILockable
     {
       foreach (var item in items)
       {
-        lootTable.AddEntry(item.Key, item.Value);
+        _lootTable.AddEntry(item.Key, item.Value);
       }
     }
   }
@@ -220,13 +247,36 @@ public abstract class Enemies : CombatEntities, ILockable
 
   public override void DamageHandler()
   {
+    int quantity = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _knockbackRadius,
+      scanResult,
+      LayerMask.GetMask("Entity", "Player"),
+      QueryTriggerInteraction.Collide
+    );
+    for (int i = 0; i < quantity; i++)
+    {
+      Collider hit = scanResult[i];
+      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
+        continue;
+
+      if (hit.TryGetComponent(out Player player))
+      {
+        TriggerKnockback(player);
+        TriggerRewards(player);
+      }
+    }
     TriggerFlash();
-    TriggerKnockback();
     TriggerSquish();
     TriggerDamagePopup();
   }
 
-  protected virtual void TriggerKnockback() { }
+  protected virtual void TriggerKnockback(Player player) { }
+
+  protected virtual void TriggerRewards(Player player)
+  {
+    player.AddScore(_scoreWhenDamaged);
+  }
 
   protected virtual void TriggerDamagePopup()
   {
