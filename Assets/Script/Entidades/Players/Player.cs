@@ -330,8 +330,11 @@ public class Player : CombatEntities
     ComboPopupType.Radical,
   };
   private int _currentComboTypeIndex = -1;
-
   private int _currentComboIndex = -1;
+  private int _highestComboIndex = -1;
+  public int HighestComboIndex => _highestComboIndex;
+
+  public void SetHighestComboIndex(int value) => _highestComboIndex = value;
 
   private void SetupHitboxCombo()
   {
@@ -349,10 +352,13 @@ public class Player : CombatEntities
   {
     int next = _currentComboIndex + 1;
     _currentComboTypeIndex = Mathf.Min(next, _comboPopupTypes.Count - 1);
+
     if (next >= _stagesOfCombo.Count)
     {
       ComboStage maxStage = _stagesOfCombo.Last();
       _comboTimer.Start(maxStage.TimeToExitStage);
+
+      _highestComboIndex = Mathf.Max(_highestComboIndex, _stagesOfCombo.Count - 1);
 
       GlobalEventBus.Instance.ComboUpdate.Invoke(
         ID,
@@ -361,7 +367,10 @@ public class Player : CombatEntities
       );
       return;
     }
+
     _currentComboIndex = next;
+
+    _highestComboIndex = Mathf.Max(_highestComboIndex, _currentComboIndex);
 
     ComboStage stage = _stagesOfCombo[_currentComboIndex];
     _comboTimer.Start(stage.TimeToExitStage);
