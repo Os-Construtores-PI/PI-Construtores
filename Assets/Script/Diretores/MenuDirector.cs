@@ -155,8 +155,11 @@ public class MenuDirector : MonoBehaviour
         .DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
         .OnComplete(() =>
         {
-          if (currentRoot != null)
-            currentRoot.DOScale(Vector3.one, .15f);
+          if(!currentRoot)
+             return;
+          
+          currentRoot.DOScale(Vector3.one, .15f)
+                     .SetLink(currentRoot.gameObject);
         });
 
       seq.Append(
