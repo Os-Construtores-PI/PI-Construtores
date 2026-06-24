@@ -8,28 +8,13 @@ public class RigidbodyBasedEnemy : Enemies
     _rb ??= GetComponent<Rigidbody>();
   }
 
-  protected override void TriggerKnockback()
+  protected override void TriggerKnockback(Player player)
   {
-    int quantity = Physics.OverlapSphereNonAlloc(
-      transform.position,
-      _knockbackRadius,
-      knockbackResult,
-      LayerMask.GetMask("Entity", "Player"),
-      QueryTriggerInteraction.Collide
-    );
+    Vector3 forceDir = (transform.position - player.transform.position).normalized;
+    forceDir.y *= _verticalMultiplier;
 
-    for (int i = 0; i < quantity; i++)
-    {
-      Collider hit = knockbackResult[i];
-      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
-        continue;
-
-      Vector3 forceDir = (transform.position - hit.transform.position).normalized;
-      forceDir.y *= _verticalMultiplier;
-
-      _rb.AddForce(forceDir.normalized * _knockbackForce, ForceMode.Impulse);
-      return;
-    }
+    _rb.AddForce(forceDir.normalized * _knockbackForce, ForceMode.Impulse);
+    return;
   }
 
   protected void MoveWithRigidbody(Vector3 targetPos, float speed)

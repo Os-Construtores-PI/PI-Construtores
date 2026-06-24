@@ -6,6 +6,7 @@ using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -46,7 +47,8 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, TextMeshProUGUI> interactionTexts = new();
   private readonly Dictionary<int, Image> interactionImages = new();
   private readonly Dictionary<int, Sprite> originalSprites = new();
-  private readonly Dictionary<int, CameraLogic> playerCameras = new();
+  private readonly Dictionary<int, CameraLogic> _playerCachedCameras = new();
+  private Dictionary<int, int> _playerCachedScores = new();
 
   private Player _playerHudOwner;
 
@@ -63,7 +65,7 @@ public class HudDirector : MonoBehaviour
   // Acesso Público
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public CameraLogic GetCameraScript(int id) => playerCameras[id];
+  public CameraLogic GetCameraScript(int id) => _playerCachedCameras[id];
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Unity Events
@@ -85,6 +87,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.Options.AddListener(OptionsPausePanel);
     GlobalEventBus.Instance.ComboUpdate.AddListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.AddListener(MaxComboPanel);
+    GlobalEventBus.Instance.ScoreUpdate.AddListener(ScorePanel);
   }
 
   private void OnDisable()
@@ -103,6 +106,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.Options.RemoveListener(OptionsPausePanel);
     GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
+    GlobalEventBus.Instance.ScoreUpdate.RemoveListener(ScorePanel);
   }
 
   private void Start()
@@ -186,7 +190,7 @@ public class HudDirector : MonoBehaviour
   /// </summary>
   public void InitializeCamera(int playerID, CameraLogic camera)
   {
-    playerCameras[playerID] = camera;
+    _playerCachedCameras[playerID] = camera;
   }
 
   public void InitializeNoise(int playerID, CinemachineBasicMultiChannelPerlin noise)
@@ -216,7 +220,6 @@ public class HudDirector : MonoBehaviour
     HidePanel(HudPanelType.Dialogue, playerID, independent: true, fade: false, instant: true);
     HidePanel(HudPanelType.Combo, playerID, independent: true, fade: false, instant: true);
     HidePanel(HudPanelType.MaxComboPopup, playerID, independent: true, fade: false, instant: true);
-    HidePanel(HudPanelType.Score, playerID, independent: true, fade: false, instant: true);
     HidePanel(HudPanelType.ComboPopup, playerID, independent: true, fade: false, instant: true);
   }
 
@@ -452,7 +455,7 @@ public class HudDirector : MonoBehaviour
   // Popup de Interação
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public void InteractionPopup(bool seeing, InteractableObject obj, int playerID)
+  public void InteractionPopup(int playerID, bool seeing, InteractableObject obj)
   {
     if (!interactionTexts.ContainsKey(playerID) || !interactionImages.ContainsKey(playerID))
       return;
@@ -700,6 +703,39 @@ public class HudDirector : MonoBehaviour
   private void MaxComboPanel(int playerID, ImpactPopupType impactType)
   {
     ShowPanelTemporary(HudPanelType.MaxComboPopup, playerID, duration: 3f);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Score
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private void ScorePanel(int playerID, int newScore)
+  {
+    GameObject scorePanel = GetPanel(playerID, HudPanelType.Score)[0];
+
+    int currentScore = _playerCachedScores.ContainsKey(playerID)
+      ? _playerCachedScores[playerID]
+      : 0;
+    _playerCachedScores[playerID] = newScore;
+
+    TextMeshProUGUI textMeshPro = scorePanel.GetComponentInChildren<TextMeshProUGUI>();
+    if (textMeshPro != null)
+    {
+      textMeshPro.DOKill();
+
+      DOVirtual
+        .Int(
+          from: currentScore,
+          to: newScore,
+          duration: 0.6f,
+          onVirtualUpdate: (value) =>
+          {
+            textMeshPro.text = value.ToString("D8");
+          }
+        )
+        .SetEase(Ease.OutQuad)
+        .SetUpdate(true);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

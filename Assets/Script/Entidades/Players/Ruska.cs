@@ -18,7 +18,7 @@ public class Ruska : Player
       return (false, default);
     }
 
-    GlobalEventBus.Instance.ObjectWasSeen.Invoke(true, InteractionObject, ID);
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(ID, true, InteractionObject);
 
     return (true, info);
   }

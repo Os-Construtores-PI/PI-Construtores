@@ -182,6 +182,8 @@ public sealed class DataDirector : MonoBehaviour
       position = p.transform.position,
       health = p.Health,
       amethystsCount = p.Amethysts,
+      score = p.CurrentScore,
+      highestComboIndex = p.HighestComboIndex,
     };
 
     foreach (var it in p.Inventory.GetItems())
@@ -287,16 +289,16 @@ public sealed class DataDirector : MonoBehaviour
       cc.enabled = false;
 
     var behaviours = player.GetComponents<MonoBehaviour>().Where(b => b != player).ToArray();
-
     foreach (var b in behaviours)
       b.enabled = false;
 
-    // estado
+    // estado base
     player.transform.position = data.position;
     player.Health = data.health;
     player.SetAmethysts(data.amethystsCount);
+    player.SetScore(data.score);
+    player.SetHighestComboIndex(data.highestComboIndex);
 
-    // inventário
     player.Inventory.ClearItems();
     foreach (var it in data.inventory)
     {
@@ -351,6 +353,24 @@ public sealed class DataDirector : MonoBehaviour
   {
     var lvl = FindLevel(slot, scene);
     return lvl?.savedPlayers ?? new List<SavedPlayerData>();
+  }
+
+  public int GetPlayerHighestComboIndex(int slot, string scene, int playerIndex = 0)
+  {
+    var lvl = FindLevel(slot, scene);
+    if (lvl == null || playerIndex < 0 || playerIndex >= lvl.savedPlayers.Count)
+      return 0;
+
+    return lvl.savedPlayers[playerIndex].highestComboIndex;
+  }
+
+  public int GetPlayerScore(int slot, string scene, int playerIndex = 0)
+  {
+    var lvl = FindLevel(slot, scene);
+    if (lvl == null || playerIndex < 0 || playerIndex >= lvl.savedPlayers.Count)
+      return 0;
+
+    return lvl.savedPlayers[playerIndex].score;
   }
 
   public GameMode GetGameMode() => _configData.GameMode;

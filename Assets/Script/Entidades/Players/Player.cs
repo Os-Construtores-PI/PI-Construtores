@@ -289,7 +289,26 @@ public class Player : CombatEntities
 
   #region Score
 
-  private float _currentScore = 0;
+  private int _currentScore = 0;
+  public int CurrentScore => _currentScore;
+
+  public void AddScore(int amount)
+  {
+    _currentScore += amount;
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  public void SetScore(int amount)
+  {
+    _currentScore = amount;
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  public void RemoveScore(int amount)
+  {
+    _currentScore = Mathf.Max(_currentScore - amount, 0);
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
 
   #endregion
 
@@ -311,8 +330,11 @@ public class Player : CombatEntities
     ComboPopupType.Radical,
   };
   private int _currentComboTypeIndex = -1;
-
   private int _currentComboIndex = -1;
+  private int _highestComboIndex = -1;
+  public int HighestComboIndex => _highestComboIndex;
+
+  public void SetHighestComboIndex(int value) => _highestComboIndex = value;
 
   private void SetupHitboxCombo()
   {
@@ -330,11 +352,13 @@ public class Player : CombatEntities
   {
     int next = _currentComboIndex + 1;
     _currentComboTypeIndex = Mathf.Min(next, _comboPopupTypes.Count - 1);
-    print(_stagesOfCombo.Count);
+
     if (next >= _stagesOfCombo.Count)
     {
       ComboStage maxStage = _stagesOfCombo.Last();
       _comboTimer.Start(maxStage.TimeToExitStage);
+
+      _highestComboIndex = Mathf.Max(_highestComboIndex, _stagesOfCombo.Count - 1);
 
       GlobalEventBus.Instance.ComboUpdate.Invoke(
         ID,
@@ -343,7 +367,10 @@ public class Player : CombatEntities
       );
       return;
     }
+
     _currentComboIndex = next;
+
+    _highestComboIndex = Mathf.Max(_highestComboIndex, _currentComboIndex);
 
     ComboStage stage = _stagesOfCombo[_currentComboIndex];
     _comboTimer.Start(stage.TimeToExitStage);
@@ -442,6 +469,10 @@ public class Player : CombatEntities
   private readonly Inventory _inventory = new();
   public Inventory Inventory => _inventory;
 
+  [Header("Ametistas")]
+  [SerializeField]
+  private int _amethystScoreMultiplier = 1;
+
   private int _amethysts = 0;
   public int Amethysts => _amethysts;
 
@@ -455,7 +486,11 @@ public class Player : CombatEntities
     GlobalEventBus.Instance.AmethystsChanged.Invoke(_amethysts);
   }
 
-  public void AddAmethysts(int amount) => SetAmethysts(_amethysts + amount);
+  public void AddAmethysts(int amount)
+  {
+    SetAmethysts(_amethysts + amount);
+    AddScore(amount * _amethystScoreMultiplier);
+  }
 
   public bool SpendAmethysts(int amount)
   {
@@ -898,7 +933,7 @@ public class Player : CombatEntities
         _ultimoDispositivo = InputType.Keyboard;
         break;
     }
-    GlobalEventBus.Instance.InputChanged.Invoke(_ultimoDispositivo.ToString());
+    GlobalEventBus.Instance.InputUpdate.Invoke(_ultimoDispositivo.ToString());
   }
   #endregion
 
@@ -1062,7 +1097,7 @@ public class Player : CombatEntities
   protected void ClearInteractable()
   {
     InteractionObject = null;
-    GlobalEventBus.Instance.ObjectWasSeen.Invoke(false, null, ID);
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(ID, false, null);
   }
   #endregion
 

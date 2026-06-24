@@ -87,6 +87,10 @@ public class BasicMenuLogic : MonoBehaviour
       DataDirector.Instance.ResetRunTimeState();
     SceneManager.LoadScene(Constants.SceneNames.MainMenu);
 
+    DOTween.KillAll();
+
+    Resources.UnloadUnusedAssets();
+
     AudioManager.Instance.PlaySFX(somMenu.back);
   }
   #endregion

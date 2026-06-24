@@ -10,24 +10,24 @@ public class GlobalEventBus : MonoBehaviour
   public static bool HasInstance => Instance != null;
 
   #region Events
-  public readonly UnityEvent<bool, InteractableObject, int> ObjectWasSeen = new();
-  public readonly UnityEvent<int, float> Cinematic = new();
-  public readonly UnityEvent<int> Teleport = new();
+  public readonly PlayerComboEvent ComboUpdate = new();
+  public readonly PlayerImpactEvent MaxComboReached = new();
+  public readonly PlayerScoreEvent ScoreUpdate = new();
+  public readonly PlayerLockOnEvent LockOnVisibility = new();
+  public readonly PlayerDialogueEvent Dialogue = new();
+  public readonly PlayerLockDlgEvent LockDialogue = new();
+  public readonly PlayerSkipDlgEvent SkipDialogue = new();
+  public readonly PlayerSkipDlgEvent EndDialogue = new();
+  public readonly PlayerObjectSeenEvent ObjectWasSeen = new();
+  public readonly PlayerCinematicEvent Cinematic = new();
+  public readonly PlayerTeleportEvent Teleport = new();
+  public readonly PlayerAmethystsEvent AmethystsChanged = new();
   public readonly UnityEvent Death = new();
   public readonly UnityEvent Respawn = new();
   public readonly UnityEvent EndGame = new();
-  public readonly UnityEvent<int, int, ComboPopupType> ComboUpdate = new();
-  public readonly UnityEvent<int, ImpactPopupType> MaxComboReached = new();
   public readonly UnityEvent<bool> Pause = new();
-  public readonly UnityEvent<int, int> ScoreUpdate = new();
-  public readonly UnityEvent<int, bool, Vector3> LockOnVisibility = new();
   public readonly UnityEvent<bool> Options = new();
-  public readonly UnityEvent<int> AmethystsChanged = new();
-  public readonly UnityEvent<string> InputChanged = new();
-  public readonly UnityEvent<Player, List<string>, float> Dialogue = new();
-  public readonly UnityEvent<Player, bool> LockDialogue = new();
-  public readonly UnityEvent<Player> SkipDialogue = new();
-  public readonly UnityEvent<Player> EndDialogue = new();
+  public readonly UnityEvent<string> InputUpdate = new();
   #endregion
 
   public void Awake()
