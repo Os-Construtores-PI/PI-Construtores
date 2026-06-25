@@ -3359,6 +3359,8 @@ MonoBehaviour:
   can_AI: 1
   visionInterval: 0.5
   attackInterval: 1
+  _scoreWhenDamaged: 50
+  _scoreWhenKilled: 200
   spawnpos: {x: 0, y: 0, z: 0}
   canFlash: 1
   flashDuration: 0.1
@@ -5898,6 +5900,65 @@ Transform:
   - {fileID: 1800122576}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &568092787
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 568092788}
+  - component: {fileID: 568092789}
+  m_Layer: 0
+  m_Name: TickDirector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &568092788
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 568092787}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7820756989911984689}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &568092789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 568092787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8067270b57737f4da372a18916031cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TickDirector
+  OnTick:
+    m_PersistentCalls:
+      m_Calls: []
+  OnFiveTick:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTenTick:
+    m_PersistentCalls:
+      m_Calls: []
+  OnFifteenTick:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSecond:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &586796389
 GameObject:
   m_ObjectHideFlags: 0
@@ -6004,6 +6065,8 @@ MonoBehaviour:
   can_AI: 1
   visionInterval: 0.5
   attackInterval: 1
+  _scoreWhenDamaged: 50
+  _scoreWhenKilled: 200
   spawnpos: {x: 0, y: 0, z: 0}
   canFlash: 1
   flashDuration: 0.1
@@ -6133,24 +6196,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lycan
       objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _rb
-      value: 
-      objectReference: {fileID: 970442956}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _knockbackForce
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _verticalMultiplier
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -7080,33 +7126,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lycan.3
       objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _rb
-      value: 
-      objectReference: {fileID: 718765925}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _knockbackForce
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _verticalMultiplier
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
---- !u!54 &718765925 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 5305230127500805634, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-  m_PrefabInstance: {fileID: 718765924}
-  m_PrefabAsset: {fileID: 0}
 --- !u!54 &719287993 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 4508484376169826124, guid: 575416cd2cdb6984287340d64f177d46, type: 3}
@@ -7957,16 +7981,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lycan.4
       objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _knockbackForce
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _verticalMultiplier
-      value: 10
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -8303,7 +8318,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5296051cb03926e4cbcf9c495ca9514e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startDialogueOnStart: 0
+  introDialogue: {fileID: 0}
 --- !u!43 &957945751
 Mesh:
   m_ObjectHideFlags: 0
@@ -8539,11 +8554,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 38be14d4199a2e243b828e62ffe25f2b, type: 3}
---- !u!54 &970442956 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 5305230127500805634, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-  m_PrefabInstance: {fileID: 595671987}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &978108229
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10431,33 +10441,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lycan.2
       objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _rb
-      value: 
-      objectReference: {fileID: 1287099305}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _knockbackForce
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _verticalMultiplier
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
---- !u!54 &1287099305 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 5305230127500805634, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-  m_PrefabInstance: {fileID: 1287099304}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1288129941
 GameObject:
   m_ObjectHideFlags: 0
@@ -10720,16 +10708,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lycan.1
       objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _knockbackForce
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 1758655156328760059, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
-      propertyPath: _verticalMultiplier
-      value: 10
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6359910671053192915, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -17639,6 +17618,8 @@ MonoBehaviour:
   can_AI: 1
   visionInterval: 0.5
   attackInterval: 1
+  _scoreWhenDamaged: 50
+  _scoreWhenKilled: 200
   spawnpos: {x: 0, y: 0, z: 0}
   canFlash: 1
   flashDuration: 0.1
@@ -18645,7 +18626,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   backgroundMusic: {fileID: 0}
   playerDirector: {fileID: 0}
-  introDialogue: {fileID: 0}
 --- !u!1 &4323994112721394544
 GameObject:
   m_ObjectHideFlags: 0
@@ -19872,6 +19852,7 @@ Transform:
   - {fileID: 2460005286801044260}
   - {fileID: 3655806202315630240}
   - {fileID: 954131171}
+  - {fileID: 568092788}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7861866793590377059

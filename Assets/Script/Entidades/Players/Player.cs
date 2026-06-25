@@ -289,6 +289,22 @@ public class Player : CombatEntities
 
   #region Score
 
+  #region Time
+  [Header("Pontuação de tempo")]
+  [SerializeField]
+  private int _initialTimePoints = 10000;
+
+  [SerializeField]
+  private int _timePointDiscountPerSecond = 10;
+
+  public void ApplyDiscount(int totalSeconds)
+  {
+    _initialTimePoints -= totalSeconds * _timePointDiscountPerSecond;
+    AddScore(_initialTimePoints);
+  }
+
+  #endregion
+
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
 
@@ -332,7 +348,7 @@ public class Player : CombatEntities
   private int _currentComboTypeIndex = -1;
   private int _currentComboIndex = -1;
   private int _highestComboIndex = -1;
-  public int HighestComboIndex => _highestComboIndex;
+  public int HighestComboIndex => _highestComboIndex++;
 
   public void SetHighestComboIndex(int value) => _highestComboIndex = value;
 

@@ -61,6 +61,7 @@ public enum HudPanelType
   LockOnOverlay,
   Cutscene,
   TeleportFadePanel,
+  Stopwatch,
 }
 
 public enum ComboPopupType

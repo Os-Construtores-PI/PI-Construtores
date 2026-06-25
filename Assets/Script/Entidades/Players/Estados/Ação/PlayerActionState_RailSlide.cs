@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Splines;
 
@@ -49,6 +50,9 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>
 
   [SerializeField]
   private Vector3 modelOffset = new(0f, 2f, 0f);
+
+  [SerializeField]
+  private int _slideIncrementScore = 1;
 
   // ─── Enter ────────────────────────────────────────────────────────────────
   public void Enter(Player player)
@@ -117,6 +121,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>
   public void Update(Player player)
   {
     UpdateMovement(player);
+    player.AddScore(_slideIncrementScore);
   }
 
   public void FixedUpdate(Player player) { }
