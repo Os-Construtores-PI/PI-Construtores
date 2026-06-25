@@ -297,6 +297,26 @@ public static class QualityOfLife
     string json = JsonUtility.ToJson(classObject, true);
     File.WriteAllText(path, DataCryptography.Encrypt(json));
   }
+
+  public static void CursorOptions(bool visible)
+  {
+    Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
+    Cursor.visible = visible;
+  }
+
+  /// <summary>
+  /// Itera sobre todos os Players ativos na cena e executa uma ação.
+  /// </summary>
+  public static void ForEachPlayer(Action<Player> action)
+  {
+    foreach (
+      var player in UnityEngine.Object.FindObjectsByType<Player>(
+        FindObjectsInactive.Exclude,
+        FindObjectsSortMode.None
+      )
+    )
+      action(player);
+  }
 }
 
 public static class ReflectionHelpers

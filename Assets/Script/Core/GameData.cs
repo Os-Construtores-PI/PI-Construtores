@@ -50,24 +50,25 @@ public class SavedLevelData
 [System.Serializable]
 public class SavedPlayerData
 {
-  public int playerId;
-  public List<SavedItemEntry> inventory = new();
-  public int amethystsCount;
-  public Vector3 position;
-  public float health;
-  public int score;
-  public int highestComboIndex = -1;
+  public int PlayerId;
+  public DateTime Lastsave;
+  public List<SavedItemEntry> Inventory = new();
+  public int AmethystsCount;
+  public Vector3 Position;
+  public float Health;
+  public int Score;
+  public int HighestComboIndex = -1;
 
-  public List<SavedStatEntry> savedStats = new();
+  public List<SavedStatEntry> SavedStats = new();
 
   public void SaveStats(Stats stats)
   {
-    savedStats.Clear();
+    SavedStats.Clear();
 
     // Salvar floats
     foreach (var kvp in stats.GetNumericStats())
     {
-      savedStats.Add(
+      SavedStats.Add(
         new SavedStatEntry()
         {
           statType = kvp.Key,
@@ -80,7 +81,7 @@ public class SavedPlayerData
     // Salvar bools
     foreach (var kvp in stats.GetBoolStats())
     {
-      savedStats.Add(
+      SavedStats.Add(
         new SavedStatEntry()
         {
           statType = kvp.Key,
@@ -93,7 +94,7 @@ public class SavedPlayerData
 
   public void LoadStats(Stats stats)
   {
-    foreach (var stat in savedStats)
+    foreach (var stat in SavedStats)
     {
       if (stat.type == "float")
       {

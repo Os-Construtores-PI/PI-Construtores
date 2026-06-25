@@ -6,11 +6,11 @@ using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static Constants.PlayerShakes;
+using static QualityOfLife;
 
 /// <summary>
 /// Gerencia todos os elementos visuais do HUD, câmeras e painéis para cada jogador.
@@ -387,6 +387,8 @@ public class HudDirector : MonoBehaviour
     HidePanel(HudPanelType.HealthBar, playerID, independent: true, fade: false, instant: true);
     HidePanel(HudPanelType.BoostBar, playerID, independent: true, fade: false, instant: true);
     HidePanel(HudPanelType.DashIcon, playerID, independent: true, fade: false, instant: true);
+    HidePanel(HudPanelType.Score, playerID, independent: true, fade: false, instant: true);
+    HidePanel(HudPanelType.Stopwatch, playerID, independent: true, fade: false, instant: true);
   }
 
   private void EnableHUD(int playerID)
@@ -395,6 +397,8 @@ public class HudDirector : MonoBehaviour
     ShowPanel(HudPanelType.HealthBar, playerID, independent: true, fade: false);
     ShowPanel(HudPanelType.BoostBar, playerID, independent: true, fade: false);
     ShowPanel(HudPanelType.DashIcon, playerID, independent: true, fade: false);
+    ShowPanel(HudPanelType.Score, playerID, independent: true, fade: false);
+    ShowPanel(HudPanelType.Stopwatch, playerID, independent: true, fade: false);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -702,7 +706,7 @@ public class HudDirector : MonoBehaviour
 
   private void MaxComboPanel(int playerID, ImpactPopupType impactType)
   {
-    ShowPanelTemporary(HudPanelType.MaxComboPopup, playerID, duration: 3f);
+    ShowPanelTemporary(HudPanelType.MaxComboPopup, playerID, duration: 1f);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -770,7 +774,7 @@ public class HudDirector : MonoBehaviour
 
   private IconImage? GetIcon(string destiny) => icons.Find(icon => icon.Destiny == destiny);
 
-  private List<GameObject> GetPanel(int playerID, HudPanelType panel) =>
+  public List<GameObject> GetPanel(int playerID, HudPanelType panel) =>
     canvasMap.TryGetValue(playerID, out var dict) && dict.TryGetValue(panel, out var result)
       ? result
       : new List<GameObject>();
@@ -778,27 +782,10 @@ public class HudDirector : MonoBehaviour
   /// <summary>
   /// Retorna todos os GameObjects filhos (incluindo raiz) de um painel.
   /// </summary>
-  private IEnumerable<GameObject> GetPanelObjects(int playerID, HudPanelType panel)
+  public IEnumerable<GameObject> GetPanelObjects(int playerID, HudPanelType panel)
   {
     foreach (var root in GetPanel(playerID, panel))
     foreach (var t in root.GetComponentsInChildren<Transform>(true))
       yield return t.gameObject;
-  }
-
-  private static void CursorOptions(bool visible)
-  {
-    Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
-    Cursor.visible = visible;
-  }
-
-  /// <summary>
-  /// Itera sobre todos os Players ativos na cena e executa uma ação.
-  /// </summary>
-  private static void ForEachPlayer(Action<Player> action)
-  {
-    foreach (
-      var player in FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
-    )
-      action(player);
   }
 }
