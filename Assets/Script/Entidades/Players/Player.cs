@@ -290,6 +290,7 @@ public class Player : CombatEntities
   #region Score
 
   #region Time
+  [Header("Pontuação de tempo")]
   [SerializeField]
   private int _initialTimePoints = 10000;
 
@@ -298,7 +299,7 @@ public class Player : CombatEntities
 
   public void ApplyDiscount(int totalSeconds)
   {
-    _initialTimePoints = _initialTimePoints - totalSeconds * _timePointDiscountPerSecond;
+    _initialTimePoints -= totalSeconds * _timePointDiscountPerSecond;
     AddScore(_initialTimePoints);
   }
 
