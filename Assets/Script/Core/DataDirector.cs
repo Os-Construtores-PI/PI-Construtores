@@ -179,15 +179,16 @@ public sealed class DataDirector : MonoBehaviour
   {
     var d = new SavedPlayerData
     {
-      position = p.transform.position,
-      health = p.Health,
-      amethystsCount = p.Amethysts,
-      score = p.CurrentScore,
-      highestComboIndex = p.HighestComboIndex,
+      Position = p.transform.position,
+      Health = p.Health,
+      AmethystsCount = p.Amethysts,
+      Score = p.CurrentScore,
+      HighestComboIndex = p.HighestComboIndex,
+      Lastsave = DateTime.Now,
     };
 
     foreach (var it in p.Inventory.GetItems())
-      d.inventory.Add(new SavedItemEntry(it.data.itemName, it.quantity));
+      d.Inventory.Add(new SavedItemEntry(it.data.itemName, it.quantity));
 
     return d;
   }
@@ -250,6 +251,35 @@ public sealed class DataDirector : MonoBehaviour
     _configData.HasSave = set;
     Commit();
   }
+
+  public void SaveLevelRecord(int slot, string scene, int playerIndex, int score, int comboIndex)
+  {
+    SavedLevelData lvl = GetSafeLevel(slot, scene);
+
+    while (lvl.savedPlayers.Count <= playerIndex)
+      lvl.savedPlayers.Add(new SavedPlayerData());
+
+    SavedPlayerData pd = lvl.savedPlayers[playerIndex];
+    pd.Score = Mathf.Max(pd.Score, score);
+    pd.HighestComboIndex = Mathf.Max(pd.HighestComboIndex, comboIndex);
+
+    Commit();
+  }
+
+  public void SavePlayerStats(int slot, string scene, int playerIndex, int health, int amethysts)
+  {
+    SavedLevelData lvl = GetSafeLevel(slot, scene);
+
+    while (lvl.savedPlayers.Count <= playerIndex)
+      lvl.savedPlayers.Add(new SavedPlayerData());
+
+    SavedPlayerData pd = lvl.savedPlayers[playerIndex];
+    pd.Health = health;
+    pd.AmethystsCount = amethysts;
+
+    Commit();
+  }
+
   #endregion
 
 
@@ -293,14 +323,14 @@ public sealed class DataDirector : MonoBehaviour
       b.enabled = false;
 
     // estado base
-    player.transform.position = data.position;
-    player.Health = data.health;
-    player.SetAmethysts(data.amethystsCount);
-    player.SetScore(data.score);
-    player.SetHighestComboIndex(data.highestComboIndex);
+    player.transform.position = data.Position;
+    player.Health = data.Health;
+    player.SetAmethysts(data.AmethystsCount);
+    player.SetScore(data.Score);
+    player.SetHighestComboIndex(data.HighestComboIndex);
 
     player.Inventory.ClearItems();
-    foreach (var it in data.inventory)
+    foreach (var it in data.Inventory)
     {
       var itemData = Resources.Load<ItemData>($"Items/{it.savedItemName}");
       if (itemData)
@@ -361,7 +391,7 @@ public sealed class DataDirector : MonoBehaviour
     if (lvl == null || playerIndex < 0 || playerIndex >= lvl.savedPlayers.Count)
       return 0;
 
-    return lvl.savedPlayers[playerIndex].highestComboIndex;
+    return lvl.savedPlayers[playerIndex].HighestComboIndex;
   }
 
   public int GetPlayerScore(int slot, string scene, int playerIndex = 0)
@@ -370,7 +400,7 @@ public sealed class DataDirector : MonoBehaviour
     if (lvl == null || playerIndex < 0 || playerIndex >= lvl.savedPlayers.Count)
       return 0;
 
-    return lvl.savedPlayers[playerIndex].score;
+    return lvl.savedPlayers[playerIndex].Score;
   }
 
   public GameMode GetGameMode() => _configData.GameMode;

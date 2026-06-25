@@ -21911,7 +21911,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 15
+  _maxDamage: 30
 --- !u!65 &1941590432395012080
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -27526,6 +27526,8 @@ MonoBehaviour:
       m_Calls: []
   _maxBoostValue: 100
   _initialBoostValue: 100
+  _initialTimePoints: 10000
+  _timePointDiscountPerSecond: 10
   _stagesOfCombo:
   - Multiplier: 2
     TimeToExitStage: 3
@@ -27547,6 +27549,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   InteractionObject: {fileID: 0}
+  _amethystScoreMultiplier: 1
   _playerSFX: []
   CanAttack: 1
   WillAttack: 1
@@ -34774,7 +34777,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 15
+  _maxDamage: 20
 --- !u!65 &8688263318238171917
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -35109,7 +35112,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 20
+  _maxDamage: 50
 --- !u!1 &7420621060131513517
 GameObject:
   m_ObjectHideFlags: 0
