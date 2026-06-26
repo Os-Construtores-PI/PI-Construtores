@@ -9,6 +9,8 @@ public class MenuSlideIn : MonoBehaviour
   [SerializeField] private float duration = 0.8f;
   [SerializeField] private Ease ease = Ease.OutExpo;
 
+  [SerializeField] private float startDelay = 0f;
+
   [SerializeField]
   private SlideDirection direction = SlideDirection.Right;
 
