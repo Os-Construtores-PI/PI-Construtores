@@ -10143,6 +10143,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 38be14d4199a2e243b828e62ffe25f2b, type: 3}
+--- !u!1001 &1224919488
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4815638575731814063, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_Name
+      value: SentinelaAbissal.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -12.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 50.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 188.69695
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7137479
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.006111864
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7003483
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.006228799
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -88.914
+      objectReference: {fileID: 0}
+    - target: {fileID: 7004527474672263237, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0.019
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4d423575a76cd814b8ee196edce53a21, type: 3}
 --- !u!54 &1231974987 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 7026642257779086842, guid: 575416cd2cdb6984287340d64f177d46, type: 3}
@@ -19495,6 +19552,22 @@ MonoBehaviour:
     Type: 3
   - Sprite: {fileID: 21300000, guid: 3674b7aa6b834e14ab8cec3ad459f0e2, type: 3}
     Type: 4
+  _slamSprite: {fileID: 21300000, guid: 84befdae29924e54082727850e5e0b40, type: 3}
+  _whooshSprite: {fileID: 21300000, guid: 154da59b57e121b41851235d1913c236, type: 3}
+  _comboPunchSettings:
+    Duration: 2
+    Strength: 0.55
+    TweenDuration: 0.3
+    Vibrato: 6
+    Elasticity: 0.5
+    MaxRotationZ: 25
+  _maxComboPunchSettings:
+    Duration: 1
+    Strength: 0.6
+    TweenDuration: 0.25
+    Vibrato: 6
+    Elasticity: 0.75
+    MaxRotationZ: 25
 --- !u!33 &6727378006888555760
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -20386,6 +20459,7 @@ SceneRoots:
   - {fileID: 471515091}
   - {fileID: 710476367}
   - {fileID: 1683044696}
+  - {fileID: 1224919488}
   - {fileID: 595671987}
   - {fileID: 1287099304}
   - {fileID: 718765924}

@@ -12,10 +12,6 @@ using UnityEngine.UI;
 using static Constants.PlayerShakes;
 using static QualityOfLife;
 
-/// <summary>
-/// Gerencia todos os elementos visuais do HUD, câmeras e painéis para cada jogador.
-/// Responde a eventos globais do jogo (morte, pausa, diálogo, teleporte, etc.).
-/// </summary>
 public class HudDirector : MonoBehaviour
 {
   // ─── Constantes ────────────────────────────────────────────────────────────
@@ -39,9 +35,22 @@ public class HudDirector : MonoBehaviour
   [SerializeField]
   private List<ComboPopupImage> _popupComboImages = new();
 
+  [Header("Imagens de popup de combo máximo")]
+  [SerializeField]
+  private Sprite _slamSprite;
+
+  [SerializeField]
+  private Sprite _whooshSprite;
+
+  [Header("Punch Panel Settings")]
+  [SerializeField]
+  private PunchPanelSettings _comboPunchSettings = PunchPanelSettings.Default;
+
+  [SerializeField]
+  private PunchPanelSettings _maxComboPunchSettings = PunchPanelSettings.Default;
+
   // ─── Estado Interno ─────────────────────────────────────────────────────────
 
-  /// <summary>Mapa: playerID → (panelName → lista de GameObjects do painel)</summary>
   private readonly Dictionary<int, Dictionary<HudPanelType, List<GameObject>>> canvasMap = new();
 
   private readonly Dictionary<int, TextMeshProUGUI> interactionTexts = new();
@@ -52,13 +61,10 @@ public class HudDirector : MonoBehaviour
 
   private Player _playerHudOwner;
 
-  // <summary> Coroutines e Noises </summary>
   private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
 
-  /// <summary>Coroutine de parada de shake por playerID.</summary>
   private readonly Dictionary<int, Coroutine> _shakeStopCoroutines = new();
 
-  // no bloco de estado interno, junto dos outros dicionários
   private readonly Dictionary<(int, HudPanelType), Sequence> _tempPanelSequences = new();
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -286,23 +292,30 @@ public class HudDirector : MonoBehaviour
     return panels;
   }
 
-  private void ShowPanelTemporary(
-    HudPanelType panel,
-    int playerID,
-    float duration,
-    bool punch = false
-  )
+  private void ShowPanelTemporary(HudPanelType panel, int playerID, float duration)
+  {
+    KillTempSequence(panel, playerID);
+    ShowPanel(panel, playerID, independent: true);
+    ScheduleTempHide(panel, playerID, duration);
+  }
+
+  public void PunchPanelTemporary(HudPanelType panel, int playerID, PunchPanelSettings settings)
+  {
+    KillTempSequence(panel, playerID);
+    PunchPanel(panel, playerID, independent: true, settings);
+    ScheduleTempHide(panel, playerID, settings.Duration);
+  }
+
+  private void KillTempSequence(HudPanelType panel, int playerID)
   {
     var key = (playerID, panel);
-
     if (_tempPanelSequences.TryGetValue(key, out var existing))
       existing?.Kill();
+  }
 
-    if (punch)
-      PunchPanel(panel, playerID, independent: true);
-    else
-      ShowPanel(panel, playerID, independent: true);
-
+  private void ScheduleTempHide(HudPanelType panel, int playerID, float duration)
+  {
+    var key = (playerID, panel);
     _tempPanelSequences[key] = DOTween
       .Sequence()
       .AppendInterval(duration)
@@ -318,11 +331,7 @@ public class HudDirector : MonoBehaviour
     HudPanelType panel,
     int playerID,
     bool independent,
-    float punchStrength = 0.55f,
-    float punchDuration = 0.55f,
-    int vibrato = 6,
-    float elasticity = 0.5f,
-    float maxRotationZ = 30f
+    PunchPanelSettings settings
   )
   {
     foreach (var go in GetPanelObjects(playerID, panel))
@@ -335,13 +344,13 @@ public class HudDirector : MonoBehaviour
       go.transform.localRotation = Quaternion.Euler(
         0f,
         0f,
-        UnityEngine.Random.Range(-maxRotationZ, maxRotationZ)
+        UnityEngine.Random.Range(-settings.MaxRotationZ, settings.MaxRotationZ)
       );
       go.transform.DOPunchScale(
-          Vector3.one * punchStrength,
-          punchDuration,
-          vibrato: vibrato,
-          elasticity: elasticity
+          Vector3.one * settings.Strength,
+          settings.TweenDuration,
+          vibrato: settings.Vibrato,
+          elasticity: settings.Elasticity
         )
         .SetUpdate(UpdateType.Normal, independent);
     }
@@ -744,12 +753,17 @@ public class HudDirector : MonoBehaviour
     if (popupPanels[0].TryGetComponent(out Image image))
       image.sprite = sprite;
 
-    ShowPanelTemporary(HudPanelType.ComboPopup, playerID, duration: 2f, punch: true);
+    PunchPanelTemporary(HudPanelType.ComboPopup, playerID, _comboPunchSettings);
   }
 
   private void MaxComboPanel(int playerID, ImpactPopupType impactType)
   {
-    ShowPanelTemporary(HudPanelType.MaxComboPopup, playerID, duration: 1f);
+    GameObject maxComboPanel = GetPanel(playerID, HudPanelType.MaxComboPopup)[0];
+    if (maxComboPanel != null && maxComboPanel.TryGetComponent(out Image imageComponent))
+    {
+      imageComponent.sprite = impactType == ImpactPopupType.Slam ? _slamSprite : _whooshSprite;
+      PunchPanelTemporary(HudPanelType.MaxComboPopup, playerID, _maxComboPunchSettings);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -127,3 +127,24 @@ public struct ComboPopupImage
   public Sprite Sprite;
   public ComboPopupType Type;
 }
+
+[Serializable]
+public struct PunchPanelSettings
+{
+  public float Duration;
+  public float Strength;
+  public float TweenDuration;
+  public int Vibrato;
+  public float Elasticity;
+  public float MaxRotationZ;
+  public static PunchPanelSettings Default =>
+    new()
+    {
+      Duration = 2f,
+      Strength = 0.35f,
+      TweenDuration = 0.45f,
+      Vibrato = 6,
+      Elasticity = 0.5f,
+      MaxRotationZ = 25f,
+    };
+}
