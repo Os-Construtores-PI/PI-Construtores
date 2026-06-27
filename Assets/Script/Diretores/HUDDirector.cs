@@ -286,14 +286,22 @@ public class HudDirector : MonoBehaviour
     return panels;
   }
 
-  private void ShowPanelTemporary(HudPanelType panel, int playerID, float duration)
+  private void ShowPanelTemporary(
+    HudPanelType panel,
+    int playerID,
+    float duration,
+    bool punch = false
+  )
   {
     var key = (playerID, panel);
 
     if (_tempPanelSequences.TryGetValue(key, out var existing))
       existing?.Kill();
 
-    ShowPanel(panel, playerID, independent: true);
+    if (punch)
+      PunchPanel(panel, playerID, independent: true);
+    else
+      ShowPanel(panel, playerID, independent: true);
 
     _tempPanelSequences[key] = DOTween
       .Sequence()
@@ -304,6 +312,41 @@ public class HudDirector : MonoBehaviour
         _tempPanelSequences.Remove(key);
       })
       .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
+  }
+
+  public void PunchPanel(
+    HudPanelType panel,
+    int playerID,
+    bool independent,
+    float punchStrength = 0.55f,
+    float punchDuration = 0.55f,
+    int vibrato = 6,
+    float elasticity = 0.5f,
+    float maxRotationZ = 30f
+  )
+  {
+    foreach (var go in GetPanelObjects(playerID, panel))
+      EnableButton(go);
+
+    foreach (var go in GetPanel(playerID, panel))
+    {
+      go.transform.DOKill();
+      go.transform.localScale = Vector3.one;
+      go.transform.localRotation = Quaternion.Euler(
+        0f,
+        0f,
+        UnityEngine.Random.Range(-maxRotationZ, maxRotationZ)
+      );
+      go.transform.DOPunchScale(
+          Vector3.one * punchStrength,
+          punchDuration,
+          vibrato: vibrato,
+          elasticity: elasticity
+        )
+        .SetUpdate(UpdateType.Normal, independent);
+    }
+
+    EventSystem.current.SetSelectedGameObject(null);
   }
 
   // ─── Helpers de painel ──────────────────────────────────────────────────────
@@ -701,7 +744,7 @@ public class HudDirector : MonoBehaviour
     if (popupPanels[0].TryGetComponent(out Image image))
       image.sprite = sprite;
 
-    ShowPanelTemporary(HudPanelType.ComboPopup, playerID, 2f);
+    ShowPanelTemporary(HudPanelType.ComboPopup, playerID, duration: 2f, punch: true);
   }
 
   private void MaxComboPanel(int playerID, ImpactPopupType impactType)

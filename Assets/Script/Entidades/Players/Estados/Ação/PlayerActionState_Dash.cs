@@ -52,6 +52,15 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private AnimationCurve _verticalImpulseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+  [Header("Configurações da tremida da porrada de lockOn")]
+  [SerializeField]
+  private float _vibrationAmplitude;
+
+  [SerializeField]
+  private float _vibrationFrequency;
+
+  [SerializeField]
+  private float _vibrationDuration;
   private bool _hasHit;
   private float _currentGraceTime;
   private Player _currentPlayer;
@@ -259,6 +268,12 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _currentPlayer.MovementVector = Vector3.zero;
     _currentPlayer.CurrentDashCount = 0;
     _currentPlayer.transform.up = Vector3.up;
+    _currentPlayer.CustomShake.Invoke(
+      _currentPlayer.ID,
+      _vibrationAmplitude,
+      _vibrationFrequency,
+      _vibrationDuration
+    );
 
     _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(0f) * _bounceUpwardForce;
 
