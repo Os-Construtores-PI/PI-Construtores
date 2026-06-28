@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
+using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[RequireComponent(typeof(Rigidbody))]
 public abstract class Enemies : CombatEntities, ILockable
 {
   protected Transform target;
@@ -17,20 +20,32 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField]
   private float _boostGrace = 20f;
 
+  [Header("Knockback")]
+  [SerializeField]
+  protected float _knockbackForce = 60;
+
+  [SerializeField]
+  protected float _knockbackRadius = 10f;
+
+  [SerializeField, Range(1f, 20f)]
+  protected float _verticalMultiplier = 1f;
+
+  protected Collider[] scanResult = new Collider[10];
+
   public float LockRange => _lockInRange;
   public float BoostGrace => _boostGrace;
-  public bool IsActive => this.enabled && gameObject.activeInHierarchy;
+  public bool IsActive => enabled && gameObject.activeInHierarchy;
 
   // ==== CONFIGURAÇÕES DE DETECÇÃO ====
   [Header("Configurações de Detecção")]
   [SerializeField]
-  private LayerMask layer; // Camada usada para detectar alvos (ex: jogadores)
+  private LayerMask layer;
 
   [SerializeField, Min(10)]
-  private float radius; // Raio da detecção de visão
+  private float radius;
 
   [SerializeField]
-  private float attackRange = 2f; // Raio da detecção de ataque
+  private float attackRange = 2f;
 
   [SerializeField]
   private float memoryCooldown = 3f;
@@ -41,9 +56,14 @@ public abstract class Enemies : CombatEntities, ILockable
   private bool playerInArea = false;
 
   // ==== COMPORTAMENTO DE IA ====
+
+  [Header("Componentes")]
+  [SerializeField]
+  protected Rigidbody _rb;
+
   [Header("IA")]
   [SerializeField]
-  private bool can_AI = true; // Permite ativar/desativar IA
+  private bool can_AI = true;
 
   [SerializeField]
   private float visionInterval = 0.5f; // Intervalo para verificar visão
@@ -54,36 +74,32 @@ public abstract class Enemies : CombatEntities, ILockable
   private float attackIntervalwalker = 0.0f;
 
   // ==== CONFIGURAÇÂO DE LOOTTABLE ==== //
-  protected WeightedTable<string> lootTable = new();
-  protected SerializedDictionary<string, float> items = new()
+  protected WeightedTable<int> _lootTable = new();
+  protected SerializedDictionary<int, float> items = new()
   {
-    { "item bom", 10 },
-    { "item ruim", 90 },
+    { 10, 10 },
+    { 5, 25 },
+    { 1, 90 },
   };
+
+  // ==== Score ==== //
+  [Header("Pontuação")]
+  [SerializeField]
+  private int _scoreWhenDamaged = 50;
+
+  [SerializeField]
+  private int _scoreWhenKilled = 200;
 
   // ==== Referência para o Scanner ==== //
   [HideInInspector]
   public Vector3 spawnpos;
 
-  [Header("ENEMY KNOCKBACK PROPERTIES")]
-  [SerializeField]
-  private Collider _collider;
-
-  [SerializeField]
-  private float _knockbackForce = 40f;
-  public float KnockBackForce => _knockbackForce;
-
-  private readonly Timer _knockbackTimer = new();
-  private readonly float _knockbackCooldown = 2f;
-  private bool _canKnockback = true;
-
   // === Flash Requisitos ===
   private Renderer[] renderers;
-  private List<Color> originalColors = new List<Color>();
-  private List<Color> originalEmissionColors = new List<Color>();
-  private MaterialPropertyBlock block;
+  private Material[] originalMaterials;
+  private Sequence flashSequence;
 
-  [Header("DAMAGE FLASH PROPERTIES")]
+  [Header("Flash de Dano")]
   [SerializeField]
   private bool canFlash = true;
 
@@ -91,28 +107,41 @@ public abstract class Enemies : CombatEntities, ILockable
   private float flashDuration = 0.1f;
 
   [SerializeField]
-  private Color flashColor = Color.white;
+  private Material flashMaterial;
 
+  [Header("Efeito de Dano")]
   [SerializeField]
-  private Color flashEmission = Color.white; // mais intenso
-  private Sequence flashSequence;
-
-  public override void Awake()
-  {
-    base.Awake();
-    SetupOriginals();
-  }
+  private RectTransform _damagePopupEffect;
 
   public override void Start()
   {
     base.Start();
+    SetupOriginals();
     AddItems();
   }
 
   public override void DeathHandler()
   {
-    print(lootTable.PickEntry());
-    print("MORREU");
+    int quantity = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _knockbackRadius,
+      scanResult,
+      LayerMask.GetMask("Entity", "Player"),
+      QueryTriggerInteraction.Collide
+    );
+    for (int i = 0; i < quantity; i++)
+    {
+      Collider hit = scanResult[i];
+      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
+        continue;
+
+      if (hit.TryGetComponent(out Player player))
+      {
+        player.AddScore(_scoreWhenKilled);
+        player.AddAmethysts(_lootTable.PickEntry());
+      }
+    }
+
     gameObject.SetActive(false);
   }
 
@@ -122,7 +151,7 @@ public abstract class Enemies : CombatEntities, ILockable
     {
       foreach (var item in items)
       {
-        lootTable.AddEntry(item.Key, item.Value);
+        _lootTable.AddEntry(item.Key, item.Value);
       }
     }
   }
@@ -136,7 +165,6 @@ public abstract class Enemies : CombatEntities, ILockable
       AttackTimer();
       MemoryTimer();
     }
-    KnockbackTimer();
   }
 
   private void VisionTimer()
@@ -161,7 +189,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   private void MemoryTimer()
   {
-    if (!playerInArea && !memoryTriggered) // só executa se o player saiu e ainda não rodou
+    if (!playerInArea && !memoryTriggered)
     {
       memoryCooldownWalker += Time.deltaTime;
 
@@ -169,26 +197,13 @@ public abstract class Enemies : CombatEntities, ILockable
       {
         target = transform;
         memoryCooldownWalker = 0.0f;
-        memoryTriggered = true; // marca que já rodou
+        memoryTriggered = true;
       }
     }
     else if (playerInArea)
     {
-      // se o player voltar, reseta o estado
       memoryCooldownWalker = 0.0f;
       memoryTriggered = false;
-    }
-  }
-
-  private void KnockbackTimer()
-  {
-    if (!_canKnockback)
-    {
-      if (_knockbackTimer.Tick(Time.deltaTime))
-      {
-        _canKnockback = true;
-        _collider.enabled = true;
-      }
     }
   }
 
@@ -211,11 +226,9 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
-    // Se não encontrar alvo, redefine o alvo para si mesmo
     playerInArea = false;
   }
 
-  // Verifica se há algum alvo próximo o suficiente para ataque
   private void UpdateAttackLogic()
   {
     int quantity = Physics.OverlapSphereNonAlloc(
@@ -234,109 +247,136 @@ public abstract class Enemies : CombatEntities, ILockable
 
   public override void DamageHandler()
   {
+    int quantity = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _knockbackRadius,
+      scanResult,
+      LayerMask.GetMask("Entity", "Player"),
+      QueryTriggerInteraction.Collide
+    );
+    for (int i = 0; i < quantity; i++)
+    {
+      Collider hit = scanResult[i];
+      if (!hit.CompareTag(Constants.Tags.Player.ToString()))
+        continue;
+
+      if (hit.TryGetComponent(out Player player))
+      {
+        TriggerKnockback(player);
+        TriggerRewards(player);
+      }
+    }
     TriggerFlash();
+    TriggerSquish();
+    TriggerDamagePopup();
+  }
+
+  protected virtual void TriggerKnockback(Player player) { }
+
+  protected virtual void TriggerRewards(Player player)
+  {
+    player.AddScore(_scoreWhenDamaged);
+  }
+
+  protected virtual void TriggerDamagePopup()
+  {
+    if (_damagePopupEffect == null)
+      return;
+
+    _damagePopupEffect.DOKill();
+    _damagePopupEffect.localScale = Vector3.zero;
+    _damagePopupEffect.gameObject.SetActive(true);
+
+    Sequence popupSequence = DOTween.Sequence();
+    popupSequence.Append(_damagePopupEffect.DOScale(Vector3.one, 0.1f).SetEase(Ease.OutBack));
+    popupSequence.AppendInterval(0.25f);
+    popupSequence.Append(_damagePopupEffect.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack));
+    popupSequence.OnComplete(() => _damagePopupEffect.gameObject.SetActive(false));
+  }
+
+  protected virtual void TriggerSquish()
+  {
+    transform.DOKill();
+    Vector3 originalScale = transform.localScale;
+    float squashFactor = 1.8f;
+    float compressFactor = 0.4f;
+
+    Vector3 squishScale = new(
+      originalScale.x * squashFactor,
+      originalScale.y * compressFactor,
+      originalScale.z * squashFactor
+    );
+
+    Sequence squishSequence = DOTween.Sequence().SetUpdate(true);
+
+    squishSequence.Append(
+      transform.DOScale(squishScale, 0.08f).SetEase(Ease.Linear).SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform
+        .DOScale(originalScale * 1.08f, 0.12f)
+        .SetEase(Ease.OutBack)
+        .SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform
+        .DOScale(originalScale * 0.97f, 0.08f)
+        .SetEase(Ease.InOutSine)
+        .SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Append(
+      transform.DOScale(originalScale, 0.1f).SetEase(Ease.OutQuad).SetUpdate(UpdateType.Late)
+    );
+    squishSequence.Play();
   }
 
   private void SetupOriginals()
   {
     renderers = GetComponentsInChildren<Renderer>();
-    block = new();
-    foreach (Renderer r in renderers)
+    originalMaterials = new Material[renderers.Length];
+
+    for (int i = 0; i < renderers.Length; i++)
     {
-      r.GetPropertyBlock(block);
-
-      // Cor base
-      Color baseColor = r.sharedMaterial.HasProperty("_BaseColor")
-        ? r.sharedMaterial.GetColor("_BaseColor")
-        : Color.white;
-
-      // Emission (se tiver)
-      Color emissionColor = r.sharedMaterial.HasProperty("_EmissionColor")
-        ? r.sharedMaterial.GetColor("_EmissionColor")
-        : Color.black;
-
-      originalColors.Add(baseColor);
-      originalEmissionColors.Add(emissionColor);
+      originalMaterials[i] = renderers[i].material;
     }
   }
 
-  public void TriggerFlash()
+  protected virtual void TriggerFlash()
   {
-    if (!canFlash)
-    {
+    if (!canFlash || flashMaterial == null)
       return;
-    }
-    // se já tem uma animação rodando, mata ela
+
     if (flashSequence != null && flashSequence.IsActive())
+    {
       flashSequence.Kill();
+      RestoreMaterials();
+    }
 
-    float intensity = 0f;
-
-    flashSequence = DOTween.Sequence();
-
-    // Sobe (0 -> 1) e desce (1 -> 0)
-    flashSequence.Append(
-      DOTween.To(
-        () => intensity,
-        x =>
-        {
-          intensity = x;
-          ApplyFlash(intensity);
-        },
-        1f,
-        flashDuration * 0.5f
-      )
-    );
-
-    flashSequence.Append(
-      DOTween.To(
-        () => intensity,
-        x =>
-        {
-          intensity = x;
-          ApplyFlash(intensity);
-        },
-        0f,
-        flashDuration * 0.5f
-      )
-    );
+    ApplyFlashMaterial();
+    flashSequence = DOTween.Sequence().SetUpdate(true);
+    flashSequence.AppendInterval(flashDuration);
+    flashSequence.OnComplete(() => RestoreMaterials());
+    flashSequence.Play();
   }
 
-  private void ApplyFlash(float intensity)
+  private void ApplyFlashMaterial()
   {
     for (int i = 0; i < renderers.Length; i++)
     {
-      var r = renderers[i];
-      r.GetPropertyBlock(block);
-
-      Color baseColor = Color.Lerp(originalColors[i], flashColor, intensity);
-      Color emissionColor = Color.Lerp(originalEmissionColors[i], flashEmission, intensity);
-
-      block.SetColor("_BaseColor", baseColor);
-      block.SetColor("_EmissionColor", emissionColor);
-
-      if (emissionColor != Color.black)
-        r.material.EnableKeyword("_EMISSION");
-      else
-        r.material.DisableKeyword("_EMISSION");
-
-      r.SetPropertyBlock(block);
+      if (renderers[i] != null && flashMaterial != null)
+      {
+        renderers[i].material = flashMaterial;
+      }
     }
   }
 
-  public void OnTriggerEnter(Collider col)
+  private void RestoreMaterials()
   {
-    if (col.TryGetComponent(out Player player))
+    for (int i = 0; i < renderers.Length; i++)
     {
-      if (_canKnockback)
+      if (renderers[i] != null && originalMaterials[i] != null)
       {
-        _canKnockback = false;
-        player.CurrentDashCount = 0;
-        player.IsDashing = false;
-        player.CurrentJumpCount = 0;
-        player.MovementVector = Vector3.up * KnockBackForce;
-        _collider.enabled = false;
-        _knockbackTimer.Start(_knockbackCooldown);
+        renderers[i].material = originalMaterials[i];
       }
     }
   }

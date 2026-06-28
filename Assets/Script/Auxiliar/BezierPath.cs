@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine;
 using DG.Tweening;
-
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -14,9 +13,9 @@ public class BezierPath : MonoBehaviour
   {
     public string label = "WP";
     public Vector3 position;
-    public Vector3 tangentIn;   // Handle de entrada
-    public Vector3 tangentOut;  // Handle de saída
-    public bool linked = true;  // Tangentes espelhadas
+    public Vector3 tangentIn; // Handle de entrada
+    public Vector3 tangentOut; // Handle de saída
+    public bool linked = true; // Tangentes espelhadas
 
     public Waypoint(Vector3 pos, Vector3 tIn, Vector3 tOut, string lbl = "WP")
     {
@@ -57,11 +56,12 @@ public class BezierPath : MonoBehaviour
   public Tween Play()
   {
     Vector3[] pts = BuildDOTweenArray();
-    if (pts == null || pts.Length < 4) return null;
+    if (pts == null || pts.Length < 4)
+      return null;
 
     return transform
-        .DOPath(pts, duration, PathType.CubicBezier, pathMode, pathResolution)
-        .SetEase(easeType);
+      .DOPath(pts, duration, PathType.CubicBezier, pathMode, pathResolution)
+      .SetEase(easeType);
   }
 
   /// <summary>
@@ -72,7 +72,8 @@ public class BezierPath : MonoBehaviour
   /// </summary>
   public Vector3[] BuildDOTweenArray()
   {
-    if (waypoints.Count < 1) return null;
+    if (waypoints.Count < 1)
+      return null;
 
     // DOPath CubicBezier espera:
     //   stash (tangentOut do ponto de partida) já vem do transform pai.
@@ -90,16 +91,16 @@ public class BezierPath : MonoBehaviour
     Vector3 firstWP = waypoints[0].position;
     Vector3 originTangentOut = origin + (firstWP - waypoints[0].tangentIn);
 
-    list.Add(originTangentOut);           // TangentOut da origem
+    list.Add(originTangentOut); // TangentOut da origem
 
     for (int i = 0; i < waypoints.Count; i++)
     {
       Waypoint wp = waypoints[i];
-      list.Add(wp.tangentIn);           // TangentIn do WP atual
-      list.Add(wp.position);            // Waypoint
+      list.Add(wp.tangentIn); // TangentIn do WP atual
+      list.Add(wp.position); // Waypoint
 
       if (i < waypoints.Count - 1)
-        list.Add(wp.tangentOut);      // TangentOut (só se não for o último)
+        list.Add(wp.tangentOut); // TangentOut (só se não for o último)
     }
 
     return list.ToArray();
@@ -118,10 +119,10 @@ public class BezierPath : MonoBehaviour
       basePos = waypoints[^1].position + offset;
 
     var wp = new Waypoint(
-        pos: basePos,
-        tIn: basePos + new Vector3(-1f, 0.5f, 0f),
-        tOut: basePos + new Vector3(1f, -0.5f, 0f),
-        lbl: $"WP{waypoints.Count}"
+      pos: basePos,
+      tIn: basePos + new Vector3(-1f, 0.5f, 0f),
+      tOut: basePos + new Vector3(1f, -0.5f, 0f),
+      lbl: $"WP{waypoints.Count}"
     );
 
     waypoints.Add(wp);
@@ -133,7 +134,8 @@ public class BezierPath : MonoBehaviour
 
   public void RemoveLastWaypoint()
   {
-    if (waypoints.Count == 0) return;
+    if (waypoints.Count == 0)
+      return;
     waypoints.RemoveAt(waypoints.Count - 1);
 
 #if UNITY_EDITOR
@@ -155,10 +157,12 @@ public class BezierPath : MonoBehaviour
 #if UNITY_EDITOR
   void OnDrawGizmos()
   {
-    if (waypoints == null || waypoints.Count == 0) return;
+    if (waypoints == null || waypoints.Count == 0)
+      return;
 
     Vector3 origin = transform.position;
-    Vector3 originTangentOut = waypoints.Count > 0
+    Vector3 originTangentOut =
+      waypoints.Count > 0
         ? origin + (waypoints[0].position - waypoints[0].tangentIn)
         : origin + Vector3.right;
 

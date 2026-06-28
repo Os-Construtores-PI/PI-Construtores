@@ -11,11 +11,28 @@ public enum ErrorType
 
 public enum QualityTier
 {
+  NONE,
   COMMON,
   UNCOMMON,
   RARE,
   EPIC,
   LEGENDARY,
+}
+
+public enum StatType
+{
+  Speed,
+  RunSpeedMultiplier,
+  RunAccelMultiplier,
+  Regen,
+  CanDash,
+  RegenInterval,
+  DamagedCooldown,
+  CombatCooldown,
+  JumpForce,
+  Health,
+  Gravity,
+  MaxHealth,
 }
 
 public enum ItemUsageType
@@ -25,11 +42,35 @@ public enum ItemUsageType
   Passive,
 }
 
-public enum AIType
+public enum HudPanelType
 {
-  NONE,
-  AUTOMATIC,
-  MANUAL,
+  GameOver,
+  Pause,
+  Dialogue,
+  HealthBar,
+  BoostBar,
+  DashIcon,
+  Combo,
+  ComboPopup,
+  Score,
+  MaxComboPopup,
+  EndGame,
+  AmethystCounter,
+  InteractionPopup,
+  InteractionLetter,
+  LockOnOverlay,
+  Cutscene,
+  TeleportFadePanel,
+  Stopwatch,
+}
+
+public enum ComboPopupType
+{
+  None,
+  Good,
+  Great,
+  Awesome,
+  Radical,
 }
 
 public enum HealthHUDType
@@ -41,6 +82,7 @@ public enum HealthHUDType
 
 public enum ModifyTYPE
 {
+  CUSTOM,
   POSITIVE,
   NEGATIVE,
 }
@@ -49,6 +91,12 @@ public enum TimeTYPE
 {
   PERMANENT,
   TEMPORARY,
+}
+
+public enum ImpactPopupType
+{
+  Slam,
+  Splash,
 }
 
 public enum ColorCode
@@ -65,9 +113,9 @@ public enum GameMode
   MULTIPLAYER,
 }
 
-public enum ActionType
+public enum PlayerActionType
 {
-  None,
+  Locked,
   Idle,
   Move,
   Jump,
@@ -77,6 +125,16 @@ public enum ActionType
   Slide,
   Interact,
   GroundSlam,
+  Boost,
+  Bounce,
+  RailSlide,
+}
+
+public enum WolfActionType
+{
+  Patrol,
+  Chase,
+  Attack,
 }
 
 public enum InputType
@@ -98,4 +156,28 @@ public enum BillboardType
 {
   LookAtCamera,
   CameraForward,
+}
+
+// LookUp
+
+public enum EffectType
+{
+  DashEffect,
+  JumpEffect,
+  BoostEffect,
+  ChargingEffect,
+  SpeedEffect,
+}
+
+public enum TrailType
+{
+  MovementTrail,
+  MovementSupport1Trail,
+  MovementSupport2Trail,
+}
+
+public enum PlayerAudioType
+{
+  Jump,
+  Dash,
 }

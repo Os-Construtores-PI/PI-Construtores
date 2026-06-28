@@ -1,14 +1,17 @@
 using UnityEngine;
+using UnityEngine.Events;
+using static Constants.PlayerShakes;
 
-// Componente que aplica dano a qualquer CombatEntities que entrar na área
 public class HitboxComponent : MonoBehaviour
 {
+  [HideInInspector]
+  public UnityEvent Hit = new();
+
   [Header("Parâmetros de Dano")]
   [SerializeField]
-  private float _maxDamage = 10f; // Dano inicial
+  private float _maxDamage = 10f;
   private float damage;
 
-  // Propriedade pública de acesso ao dano
   [HideInInspector]
   public float Damage
   {

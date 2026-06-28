@@ -37,7 +37,7 @@ public abstract class CombatEntities : LiveEntities
   #region --- Stats e Dicionários ---
 
   [HideInInspector]
-  [Stat(nameof(EnableRegen))]
+  [Stat(StatType.Regen)]
   public bool EnableRegen
   {
     get => _enableRegen;
@@ -52,7 +52,7 @@ public abstract class CombatEntities : LiveEntities
   }
 
   [HideInInspector]
-  [Stat(nameof(regenerationInterval))]
+  [Stat(StatType.RegenInterval)]
   public float RegenerationInterval
   {
     get => regenerationInterval;
@@ -60,7 +60,7 @@ public abstract class CombatEntities : LiveEntities
   }
 
   [HideInInspector]
-  [Stat(nameof(combatCooldown))]
+  [Stat(StatType.CombatCooldown)]
   public float CombatCooldown
   {
     get => combatCooldown;
@@ -68,7 +68,7 @@ public abstract class CombatEntities : LiveEntities
   }
 
   [HideInInspector]
-  [Stat(nameof(damagedCooldown))]
+  [Stat(StatType.DamagedCooldown)]
   public float DamagedCooldown
   {
     get => damagedCooldown;

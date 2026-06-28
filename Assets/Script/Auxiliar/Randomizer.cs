@@ -1,27 +1,27 @@
 public class Randomizer
 {
-    int lastNumb = default;
-    float lastNumbf = default;
+  int lastNumb = default;
+  float lastNumbf = default;
 
-    public int PositiveIntRandom(int range)
+  public int PositiveIntRandom(int range)
+  {
+    int sortNumb = UnityEngine.Random.Range(0, range);
+    while (sortNumb == lastNumb)
     {
-        int sortNumb = UnityEngine.Random.Range(0, range);
-        while (sortNumb == lastNumb)
-        {
-            sortNumb = UnityEngine.Random.Range(0, range);
-        }
-        lastNumb = sortNumb;
-        return sortNumb;
+      sortNumb = UnityEngine.Random.Range(0, range);
     }
+    lastNumb = sortNumb;
+    return sortNumb;
+  }
 
-    public float PositiveFloatRandom(int range)
+  public float PositiveFloatRandom(int range)
+  {
+    float sortNumb = UnityEngine.Random.Range(0, range);
+    while (sortNumb == lastNumbf)
     {
-        float sortNumb = UnityEngine.Random.Range(0, range);
-        while (sortNumb == lastNumbf)
-        {
-            sortNumb = UnityEngine.Random.Range(0, range);
-        }
-        lastNumbf = sortNumb;
-        return sortNumb;
+      sortNumb = UnityEngine.Random.Range(0, range);
     }
+    lastNumbf = sortNumb;
+    return sortNumb;
+  }
 }

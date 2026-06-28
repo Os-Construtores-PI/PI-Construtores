@@ -4,9 +4,6 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 
-/// <summary>
-/// Base para entidades vivas que possuem saúde, defesa e sistema de stats com reflexão.
-/// </summary>
 public abstract class LiveEntities : Entities
 {
   [Header("Debug - Vida Atual")]
@@ -25,7 +22,7 @@ public abstract class LiveEntities : Entities
   private float _health;
 
   [HideInInspector]
-  [Stat(nameof(Health))]
+  [Stat(StatType.Health)]
   public float Health
   {
     get => _health;
@@ -33,8 +30,6 @@ public abstract class LiveEntities : Entities
     {
       float oldHealth = _health;
       _health = Mathf.Clamp(value, 0f, MaxHealth);
-
-      //Debug.Log($"{name} // Health changed: {oldHealth} -> {_health}");
 
       if (_health < oldHealth)
       {
@@ -50,27 +45,12 @@ public abstract class LiveEntities : Entities
   }
 
   [HideInInspector]
-  [Stat(nameof(Defense))]
-  public float Defense
-  {
-    get => _defense;
-    set
-    {
-      Debug.Log($"{name} // Defense changed: {_defense} -> {value}");
-      _defense = Mathf.Clamp(value, 0f, MAX_DEFENSE);
-    }
-  }
-
-  [HideInInspector]
-  [Stat(nameof(MaxHealth))]
+  [Stat(StatType.MaxHealth)]
   public float MaxHealth
   {
     get => _maxHealth;
     set => _maxHealth = Mathf.Max(1f, value);
   }
-
-  [HideInInspector]
-  public readonly float MAX_DEFENSE = 100f;
 
   #endregion
 
@@ -86,8 +66,11 @@ public abstract class LiveEntities : Entities
 
   public Stats Stats = new();
 
-  public Dictionary<string, Action<float>> numericStatSetters = new();
-  public Dictionary<string, Action<bool>> boolStatSetters = new();
+  public Dictionary<StatType, Action<float>> numericStatSetters = new();
+  public Dictionary<StatType, Action<bool>> boolStatSetters = new();
+
+  public Dictionary<StatType, Func<float>> numericStatGetters = new();
+  public Dictionary<StatType, Func<bool>> boolStatGetters = new();
 
   public override void Awake()
   {
@@ -106,15 +89,17 @@ public abstract class LiveEntities : Entities
       if (attr == null)
         continue;
 
-      string name = attr.Name;
+      StatType type = attr.Type;
 
       if (prop.PropertyType == typeof(float))
       {
-        numericStatSetters[name] = value => prop.SetValue(this, value);
+        numericStatSetters[type] = value => prop.SetValue(this, value);
+        numericStatGetters[type] = () => (float)prop.GetValue(this);
       }
       else if (prop.PropertyType == typeof(bool))
       {
-        boolStatSetters[name] = value => prop.SetValue(this, value);
+        boolStatSetters[type] = value => prop.SetValue(this, value);
+        boolStatGetters[type] = () => (bool)prop.GetValue(this);
       }
       else
       {
@@ -125,44 +110,31 @@ public abstract class LiveEntities : Entities
     }
   }
 
-  /// <summary>
-  /// Inicializa stats no sistema Stats — pode ser sobrescrito para incluir mais.
-  /// </summary>
   public virtual void InitializeStats()
   {
-    foreach (var kvp in numericStatSetters)
+    // No longer relying on strings or reflection here, fetching directly from the stored Funcs
+    foreach (var kvp in numericStatGetters)
     {
-      var prop = GetType().GetPropertyByStatName(kvp.Key);
-      if (prop != null)
-      {
-        var value = (float)prop.GetValue(this);
-        Stats.AddStat(kvp.Key, value);
-      }
+      float value = kvp.Value.Invoke();
+      Stats.AddStat(kvp.Key, value);
     }
 
-    foreach (var kvp in boolStatSetters)
+    foreach (var kvp in boolStatGetters)
     {
-      var prop = GetType().GetPropertyByStatName(kvp.Key);
-      if (prop != null)
-      {
-        var value = (bool)prop.GetValue(this);
-        Stats.AddStat(kvp.Key, value);
-      }
+      bool value = kvp.Value.Invoke();
+      Stats.AddStat(kvp.Key, value);
     }
   }
 
-  /// <summary>
-  /// Handle updates from stats system.
-  /// </summary>
-  public virtual void HandleBoolStatChange(string name, bool value)
+  public virtual void HandleBoolStatChange(StatType type, bool value)
   {
-    if (boolStatSetters.TryGetValue(name, out var setter))
+    if (boolStatSetters.TryGetValue(type, out var setter))
       setter(value);
   }
 
-  public virtual void HandleNumericStatChange(string name, float value)
+  public virtual void HandleNumericStatChange(StatType type, float value)
   {
-    if (numericStatSetters.TryGetValue(name, out var setter))
+    if (numericStatSetters.TryGetValue(type, out var setter))
       setter(value);
   }
 
@@ -200,10 +172,10 @@ public abstract class LiveEntities : Entities
 [AttributeUsage(AttributeTargets.Property)]
 public class StatAttribute : Attribute
 {
-  public string Name { get; }
+  public StatType Type { get; }
 
-  public StatAttribute(string name)
+  public StatAttribute(StatType type)
   {
-    Name = name;
+    Type = type;
   }
 }

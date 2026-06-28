@@ -16,7 +16,8 @@ public class DialogueGlobal : MonoBehaviour
     Closing,
   }
 
-  [SerializeField] private somMenu _somMenu;
+  [SerializeField]
+  private somMenu _somMenu;
 
   [Header("Settings")]
   [SerializeField]
@@ -127,7 +128,7 @@ public class DialogueGlobal : MonoBehaviour
     OndialogueStart?.Invoke();
 
     if (AudioManager.Instance != null && _somMenu != null)
-        AudioManager.Instance.PlaySFX(_somMenu.dialogueOpen);
+      AudioManager.Instance.PlaySFX(_somMenu.dialogueOpen);
     _falasAtuais = falas;
     _index = 0;
     AtualizarVisibilidadedosBotoes();
@@ -214,7 +215,7 @@ public class DialogueGlobal : MonoBehaviour
     }
 
     if (AudioManager.Instance != null && _somMenu != null)
-        AudioManager.Instance.PlaySFX(_somMenu.dialogueNext);
+      AudioManager.Instance.PlaySFX(_somMenu.dialogueNext);
     _index++;
     AtualizarFala();
   }

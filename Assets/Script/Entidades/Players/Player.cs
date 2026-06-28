@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -7,23 +9,38 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
 using UnityEngine.SceneManagement;
+using UnityEngine.Splines;
+using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
-[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(Animator), typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
-  // ─────────────────────────────────────────────────────────────
-  //  MOVIMENTO
-  // ─────────────────────────────────────────────────────────────
-  #region Movimento – Stats
+  #region Constantes (Substituição de Magic Values)
 
-  private float _speed = 10f;
-  private float _runningSpeed = 20f;
+  private const float HUD_INIT_DELAY = 0.1f;
+  private const float CAMERA_SCAN_BUFFER = 2f;
+  private const float RAIL_SCORE_WEIGHT = 0.2f;
+  private const float SQR_EPSILON = 0.01f;
 
-  [HideInInspector]
-  [Stat(nameof(Speed))]
+  // Layers
+  private const string LAYER_OBJECT = "Object";
+  private const string LAYER_ENTITY = "Entity";
+  private const string LAYER_DEFAULT = "Default";
+  private const string LAYER_RUNNING_WALL = "RunningWall";
+
+  // Tags
+  private const string TAG_PLAYER = "Player";
+  private const string TAG_DASH_HUD = "DashHUDIcon";
+  private const string TAG_GAME_CONTROLLER = "GameController";
+  #endregion
+
+  #region Movimento - Stats
+  private float _speed;
+
+  [HideInInspector, Stat(StatType.Speed)]
   public float Speed
   {
     get => _speed;
@@ -31,65 +48,89 @@ public class Player : CombatEntities
   }
 
   [HideInInspector]
-  [Stat(nameof(RunningSpeed))]
-  public float RunningSpeed
-  {
-    get => _runningSpeed;
-    set => _runningSpeed = value;
-  }
-
-  internal QualityTier WallSpeedMultiplier = QualityTier.RARE;
-  internal float Acceleration = 5f;
-  internal float AccelerationRunning = 10f;
-  internal float Friction = 2f;
-  internal float AirFriction = 2f;
-
-  #endregion
-
-  #region Movimento – Pulo
-
-  private float _jumpForce = 10f;
+  public float RunSpeedMultiplier;
 
   [HideInInspector]
-  [Stat(nameof(JumpForce))]
+  public float RunAccelMultiplier;
+
+  [HideInInspector]
+  public QualityTier WallSpeedMultiplier;
+
+  [HideInInspector]
+  public float Acceleration;
+
+  [HideInInspector]
+  public float AccelerationRunning;
+
+  [HideInInspector]
+  public float Friction;
+
+  [HideInInspector]
+  public float AirFriction;
+  #endregion
+
+  #region Movimento - Pulo
+  private float _jumpForce;
+
+  [HideInInspector, Stat(StatType.JumpForce)]
   public float JumpForce
   {
     get => _jumpForce;
     set => _jumpForce = value;
   }
 
-  internal int MaxJumpCount = 2;
-  internal float WallJumpMultiplier = 5f;
-  internal float GravityValue;
-  internal float GravityUpMultiplier = 2.2f;
-  internal float GravityDownMultiplier = 0.6f;
-  internal float MaxFallSpeed = -26f;
-  internal float InitialGravityValue;
+  [HideInInspector]
+  public int MaxJumpCount;
 
+  [HideInInspector]
+  public float WallJumpMultiplier;
+
+  [HideInInspector, Stat(StatType.Gravity)]
+  public float GravityValue { get; set; }
+
+  [HideInInspector]
+  public float GravityUpMultiplier;
+
+  [HideInInspector]
+  public float GravityDownMultiplier;
+
+  [HideInInspector]
+  public float MaxFallSpeed;
+
+  [HideInInspector]
+  public float InitialGravityValue;
   #endregion
 
-  #region Movimento – Dash
+  #region Movimento - Dash
+  [HideInInspector]
+  public float DashSpeed;
 
-  internal float DashSpeed = 30f;
-  internal float DashDistance = 5f;
-  internal float DashCooldown = 1f;
-  internal ShiftDashScript DashHudScript;
+  [HideInInspector]
+  public float DashDistance;
 
+  [HideInInspector]
+  public float DashCooldown;
+
+  [HideInInspector]
+  public ShiftDashScript DashHudScript;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  COMPONENTES
-  // ─────────────────────────────────────────────────────────────
   #region Componentes
-
+  [Header("Componentes")]
   [SerializeField]
   private Transform _cameraTarget;
+
+  [SerializeField]
+  private AudioSource _playerAudioSource;
 
   [HideInInspector]
   public CharacterController CharacterController;
 
   [HideInInspector]
-  public CinemachineCamera CinemachineCamera;
+  public CinemachineCamera MainCamera;
+
+  [HideInInspector]
+  public CinemachineCamera BoostCamera;
 
   [HideInInspector]
   public CinemachineInputAxisController _cinemachineInput;
@@ -98,128 +139,308 @@ public class Player : CombatEntities
   public CinemachineOrbitalFollow _cinemachineOrbital;
 
   public HurtboxComponent HurtboxCollider;
-  public Collider DashHitboxCollider;
-  public Collider GroundSlamHitboxCollider;
   public Animator AnimatorComponent;
   public PlayerInput PlayerInput;
-
   protected Camera _myCamera;
 
-  public void SetCamera(CinemachineCamera cincam, Camera camera)
+  public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
   {
-    CinemachineCamera = cincam;
+    MainCamera = mainCam;
+    BoostCamera = boostCam;
     _myCamera = camera;
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  STATE MACHINES
-  // ─────────────────────────────────────────────────────────────
   #region State Machines & Estados
+  public PlayerStateMachine<Player> LocomotionLayer = new();
+  public StackStateMachine<Player> ActionLayer = new();
 
-  public StateMachine<Player> LocomotionLayer;
-  public StackStateMachine<Player> ActionLayer;
+  [Header("Estados")]
+  public PlayerActionStateDash Dash = new();
+  public PlayerActionStateInteraction Interaction = new();
+  public PlayerActionStateWallSliding WallSliding = new();
+  public PlayerActionStateGroundSlam GroundSlam = new();
+  public PlayerActionStateBoost Boost = new();
+  public PlayerActionStateBounce Bounce = new();
+  public PlayerActionStateJump Jump = new();
+  public PlayerActionStateRailSlide RailSlide = new();
 
-  // Action states
-  public PlayerActionStateIdle IdleAS = new();
-  public PlayerActionStateDash DashAS = new();
-  public PlayerActionStateInteraction InteractionAS = new();
-  public PlayerActionStateWallSliding WallSlidingAS = new();
-  public PlayerActionStateGroundSlam GroundSlamAS = new();
-  public BoostSlashDashButton DashSlashBoostButton;
-
-  // Locomotion states
-  public PlayerLocomotionStateGrounded GroundedS = new();
-  public PlayerLocomotionStateAirborne AirborneS = new();
-  public PlayerLocomotionStateLocked LockedS = new();
-
+  public readonly PlayerLocomotionStateMoving Moving = new();
+  public readonly PlayerLocomotionStateLocked Locked = new();
+  public readonly PlayerLocomotionStateHLocked LockedInHorizontal = new();
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  ESTADO INTERNO DO PLAYER
-  // ─────────────────────────────────────────────────────────────
   #region Estado Interno
+  [HideInInspector]
+  public Vector3 MovementVector;
 
-  internal Vector3 MovementVector;
-  internal Vector3 Direction;
-  internal Vector3 DashDirection;
-  internal Vector2 MoveInput;
-  internal Vector3 LastWallNormal;
+  [HideInInspector]
+  public Vector3 Direction;
 
-  internal bool IsRunning;
-  internal bool IsImpulsioned;
-  internal bool WallSpeedApplied;
-  internal bool TouchingWall;
-  internal bool IsDashBlocked;
+  [HideInInspector]
+  public Vector3 DashDirection;
 
-  internal int CurrentJumpCount = 0;
+  [HideInInspector]
+  public Vector2 MoveInput;
 
-  [SerializeField]
-  internal bool IsGrounded;
+  [HideInInspector]
+  public Vector3 LastWallNormal;
 
-  private bool _canMove = true;
+  [HideInInspector]
+  public bool IsRunning;
+
+  [HideInInspector]
+  public bool IsImpulsioned;
+
+  [HideInInspector]
+  public bool WallSpeedApplied;
+
+  [HideInInspector]
+  public bool TouchingWall;
+
+  [HideInInspector]
+  public bool IsDashBlocked;
+
+  [HideInInspector]
+  public int CurrentJumpCount = 0;
+
+  [HideInInspector]
+  public bool IsGrounded;
+
+  [HideInInspector]
+  public bool WantsToCancelRailSlide;
+
   private bool _canDash = true;
 
-  [Stat(nameof(CanMove))]
-  public bool CanMove
-  {
-    get => _canMove;
-    set => _canMove = value;
-  }
-
-  [Stat(nameof(CanDash))]
+  [Stat(StatType.CanDash)]
   public bool CanDash
   {
     get => _canDash;
     set => _canDash = value;
   }
 
+  [HideInInspector]
   public bool IsDashing = false;
+
+  [HideInInspector]
   public float MaxDashCount = 1f;
+
+  [HideInInspector]
   public float CurrentDashCount = 0f;
+
+  [HideInInspector]
   public float DashDuration;
+
+  [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
-
   public Transform _modelTransform;
-
-  // Ultimo dispositivo de input detectado
   public InputType _ultimoDispositivo = InputType.Keyboard;
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  FLAGS DE INPUT DE PULO
-  // ─────────────────────────────────────────────────────────────
-  #region Flags de Input – Pulo
-  public bool JumpInputPressed = false;
+  #region Flags de Input - Pulo
   public bool JumpInteractionPressed = false;
 
   public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  FLAGS DE CONTEXTO
-  // ─────────────────────────────────────────────────────────────
-  #region Flags de Contexto
+  #region Trails
+  public TrailsWorker TrailsSystem = new();
+  #endregion
 
+  #region Flags de Contexto
   public bool CameraLocked { get; set; } = false;
   public bool IsHardLocked { get; set; } = false;
   public bool IgnoreGameplayInputThisFrame { get; set; } = false;
   public bool WaitForJumpRelease { get; set; } = false;
   public bool BlockJumpByDialogue { get; set; } = false;
+  #endregion
+
+  #region Boost
+
+  [HideInInspector]
+  public UnityEvent<float> BoostChanged;
+
+  [Header("Boost Value Options")]
+  [SerializeField]
+  private float _maxBoostValue = 100f;
+
+  public float MaxBoostValue
+  {
+    get => _maxBoostValue;
+  }
+
+  [SerializeField]
+  private float _initialBoostValue = 100f;
+
+  [HideInInspector]
+  public float BoostValue
+  {
+    get { return _boostValue; }
+    set
+    {
+      _boostValue = Mathf.Clamp(value, 0f, _maxBoostValue);
+      BoostChanged.Invoke(_boostValue / _maxBoostValue);
+    }
+  }
+
+  private float _boostValue = 0f;
+
+  #endregion Boost
+
+  #region Score
+
+  #region Time
+  [Header("Pontuação de tempo")]
+  [SerializeField]
+  private int _initialTimePoints = 10000;
+
+  [SerializeField]
+  private int _timePointDiscountPerSecond = 10;
+
+  public void ApplyDiscount(int totalSeconds)
+  {
+    _initialTimePoints -= totalSeconds * _timePointDiscountPerSecond;
+    AddScore(_initialTimePoints);
+  }
 
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  SCANNERS
-  // ─────────────────────────────────────────────────────────────
-  #region Scanners – Declarações
+  private int _currentScore = 0;
+  public int CurrentScore => _currentScore;
 
-  [Header("Scanner – Inimigos")]
+  public void AddScore(int amount)
+  {
+    _currentScore += amount;
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  public void SetScore(int amount)
+  {
+    _currentScore = amount;
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  public void RemoveScore(int amount)
+  {
+    _currentScore = Mathf.Max(_currentScore - amount, 0);
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  #endregion
+
+  #region Combo
+
+  [Header("Combo")]
+  [SerializeField]
+  private List<ComboStage> _stagesOfCombo = new();
+
+  [SerializeField]
+  private List<HitboxComponent> _hitboxes = new();
+
+  private readonly Timer _comboTimer = new();
+  private readonly List<ComboPopupType> _comboPopupTypes = new()
+  {
+    ComboPopupType.Good,
+    ComboPopupType.Great,
+    ComboPopupType.Awesome,
+    ComboPopupType.Radical,
+  };
+  private int _currentComboTypeIndex = -1;
+  private int _currentComboIndex = -1;
+  private int _highestComboIndex = -1;
+  public int HighestComboIndex => _highestComboIndex++;
+
+  public void SetHighestComboIndex(int value) => _highestComboIndex = value;
+
+  private void SetupHitboxCombo()
+  {
+    foreach (HitboxComponent hb in _hitboxes)
+      hb.Hit.AddListener(ComboUp);
+  }
+
+  private void ComboTimer()
+  {
+    if (_comboTimer.Tick(Time.deltaTime))
+      ComboDown();
+  }
+
+  private void ComboUp()
+  {
+    int next = _currentComboIndex + 1;
+    _currentComboTypeIndex = Mathf.Min(next, _comboPopupTypes.Count - 1);
+
+    if (next >= _stagesOfCombo.Count)
+    {
+      ComboStage maxStage = _stagesOfCombo.Last();
+      _comboTimer.Start(maxStage.TimeToExitStage);
+
+      _highestComboIndex = Mathf.Max(_highestComboIndex, _stagesOfCombo.Count - 1);
+
+      GlobalEventBus.Instance.ComboUpdate.Invoke(
+        ID,
+        _stagesOfCombo.Count - 1,
+        _comboPopupTypes[_currentComboTypeIndex]
+      );
+      return;
+    }
+
+    _currentComboIndex = next;
+
+    _highestComboIndex = Mathf.Max(_highestComboIndex, _currentComboIndex);
+
+    ComboStage stage = _stagesOfCombo[_currentComboIndex];
+    _comboTimer.Start(stage.TimeToExitStage);
+
+    GlobalEventBus.Instance.ComboUpdate.Invoke(
+      ID,
+      _currentComboIndex,
+      _comboPopupTypes[_currentComboTypeIndex]
+    );
+
+    if (_currentComboIndex == _stagesOfCombo.Count - 1)
+    {
+      ImpactPopupType impact = IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
+      GlobalEventBus.Instance.MaxComboReached.Invoke(ID, impact);
+    }
+  }
+
+  private void ComboDown()
+  {
+    _currentComboIndex--;
+
+    if (_currentComboIndex < 0)
+    {
+      _currentComboTypeIndex = -1;
+      _comboTimer.Stop();
+      GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex, ComboPopupType.None);
+      return;
+    }
+
+    _currentComboTypeIndex = Mathf.Min(_currentComboIndex, _comboPopupTypes.Count - 1);
+
+    ComboStage stage = _stagesOfCombo[_currentComboIndex];
+    _comboTimer.Start(stage.TimeToExitStage);
+    GlobalEventBus.Instance.ComboUpdate.Invoke(
+      ID,
+      _currentComboIndex,
+      _comboPopupTypes[_currentComboTypeIndex]
+    );
+  }
+
+  public int CurrentComboMultiplier =>
+    _currentComboIndex >= 0 ? _stagesOfCombo[_currentComboIndex].Multiplier : 1;
+
+  #endregion
+
+  #region Scanners
+  [Header("Scanner - Inimigos")]
   [SerializeField, Min(10)]
   private float enemyScanRadius = 10f;
+
+  private const float CameraScanSphereRadius = 6f;
+  private const float CameraScanMaxDistance = 100f;
+  private const float CameraScanDotThreshold = 0.5f;
+  private const float WallScanDistance = 5f;
 
   private Camera _selectedCamera = null;
   private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
@@ -228,89 +449,88 @@ public class Player : CombatEntities
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
 
+  [Header("Scanner - Trilho")]
+  [SerializeField]
+  private float _railEntryRadius = 1.2f;
+
+  [SerializeField]
+  private float _railEntryForwardOffset = 0.8f;
+
+  [SerializeField]
+  private float _railEntryMinDot = 0.3f;
+
+  [SerializeField]
+  private LayerMask _railLayerMask;
+
+  private Scanner<Vector3, RailObject> _railEntryScanner;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  LOCK-ON
-  // ─────────────────────────────────────────────────────────────
   #region Lock-On
-
   public ILockable LockedTarget;
   private ILockable _lockCandidate;
   private RaycastHit _lastLockHit;
   private bool _isLockOnActive = false;
   protected RaycastHit _playerRayHit;
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INTERAÇÃO
-  // ─────────────────────────────────────────────────────────────
   #region Interação
-
+  [HideInInspector]
   public InteractableObject InteractionObject;
   protected InteractableObject _lastInteractionObject;
   protected Type _interactionObjectType;
   protected (bool success, RaycastHit hit) _lastValidResult;
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INVENTÁRIO & COLETÁVEIS
-  // ─────────────────────────────────────────────────────────────
-  #region Inventário
-
+  #region Inventário & Coletáveis
   private readonly Inventory _inventory = new();
   public Inventory Inventory => _inventory;
 
-  #endregion
+  [Header("Ametistas")]
+  [SerializeField]
+  private int _amethystScoreMultiplier = 1;
 
-  #region Coletáveis – Ametistas
+  private int _amethysts = 0;
+  public int Amethysts => _amethysts;
 
-  private int amethysts = 0;
-  public int Amethysts => amethysts;
-
-  public void SetAmethysts(int value, Vector3? amethystPos)
+  public void SetAmethysts(int value)
   {
-    if (amethysts == value)
+    int clamped = Mathf.Max(0, value);
+    if (_amethysts == clamped)
       return;
 
-    Vector3? positionInCamera = amethystPos.HasValue
-      ? _myCamera.WorldToScreenPoint(amethystPos.Value)
-      : (Vector3?)null;
-
-    amethysts = Mathf.Max(0, value);
-    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
+    _amethysts = clamped;
+    GlobalEventBus.Instance.AmethystsChanged.Invoke(_amethysts);
   }
 
-  public void AddAmethysts(int amount, Vector3? amethystPos) =>
-    SetAmethysts(amethysts + amount, amethystPos);
+  public void AddAmethysts(int amount)
+  {
+    SetAmethysts(_amethysts + amount);
+    AddScore(amount * _amethystScoreMultiplier);
+  }
 
   public bool SpendAmethysts(int amount)
   {
-    if (amount <= 0 || amethysts < amount)
+    if (amount <= 0 || _amethysts < amount)
       return false;
-    SetAmethysts(amethysts - amount, null);
+    SetAmethysts(_amethysts - amount);
     return true;
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  EVENTOS
-  // ─────────────────────────────────────────────────────────────
   #region Eventos
-
-  public readonly UnityEvent IsRunningEv = new();
-  public readonly UnityEvent StoppedRunningEv = new();
-
+  public readonly UnityEvent<bool> SpeedLines = new();
+  public readonly UnityEvent<bool> RunningShake = new();
+  public readonly UnityEvent<int, float, float, float> CustomShake = new();
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  ATAQUE
-  // ─────────────────────────────────────────────────────────────
-  #region Ataque
+  #region Sons
+  [Header("Sons do Jogador")]
+  [SerializeField]
+  private List<PlayerSFX> _playerSFX = new();
+  public readonly SoundsWorker<PlayerAudioType> PlayerSoundSystem = new();
+  #endregion
 
+  #region Ataque
   internal float AttackCooldown;
   public bool CanAttack = true;
   public bool WillAttack = true;
@@ -319,7 +539,7 @@ public class Player : CombatEntities
   {
     if (CanDash && LockedTarget != null)
     {
-      ActionLayer.PushState(DashAS, this);
+      ActionLayer.PushState(Dash, this);
       return;
     }
     if (CanExecuteAttack())
@@ -329,24 +549,14 @@ public class Player : CombatEntities
   protected virtual bool CanExecuteAttack() => true;
 
   protected virtual void OnExecuteAttack() { }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  WALL RUNNING
-  // ─────────────────────────────────────────────────────────────
   #region Wall Running
-
   [Header("Wall Exit")]
-  internal float WallExitDuration = 0.2f;
-
+  internal float WallExitDuration;
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  CAMERA
-  // ─────────────────────────────────────────────────────────────
-  #region Camera – Configuração
-
+  #region Camera
   [Header("Inverter Y Camera")]
   [SerializeField]
   private bool _willInvertYAxis = false;
@@ -365,56 +575,56 @@ public class Player : CombatEntities
   }
 
   public void LockCamera(bool state) => CameraLocked = state;
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  UNITY LIFECYCLE
-  // ─────────────────────────────────────────────────────────────
-  #region Unity – Awake / Start / Update / FixedUpdate / OnDestroy
-
+  #region Unity Lifecycle
   public override void Awake()
   {
     base.Awake();
     canPulse = false;
-    GravityValue = -16.62f; // valor padrão antes de ser sobrescrito
-    InitialGravityValue = GravityValue;
 
     CharacterController = GetComponent<CharacterController>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
+    _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
     DetectarDispositivo(PlayerInput);
-    DashSlashBoostButton = new(this, 100, 20, .5f);
-    LocomotionLayer = new(GroundedS, this);
-    ActionLayer = new(IdleAS, this);
   }
 
   public override void Start()
   {
+    InitialGravityValue = GravityValue;
     base.Start();
+
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
-    StartCoroutine(DelayedSetupHUD(.1f));
+    StartCoroutine(DelayedSetupHUD(HUD_INIT_DELAY));
+
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    SetupHitboxCombo();
 
+    TrailsSystem.InitTrails(transform.Find("Trails"));
+    PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
     _modelTransform = transform.Find("Model");
+    BoostValue = _initialBoostValue;
+
+    LocomotionLayer.ChangeState(Moving, this);
   }
 
   public override void Update()
   {
     base.Update();
-
 #if UNITY_EDITOR
     if (Input.GetKeyDown(KeyCode.F1))
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 #endif
 
+    ComboTimer();
+
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
-    DashSlashBoostButton.Update();
     ScanWithCamera();
   }
 
@@ -424,45 +634,38 @@ public class Player : CombatEntities
       return;
 
     IsGrounded = CharacterController.isGrounded;
-
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityY,
-      CharacterController.velocity.y
-    );
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityX,
-      Vector2.SqrMagnitude(
-        new Vector2(CharacterController.velocity.x, CharacterController.velocity.z)
-      )
-    );
-    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
-
+    UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
-
     CharacterController.Move(MovementVector * Time.deltaTime);
   }
 
   public void OnDestroy() => DOTween.Kill(this);
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INICIALIZAÇÃO AUXILIAR (Start helpers)
-  // ─────────────────────────────────────────────────────────────
-  #region Inicialização Auxiliar
+  #region Helpers de Inicialização
+  private void UpdateAnimator()
+  {
+    Vector3 vel = CharacterController.velocity;
+    AnimatorComponent.SetFloat(Constants.AnimatorFloatNames.VelocityY, vel.y);
+    AnimatorComponent.SetFloat(
+      Constants.AnimatorFloatNames.VelocityX,
+      new Vector2(vel.x, vel.z).sqrMagnitude
+    );
+    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
+  }
 
   private void SetupDashHUD()
   {
     if (DashHudScript != null)
       return;
 
-    GameObject go = GameObject.FindWithTag("DashHUDIcon");
+    GameObject go = GameObject.FindWithTag(TAG_DASH_HUD);
     if (go)
       DashHudScript = go.GetComponent<ShiftDashScript>();
     else
       Debug.LogWarning(
-        "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag."
+        "[Player] DashHUDIcon não encontrado. Arraste a instância ou coloque a tag."
       );
   }
 
@@ -470,56 +673,54 @@ public class Player : CombatEntities
   {
     InputAction lookAction = InputSystem.actions.FindAction("Look");
     lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
-
-    _cinemachineInput = CinemachineCamera.GetComponent<CinemachineInputAxisController>();
-    _cinemachineOrbital = CinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
+    _cinemachineInput = MainCamera.GetComponent<CinemachineInputAxisController>();
+    _cinemachineOrbital = MainCamera.GetComponent<CinemachineOrbitalFollow>();
   }
 
   private void SetupScanners()
   {
+    TickDirector.Instance.OnTick.AddListener(_ => ScanRailEntry());
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
 
-    DashSlashBoostButton.StartedChargingEv.AddListener(() =>
-      EffectsWorker.PlayEffect(Constants.EffectsNames.Player.Charging, 1)
-    );
-    DashSlashBoostButton.StoppedChargingEv.AddListener(() =>
-      EffectsWorker.StopEffect(Constants.EffectsNames.Player.Charging)
-    );
-
     _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
     _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
-    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(rays =>
-    {
-      float distance = 5f;
-      int mask = LayerMask.GetMask("RunningWall");
-      var interaction = QueryTriggerInteraction.Ignore;
-
-      if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
-        return hit;
-      if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
-        return hit;
-      return null;
-    });
+    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(ScanWallRays);
+    _railEntryScanner = new Scanner<Vector3, RailObject>(BuildRailEntryScanner());
   }
 
-  /// <summary>
-  /// Fábrica do delegate do camera scanner, separado para manter o Start legível.
-  /// </summary>
+  private RaycastHit? ScanWallRays((Ray left, Ray right) rays)
+  {
+    int mask = LayerMask.GetMask(LAYER_RUNNING_WALL);
+    if (
+      Physics.Raycast(
+        rays.left,
+        out RaycastHit hit,
+        WallScanDistance,
+        mask,
+        QueryTriggerInteraction.Ignore
+      )
+    )
+      return hit;
+    if (
+      Physics.Raycast(rays.right, out hit, WallScanDistance, mask, QueryTriggerInteraction.Ignore)
+    )
+      return hit;
+    return null;
+  }
+
   private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
-    r =>
+    ray =>
     {
-      float radius = 6f;
-      float maxDistance = 20f;
-      LayerMask targetsMask = LayerMask.GetMask("Object", "Entity");
-      LayerMask obstacleMask = LayerMask.GetMask("Default");
+      LayerMask targetsMask = LayerMask.GetMask(LAYER_OBJECT, LAYER_ENTITY);
+      LayerMask obstacleMask = LayerMask.GetMask(LAYER_DEFAULT);
 
       int hitCount = Physics.SphereCastNonAlloc(
-        r.origin,
-        radius,
-        r.direction,
+        ray.origin,
+        CameraScanSphereRadius,
+        ray.direction,
         _sphereCastResults,
-        maxDistance,
+        CameraScanMaxDistance,
         targetsMask
       );
 
@@ -529,20 +730,19 @@ public class Player : CombatEntities
       for (int i = 0; i < hitCount; i++)
       {
         Collider col = _sphereCastResults[i].collider;
-        if (col.CompareTag("Player"))
+        if (col.CompareTag(TAG_PLAYER))
           continue;
 
         Vector3 targetCenter = col.bounds.center;
-        Vector3 dirToTarget = (targetCenter - r.origin).normalized;
-        float dot = Vector3.Dot(r.direction.normalized, dirToTarget);
-        if (dot < 0.5f)
+        float dot = Vector3.Dot(ray.direction.normalized, (targetCenter - ray.origin).normalized);
+        if (dot < CameraScanDotThreshold)
           continue;
 
-        float distance = Vector3.Distance(r.origin, targetCenter);
-        if (distance > maxDistance)
+        float distance = Vector3.Distance(ray.origin, targetCenter);
+        if (distance > CameraScanMaxDistance)
           continue;
 
-        if (!Physics.Linecast(r.origin, targetCenter, obstacleMask) && distance < closestDistance)
+        if (!Physics.Linecast(ray.origin, targetCenter, obstacleMask) && distance < closestDistance)
         {
           closestDistance = distance;
           bestTarget = col;
@@ -551,13 +751,14 @@ public class Player : CombatEntities
 
       if (bestTarget != null)
       {
-        Vector3 finalDir = (bestTarget.bounds.center - r.origin).normalized;
+        Vector3 finalDir = (bestTarget.bounds.center - ray.origin).normalized;
+        // Adiciona buffer constante ao distance para evitar falhas de precisão
         if (
           Physics.Raycast(
-            r.origin,
+            ray.origin,
             finalDir,
             out RaycastHit finalHit,
-            maxDistance + 2f,
+            CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
             targetsMask | obstacleMask
           )
         )
@@ -566,17 +767,74 @@ public class Player : CombatEntities
             return (true, finalHit);
         }
       }
-
       return (false, default);
     };
 
+  private Func<Vector3, RailObject> BuildRailEntryScanner() =>
+    playerPos =>
+    {
+      if (
+        RailSlide.CurrentRail != null
+        || ActionLayer.GetActive<PlayerActionStateRailSlide>() != null
+      )
+        return null;
+
+      Vector3 moveDir =
+        MovementVector.sqrMagnitude > SQR_EPSILON
+          ? MovementVector.normalized
+          : CharacterController.velocity.normalized;
+      if (moveDir.sqrMagnitude < SQR_EPSILON)
+        return null;
+
+      Vector3 scanOrigin = playerPos + moveDir * _railEntryForwardOffset;
+      var hits = Physics.OverlapSphere(
+        scanOrigin,
+        _railEntryRadius,
+        _railLayerMask,
+        QueryTriggerInteraction.Ignore
+      );
+
+      RailObject bestRail = null;
+      float bestScore = -1f;
+
+      foreach (var hit in hits)
+      {
+        if (!hit.TryGetComponent(out RailObject rail))
+          continue;
+        if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
+          continue;
+
+        float distance = Vector3.Distance(playerPos, nearestPoint);
+        if (distance > _railEntryRadius)
+          continue;
+
+        float alignment = Vector3.Dot((nearestPoint - playerPos).normalized, moveDir);
+        if (alignment >= _railEntryMinDot)
+        {
+          // Cálculo de score usando peso constante
+          float score = alignment - (distance / _railEntryRadius) * RAIL_SCORE_WEIGHT;
+          if (score > bestScore)
+          {
+            bestScore = score;
+            bestRail = rail;
+          }
+        }
+      }
+      return bestRail;
+    };
+
+  private void ScanRailEntry()
+  {
+    var (executed, rail) = _railEntryScanner.Scan(transform.position);
+    if (executed && rail != null)
+    {
+      RailSlide.CurrentRail = rail.GetComponent<SplineContainer>();
+      ActionLayer.PushState(RailSlide, this);
+    }
+  }
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  INPUT CALLBACKS
-  // ─────────────────────────────────────────────────────────────
   #region Input Callbacks
-
   public void OnMove(InputAction.CallbackContext context)
   {
     if (IgnoreGameplayInputThisFrame)
@@ -584,13 +842,28 @@ public class Player : CombatEntities
     MoveInput = context.ReadValue<Vector2>();
   }
 
-  public void OnDash(InputAction.CallbackContext context) =>
-    DashSlashBoostButton.OnInputAction(context);
+  public void OnDash(InputAction.CallbackContext context)
+  {
+    if (!context.performed)
+      return;
+
+    if (IsGrounded)
+    {
+      ActionLayer.PushState(Boost, this);
+      return;
+    }
+
+    if (!CanDash || CurrentDashCount >= MaxDashCount || IsDashBlocked)
+    {
+      return;
+    }
+    ActionLayer.PushState(Dash, this);
+  }
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {
     if (context.performed && !IsGrounded)
-      ActionLayer.PushState(GroundSlamAS, this);
+      ActionLayer.PushState(GroundSlam, this);
   }
 
   public void OnRunning(InputAction.CallbackContext context)
@@ -598,22 +871,20 @@ public class Player : CombatEntities
     if (context.performed)
     {
       IsRunning = true;
-      IsRunningEv.Invoke();
+      TrailsSystem.PlayEffect(TrailType.MovementTrail);
+      RunningShake.Invoke(true);
     }
     else if (context.canceled)
     {
       IsRunning = false;
-      StoppedRunningEv.Invoke();
+      TrailsSystem.StopEffect(TrailType.MovementTrail);
+      RunningShake.Invoke(false);
     }
   }
 
   public void OnJump(InputAction.CallbackContext context)
   {
-    if (IsHardLocked)
-      return;
-    if (IgnoreGameplayInputThisFrame)
-      return;
-    if (BlockJumpByDialogue)
+    if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
       return;
 
     if (WaitForJumpRelease)
@@ -624,25 +895,17 @@ public class Player : CombatEntities
     }
 
     if (!context.started)
-    {
       return;
-    }
-
     if (!IsGrounded)
-    {
       JumpInteractionPressed = true;
-    }
-
-    // ── Pulo normal ──────────────────────────────────────────────────
     TryJump();
   }
 
   public void OnInteract(InputAction.CallbackContext context)
   {
     if (InteractionObject && context.started)
-      ActionLayer.PushState(InteractionAS, this);
-
-    GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(this);
+      ActionLayer.PushState(Interaction, this);
+    GlobalEventBus.Instance.SkipDialogue.Invoke(this);
   }
 
   public void OnAttack(InputAction.CallbackContext context)
@@ -663,10 +926,7 @@ public class Player : CombatEntities
     DetectarDispositivo(PlayerInput);
   }
 
-  public void OnDisable()
-  {
-    PlayerInput.onControlsChanged -= DetectarDispositivo;
-  }
+  public void OnDisable() => PlayerInput.onControlsChanged -= DetectarDispositivo;
 
   private void DetectarDispositivo(PlayerInput input)
   {
@@ -675,29 +935,24 @@ public class Player : CombatEntities
       case "Keyboard&Mouse":
         _ultimoDispositivo = InputType.Keyboard;
         break;
-
       case "Gamepad":
         var gp = Gamepad.current;
-        if (gp == null)
-          break;
-        _ultimoDispositivo =
-          (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-            ? InputType.JoystickPlaystation
-            : InputType.JoystickXbox;
+        if (gp != null)
+        {
+          _ultimoDispositivo =
+            (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
+              ? InputType.JoystickPlaystation
+              : InputType.JoystickXbox;
+        }
         break;
-
       default:
         _ultimoDispositivo = InputType.Keyboard;
         break;
     }
-    GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo.ToString());
+    GlobalEventBus.Instance.InputUpdate.Invoke(_ultimoDispositivo.ToString());
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  PULO
-  // ─────────────────────────────────────────────────────────────
   #region Pulo
   private void TryJump()
   {
@@ -709,47 +964,13 @@ public class Player : CombatEntities
       )
     )
       return;
-
-    bool didHit = Physics.Raycast(
-      new Ray(transform.position, Vector3.down),
-      out RaycastHit hit,
-      Mathf.Infinity,
-      LayerMask.GetMask("Default", "Ground"),
-      QueryTriggerInteraction.Ignore
-    );
-
-    if (!didHit)
+    if (CurrentJumpCount >= MaxJumpCount)
       return;
-
-    float distanceToGround = hit.distance;
-    float currentVelocityY = CharacterController.velocity.y;
-
-    // Próximo do chão ou subindo → pulo imediato
-    if (distanceToGround <= 1.1f || currentVelocityY > 0.01f)
-    {
-      JumpInputPressed = true;
-      return;
-    }
-
-    // Caindo e perto de aterrissar → registra pulo antecipado (coyote-like)
-    if (currentVelocityY < -0.01f)
-    {
-      float timeToReach = distanceToGround / Mathf.Abs(currentVelocityY);
-      if (timeToReach <= 0.2f)
-      {
-        CurrentJumpCount = 3;
-        JumpInputPressed = true;
-      }
-    }
+    ActionLayer.PushState(Jump, this);
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  LOCK-ON (métodos)
-  // ─────────────────────────────────────────────────────────────
-  #region Lock-On – Métodos
-
+  #region Lock-On
   private void SetLockOn(ILockable target)
   {
     LockedTarget = target;
@@ -763,8 +984,7 @@ public class Player : CombatEntities
     Vector3 targetScreenPosition = set
       ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
       : Vector3.zero;
-
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKONVISIBILITY.Invoke(ID, set, targetScreenPosition);
+    GlobalEventBus.Instance.LockOnVisibility.Invoke(ID, set, targetScreenPosition);
   }
 
   public void DisableLockIn()
@@ -774,42 +994,31 @@ public class Player : CombatEntities
     _isLockOnActive = false;
     SetLockOn(null);
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  PAUSE
-  // ─────────────────────────────────────────────────────────────
   #region Pause
-
   private void Pause()
   {
     if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
       return;
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
+    GlobalEventBus.Instance.Pause.Invoke(!GameState.IsPaused);
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  SCAN (câmera, inimigos, paredes)
-  // ─────────────────────────────────────────────────────────────
   #region Scan
-
   private void ScanWalls()
   {
     (bool executed, RaycastHit? hit) = _wallScanner.Scan(
       (new Ray(transform.position, transform.right), new Ray(transform.position, -transform.right))
     );
-
     if (!executed)
       return;
 
     if (hit.HasValue)
     {
-      ActionLayer.PushState(WallSlidingAS, this);
+      ActionLayer.PushState(WallSliding, this);
       LastWallNormal = hit.Value.normal;
     }
     else
@@ -820,14 +1029,14 @@ public class Player : CombatEntities
 
   private bool ScanEnemies(Vector3 playerPos)
   {
-    int amount = EnemySpawner.enemySpawner.GetAmountPool();
+    if (EnemySpawner.Instance == null)
+      return false;
+    int amount = EnemySpawner.Instance.GetAmountPool();
+
     for (int i = 0; i < amount; i++)
     {
-      GameObject enemy = EnemySpawner.enemySpawner.GetDisabledObject();
-      if (enemy == null)
-        continue;
-
-      if (Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
+      GameObject enemy = EnemySpawner.Instance.GetDisabledObject();
+      if (enemy != null && Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
         enemy.SetActive(true);
     }
     return true;
@@ -851,8 +1060,7 @@ public class Player : CombatEntities
     {
       ClearInteractable();
       DisableLockIn();
-      _lastValidResult = (false, default);
-      return _lastValidResult;
+      return _lastValidResult = (false, default);
     }
 
     RaycastHit hit = result.Item2;
@@ -864,7 +1072,6 @@ public class Player : CombatEntities
 
     bool foundSomething = false;
 
-    // ── Lock-on ──────────────────────────────────────────────────────
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
@@ -880,7 +1087,6 @@ public class Player : CombatEntities
     else
       DisableLockIn();
 
-    // ── Interagível ───────────────────────────────────────────────────
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
       if (interactable is not LockableInteractableObject && interactable.IsActive)
@@ -894,7 +1100,6 @@ public class Player : CombatEntities
     else
       ClearInteractable();
 
-    // ── Mantém lock-on válido ─────────────────────────────────────────
     if (_isLockOnActive && LockedTarget != null)
     {
       float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
@@ -902,28 +1107,17 @@ public class Player : CombatEntities
         DisableLockIn();
     }
 
-    if (foundSomething)
-    {
-      _lastValidResult = (true, hit);
-      return _lastValidResult;
-    }
-
-    return (false, default);
+    return foundSomething ? _lastValidResult = (true, hit) : (false, default);
   }
 
   protected void ClearInteractable()
   {
     InteractionObject = null;
-    GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(ID, false, null);
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  HUD & FEEDBACK
-  // ─────────────────────────────────────────────────────────────
   #region HUD & Feedback
-
   private IEnumerator DelayedSetupHUD(float duration)
   {
     yield return new WaitForSeconds(duration);
@@ -932,28 +1126,25 @@ public class Player : CombatEntities
 
   private void SetupHUD()
   {
-    if (!GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir))
+    if (!GameObject.FindWithTag(TAG_GAME_CONTROLLER).TryGetComponent(out HudDirector hudDir))
       return;
 
-    _OnDamage.AddListener(hudDir.DamageShake);
-    IsRunningEv.AddListener(hudDir.RunningShake);
-    IsRunningEv.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
-    StoppedRunningEv.AddListener(hudDir.StopRunningShake);
-    StoppedRunningEv.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
+    SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
+    _OnDamage.AddListener(() =>
+      hudDir.CameraShake(ID, Damage.Amplitude, Damage.Frequency, Damage.Duration)
+    );
+    CustomShake.AddListener(
+      (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
+    );
+    RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
   }
-
   #endregion
 
-  // ─────────────────────────────────────────────────────────────
-  //  MORTE
-  // ─────────────────────────────────────────────────────────────
   #region Morte
-
   public override void DeathHandler()
   {
     base.DeathHandler();
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke();
+    GlobalEventBus.Instance.Death.Invoke();
   }
-
   #endregion
 }

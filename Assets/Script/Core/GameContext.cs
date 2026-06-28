@@ -1,4 +1,4 @@
 public static class GameContext
 {
-    public static bool IsPaused = false;
+  public static bool IsPaused = false;
 }

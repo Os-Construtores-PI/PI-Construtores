@@ -4,13 +4,13 @@ public class PauseManagerOnAndOff : MonoBehaviour
 {
   private void OnEnable()
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPause);
+    GlobalEventBus.Instance.Pause.AddListener(SetPause);
   }
 
   private void OnDisable()
   {
     if (GlobalEventBus.HasInstance)
-      GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(SetPause);
+      GlobalEventBus.Instance.Pause.RemoveListener(SetPause);
   }
 
   private void SetPause(bool state)

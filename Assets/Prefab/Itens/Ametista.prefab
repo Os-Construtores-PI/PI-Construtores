@@ -46,7 +46,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AmethystItemDropZone
   itemData: {fileID: 11400000, guid: c580a6e31ec7cd041b33d2b4aa06d3b4, type: 2}
+  _visualScaleMultiplier: 40
+  _destroyOnCollect: 1
+  _colliderSizeMultiplier: {x: 8, y: 4, z: 8}
+  _colliderOffset: {x: 0, y: 0, z: 0}
   quantity: 1
+  OnItemCollected:
+    m_PersistentCalls:
+      m_Calls: []
+  _scaleMultiplier: 1.5
+  _shrinkDuration: 0.25
+  _shakeDuration: 0.15
+  _shakeStrength: 0.2
+  _shakeVibrato: 30
+  _shakeRandomness: 10
+  _boostGrace: 10
+  _somMenu: {fileID: 0}
 --- !u!114 &2448533795009699494
 MonoBehaviour:
   m_ObjectHideFlags: 0

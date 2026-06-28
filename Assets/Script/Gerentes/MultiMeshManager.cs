@@ -3,100 +3,97 @@ using UnityEngine;
 
 public class MultiMeshManager : MonoBehaviour
 {
-    [Header("Filters")]
-    [SerializeField]
-    private bool onlyStatic = true;
+  [Header("Filters")]
+  [SerializeField]
+  private bool onlyStatic = true;
 
-    [SerializeField]
-    private Transform root; // opcional: null = cena inteira
+  [SerializeField]
+  private Transform root; // opcional: null = cena inteira
 
-    [Header("Options")]
-    [SerializeField]
-    private bool disableOriginals = true;
+  [Header("Options")]
+  [SerializeField]
+  private bool disableOriginals = true;
 
-    [SerializeField]
-    private bool markCombinedStatic = true;
+  [SerializeField]
+  private bool markCombinedStatic = true;
 
-    [ContextMenu("Combine Static Meshes")]
-    public void Combine()
+  [ContextMenu("Combine Static Meshes")]
+  public void Combine()
+  {
+    // Material -> CombineInstances
+    Dictionary<Material, List<CombineInstance>> combineMap = new();
+
+    MeshRenderer[] renderers = root
+      ? root.GetComponentsInChildren<MeshRenderer>()
+      : FindObjectsByType<MeshRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+    foreach (var renderer in renderers)
     {
-        // Material -> CombineInstances
-        Dictionary<Material, List<CombineInstance>> combineMap = new();
+      if (onlyStatic && !renderer.gameObject.isStatic)
+        continue;
 
-        MeshRenderer[] renderers = root
-            ? root.GetComponentsInChildren<MeshRenderer>()
-            : FindObjectsByType<MeshRenderer>(
-                FindObjectsInactive.Exclude,
-                FindObjectsSortMode.None
-            );
+      MeshFilter filter = renderer.GetComponent<MeshFilter>();
+      if (!filter || !filter.sharedMesh)
+        continue;
 
-        foreach (var renderer in renderers)
+      Mesh mesh = filter.sharedMesh;
+      Material[] materials = renderer.sharedMaterials;
+
+      if (mesh.subMeshCount != materials.Length)
+        continue;
+
+      for (int i = 0; i < materials.Length; i++)
+      {
+        Material mat = materials[i];
+        if (!mat)
+          continue;
+
+        if (!combineMap.TryGetValue(mat, out var list))
         {
-            if (onlyStatic && !renderer.gameObject.isStatic)
-                continue;
-
-            MeshFilter filter = renderer.GetComponent<MeshFilter>();
-            if (!filter || !filter.sharedMesh)
-                continue;
-
-            Mesh mesh = filter.sharedMesh;
-            Material[] materials = renderer.sharedMaterials;
-
-            if (mesh.subMeshCount != materials.Length)
-                continue;
-
-            for (int i = 0; i < materials.Length; i++)
-            {
-                Material mat = materials[i];
-                if (!mat)
-                    continue;
-
-                if (!combineMap.TryGetValue(mat, out var list))
-                {
-                    list = new List<CombineInstance>();
-                    combineMap.Add(mat, list);
-                }
-
-                CombineInstance ci = new CombineInstance
-                {
-                    mesh = mesh,
-                    subMeshIndex = i,
-                    transform = renderer.localToWorldMatrix,
-                };
-
-                list.Add(ci);
-            }
-
-            if (disableOriginals)
-                renderer.gameObject.SetActive(false);
+          list = new List<CombineInstance>();
+          combineMap.Add(mat, list);
         }
 
-        foreach (var kvp in combineMap)
+        CombineInstance ci = new CombineInstance
         {
-            CreateCombinedObject(kvp.Key, kvp.Value);
-        }
+          mesh = mesh,
+          subMeshIndex = i,
+          transform = renderer.localToWorldMatrix,
+        };
+
+        list.Add(ci);
+      }
+
+      if (disableOriginals)
+        renderer.gameObject.SetActive(false);
     }
 
-    private void CreateCombinedObject(Material material, List<CombineInstance> combines)
+    foreach (var kvp in combineMap)
     {
-        if (combines.Count == 0)
-            return;
-
-        GameObject go = new GameObject($"Combined_{material.name}");
-        go.transform.SetParent(transform, false);
-
-        Mesh combinedMesh = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-
-        combinedMesh.CombineMeshes(combines.ToArray(), true, true);
-        combinedMesh.RecalculateBounds();
-
-        MeshFilter mf = go.AddComponent<MeshFilter>();
-        mf.sharedMesh = combinedMesh;
-
-        MeshRenderer mr = go.AddComponent<MeshRenderer>();
-        mr.sharedMaterial = material;
-
-        if (markCombinedStatic)
-            go.isStatic = true;
+      CreateCombinedObject(kvp.Key, kvp.Value);
     }
+  }
+
+  private void CreateCombinedObject(Material material, List<CombineInstance> combines)
+  {
+    if (combines.Count == 0)
+      return;
+
+    GameObject go = new GameObject($"Combined_{material.name}");
+    go.transform.SetParent(transform, false);
+
+    Mesh combinedMesh = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+
+    combinedMesh.CombineMeshes(combines.ToArray(), true, true);
+    combinedMesh.RecalculateBounds();
+
+    MeshFilter mf = go.AddComponent<MeshFilter>();
+    mf.sharedMesh = combinedMesh;
+
+    MeshRenderer mr = go.AddComponent<MeshRenderer>();
+    mr.sharedMaterial = material;
+
+    if (markCombinedStatic)
+      go.isStatic = true;
+  }
 }
