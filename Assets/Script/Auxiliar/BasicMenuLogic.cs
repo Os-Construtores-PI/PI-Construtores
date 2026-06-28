@@ -79,7 +79,7 @@ public class BasicMenuLogic : MonoBehaviour
   {
     Time.timeScale = 1f;
 
-    DOTween.Kill(transform);
+   // DOTween.Kill(transform);
 
     GlobalEventBus.Instance.Pause.Invoke(false);
 

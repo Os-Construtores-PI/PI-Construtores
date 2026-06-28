@@ -280,7 +280,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -470,7 +470,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1096,7 +1096,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1470,7 +1470,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1550,7 +1550,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2380,14 +2380,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1333099907
-Transform:
+--- !u!224 &1333099907
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1333099906}
-  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -2395,6 +2394,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1186317484}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1333099908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2727,7 +2731,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2802,7 +2806,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.9622642, g: 0.4746949, b: 0, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3400,7 +3404,6 @@ GameObject:
   - component: {fileID: 451075336869625659}
   - component: {fileID: 2187569356631126223}
   - component: {fileID: 4664398100128400123}
-  - component: {fileID: 4664398100128400125}
   - component: {fileID: 4664398100128400124}
   m_Layer: 0
   m_Name: Background
@@ -3749,7 +3752,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 18
+  ease: 28
   startDelay: 0
   direction: 0
   bounce: 1
@@ -3917,6 +3920,8 @@ GameObject:
   - component: {fileID: 1000825203812125505}
   - component: {fileID: 9150841293204438858}
   - component: {fileID: 9150841293204438859}
+  - component: {fileID: 9150841293204438860}
+  - component: {fileID: 9150841293204438861}
   m_Layer: 5
   m_Name: NewGameButton
   m_TagString: Untagged
@@ -3938,6 +3943,8 @@ GameObject:
   - component: {fileID: 5780970504354036729}
   - component: {fileID: 386658451658011025}
   - component: {fileID: 7958701580824068947}
+  - component: {fileID: 7958701580824068948}
+  - component: {fileID: 7958701580824068949}
   m_Layer: 5
   m_Name: ContinueButton
   m_TagString: Untagged
@@ -4308,18 +4315,6 @@ MonoBehaviour:
   bounce: 1
   bounceScale: 1.05
   bounceTime: 0.15
---- !u!225 &4664398100128400125
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1666677152563012537}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 0
-  m_IgnoreParentGroups: 0
 --- !u!224 &4689926866396842543
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4537,6 +4532,8 @@ GameObject:
   - component: {fileID: 7155911398808778919}
   - component: {fileID: 2591445903802813071}
   - component: {fileID: 7378369007625973193}
+  - component: {fileID: 7378369007625973194}
+  - component: {fileID: 7378369007625973195}
   m_Layer: 5
   m_Name: OptionsButton
   m_TagString: Untagged
@@ -4788,6 +4785,8 @@ GameObject:
   - component: {fileID: 5573261850136510601}
   - component: {fileID: 7148239973768107361}
   - component: {fileID: 7148239973768107362}
+  - component: {fileID: 7148239973768107363}
+  - component: {fileID: 7148239973768107364}
   m_Layer: 5
   m_Name: SairDoJogo
   m_TagString: Untagged
@@ -5177,6 +5176,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _somMenu: {fileID: 11400000, guid: b85e5c59d9b71bd4bb87859ba25a7c92, type: 2}
+--- !u!114 &7148239973768107363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6310015278189757576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74074a16ca56a7847898e315719c0306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuButtonSlide
+  _startDelay: 1
+  _duration: 0.5
+  _offSet: 350
+--- !u!225 &7148239973768107364
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6310015278189757576}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &7155911398808778919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5344,6 +5370,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _somMenu: {fileID: 11400000, guid: b85e5c59d9b71bd4bb87859ba25a7c92, type: 2}
+--- !u!114 &7378369007625973194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5768674606421727125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74074a16ca56a7847898e315719c0306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuButtonSlide
+  _startDelay: 0.9
+  _duration: 0.5
+  _offSet: 350
+--- !u!225 &7378369007625973195
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5768674606421727125}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!222 &7383746772164472708
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5518,6 +5571,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _somMenu: {fileID: 11400000, guid: b85e5c59d9b71bd4bb87859ba25a7c92, type: 2}
+--- !u!114 &7958701580824068948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206278169818529249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74074a16ca56a7847898e315719c0306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuButtonSlide
+  _startDelay: 0.7
+  _duration: 0.5
+  _offSet: 350
+--- !u!225 &7958701580824068949
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206278169818529249}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!222 &7978259858463072938
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5841,7 +5921,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 12
+  ease: 28
   startDelay: 0
   direction: 0
   bounce: 1
@@ -5873,7 +5953,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -5963,6 +6043,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _somMenu: {fileID: 11400000, guid: b85e5c59d9b71bd4bb87859ba25a7c92, type: 2}
+--- !u!114 &9150841293204438860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2947832628701258644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74074a16ca56a7847898e315719c0306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuButtonSlide
+  _startDelay: 0.8
+  _duration: 0.5
+  _offSet: 350
+--- !u!225 &9150841293204438861
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2947832628701258644}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &9191891610056752263
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(RectTransform))]
 public class MenuSlideIn : MonoBehaviour
 {
-  [Header("Animação")]
+  [Header("Animaï¿½ï¿½o")]
   [SerializeField] private float startOffset = 700f;
   [SerializeField] private float duration = 0.8f;
   [SerializeField] private Ease ease = Ease.OutExpo;
@@ -59,7 +59,9 @@ public class MenuSlideIn : MonoBehaviour
 
     seq.Append(
       rect.DOAnchorPos(finalPosition, duration)
-      .SetEase(ease));
+      .SetEase(ease)
+      .SetDelay(startDelay));
+      
 
     if (bounce)
     {
