@@ -5,9 +5,12 @@ using UnityEngine.UI;
 public class MenuSelectable : 
 MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
+
 {
     
     Button button;
+
+    [SerializeField] private PreviewSettings preview;
 
   void Awake()
   {
@@ -19,6 +22,8 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
     {
         if(MenuSelectionCursor.Instance != null)
            MenuSelectionCursor.Instance.MoveTo(button);
+          
+           MenuPreview.Instance.Show(preview);
     }
 
 
@@ -31,5 +36,8 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
         if(MenuSelectionCursor.Instance != null)
            MenuSelectionCursor.Instance.MoveTo(button);
+
+          // MenuPreview.Instance.Show(preview);
     }
 }
+
