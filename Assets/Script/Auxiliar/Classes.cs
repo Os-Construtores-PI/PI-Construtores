@@ -197,14 +197,14 @@ public class SoundsWorker<TEnum>
 
 public class EffectsWorker
 {
-  private readonly Dictionary<EffectType, GameObject> effects = new();
+  private readonly Dictionary<EntityEffectType, GameObject> effects = new();
 
   public void InitEffects(Transform transform)
   {
     effects.Clear();
     foreach (Transform child in transform)
     {
-      if (Lookups.Effects.LookupTable.TryGetValue(child.tag, out EffectType effectType))
+      if (Lookups.Effects.LookupTable.TryGetValue(child.tag, out EntityEffectType effectType))
       {
         effects.Add(effectType, child.gameObject);
         StopEffect(effectType);
@@ -212,7 +212,7 @@ public class EffectsWorker
     }
   }
 
-  public void PlayEffect(EffectType effectType, float duration)
+  public void PlayEffect(EntityEffectType effectType, float duration)
   {
     if (
       effects.TryGetValue(effectType, out GameObject effect)
@@ -228,7 +228,7 @@ public class EffectsWorker
     }
   }
 
-  public void StopEffect(EffectType effectType)
+  public void StopEffect(EntityEffectType effectType)
   {
     if (
       effects.TryGetValue(effectType, out GameObject effect)

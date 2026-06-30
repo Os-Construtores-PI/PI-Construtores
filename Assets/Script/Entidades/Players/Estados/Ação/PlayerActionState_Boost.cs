@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 [System.Serializable]
@@ -18,6 +19,11 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   [SerializeField]
   private float _boostFOV = 120f;
+
+  [SerializeField]
+  private float _fovTransitionDuration = 0.3f;
+
+  private Tween _fovTween;
 
   [Header("Enter Effects")]
   [SerializeField]
@@ -89,7 +95,20 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementTrail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
-    player.MainCamera.Lens.FieldOfView = _boostFOV;
+    player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
+
+    _fovTween?.Kill();
+    _fovTween = DOTween.To(
+      () => player.MainCamera.Lens.FieldOfView,
+      fov =>
+      {
+        var lens = player.MainCamera.Lens;
+        lens.FieldOfView = fov;
+        player.MainCamera.Lens = lens;
+      },
+      _boostFOV,
+      _fovTransitionDuration
+    );
   }
 
   public void Exit(Player player)
@@ -124,7 +143,18 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
 
-    player.MainCamera.Lens.FieldOfView = _defaultFOV;
+    _fovTween?.Kill();
+    _fovTween = DOTween.To(
+      () => player.MainCamera.Lens.FieldOfView,
+      fov =>
+      {
+        var lens = player.MainCamera.Lens;
+        lens.FieldOfView = fov;
+        player.MainCamera.Lens = lens;
+      },
+      _defaultFOV,
+      _fovTransitionDuration
+    );
   }
 
   public void Update(Player player)

@@ -13,7 +13,7 @@ public class RigidbodyBasedEnemy : Enemies
     Vector3 forceDir = (transform.position - player.transform.position).normalized;
     forceDir.y *= _verticalMultiplier;
 
-    _rb.AddForce(forceDir.normalized * _knockbackForce, ForceMode.Impulse);
+    _rb.AddForce(forceDir.normalized * _knockbackForce, ForceMode.VelocityChange);
     return;
   }
 
