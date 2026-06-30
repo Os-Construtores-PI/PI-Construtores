@@ -132,61 +132,41 @@ public class MenuDirector : MonoBehaviour
 
   private void ShowPanel(string panelName, bool fade = false)
   {
+
+    MenuSelectionCursor.Instance.Hide();
+
     if (!panels.TryGetValue(panelName, out var roots))
-      return;
+        return;
 
     _currentPanel = panelName;
     currentButtons.Clear();
 
-    //bool firstButtonSelected = false;
+    EventSystem.current.SetSelectedGameObject(null);
 
     foreach (var root in roots)
+{
+    root.SetActive(true);
+    root.transform.localScale = Vector3.one;
+
+    foreach (var t in root.GetComponentsInChildren<Transform>(true))
     {
-      root.SetActive(true);
-
-      root.transform.DOKill();
-      root.transform.localScale = Vector3.zero;
-
-      Sequence seq = DOTween.Sequence();
-
-      Transform currentRoot = root.transform;
-
-      currentRoot
-        .DOScale(new Vector3(1.15f, 1.15f, 1.15f), .35f)
-        .OnComplete(() =>
-        {
-          if(!currentRoot)
-             return;
-          
-          currentRoot.DOScale(Vector3.one, .15f)
-                     .SetLink(currentRoot.gameObject);
-        });
-
-      seq.Append(
-        root.transform.DOScale(
-          Vector3.one,
-          .15f));
-
-      seq.SetLink(root);
-
-      foreach (var t in root.GetComponentsInChildren<Transform>(true))
-      {
         if (t.TryGetComponent(out Button btn))
         {
-          btn.interactable = true;
-          currentButtons.Add(btn);
+            btn.interactable = true;
+            currentButtons.Add(btn);
         }
 
         if (t.TryGetComponent(out UIPulse pulse))
-          pulse.Play();
-      }
+            pulse.Play();
     }
+}
 
-    EventSystem.current.SetSelectedGameObject(null);
+Canvas.ForceUpdateCanvases();
 
-    if (panelName == Constants.MenuPanelNames.Menu)
-      UpdateContinueButton();
-  }
+SelectFirstButton();
+
+
+}
 
   private void HidePanel(string panelName, bool fade = false)
   {

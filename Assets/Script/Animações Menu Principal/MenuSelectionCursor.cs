@@ -1,3 +1,4 @@
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,7 +34,46 @@ public class MenuSelectionCursor : MonoBehaviour
     Instance = this;
   }
 
-  public void MoveTo(Button button)
+  public void MoveTo(Button button, bool instant = false)
+    {
+
+        InternalMove(button, instant);
+
+    }
+
+    public void Hide()
+    {
+        cursor.DOKill();
+        idleTween?.Kill();
+        
+        cursor.gameObject.SetActive(false);
+    }
+
+    public void Shoow(Button button)
+    {
+        cursor.gameObject.SetActive(true);
+        MoveTo(button, true);
+    }
+
+
+    void StartIdle()
+    {
+        idleTween =
+            cursor.DOAnchorPosX(
+                cursor.anchoredPosition.x + idleDistance,
+                idleSpeed)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo);
+    }
+
+
+    public void ShowAfterAnimation(Button button)
+    {
+        cursor.gameObject.SetActive(true);
+        InternalMove(button, true);
+    }
+
+    private void InternalMove(Button button, bool instant)
     {
         if (button == null)
         return;
@@ -52,27 +92,24 @@ public class MenuSelectionCursor : MonoBehaviour
         null,
         out Vector2 localPoint);
 
-    // mesma altura do botão
     cursor.sizeDelta = cursorSize;
 
-    // posição
-    cursor.DOAnchorPos(localPoint, moveDuration)
-          .SetEase(moveEase)
-          .OnComplete(StartIdle);
+    Vector2 targetPos = localPoint + offset;
+
+        if (instant)
+        {
+            cursor.anchoredPosition = targetPos;
+            StartIdle();
+        }
+        else
+        {
+            cursor.DOAnchorPos(targetPos, moveDuration)
+                  .SetEase(moveEase)
+                  .OnComplete(StartIdle);
+        }
 
     cursor.DOScale(1.05f, 0.08f)
           .SetLoops(2, LoopType.Yoyo)
           .SetEase(Ease.OutQuad);
-    }
-
-
-    void StartIdle()
-    {
-        idleTween =
-            cursor.DOAnchorPosX(
-                cursor.anchoredPosition.x + idleDistance,
-                idleSpeed)
-            .SetEase(Ease.InOutSine)
-            .SetLoops(-1, LoopType.Yoyo);
     }
 }

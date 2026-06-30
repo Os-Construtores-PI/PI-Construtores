@@ -1,5 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
 public class MenuButtonSlide : MonoBehaviour
@@ -11,6 +13,8 @@ public class MenuButtonSlide : MonoBehaviour
 
     RectTransform rect;
     Vector2 finalPos;
+
+    public static int ActiveAnimations;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
 
   void Awake()
@@ -26,6 +30,9 @@ public class MenuButtonSlide : MonoBehaviour
 
   public void Play()
     {
+
+      ActiveAnimations++;
+
         rect.DOKill();
 
         rect.anchoredPosition = finalPos + Vector2.right * _offSet;
@@ -59,5 +66,24 @@ public class MenuButtonSlide : MonoBehaviour
                      .SetLoops(2, LoopType.Yoyo));
 
         seq.SetLink(gameObject);
+
+    seq.OnComplete(() =>
+{
+    ActiveAnimations--;
+
+    if (ActiveAnimations == 0)
+    {
+        GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+        if (selected != null)
+        {
+            Button btn = selected.GetComponent<Button>();
+
+            if (btn != null)
+                MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+        }
+    }
+});
+
     }
 }
