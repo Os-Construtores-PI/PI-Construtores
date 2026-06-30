@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CameraLogic : Entities
 {
@@ -14,7 +13,7 @@ public class CameraLogic : Entities
   private CinemachineCamera _currentCinemachineCamera;
   private CinemachineCamera _lockOnCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
-  private readonly Dictionary<string, ParticleSystem> effects = new();
+  private readonly Dictionary<EffectType, ParticleSystem> effects = new();
 
   public override void Awake()
   {
@@ -34,7 +33,7 @@ public class CameraLogic : Entities
   {
     if (Time.timeScale < 1)
     {
-      foreach (KeyValuePair<string, ParticleSystem> pair in effects)
+      foreach (KeyValuePair<EffectType, ParticleSystem> pair in effects)
       {
         pair.Value.Stop();
       }
@@ -64,24 +63,29 @@ public class CameraLogic : Entities
   {
     foreach (ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())
     {
-      effects.Add(particle.name, particle);
+      if (Lookups.Effects.LookupTable.TryGetValue(particle.tag, out EffectType effectType))
+      {
+        effects.Add(effectType, particle);
+      }
     }
   }
 
-  public void SpeedFX()
+  public void SpeedlinesFX(bool set)
   {
-    effects[Constants.EffectsNames.Interface.Speed].Play();
+    if (set)
+    {
+      effects[EffectType.SpeedEffect].Play();
+    }
+    else
+    {
+      effects[EffectType.SpeedEffect].Stop();
+    }
   }
 
-  public void StopSpeedFX()
-  {
-    StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Speed, 0.5f));
-  }
-
-  private IEnumerator StopEffectsRoutine(string effect, float waitTime)
+  private IEnumerator StopEffectsRoutine(EffectType effectType, float waitTime)
   {
     yield return new WaitForSeconds(waitTime);
-    effects[effect].Stop();
+    effects[effectType].Stop();
   }
 
   private void SetDistanceCulling()
@@ -89,7 +93,7 @@ public class CameraLogic : Entities
     float[] layersDistance = new float[32];
     for (int i = 0; i < layersDistance.Count(); i++)
     {
-      layersDistance[i] = 200;
+      layersDistance[i] = 900;
     }
     if (TryGetComponent(out Camera cam))
     {
@@ -100,7 +104,11 @@ public class CameraLogic : Entities
   /// <summary>
   /// Configura a CinemachineCamera para seguir o alvo.
   /// </summary>
-  public void SetTarget(Player newTarget, CinemachineCamera freeLook = null)
+  public void SetTarget(
+    Player newTarget,
+    CinemachineCamera freeLook = null,
+    CinemachineCamera boostCam = null
+  )
   {
     if (newTarget == null)
       return;
@@ -108,7 +116,6 @@ public class CameraLogic : Entities
     playerTarget = newTarget;
     id = newTarget.ID;
 
-    // Busca pelo filho "TargetCam" no player
     Transform targetTransform = newTarget.transform.Find("TargetCam");
     if (targetTransform == null)
     {
@@ -130,6 +137,12 @@ public class CameraLogic : Entities
       _currentCinemachineCamera.LookAt = targetTransform;
       _lockOnCinemachineCamera.Follow = targetTransform;
       _lockOnCinemachineCamera.LookAt = targetTransform;
+    }
+
+    if (boostCam != null)
+    {
+      boostCam.Follow = targetTransform;
+      boostCam.LookAt = targetTransform;
     }
   }
 

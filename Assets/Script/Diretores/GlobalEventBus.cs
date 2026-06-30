@@ -10,21 +10,24 @@ public class GlobalEventBus : MonoBehaviour
   public static bool HasInstance => Instance != null;
 
   #region Events
-  public readonly UnityEvent<bool, InteractableObject, int> OBJECTWASSEEN = new();
-  public readonly UnityEvent<int, float> PLAYERTRIGGEREDCINEMATIC = new();
-  public readonly UnityEvent<int> PLAYERTRIGGEREDTELEPORT = new();
-  public readonly UnityEvent PLAYERTRIGGEREDDEATH = new();
-  public readonly UnityEvent PLAYERTRIGGEREDRESPAWN = new();
-  public readonly UnityEvent PLAYERTRIGGEREDENDGAME = new();
-  public readonly UnityEvent<bool> PLAYERTRIGGEREDPAUSE = new();
-  public readonly UnityEvent<int, bool, Vector3> PLAYERTRIGGEREDLOCKONVISIBILITY = new();
-  public readonly UnityEvent<bool> PLAYERTRIGGEREDOPTIONS = new();
-  public readonly UnityEvent<int, Vector3?> AMETHYSTSAMOUNTCHANGED = new();
-  public readonly UnityEvent<string> PLAYERINPUTCHANGED = new();
-  public readonly UnityEvent<Player, List<string>, float> PLAYERTRIGGEREDDIALOGUE = new();
-  public readonly UnityEvent<Player, bool> PLAYERTRIGGEREDLOCKDIALOGUE = new();
-  public readonly UnityEvent<Player> PLAYERTRIGGEREDSKIPDIALOGUE = new();
-  public readonly UnityEvent<Player> PLAYERTRIGGEREDENDDIALOGUE = new();
+  public readonly PlayerComboEvent ComboUpdate = new();
+  public readonly PlayerImpactEvent MaxComboReached = new();
+  public readonly PlayerScoreEvent ScoreUpdate = new();
+  public readonly PlayerLockOnEvent LockOnVisibility = new();
+  public readonly PlayerDialogueEvent Dialogue = new();
+  public readonly PlayerLockDlgEvent LockDialogue = new();
+  public readonly PlayerSkipDlgEvent SkipDialogue = new();
+  public readonly PlayerSkipDlgEvent EndDialogue = new();
+  public readonly PlayerObjectSeenEvent ObjectWasSeen = new();
+  public readonly PlayerCinematicEvent Cinematic = new();
+  public readonly PlayerTeleportEvent Teleport = new();
+  public readonly PlayerAmethystsEvent AmethystsChanged = new();
+  public readonly UnityEvent Death = new();
+  public readonly UnityEvent Respawn = new();
+  public readonly UnityEvent EndGame = new();
+  public readonly UnityEvent<bool> Pause = new();
+  public readonly UnityEvent<bool> Options = new();
+  public readonly UnityEvent<string> InputUpdate = new();
   #endregion
 
   public void Awake()

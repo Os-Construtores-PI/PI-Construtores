@@ -1,226 +1,320 @@
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.AI;
 
-public class WolfBasicEnemy : Enemies
+public class WolfBasicEnemy : RigidbodyBasedEnemy
 {
-    private NavMeshAgent _agent; // controla o movimento do inimigo via NavMesh
+  #region Serialized Fields
 
-    private Transform _player; // Referência ao Player (Pandora)
-    private EyeWolf _vision; // Script responsável pela visão do Lobo
+  [Header("References")]
+  [SerializeField]
+  private EyeWolf _vision;
 
-    [Header("Distancia de Parada")]
-    public float _stopDistance = 10f; // distancia em que o Lobo para de se mover
+  [SerializeField]
+  private Animator _animator;
 
-    [Header("Configurações")]
-    public float _patrolRadius = 5f; // distância máxima que o Lobo anda na patrulha
-    public float _chaseSpeed = 4f; // velocidade do lobo ao perseguir o Player
-    public float _patrolSpeed = 2f; // Velocidade do lobo quando está patrulhando
+  [Header("Movement Settings")]
+  [SerializeField]
+  private float _stopDistance = 10f;
 
-    [Header("Memoria da Perseguição")]
-    public float _chaseMemoryTime = 3f; // tempo (em segundos) que ele continua perseguindo mesmo sem ver o Player
-    private float _memoryTimer = 0f; // Contador interno dessa memória
+  [SerializeField]
+  private float _patrolRadius = 5f;
 
-  // Estados possíveis do Lobo: patrulhando ou perseguindo
+  [SerializeField]
+  private float _chaseSpeed = 4f;
 
-   [SerializeField] private Animator _animimator;
-    private enum WolfState
+  [SerializeField]
+  private float _patrolSpeed = 2f;
+
+  [Header("Chase Memory")]
+  [SerializeField]
+  private float _chaseMemoryTime = 3f;
+
+  [Header("Combat")]
+  [SerializeField]
+  private float _attackDistance = 10f;
+
+  [SerializeField]
+  private float _minAttackDistance = 2f;
+
+  [Header("Rush (DOTween)")]
+  [SerializeField]
+  private float _prepTime = 0.6f;
+
+  [SerializeField]
+  private float _rushDistance = 4f;
+
+  [SerializeField]
+  private float _rushDuration = 0.35f;
+
+  [SerializeField]
+  private Ease _rushEase = Ease.OutQuad;
+
+  [SerializeField]
+  private float _dashCooldown = 1.2f;
+
+  [Header("Patrol & Idle")]
+  [SerializeField]
+  private float _minIdleTime = 1.5f;
+
+  [SerializeField]
+  private float _maxIdleTime = 4f;
+
+  [SerializeField]
+  private int _minPatrolsBeforeIdle = 5;
+
+  [SerializeField]
+  private int _maxPatrolsBeforeIdle = 9;
+
+  #endregion
+
+  #region Private Fields & State Machine
+
+  private float _memoryTimer;
+  private float _dashTimer;
+  private bool _isWaiting;
+  private Tweener _currentTweener;
+  private Coroutine _attackCoroutine;
+  private Coroutine _idleCoroutine;
+  private Transform _playerTransform;
+  private Transform _currentTarget;
+  private Vector3 _startPosition;
+
+  private int _currentPatrolCount;
+  private int _patrolsBeforeIdle;
+  private Vector3 _patrolTarget;
+
+  public WolfStateMachine<WolfBasicEnemy> MainMachine = new();
+  public WolfStateChase Chase = new();
+  public WolfStatePatrol Patrol = new();
+  public WolfStateAttack Attack = new();
+
+  #endregion
+
+  #region Public API (Used by States)
+
+  public EyeWolf Vision => _vision;
+  public bool IsWaiting => _isWaiting;
+  public float DashTimer => _dashTimer;
+  public float MemoryTimer => _memoryTimer;
+  public float AttackDistanceSqr => _attackDistance * _attackDistance;
+  public float MinAttackDistanceSqr => _minAttackDistance * _minAttackDistance;
+
+  public void ChangeState(IWolfState<WolfBasicEnemy> type) => MainMachine.ChangeState(type, this);
+
+  public void SetCurrentTarget(Transform target) => _currentTarget = target;
+
+  public void ResetMemoryTimer() => _memoryTimer = _chaseMemoryTime;
+
+  public void DecrementMemoryTimer() => _memoryTimer -= Time.deltaTime;
+
+  public void StopIdleCoroutine()
+  {
+    if (_idleCoroutine != null)
     {
-        Patrol,
-        Chase,
+      StopCoroutine(_idleCoroutine);
+      _idleCoroutine = null;
+      _isWaiting = false;
+    }
+  }
+
+  public void PickNewPatrolPoint()
+  {
+    Vector3 randomPoint = _startPosition + Random.insideUnitSphere * _patrolRadius;
+    randomPoint.y = transform.position.y;
+    _patrolTarget = randomPoint;
+  }
+
+  public void MoveToPatrolPoint()
+  {
+    float distance = Vector3.Distance(transform.position, _patrolTarget);
+    if (distance < 1f)
+    {
+      _currentPatrolCount++;
+      if (_currentPatrolCount >= _patrolsBeforeIdle)
+      {
+        StartIdleWait();
+        return;
+      }
+      PickNewPatrolPoint();
+      return;
+    }
+    MoveWithRigidbody(_patrolTarget, _patrolSpeed);
+  }
+
+  public void MoveToTarget()
+  {
+    if (_currentTarget == null)
+      return;
+    MoveWithRigidbody(_currentTarget.position, _chaseSpeed);
+  }
+
+  #endregion
+
+  #region Unity Lifecycle
+
+  public override void Awake()
+  {
+    base.Awake();
+    _vision ??= GetComponentInChildren<EyeWolf>();
+    _animator ??= GetComponentInChildren<Animator>();
+    _startPosition = transform.position;
+  }
+
+  public override void Start()
+  {
+    base.Start();
+    _playerTransform ??= GameObject.FindGameObjectWithTag("Player")?.transform;
+    _patrolsBeforeIdle = Random.Range(_minPatrolsBeforeIdle, _maxPatrolsBeforeIdle + 1);
+
+    MainMachine.ChangeState(Patrol, this);
+  }
+
+  public override void Update()
+  {
+    base.Update();
+    if (_playerTransform == null)
+      _playerTransform = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+    if (_dashTimer > 0f)
+      _dashTimer -= Time.deltaTime;
+
+    MainMachine.Update(this);
+  }
+
+  private void FixedUpdate()
+  {
+    MainMachine.FixedUpdate(this);
+  }
+
+  protected void OnDisable() => Cleanup();
+
+  protected void OnDestroy() => Cleanup();
+
+  #endregion
+
+  #region Attack & Animation
+
+  public void BeginAttackSequence()
+  {
+    _dashTimer = _dashCooldown;
+    if (_attackCoroutine != null)
+      StopCoroutine(_attackCoroutine);
+    _attackCoroutine = StartCoroutine(PrepareThenRush(_vision.DetectedPlayer));
+  }
+
+  public void StopAttackCoroutine()
+  {
+    if (_attackCoroutine != null)
+    {
+      StopCoroutine(_attackCoroutine);
+      _attackCoroutine = null;
+    }
+    _currentTweener?.Kill();
+    _currentTweener = null;
+  }
+
+  private IEnumerator PrepareThenRush(Transform playerTransform)
+  {
+    _animator.SetBool("isAttacking", true);
+    _animator.SetTrigger("AttackCombo");
+
+    Vector3 dir = playerTransform.position - transform.position;
+    dir.y = 0f;
+    if (dir.sqrMagnitude > 0.001f)
+    {
+      Quaternion targetRot = Quaternion.LookRotation(dir.normalized, Vector3.up);
+      transform.DORotateQuaternion(targetRot, 0.25f);
     }
 
-    private WolfState _currentState = WolfState.Patrol;
+    yield return new WaitForSeconds(_prepTime);
 
-    private Vector3 _startPosition; // Posição inicial do inimigo, usada como centro da patrulha
-    public bool _isAttacking = false;
-    private Tweener _currentTweener;
+    Vector3 toPlayer = playerTransform.position - transform.position;
+    toPlayer.y = 0f;
+    float rushMagnitude = Mathf.Min(_rushDistance, toPlayer.magnitude - _minAttackDistance);
+    Vector3 desiredPos = transform.position + toPlayer.normalized * rushMagnitude;
 
-    [Header("Rush(DOTWEEN)")]
-    [SerializeField]
-    private float _prepTime = 0.6f;
+    _currentTweener?.Kill();
+    _currentTweener = transform.DOMove(desiredPos, _rushDuration).SetEase(_rushEase);
+    yield return _currentTweener.WaitForCompletion();
+    yield return new WaitForSeconds(0.05f);
 
-    [SerializeField]
-    private float _rushDistance = 4f; // distancia máxima do Rush
+    _animator.SetBool("isAttacking", false);
+    _attackCoroutine = null;
 
-    [SerializeField]
-    private float _rushDuration = 0.35f; // duração do rush
-
-    [SerializeField]
-    private Ease _rushEase = Ease.OutQuad;
-
-    [SerializeField]
-    private float _hitRadiusDuringRush = 1.2f; // raio de acerto
-
-    [SerializeField]
-    private float _attackDamage = 20f;
-
-    [SerializeField]
-    private float _dashCooldown = 1.2f; // tempo minimo entre ataques
-    private float _dashTimer = 0f;
-
-    protected new void Awake()
+    bool seesPlayer = _vision != null && _vision.DetectedPlayer != null;
+    if (seesPlayer)
     {
-        base.Awake();
-        _agent = GetComponent<NavMeshAgent>(); // Pega o NavMeshAgent do Lobo
-        _vision = GetComponentInChildren<EyeWolf>(); // Procura o Script EyeWolf em filhos (ex: "cabeça/olhos)
-        
-        _animimator = GetComponentInChildren<Animator>();
-        
-        _startPosition = transform.position; // Salva a posição inicial do inimigo
+      float distSqr = Vector3.SqrMagnitude(transform.position - _vision.DetectedPlayer.position);
+      if (distSqr <= MinAttackDistanceSqr || distSqr <= AttackDistanceSqr)
+        yield return new WaitForSeconds(0.15f);
 
+      ChangeState(Chase);
     }
-
-    protected new void Start()
+    else
     {
-        _player = GameObject.FindGameObjectWithTag("Player")?.transform; // Localiza o Player pela tag
-        Patrol(); // Inicia patrulhando
+      ChangeState(Patrol);
     }
+  }
 
-    // Update is called once per frame
-    protected new void Update()
-    {
-        if (_dashTimer > 0f)
-            _dashTimer -= Time.deltaTime;
+  #endregion
 
-        switch (_currentState)
-        {
-            case WolfState.Patrol:
-                if (_vision._encontrouPlayer && _vision._playerDetectado != null)
-                {
-                    _currentState = WolfState.Chase; // Muda para perseguição
-                    _memoryTimer = _chaseMemoryTime; // Reseta a memoria de perseguição
-                }
-                else if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
-                {
-                    Patrol(); // Se não tem destina ou já chegou, escolhe novo ponto de patrulha
-                }
-                break;
+  #region Idle Handling
 
-            case WolfState.Chase:
-                if (_vision._encontrouPlayer && _vision._playerDetectado != null)
-                {
-                    _memoryTimer = _chaseMemoryTime; // Enquanto vê, reseta o timer
-                    Chase(_vision._playerDetectado); // Continua perseguindo
+  private void StartIdleWait()
+  {
+    if (_idleCoroutine != null)
+      StopCoroutine(_idleCoroutine);
+    _idleCoroutine = StartCoroutine(WaitOnPatrol());
+  }
 
-                    float dis = Vector3.Distance(
-                        transform.position,
-                        _vision._playerDetectado.position
-                    );
-                    if (!_isAttacking && _dashTimer <= 0f && dis <= _stopDistance)
-                    {
-                  
-                         _dashTimer = _dashCooldown; // reseta cooldown
-                        StartCoroutine(PrepareThenRush(_vision._playerDetectado));
-                    }
-                }
-                else
-                {
-                    // Se perdeu o player, usa a memória
-                    if (_memoryTimer > 0)
-                    {
-                        _memoryTimer -= Time.deltaTime; // Diminui o contador
-                        if (_vision != null && _vision._playerDetectado != null) // Continua indo até a ultima posição conhecida
-                        {
-                            Chase(_vision._playerDetectado);
-                        }
-                    }
-                    else
-                    {
-                        // Timer acabou -> volta a patrulhar
-                        _currentState = WolfState.Patrol;
-                        Patrol();
-                    }
-                }
-                break;
-        }
-    }
+  private IEnumerator WaitOnPatrol()
+  {
+    if (MainMachine.CurrentState != Patrol)
+      yield break;
 
-    private void Patrol()
-    {
-        _agent.speed = _patrolSpeed; // Define velocidade baixa
-        Vector3 randomPoint = _startPosition + UnityEngine.Random.insideUnitSphere * _patrolRadius;
-        randomPoint.y = _startPosition.y; // Mantém no mesmo nível do chão
-        _agent.SetDestination(randomPoint); // Move para o ponto aleatório
-    }
+    _isWaiting = true;
+    SetAnimationState(isWalking: false, isIdle: true);
 
-    private void Chase(Transform target)
-    {
-        if (target == null)
-            return;
-        _agent.speed = _chaseSpeed;
-        _agent.isStopped = false;
-        _agent.SetDestination(target.position);
-    }
+    yield return null;
+    yield return new WaitForSeconds(0.5f);
 
-    private IEnumerator PrepareThenRush(Transform playerTransform)
-    {
-        _isAttacking = true;
-        _animimator.SetBool("isAttacking", true);
+    float waitTime = Random.Range(_minIdleTime, _maxIdleTime);
+    yield return new WaitForSeconds(waitTime);
 
-        _agent.isStopped = true;
-        _agent.velocity = Vector3.zero;
+    if (MainMachine.CurrentState != Patrol)
+      yield break;
 
-        // gira suavemente para o Player
+    SetAnimationState(isWalking: true, isIdle: false);
 
-        Vector3 dir = (playerTransform.position - transform.position);
-        dir.y = 0;
+    _currentPatrolCount = 0;
+    _patrolsBeforeIdle = Random.Range(_minPatrolsBeforeIdle, _maxPatrolsBeforeIdle + 1);
 
-        if (dir.sqrMagnitude > 0.001f)
-        {
-            Quaternion targetRot = Quaternion.LookRotation(dir.normalized, Vector3.up);
-            transform.DORotateQuaternion(targetRot, 0.25f);
-        }
+    PickNewPatrolPoint();
+    _isWaiting = false;
+    _idleCoroutine = null;
+  }
 
-        // esperar carregar o ataque
+  #endregion
 
-        yield return new WaitForSeconds(_prepTime);
+  #region Helpers
 
-        // calcula destino do Rush
+  public void SetAnimationState(bool isWalking, bool isIdle)
+  {
+    if (_animator == null)
+      return;
+    _animator.SetBool("isWalking", isWalking);
+    _animator.SetBool("isIdle", isIdle);
+  }
 
-        Vector3 toPlayer = (playerTransform.position - transform.position);
-        toPlayer.y = 0;
-        Vector3 disered =
-            transform.position
-            + toPlayer.normalized * Mathf.Min(_rushDistance, toPlayer.magnitude + 0.5f);
+  private void Cleanup()
+  {
+    _currentTweener?.Kill();
+    _currentTweener = null;
+    if (_attackCoroutine != null)
+      StopCoroutine(_attackCoroutine);
+    StopIdleCoroutine();
+  }
 
-        if (NavMesh.SamplePosition(disered, out NavMeshHit _hit, 1.0f, NavMesh.AllAreas))
-            disered = _hit.position;
-
-        disered.y = transform.position.y;
-
-        // executa a rush
-
-        _currentTweener?.Kill();
-        _currentTweener = transform.DOMove(disered, _rushDuration).SetEase(_rushEase);
-
-        float elapsed = 0f;
-
-        while (elapsed < _rushDuration)
-        {
-            if (playerTransform == null)
-                break;
-
-            float d = Vector3.Distance(transform.position, playerTransform.position);
-
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        if (_currentTweener != null && _currentTweener.IsActive())
-            _currentTweener.Kill(true);
-
-        yield return new WaitForSeconds(0.05f);
-
-        _agent.isStopped = false;
-
-        if (_vision != null && _vision._encontrouPlayer && _vision._playerDetectado != null)
-            _agent.SetDestination(_vision._playerDetectado.position);
-        else
-            _agent.SetDestination(_startPosition);
-
-        _isAttacking = false;
-        _animimator.SetBool("isAttacking", false);
-    }
+  #endregion
 }

@@ -23,7 +23,7 @@ public class GraplingHookTarget : InteractableObject
     float duration = distance / grapplingSpeed;
 
     // Evento de cutscene
-    GlobalEventBus.Instance.PLAYERTRIGGEREDCINEMATIC.Invoke(player.ID, duration);
+    GlobalEventBus.Instance.Cinematic.Invoke(player.ID, duration);
 
     // Desativa o controle do player
     player.CharacterController.enabled = false;

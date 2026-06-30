@@ -16,9 +16,10 @@ public class DirectionalTrampoline : LockableInteractableObject
     player.MovementVector = Vector3.zero;
     player.MovementVector = transform.up * _impulseForce;
     player.IsImpulsioned = true;
-    player.DashSlashBoostButton.Value += _boostGrace;
     player.CurrentDashCount = 0;
+    player.BoostValue += _boostGrace;
     player.DisableLockIn();
+    player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.WasVerticalBoosted);
     _interactionTimer.Start(_interactionCooldown);
   }
 

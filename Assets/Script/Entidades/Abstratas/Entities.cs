@@ -4,7 +4,7 @@ public abstract class Entities : BaseRenderedGameObject
 {
   private static int _nextId = 0;
   protected int id;
-  protected internal EffectsWorker EffectsWorker = new();
+  protected internal EffectsWorker EffectsSystem = new();
 
   [HideInInspector]
   public int ID => id;
@@ -30,7 +30,7 @@ public abstract class Entities : BaseRenderedGameObject
     Transform effectContainer = transform.Find("Effects");
     if (effectContainer)
     {
-      EffectsWorker.InitEffects(effectContainer);
+      EffectsSystem.InitEffects(effectContainer);
     }
     else
     {

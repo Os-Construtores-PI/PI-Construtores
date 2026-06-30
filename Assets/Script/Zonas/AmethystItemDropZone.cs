@@ -3,41 +3,138 @@ using UnityEngine;
 
 public class AmethystItemDropZone : ItemDropZone
 {
-  private readonly float _scaleMultiplier = 1.5f;
-  private readonly float _durationScale = .25f;
+  #region Fields
+  [Header("Visual")]
+  [SerializeField]
+  private float _scaleMultiplier = 1.5f;
 
+  [SerializeField]
+  private float _shrinkDuration = 0.25f;
+
+  [Header("Feedback")]
+  [SerializeField]
+  private float _shakeDuration = 0.15f;
+
+  [SerializeField]
+  private float _shakeStrength = 0.3f;
+
+  [SerializeField]
+  private int _shakeVibrato = 20;
+
+  [SerializeField]
+  private float _shakeRandomness = 45f;
+
+  [Header("Gameplay")]
   [SerializeField]
   private float _boostGrace = 10f;
 
+  [Header("Respawn")]
+  [SerializeField]
+  private float _respawnDuration = 5f;
+
+  [Header("Áudio")]
+  [SerializeField]
+  private somMenu _somMenu;
+
+  private Vector3 _initialScale;
+
+  private Tween _currentTweener;
+  private Sequence _currentSequence;
+  private Tween _respawnTween;
+  #endregion
+
+  public override void Initialize()
+  {
+    base.Initialize();
+    _initialScale = transform.localScale;
+  }
+
+  protected override void AfterCollect() { }
+
   protected override void AddItem(Player player)
   {
-    Vector3 initialScale = transform.localScale;
+    if (player == null)
+      return;
 
-    player.AddAmethysts(quantity, transform.position);
-    player.DashSlashBoostButton.Value += _boostGrace;
-    _boxCollider.enabled = false;
-
-    Sequence sequence = DOTween.Sequence();
-
-    sequence.Append(
-      transform.DOShakePosition(
-        duration: 0.15f,
-        strength: 0.3f,
-        vibrato: 20,
-        randomness: 45,
-        snapping: false,
-        fadeOut: true
-      )
-    );
-
-    sequence.Append(
-      transform.DOScale(initialScale * _scaleMultiplier, _durationScale / 2).SetEase(Ease.OutBack)
-    );
-
-    sequence.Append(transform.DOScale(0, _durationScale / 2).SetEase(Ease.InBack));
-
-    sequence.AppendCallback(() => gameObject.SetActive(false));
-
-    sequence.Play();
+    PlayAudioFeedback();
+    DisableInteraction();
+    ApplyGameplayEffects(player);
+    PlayVisualFeedback();
   }
+
+  private void PlayAudioFeedback()
+  {
+    if (AudioManager.Instance != null && _somMenu != null && _somMenu.amestinstSong != null)
+      AudioManager.Instance.PlaySFX(_somMenu.amestinstSong);
+  }
+
+  private void DisableInteraction()
+  {
+    if (_boxCollider != null)
+      _boxCollider.enabled = false;
+
+    enabled = false;
+  }
+
+  private void ApplyGameplayEffects(Player player)
+  {
+    player.AddAmethysts(quantity);
+    player.BoostValue += _boostGrace;
+  }
+
+  private void PlayVisualFeedback()
+  {
+    KillExistingAnimations();
+
+    _currentSequence = DOTween.Sequence();
+
+    _currentSequence
+      .Append(
+        transform.DOShakePosition(
+          _shakeDuration,
+          _shakeStrength,
+          _shakeVibrato,
+          _shakeRandomness,
+          false,
+          true
+        )
+      )
+      .Append(
+        transform
+          .DOScale(_initialScale * _scaleMultiplier, _shrinkDuration / 2f)
+          .SetEase(Ease.OutBack)
+      )
+      .Append(transform.DOScale(Vector3.zero, _shrinkDuration / 2f).SetEase(Ease.InBack))
+      .AppendCallback(HandlePostAnimation)
+      .Play();
+  }
+
+  private void HandlePostAnimation()
+  {
+    if (_destroyOnCollect)
+    {
+      Destroy(gameObject);
+      return;
+    }
+
+    _respawnTween = DOVirtual.DelayedCall(_respawnDuration, ResetZone);
+  }
+
+  public override void ResetZone()
+  {
+    transform.localScale = _initialScale;
+    base.ResetZone();
+  }
+
+  private void KillExistingAnimations()
+  {
+    _currentTweener?.Kill();
+    _currentSequence?.Kill();
+    _respawnTween?.Kill();
+    DOTween.Kill(transform);
+  }
+
+  private void OnDisable() => KillExistingAnimations();
+
+  private void OnDestroy() => KillExistingAnimations();
 }

@@ -12,6 +12,6 @@ public class DialogueArea : InteractableObject
 
   public override void Interaction(Player info)
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDIALOGUE.Invoke(info, dialogues, dialogueSpeed);
+    GlobalEventBus.Instance.Dialogue.Invoke(info, dialogues, dialogueSpeed);
   }
 }

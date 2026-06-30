@@ -26,16 +26,14 @@ public class BoostHUD : BarHUD
 
     if (_boundPlayer != null)
     {
-      _boundPlayer.DashSlashBoostButton.ChargingEv.RemoveListener(UpdateSlider);
-      _boundPlayer.DashSlashBoostButton.StartedChargingEv.RemoveListener(StartShaking);
-      _boundPlayer.DashSlashBoostButton.StoppedChargingEv.RemoveListener(StopShaking);
+      _boundPlayer.BoostChanged.RemoveListener(UpdateSlider);
     }
 
     _boundPlayer = player;
-    player.DashSlashBoostButton.ChargingEv.AddListener(UpdateSlider);
-    player.DashSlashBoostButton.StartedChargingEv.AddListener(StartShaking);
-    player.DashSlashBoostButton.StoppedChargingEv.AddListener(StopShaking);
-    _slider.DOValue(player.DashSlashBoostButton.Value, 0.35f).SetEase(Ease.OutQuad);
+    _boundPlayer.BoostChanged.AddListener(UpdateSlider);
+    _slider.DOValue(player.BoostValue, 0.35f).SetEase(Ease.OutQuad);
+    print(player.BoostValue);
+    print(_slider.value);
   }
 
   protected override void UpdateSlider(float normalizedValue)
@@ -61,61 +59,13 @@ public class BoostHUD : BarHUD
     _slider.DOValue(normalizedValue, 0.35f).SetEase(Ease.OutQuad);
   }
 
-  private void StartShaking()
-  {
-    if (_isShaking || _slider == null)
-      return;
-
-    _isShaking = true;
-
-    ShakeLoop();
-  }
-
-  private void ShakeLoop()
-  {
-    if (!_isShaking || _slider == null)
-      return;
-
-    RectTransform sliderRect = _slider.GetComponent<RectTransform>();
-
-    _shakeTween = sliderRect
-      .DOShakeAnchorPos(
-        duration: 0.4f,
-        strength: new Vector2(2f, 2f),
-        vibrato: 20,
-        randomness: 45f,
-        snapping: false,
-        fadeOut: true
-      )
-      .OnComplete(ShakeLoop);
-  }
-
-  private void StopShaking()
-  {
-    if (!_isShaking || _slider == null)
-      return;
-
-    _isShaking = false;
-
-    _shakeTween?.Kill();
-    _shakeTween = null;
-
-    // Reseta a posição do RectTransform após o shake
-    _slider
-      .GetComponent<RectTransform>()
-      .DOAnchorPos(_sliderInitialAnchoredPos, 0.15f)
-      .SetEase(Ease.OutQuad);
-  }
-
   private void OnDestroy()
   {
     _shakeTween?.Kill();
 
     if (_boundPlayer != null)
     {
-      _boundPlayer.DashSlashBoostButton.ChargingEv.RemoveListener(UpdateSlider);
-      _boundPlayer.DashSlashBoostButton.StartedChargingEv.RemoveListener(StartShaking);
-      _boundPlayer.DashSlashBoostButton.StoppedChargingEv.RemoveListener(StopShaking);
+      _boundPlayer.BoostChanged.RemoveListener(UpdateSlider);
     }
   }
 }

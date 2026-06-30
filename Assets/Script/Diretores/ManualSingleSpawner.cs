@@ -4,26 +4,25 @@ using UnityEngine.Events;
 
 public class ManualSingleSpawner : BasePool
 {
-    [SerializeField]
-    protected GameObject objectToPool;
-    public UnityEvent<List<GameObject>> FinishedInstancing = new();
+  [SerializeField, Tooltip("Prefab to instantiate and pool.")]
+  protected GameObject objectToPool;
 
-    void Start()
+  public UnityEvent<List<GameObject>> FinishedInstancing = new();
+
+  public void Start()
+  {
+    PopulatePool(_initialAmount);
+  }
+
+  protected override void PopulatePool(int amount)
+  {
+    for (int i = 0; i < amount; i++)
     {
-        Instance();
+      var obj = Instantiate(objectToPool, _parent);
+      obj.SetActive(false);
+      _inactiveObjects.Add(obj);
     }
 
-    protected void Instance()
-    {
-        _deactivatedObjects = new();
-        GameObject tmp;
-        for (int i = 0; i < _amount; i++)
-        {
-            tmp = Instantiate(objectToPool);
-            tmp.transform.SetParent(_parent);
-            tmp.SetActive(false);
-            _deactivatedObjects.Add(tmp);
-        }
-        FinishedInstancing.Invoke(_deactivatedObjects);
-    }
+    FinishedInstancing?.Invoke(_inactiveObjects);
+  }
 }

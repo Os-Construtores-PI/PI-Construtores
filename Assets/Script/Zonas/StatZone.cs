@@ -5,7 +5,7 @@ using UnityEngine;
 public class StatZone : MonoBehaviour
 {
   [SerializeField]
-  private Constants.StatsNames StatName;
+  private StatType StatType;
 
   [SerializeField]
   private QualityTier zoneTier;
@@ -45,21 +45,18 @@ public class StatZone : MonoBehaviour
   private IEnumerator ApplyStatZone(Stats stats)
   {
     _onCooldown = true;
-    Type statType = StatTypeMap.Map[StatName];
+    Type statType = StatTypeMap.Map[StatType];
 
     if (timeTYPE == TimeTYPE.TEMPORARY)
     {
-      print($"Funcionando // {StatName}");
+      print($"Funcionando // {StatType}");
 
       var method = typeof(Stats)
         .GetMethod(nameof(Stats.ModifyStatCoroutine))
         .MakeGenericMethod(statType);
 
       yield return (IEnumerator)
-        method.Invoke(
-          stats,
-          new object[] { StatName.ToString(), modifyType, zoneTier, statDuration }
-        );
+        method.Invoke(stats, new object[] { StatType, modifyType, zoneTier, statDuration });
     }
     else
     {
@@ -67,22 +64,17 @@ public class StatZone : MonoBehaviour
         .GetMethod(nameof(Stats.ModifyStatImmediate))
         .MakeGenericMethod(statType);
 
-      method.Invoke(stats, new object[] { StatName.ToString(), modifyType, zoneTier });
+      method.Invoke(stats, new object[] { StatType, modifyType, zoneTier });
     }
 
     if (timeTYPE == TimeTYPE.TEMPORARY)
     {
-      print($"Funcionando // {StatName.ToString()}");
-      yield return stats.ModifyStatCoroutine<bool>(
-        StatName.ToString(),
-        modifyType,
-        zoneTier,
-        statDuration
-      );
+      print($"Funcionando // {StatType}");
+      yield return stats.ModifyStatCoroutine<bool>(StatType, modifyType, zoneTier, statDuration);
     }
     else
     {
-      stats.ModifyStatImmediate<float>(StatName.ToString(), modifyType, zoneTier);
+      stats.ModifyStatImmediate<float>(StatType, modifyType, zoneTier);
     }
 
     yield return new WaitForSeconds(statCooldown);

@@ -68,7 +68,7 @@ public class SwingObject : MonoBehaviour
     if (Physics.Raycast(player.transform.position, Vector3.down, 0.5f, _groundLayer))
       return;
 
-    if (player.LocomotionLayer.CurrentState != player.LockedS && player.JumpInteractionPressed)
+    if (player.LocomotionLayer.CurrentState != player.Locked && player.JumpInteractionPressed)
     {
       player.JumpInteractionPressed = false;
       StartSwing(player, other);
@@ -117,7 +117,7 @@ public class SwingObject : MonoBehaviour
 
     seq.AppendCallback(() =>
     {
-      player.LocomotionLayer.ChangeState(player.LockedS, player);
+      player.LocomotionLayer.ChangeState(player.Locked, player);
       player.CharacterController.enabled = false;
       _rope.SetVisible(true);
       _rope.SetPoints(transform, playerTrans);
@@ -172,24 +172,15 @@ public class SwingObject : MonoBehaviour
   {
     Transform pt = player.transform;
     player.CharacterController.enabled = true;
-    player.LocomotionLayer.ChangeState(player.AirborneS, player);
+    player.LocomotionLayer.ChangeState(player.Moving, player);
     _rope.SetVisible(false);
 
-    // --- CÁLCULO DE FORÇA MELHORADO ---
-    // Comprimento do arco total percorrido
-    float arcDistance = (maxAngle * 2 * Mathf.Deg2Rad) * radius;
+    float arcDistance = maxAngle * 2 * Mathf.Deg2Rad * radius;
+    float speed = arcDistance / _baseDuration * 2.0f;
 
-    // Velocidade média = d/t. No InSine, a velocidade final é ~2x a média.
-    float speed = (arcDistance / _baseDuration) * 2.0f;
-
-    // Aplica multiplicadores de entrada e game feel
     float finalSpeed =
       speed * Mathf.Lerp(1f, _angleBoostMultiplier, speedRatio) * _launchImpulseMultiplier;
     finalSpeed = Mathf.Clamp(finalSpeed, 12f, _maxLaunchSpeed);
-
-    // --- DIREÇÃO DE LANÇAMENTO (FIX PARA 90°) ---
-    // Em vez de usar apenas a tangente (que vira vertical em 90°),
-    // nós misturamos a direção que o player quer ir com um impulso para cima.
 
     Vector3 launchForward = moveDir; // Direção horizontal pura
     Vector3 launchUp = Vector3.up; // Direção vertical pura

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerActionStateWallSliding : IState<Player>
+public class PlayerActionStateWallSliding : IPlayerState<Player>
 {
   private readonly Timer wallExitTimer = new();
 
-  public ActionType Type => ActionType.Slide;
+  public PlayerActionType Type => PlayerActionType.Slide;
 
-  public HashSet<ActionType> IncompatibleActions => new();
+  public HashSet<PlayerActionType> IncompatibleActions => new();
 
   private void WallRunningTimer(Player player)
   {
@@ -16,12 +16,12 @@ public class PlayerActionStateWallSliding : IState<Player>
 
     if (wallExitTimer.Tick(Time.deltaTime))
     {
-      player.Stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString());
+      player.Stats.RemoveActiveModifications(StatType.Speed);
       player.WallSpeedApplied = false;
       player.TouchingWall = false;
       UnBlockPlayerDash(player);
       player.GravityValue = player.InitialGravityValue;
-      player.ActionLayer.PopStateDeferred(player);
+      player.ActionLayer.ExitStateDeferred(this, player);
     }
   }
 
@@ -35,7 +35,7 @@ public class PlayerActionStateWallSliding : IState<Player>
     }
     player.IsDashBlocked = true;
     player.Stats.ModifyStatImmediate<bool>(
-      Constants.StatsNames.CanDash.ToString(),
+      StatType.CanDash,
       ModifyTYPE.NEGATIVE,
       QualityTier.COMMON
     );
@@ -49,19 +49,17 @@ public class PlayerActionStateWallSliding : IState<Player>
     }
     player.IsDashBlocked = false;
     player.Stats.ModifyStatImmediate<bool>(
-      Constants.StatsNames.CanDash.ToString(),
+      StatType.CanDash,
       ModifyTYPE.POSITIVE,
       QualityTier.COMMON
     );
-    player.Stats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
+    player.Stats.RemoveActiveModifications(StatType.CanDash);
   }
 
   public void Enter(Player player)
   {
-    // player.OverrideHorizontal = true;
     player.CurrentJumpCount = 1;
     player.TouchingWall = true;
-    // só reseta se já estava fora da parede
     if (wallExitTimer.IsActive)
     {
       ResetWallExitTimer();
@@ -69,9 +67,9 @@ public class PlayerActionStateWallSliding : IState<Player>
 
     if (!player.WallSpeedApplied)
     {
-      player.Stats.RemoveActiveModifications(Constants.StatsNames.Speed.ToString()); // garante que não acumule
+      player.Stats.RemoveActiveModifications(StatType.Speed);
       player.Stats.ModifyStatImmediate<float>(
-        Constants.StatsNames.Speed.ToString(),
+        StatType.Speed,
         ModifyTYPE.POSITIVE,
         player.WallSpeedMultiplier
       );

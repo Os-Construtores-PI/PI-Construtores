@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 
-public class PlayerActionPandoraAttackState : IState<Player>
+[System.Serializable]
+public class PlayerActionPandoraAttackState : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.Attack;
+  public PlayerActionType Type => PlayerActionType.Attack;
 
-  public HashSet<ActionType> IncompatibleActions => new() { ActionType.Slide };
+  public HashSet<PlayerActionType> IncompatibleActions => new() { PlayerActionType.Slide };
 
   public void Enter(Player player)
   {
@@ -19,11 +20,11 @@ public class PlayerActionPandoraAttackState : IState<Player>
   public void Update(Player player) { }
 }
 
-public class PlayerActionRuskaAttackState : IState<Player>
+public class PlayerActionRuskaAttackState : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.Attack;
+  public PlayerActionType Type => PlayerActionType.Attack;
 
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<PlayerActionType> IncompatibleActions => new() { };
 
   public void Enter(Player player)
   {

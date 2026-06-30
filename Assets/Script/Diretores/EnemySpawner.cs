@@ -3,54 +3,78 @@ using UnityEngine;
 
 public class EnemySpawner : BasePool
 {
-    public static EnemySpawner enemySpawner;
+  [SerializeField]
+  protected List<Spawner> spawners;
 
-    [SerializeField]
-    protected List<Spawner> spawners;
-    protected new int amount;
+  public static EnemySpawner Instance;
 
-    public override void Awake()
+  protected override void Awake()
+  {
+    base.Awake();
+    Instance = this;
+    InitSpawners();
+  }
+
+  private void InitSpawners()
+  {
+    if (spawners == null)
+      return;
+    foreach (var sp in spawners)
     {
-        base.Awake();
-        enemySpawner = this;
+      sp.positions.Clear();
+      GameObject[] found = GameObject.FindGameObjectsWithTag(sp.spawner_tag);
+      foreach (var go in found)
+      {
+        sp.positions.Add(go.transform);
+      }
     }
+  }
 
-    private void Start()
-    {
-        InitSpawner();
-        SetupInstance();
-    }
+  protected override void PopulatePool(int amount)
+  {
+    _inactiveObjects.Clear();
+    _activeObjects.Clear();
 
-    protected void SetupInstance()
+    foreach (var sp in spawners)
     {
-        _deactivatedObjects = new();
-        GameObject tmp;
-        foreach (Spawner sp in spawners)
+      if (sp.obj == null)
+        continue;
+
+      foreach (var marker in sp.positions)
+      {
+        var enemy = Instantiate(sp.obj, marker.position, marker.rotation, _parent);
+        if (enemy.TryGetComponent(out Enemies e))
         {
-            amount = sp.positions.Count;
-            for (int i = 0; i < amount; i++)
-            {
-                Transform tmpMarker = sp.positions[i];
-                tmp = Instantiate(sp.obj, tmpMarker.position, tmpMarker.rotation, _parent);
-                if (tmp.TryGetComponent(out Enemies enemy))
-                {
-                    enemy.spawnpos = tmpMarker.position;
-                }
-                tmp.SetActive(false);
-                _deactivatedObjects.Add(tmp);
-            }
+          e.spawnpos = marker.position;
         }
+        enemy.SetActive(false);
+        _inactiveObjects.Add(enemy);
+      }
     }
+  }
 
-    private void InitSpawner()
-    {
-        foreach (Spawner sp in spawners)
-        {
-            GameObject[] tempposarray = GameObject.FindGameObjectsWithTag(sp.spawner_tag);
-            foreach (GameObject tempos in tempposarray)
-            {
-                sp.positions.Add(tempos.transform);
-            }
-        }
-    }
+  public GameObject Spawn(int index)
+  {
+    if (index < 0 || index >= _inactiveObjects.Count)
+      return null;
+
+    var obj = _inactiveObjects[index];
+    _inactiveObjects.RemoveAt(index);
+    _activeObjects.Add(obj);
+
+    obj.SetActive(true);
+    return obj;
+  }
+
+  public void ReturnToPool(int index)
+  {
+    if (index < 0 || index >= _activeObjects.Count)
+      return;
+
+    var obj = _activeObjects[index];
+    _activeObjects.RemoveAt(index);
+    _inactiveObjects.Add(obj);
+
+    obj.SetActive(false);
+  }
 }

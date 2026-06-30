@@ -90,7 +90,6 @@ public class PlayerDirector : MonoBehaviour
   // INICIALIZAÇÃO
   // =========================================================
 
-  /// <summary>Configura o spawner com a lista de prefabs na ordem correta.</summary>
   private void InitSpawner()
   {
     _playersSpawner = GetComponent<ManualPlayersSpawner>();
@@ -99,7 +98,6 @@ public class PlayerDirector : MonoBehaviour
     );
   }
 
-  /// <summary>Localiza e armazena o Transform do Canvas para parenting dos HUDs.</summary>
   private void InitHudParent()
   {
     GameObject canvasObj = GameObject.FindWithTag(_hudCanvasParent);
@@ -111,10 +109,6 @@ public class PlayerDirector : MonoBehaviour
       );
   }
 
-  /// <summary>
-  /// Percorre todos os objetos desativados no spawner e armazena seus componentes <see cref="Player"/>.
-  /// Deve ser chamado após <see cref="InitSpawner"/>.
-  /// </summary>
   private void CacheAllPlayers()
   {
     _allPlayers.Clear();
@@ -131,9 +125,6 @@ public class PlayerDirector : MonoBehaviour
   // ATIVAÇÃO DE PLAYERS
   // =========================================================
 
-  /// <summary>
-  /// Ativa os jogadores de acordo com o modo de jogo atual e restaura saves, se existirem.
-  /// </summary>
   public void ActivatePlayers()
   {
     switch (DataDirector.Instance.GetGameMode())
@@ -151,7 +142,6 @@ public class PlayerDirector : MonoBehaviour
 
   private void ActivateSinglePlayer()
   {
-    // Spawna o primeiro player e garante que o fallback fique desativado
     Player fp = SpawnPlayerAt(0);
     _allPlayers[1].gameObject.SetActive(false);
 
@@ -167,10 +157,8 @@ public class PlayerDirector : MonoBehaviour
     SetupPlayer(sp, MultiplayerRightViewport);
   }
 
-  /// <summary>Faz spawn de um player pelo índice e retorna seu componente <see cref="Player"/>.</summary>
   private Player SpawnPlayerAt(int index) => _playersSpawner.Spawn(index).GetComponent<Player>();
 
-  /// <summary>Restaura dados salvos para todos os jogadores, se houver save ativo.</summary>
   private void TryRestoreSave()
   {
     if (DataDirector.Instance.GameHasSave())
@@ -181,9 +169,6 @@ public class PlayerDirector : MonoBehaviour
   // SETUP INDIVIDUAL DE PLAYER
   // =========================================================
 
-  /// <summary>
-  /// Inicializa HUD e câmera para o player (caso ainda não existam) e aplica configurações.
-  /// </summary>
   private void SetupPlayer(Player player, Rect viewport)
   {
     int id = player.ID;
@@ -194,9 +179,8 @@ public class PlayerDirector : MonoBehaviour
     if (!_playerCameras.ContainsKey(id))
       SetupCamera(player, viewport);
 
-    player.gameObject.SetActive(true);
+    player.MovementVector = Vector3.zero;
 
-    // Força atualização visual da barra de vida ao ativar o player
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
 
     ApplyConfig(player);
@@ -206,33 +190,37 @@ public class PlayerDirector : MonoBehaviour
   // SETUP DE CÂMERA
   // =========================================================
 
-  /// <summary>
-  /// Instancia o grupo de câmeras, configura viewport e vincula ao player e ao HUD.
-  /// </summary>
   private void SetupCamera(Player player, Rect viewport)
   {
     int id = player.ID;
 
-    // Instancia o grupo completo (MainCamera + Cinemachine + LockOn)
     GameObject camGroup = Instantiate(_cameraGroup);
     Transform groupRoot = camGroup.transform;
 
     GameObject camObj = groupRoot.Find(Constants.CameraGroup.MainCamera).gameObject;
-    GameObject cinemachineObj = groupRoot.Find(Constants.CameraGroup.CinemachineCamera).gameObject;
+    GameObject cinemachineObj = groupRoot.Find(Constants.CameraGroup.MainCinemachine).gameObject;
+    GameObject boostCinemachineObj = groupRoot
+      .Find(Constants.CameraGroup.BoostCinemachine)
+      .gameObject;
 
     Camera unityCam = camObj.GetComponent<Camera>();
     CameraLogic camLogic = camObj.GetComponent<CameraLogic>();
 
-    // Registra câmera no HUD e define a janela de viewport (split-screen)
     _hudDirector.InitializeCamera(id, camLogic);
     unityCam.rect = viewport;
 
-    // Vincula Cinemachine e LockOn ao player, se todos os componentes existirem
-    if (cinemachineObj.TryGetComponent(out CinemachineCamera cinemachine))
+    if (
+      !cinemachineObj.TryGetComponent(out CinemachineCamera mainCinemachine)
+      || !boostCinemachineObj.TryGetComponent(out CinemachineCamera boostCinemachine)
+    )
     {
-      camLogic.SetTarget(player, cinemachine);
-      player.SetCamera(cinemachine, unityCam);
+      return;
     }
+    camLogic.SetTarget(player, mainCinemachine, boostCinemachine);
+    player.SetCamera(mainCinemachine, boostCinemachine, unityCam);
+
+    if (cinemachineObj.TryGetComponent(out CinemachineBasicMultiChannelPerlin noise))
+      _hudDirector.InitializeNoise(id, noise);
 
     _playerCameras[id] = camObj;
   }
@@ -241,7 +229,6 @@ public class PlayerDirector : MonoBehaviour
   // CONFIGURAÇÃO DE PLAYER
   // =========================================================
 
-  /// <summary>Aplica o <see cref="ConfigPlayer"/> ao contexto do player.</summary>
   private void ApplyConfig(Player player)
   {
     if (configPlayer == null)
@@ -256,6 +243,5 @@ public class PlayerDirector : MonoBehaviour
   // PROPRIEDADES PÚBLICAS
   // =========================================================
 
-  /// <summary>Retorna o contexto do primeiro player, ou <c>null</c> se não houver nenhum.</summary>
   public Player FirstPlayerContext => _allPlayers.Count > 0 ? _allPlayers[0] : null;
 }

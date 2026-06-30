@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class HurtboxComponent : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class HurtboxComponent : MonoBehaviour
   [HideInInspector]
   public bool CanTakeDamage = true;
 
+  [SerializeField]
   private float _damageCooldown = 1f;
 
   private void Start()
@@ -58,12 +60,12 @@ public class HurtboxComponent : MonoBehaviour
     if (!collider.TryGetComponent(out HitboxComponent hitbox) || !CanTakeDamage)
       return;
 
-    float factor = Mathf.Clamp(entity.Defense / entity.MAX_DEFENSE, 0f, 0.80f);
-
-    entity.Health -= hitbox.Damage * (1 - factor);
+    // Aplica o dano
+    entity.Health -= hitbox.Damage;
     entity.Damaged = true;
 
-    // Usa a nova função para entrar em cooldown de dano padrão
+    hitbox.Hit.Invoke();
+
     TriggerInvulnerability(_initialCooldown);
   }
 

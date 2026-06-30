@@ -3,8 +3,6 @@ using UnityEngine;
 
 public interface IState<T>
 {
-  ActionType Type { get; }
-  HashSet<ActionType> IncompatibleActions { get; }
   virtual int Priority => 0;
   void Enter(T entity);
   void Update(T entity);
@@ -12,48 +10,39 @@ public interface IState<T>
   void Exit(T entity);
 }
 
-public interface ILocomotionState<T> : IState<T>
+public interface IPlayerState<T> : IState<T>
 {
+  PlayerActionType Type { get; }
+  HashSet<PlayerActionType> IncompatibleActions { get; }
+}
+
+public interface IWolfState<T> : IState<T>
+{
+  WolfActionType Type { get; }
+  HashSet<WolfActionType> IncompatibleActions { get; }
+}
+
+public interface ILocomotionState<T> : IPlayerState<T>
+{
+  protected static void ApplyGravity(Player player)
+  {
+    Vector3 move = player.MovementVector;
+    float gravMult = move.y > 0f ? player.GravityUpMultiplier : player.GravityDownMultiplier;
+    move.y += player.GravityValue * gravMult * Time.deltaTime;
+    if (move.y < player.MaxFallSpeed)
+      move.y = player.MaxFallSpeed;
+    player.MovementVector = move;
+  }
+
   protected static Vector3 CalculateCameraDirection(Player player)
   {
-    Vector3 camForward = player.CinemachineCamera.transform.forward;
-    Vector3 camRight = player.CinemachineCamera.transform.right;
+    Vector3 camForward = player.MainCamera.transform.forward;
+    Vector3 camRight = player.MainCamera.transform.right;
     camForward.y = camRight.y = 0f;
 
     return (
       camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
     ).normalized;
-  }
-
-  protected static void ApplyHorizontalMovement(
-    Player player,
-    float targetSpeed,
-    float acceleration
-  )
-  {
-    Vector3 move = player.MovementVector;
-
-    if (player.MoveInput == Vector2.zero)
-    {
-      move.x = QualityOfLife.PlayerFriction(move.x, player.AirFriction, player.MoveInput);
-      move.z = QualityOfLife.PlayerFriction(move.z, player.AirFriction, player.MoveInput);
-      player.MovementVector = move;
-      return;
-    }
-
-    Vector3 direction = CalculateCameraDirection(player);
-
-    player.transform.rotation = Quaternion.Slerp(
-      player.transform.rotation,
-      Quaternion.LookRotation(direction),
-      10f * Time.deltaTime
-    );
-
-    player.MovementVector = new Vector3(
-      QualityOfLife.SmoothStepLerp(move.x, direction.x * targetSpeed, acceleration),
-      move.y,
-      QualityOfLife.SmoothStepLerp(move.z, direction.z * targetSpeed, acceleration)
-    );
   }
 }
 

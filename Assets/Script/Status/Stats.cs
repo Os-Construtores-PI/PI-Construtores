@@ -7,214 +7,340 @@ using UnityEngine.Events;
 [Serializable]
 public class Stats
 {
-    // Listagem de modificações ativas
-    private readonly List<StatModification> activeModifications = new();
+  // =========================================================
+  // CAMPOS INTERNOS
+  // =========================================================
 
-    // Valores atuais
-    private Typestats stats = new() { _numstats = new(), _boolstats = new() };
+  private readonly List<StatModification> activeModifications = new();
 
-    // Valores base originais (para evitar acúmulo indesejado)
-    private Dictionary<string, float> numericBaseValues = new();
-    private Dictionary<string, bool> boolBaseValues = new();
+  // Dictionaries now use StatType instead of strings
+  private Dictionary<StatType, float> _numstats = new();
+  private Dictionary<StatType, bool> _boolstats = new();
 
-    public UnityEvent<string, float> OnNumModified = new();
-    public UnityEvent<string, bool> OnBoolModified = new();
+  private Dictionary<StatType, float> numericBaseValues = new();
+  private Dictionary<StatType, bool> boolBaseValues = new();
 
-    // --- ADIÇÃO DE STATS ---
-    public bool AddStat<T>(string name, T value)
-        where T : IComparable
+  // =========================================================
+  // EVENTOS
+  // =========================================================
+
+  public UnityEvent<StatType, float> OnNumModified = new();
+  public UnityEvent<StatType, bool> OnBoolModified = new();
+
+  // =========================================================
+  // REGISTRO  (Add / Remove)
+  // =========================================================
+
+  public bool AddStat<T>(StatType statType, T value)
+    where T : IComparable
+  {
+    if (typeof(T) == typeof(float))
     {
-        if (typeof(T) == typeof(float))
-        {
-            if (stats._numstats.ContainsKey(name))
-                return false;
-            float val = Convert.ToSingle(value);
-            stats._numstats[name] = val;
-            numericBaseValues[name] = val;
-            return true;
-        }
-        else if (typeof(T) == typeof(bool))
-        {
-            if (stats._boolstats.ContainsKey(name))
-                return false;
-            bool val = Convert.ToBoolean(value);
-            stats._boolstats[name] = val;
-            boolBaseValues[name] = val;
-            return true;
-        }
-
-        Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
+      if (_numstats.ContainsKey(statType))
         return false;
+      float val = Convert.ToSingle(value);
+      _numstats[statType] = val;
+      numericBaseValues[statType] = val;
+      return true;
     }
 
-    public bool RemoveStat<T>(string name)
-        where T : IComparable
+    if (typeof(T) == typeof(bool))
     {
-        if (typeof(T) == typeof(float))
-        {
-            numericBaseValues.Remove(name);
-            return stats._numstats.Remove(name);
-        }
-        if (typeof(T) == typeof(bool))
-        {
-            boolBaseValues.Remove(name);
-            return stats._boolstats.Remove(name);
-        }
-
-        Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
+      if (_boolstats.ContainsKey(statType))
         return false;
+      bool val = Convert.ToBoolean(value);
+      _boolstats[statType] = val;
+      boolBaseValues[statType] = val;
+      return true;
     }
 
-    // --- MODIFICAÇÃO IMEDIATA ---
-    public bool ModifyStatImmediate<T>(string name, ModifyTYPE type, QualityTier tier)
-        where T : IComparable
+    Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
+    return false;
+  }
+
+  public bool RemoveStat<T>(StatType statType)
+    where T : IComparable
+  {
+    if (typeof(T) == typeof(float))
     {
-        float multiplier = Tiers.GetMultiplier(tier);
-        float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
-        if (typeof(T) == typeof(float))
-        {
-            if (!stats._numstats.ContainsKey(name))
-                return false;
+      numericBaseValues.Remove(statType);
+      return _numstats.Remove(statType);
+    }
 
-            float original = numericBaseValues[name]; // pega valor base
-            float change = original * (multiplier - 1f) * direction;
-            stats._numstats[name] = original + change;
+    if (typeof(T) == typeof(bool))
+    {
+      boolBaseValues.Remove(statType);
+      return _boolstats.Remove(statType);
+    }
 
-            OnNumModified.Invoke(name, stats._numstats[name]);
-            activeModifications.Add(new StatModification(name, tier, type, false));
-            return true;
-        }
-        else if (typeof(T) == typeof(bool))
-        {
-            if (!stats._boolstats.ContainsKey(name))
-                return false;
+    Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
+    return false;
+  }
 
-            bool original = boolBaseValues[name]; // pega valor base
-            stats._boolstats[name] = type == ModifyTYPE.POSITIVE;
+  // =========================================================
+  // LEITURA  (Get)
+  // =========================================================
 
-            OnBoolModified.Invoke(name, stats._boolstats[name]);
-            activeModifications.Add(new StatModification(name, tier, type, false));
-            return true;
-        }
+  public bool TryGetNum(StatType statType, out float value) =>
+    _numstats.TryGetValue(statType, out value);
 
-        Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
+  public bool TryGetBool(StatType statType, out bool value) =>
+    _boolstats.TryGetValue(statType, out value);
+
+  public bool TryGetBaseNum(StatType statType, out float value) =>
+    numericBaseValues.TryGetValue(statType, out value);
+
+  // =========================================================
+  // ESCRITA DIRETA  (Set)
+  // =========================================================
+
+  public void SetStat<T>(StatType statType, T value)
+    where T : IComparable
+  {
+    if (typeof(T) == typeof(float) && _numstats.ContainsKey(statType))
+    {
+      _numstats[statType] = Convert.ToSingle(value);
+      OnNumModified.Invoke(statType, _numstats[statType]);
+      return;
+    }
+
+    if (typeof(T) == typeof(bool) && _boolstats.ContainsKey(statType))
+    {
+      _boolstats[statType] = Convert.ToBoolean(value);
+      OnBoolModified.Invoke(statType, _boolstats[statType]);
+    }
+  }
+
+  public bool SetBaseStat(StatType statType, float newBase)
+  {
+    if (!numericBaseValues.ContainsKey(statType))
+      return false;
+
+    numericBaseValues[statType] = newBase;
+    _numstats[statType] = newBase;
+    OnNumModified.Invoke(statType, newBase);
+    return true;
+  }
+
+  // =========================================================
+  // MODIFICAÇÃO VIA TIER
+  // =========================================================
+
+  public bool ModifyStatImmediate<T>(StatType statType, ModifyTYPE type, QualityTier tier)
+    where T : IComparable
+  {
+    float multiplier = Tiers.GetMultiplier(tier); // Assuming Tiers class exists in your project
+    float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
+
+    if (typeof(T) == typeof(float))
+    {
+      if (!_numstats.ContainsKey(statType))
         return false;
+      float original = numericBaseValues[statType];
+      SetStat(statType, original + original * (multiplier - 1f) * direction);
+      activeModifications.Add(new StatModification(statType, tier, type, false));
+      return true;
     }
 
-    // --- MODIFICAÇÃO TEMPORÁRIA ---
-    public IEnumerator ModifyStatCoroutine<T>(
-        string name,
-        ModifyTYPE type,
-        QualityTier tier,
-        float duration
-    )
-        where T : IComparable
+    if (typeof(T) == typeof(bool))
     {
-        StatModification tempMod = new(name, tier, type, true, duration);
-        activeModifications.Add(tempMod);
-
-        float multiplier = Tiers.GetMultiplier(tier);
-        float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
-
-        if (typeof(T) == typeof(float))
-        {
-            if (!stats._numstats.ContainsKey(name))
-                yield break;
-
-            float original = numericBaseValues[name];
-            float change = original * (multiplier - 1f) * direction;
-
-            SetStat(name, original + change);
-
-            float timer = duration;
-            while (timer > 0f)
-            {
-                timer -= Time.deltaTime;
-                UpdateTemporaryTime(name, timer);
-                yield return null;
-            }
-
-            SetStat(name, original); // restaura valor base
-        }
-        else if (typeof(T) == typeof(bool))
-        {
-            if (!stats._boolstats.ContainsKey(name))
-                yield break;
-
-            bool original = boolBaseValues[name];
-            SetStat(name, type == ModifyTYPE.POSITIVE);
-
-            float timer = duration;
-            while (timer > 0f)
-            {
-                timer -= Time.deltaTime;
-                UpdateTemporaryTime(name, timer);
-                yield return null;
-            }
-
-            SetStat(name, original);
-        }
-
-        activeModifications.RemoveAll(mod => mod.StatName == name && mod.IsTemporary);
+      if (!_boolstats.ContainsKey(statType))
+        return false;
+      SetStat(statType, type == ModifyTYPE.POSITIVE);
+      activeModifications.Add(new StatModification(statType, tier, type, false));
+      return true;
     }
 
-    // --- REMOVER MODIFICAÇÕES ---
-    public void RemoveActiveModifications(string statName)
+    Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
+    return false;
+  }
+
+  public IEnumerator ModifyStatCoroutine<T>(
+    StatType statType,
+    ModifyTYPE type,
+    QualityTier tier,
+    float duration
+  )
+    where T : IComparable
+  {
+    activeModifications.Add(new StatModification(statType, tier, type, true, duration));
+
+    float multiplier = Tiers.GetMultiplier(tier);
+    float direction = type == ModifyTYPE.POSITIVE ? 1f : -1f;
+
+    if (typeof(T) == typeof(float))
     {
-        activeModifications.RemoveAll(mod => mod.StatName == statName);
-
-        // restaura valor base
-        if (numericBaseValues.ContainsKey(statName))
-            SetStat(statName, numericBaseValues[statName]);
-        else if (boolBaseValues.ContainsKey(statName))
-            SetStat(statName, boolBaseValues[statName]);
+      if (!_numstats.ContainsKey(statType))
+        yield break;
+      float original = numericBaseValues[statType];
+      SetStat(statType, original + original * (multiplier - 1f) * direction);
+      yield return RunTimer(statType, duration);
+      SetStat(statType, original);
     }
-
-    // --- SET GENÉRICO ---
-    public void SetStat<T>(string name, T value)
-        where T : IComparable
+    else if (typeof(T) == typeof(bool))
     {
-        if (typeof(T) == typeof(float) && stats._numstats.ContainsKey(name))
-        {
-            stats._numstats[name] = Convert.ToSingle(value);
-            OnNumModified.Invoke(name, stats._numstats[name]);
-        }
-        else if (typeof(T) == typeof(bool) && stats._boolstats.ContainsKey(name))
-        {
-            stats._boolstats[name] = Convert.ToBoolean(value);
-            OnBoolModified.Invoke(name, stats._boolstats[name]);
-        }
+      if (!_boolstats.ContainsKey(statType))
+        yield break;
+      bool original = boolBaseValues[statType];
+      SetStat(statType, type == ModifyTYPE.POSITIVE);
+      yield return RunTimer(statType, duration);
+      SetStat(statType, original);
     }
 
-    // --- UTILS ---
-    public IReadOnlyList<StatModification> GetActiveModifications() =>
-        activeModifications.AsReadOnly();
+    activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
+  }
 
-    private void UpdateTemporaryTime(string statName, float timeLeft)
+  // =========================================================
+  // MODIFICAÇÃO CUSTOMIZADA
+  // =========================================================
+
+  public bool ModifyStatByMultiplier(StatType statType, float multiplier)
+  {
+    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
+      return false;
+
+    SetStat(statType, baseVal * multiplier);
+    activeModifications.Add(
+      new StatModification(statType, QualityTier.NONE, ModifyTYPE.CUSTOM, false)
+    );
+    return true;
+  }
+
+  public IEnumerator ModifyStatByMultiplierCoroutine(
+    StatType statType,
+    float multiplier,
+    float duration
+  )
+  {
+    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
+      yield break;
+
+    activeModifications.Add(
+      new StatModification(statType, QualityTier.NONE, ModifyTYPE.CUSTOM, true, duration)
+    );
+    SetStat(statType, baseVal * multiplier);
+    yield return RunTimer(statType, duration);
+    SetStat(statType, baseVal);
+    activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
+  }
+
+  public bool ModifyStatToTarget(StatType statType, float targetValue)
+  {
+    if (!_numstats.ContainsKey(statType))
+      return false;
+
+    SetStat(statType, targetValue);
+    activeModifications.Add(
+      new StatModification(statType, QualityTier.NONE, ModifyTYPE.CUSTOM, false)
+    );
+    return true;
+  }
+
+  public IEnumerator ModifyStatToTargetCoroutine(
+    StatType statType,
+    float targetValue,
+    float duration
+  )
+  {
+    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
+      yield break;
+
+    activeModifications.Add(
+      new StatModification(statType, QualityTier.NONE, ModifyTYPE.CUSTOM, true, duration)
+    );
+    SetStat(statType, targetValue);
+    yield return RunTimer(statType, duration);
+    SetStat(statType, baseVal);
+    activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
+  }
+
+  public bool ModifyStatByDelta(StatType statType, float delta)
+  {
+    if (!_numstats.TryGetValue(statType, out float current))
+      return false;
+
+    SetStat(statType, current + delta);
+    activeModifications.Add(
+      new StatModification(statType, QualityTier.NONE, ModifyTYPE.CUSTOM, false)
+    );
+    return true;
+  }
+
+  public IEnumerator ModifyStatByDeltaCoroutine(StatType statType, float delta, float duration)
+  {
+    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
+      yield break;
+
+    activeModifications.Add(
+      new StatModification(statType, QualityTier.NONE, ModifyTYPE.CUSTOM, true, duration)
+    );
+    SetStat(statType, baseVal + delta);
+    yield return RunTimer(statType, duration);
+    SetStat(statType, baseVal);
+    activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
+  }
+
+  // =========================================================
+  // GERENCIAMENTO DE MODIFICAÇÕES ATIVAS
+  // =========================================================
+
+  public void RemoveActiveModifications(StatType statType)
+  {
+    activeModifications.RemoveAll(mod => mod.StatType == statType);
+
+    if (numericBaseValues.ContainsKey(statType))
+      SetStat(statType, numericBaseValues[statType]);
+    else if (boolBaseValues.ContainsKey(statType))
+      SetStat(statType, boolBaseValues[statType]);
+  }
+
+  public IReadOnlyList<StatModification> GetActiveModifications() =>
+    activeModifications.AsReadOnly();
+
+  // =========================================================
+  // SERIALIZAÇÃO
+  // =========================================================
+
+  public Dictionary<StatType, float> GetNumericStats() => new(_numstats);
+
+  public Dictionary<StatType, bool> GetBoolStats() => new(_boolstats);
+
+  public void LoadFromDictionaries(
+    Dictionary<StatType, float> nums,
+    Dictionary<StatType, bool> bools
+  )
+  {
+    _numstats = new(nums);
+    _boolstats = new(bools);
+    numericBaseValues = new(nums);
+    boolBaseValues = new(bools);
+  }
+
+  // =========================================================
+  // HELPERS PRIVADOS
+  // =========================================================
+
+  private IEnumerator RunTimer(StatType statType, float duration)
+  {
+    float timer = duration;
+    while (timer > 0f)
     {
-        for (int i = 0; i < activeModifications.Count; i++)
-        {
-            if (activeModifications[i].StatName == statName && activeModifications[i].IsTemporary)
-            {
-                var updated = activeModifications[i];
-                updated.RemainingTime = timeLeft;
-                activeModifications[i] = updated;
-            }
-        }
+      timer -= Time.deltaTime;
+      UpdateTemporaryTime(statType, timer);
+      yield return null;
     }
+  }
 
-    // Serialização custom para salvar no DataSystem
-    public Dictionary<string, float> GetNumericStats() => new(stats._numstats);
-
-    public Dictionary<string, bool> GetBoolStats() => new(stats._boolstats);
-
-    public void LoadFromDictionaries(Dictionary<string, float> nums, Dictionary<string, bool> bools)
+  private void UpdateTemporaryTime(StatType statType, float timeLeft)
+  {
+    for (int i = 0; i < activeModifications.Count; i++)
     {
-        stats._numstats = new(nums);
-        stats._boolstats = new(bools);
-
-        // atualizar base values
-        numericBaseValues = new(nums);
-        boolBaseValues = new(bools);
+      if (activeModifications[i].StatType == statType && activeModifications[i].IsTemporary)
+      {
+        var updated = activeModifications[i];
+        updated.RemainingTime = timeLeft;
+        activeModifications[i] = updated;
+      }
     }
+  }
 }

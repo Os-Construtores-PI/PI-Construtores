@@ -21,7 +21,6 @@ public class HealthHUD : BarHUD
     // Inicializa sliders imediatamente
     float percent = _boundPlayer.MaxHealth > 0 ? _boundPlayer.Health / _boundPlayer.MaxHealth : 1f;
     _slider.DOValue(percent, 0.35f).SetEase(Ease.OutQuad);
-    print(_slider.value);
     if (_damageSlider != null)
       _damageSlider.value = percent;
   }

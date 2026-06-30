@@ -23,6 +23,31 @@ public static class Tiers
   }
 }
 
+public static class Lookups
+{
+  public static class Effects
+  {
+    public static Dictionary<string, EffectType> LookupTable = new()
+    {
+      { EffectType.JumpEffect.ToString(), EffectType.JumpEffect },
+      { EffectType.DashEffect.ToString(), EffectType.DashEffect },
+      { EffectType.ChargingEffect.ToString(), EffectType.ChargingEffect },
+      { EffectType.BoostEffect.ToString(), EffectType.BoostEffect },
+      { EffectType.SpeedEffect.ToString(), EffectType.SpeedEffect },
+    };
+  }
+
+  public static class Trails
+  {
+    public static Dictionary<string, TrailType> LookupTable = new()
+    {
+      { TrailType.MovementTrail.ToString(), TrailType.MovementTrail },
+      { TrailType.MovementSupport1Trail.ToString(), TrailType.MovementSupport1Trail },
+      { TrailType.MovementSupport2Trail.ToString(), TrailType.MovementSupport2Trail },
+    };
+  }
+}
+
 public static class CodeBaseFour
 {
   public static List<Code> Codes = new()
@@ -72,18 +97,17 @@ public static class StringtoTypes
 
 public static class StatTypeMap
 {
-  public static readonly Dictionary<Constants.StatsNames, Type> Map = new()
+  public static readonly Dictionary<StatType, Type> Map = new()
   {
-    { Constants.StatsNames.CanDash, typeof(bool) },
-    { Constants.StatsNames.EnableRegen, typeof(bool) },
-    { Constants.StatsNames.Speed, typeof(float) },
-    { Constants.StatsNames.Health, typeof(float) },
-    { Constants.StatsNames.MaxHealth, typeof(float) },
-    { Constants.StatsNames.Defense, typeof(float) },
-    { Constants.StatsNames.JumpForce, typeof(float) },
+    { StatType.CanDash, typeof(bool) },
+    { StatType.Regen, typeof(bool) },
+    { StatType.Speed, typeof(float) },
+    { StatType.Health, typeof(float) },
+    { StatType.MaxHealth, typeof(float) },
+    { StatType.JumpForce, typeof(float) },
   };
 
-  public static Type GetType(Constants.StatsNames stat) => Map[stat];
+  public static Type GetType(StatType stat) => Map[stat];
 }
 
 public static class Constants
@@ -92,81 +116,67 @@ public static class Constants
   {
     public static readonly string DataPath = Application.persistentDataPath + "GameData.json";
     public static readonly string ConfigPath = Application.persistentDataPath + "ConfigData.json";
-    public static readonly string CryptoKey = "Pão de Queijo";
+    public const string CryptoKey = "Pão de Queijo";
   }
 
   public static class SceneNames
   {
-    public static readonly string DebugScene = "Cena Debug";
-    public static readonly string FirstLevel = "Fase0";
-    public static readonly string MainMenu = "MainMenu";
+    public const string DebugScene = "Cena Debug";
+    public const string FirstLevel = "Fase0";
+    public const string MainMenu = "MainMenu";
   }
 
   public static class AnimatorTriggerNames
   {
-    public static readonly string Idle = "Idle";
-    public static readonly string Walk = "Walk";
-    public static readonly string Jump = "Jump";
-    public static readonly string DoubleJump = "DoubleJump";
-    public static readonly string Hit = "Hit";
-    public static readonly string Dash = "Dash";
+    public const string Idle = nameof(Idle);
+    public const string Walk = nameof(Walk);
+    public const string WasVerticalBoosted = nameof(WasVerticalBoosted);
+    public const string Jump = nameof(Jump);
+    public const string DoubleJump = nameof(DoubleJump);
+    public const string Hit = nameof(Hit);
+    public const string Dash = nameof(Dash);
   }
 
   public static class AnimatorBoolNames
   {
-    public static readonly string IsGrounded = "IsGrounded";
+    public const string IsGrounded = nameof(IsGrounded);
+    public const string IsSliding = nameof(IsSliding);
   }
 
   public static class AnimatorFloatNames
   {
-    public const string VelocityY = "VelocityY";
-    public const string VelocityX = "VelocityX";
+    public const string VelocityY = nameof(VelocityY);
+    public const string VelocityX = nameof(VelocityX);
   }
 
-  public static class EffectsNames
+  public static class PlayerShakes
   {
-    public static class Player
+    public static class Damage
     {
-      public const string Dash = nameof(Dash);
-      public const string Jump = nameof(Jump);
-      public const string Run = nameof(Run);
-      public const string Charging = nameof(Charging);
+      public const float Amplitude = 1f;
+      public const float Frequency = 1f;
+      public const float Duration = 0.25f;
     }
 
-    public static class Interface
+    public static class Running
     {
-      public const string Speed = "Speed";
+      public const float Amplitude = 0.1f;
+      public const float Frequency = 0.7f;
+      public const float StopDelay = 0.50f;
     }
   }
 
   public static class Values
   {
-    public static readonly float GraplingHookSpeed = 10f;
-  }
-
-  public static class HudPanelNames
-  {
-    public const string GameOver = "GameOver";
-    public const string Pause = "Pause";
-    public const string Dialogue = "Dialogue";
-    public const string HealthBar = "HealthBar";
-    public const string BoostBar = "BoostBar";
-    public const string DashIcon = "DashIcon";
-    public const string EndGame = "EndGame";
-    public const string AmethystCounter = "AmethystCounter";
-    public const string InteractionPopup = "InteractionPopup";
-    public const string InteractionLetter = "InteractionLetter";
-    public const string LockOnOverlay = "LockOnOverlay";
-    public const string Cutscene = "Cutscene";
-    public const string TeleportFadePanel = "TeleportFadePanel";
+    public const float GraplingHookSpeed = 10f;
   }
 
   public static class MenuPanelNames
   {
-    public static readonly string Menu = "Menu";
-    public static readonly string AudioMenu = "AudioMenu";
-    public static readonly string OptionsMenu = "OptionsMenu";
-    public static readonly string SaveMenu = "SaveMenu";
+    public const string Menu = nameof(Menu);
+    public const string AudioMenu = nameof(AudioMenu);
+    public const string OptionsMenu = nameof(OptionsMenu);
+    public const string SaveMenu = nameof(SaveMenu);
   }
 
   public static class PlayerCommonObjects
@@ -182,10 +192,11 @@ public static class Constants
 
   public static class CameraGroup
   {
-    public const string MainCamera = "MainCamera";
-    public const string CinemachineCamera = "CinemachineCamera";
-    public const string CinemachineLockOn = "CinemachineLockOn";
-    public const string LockInGroup = "LockInGroup";
+    public const string MainCamera = nameof(MainCamera);
+    public const string MainCinemachine = nameof(MainCinemachine);
+    public const string BoostCinemachine = nameof(BoostCinemachine);
+    public const string CinemachineLockOn = nameof(CinemachineLockOn);
+    public const string LockInGroup = nameof(LockInGroup);
   }
 
   public static class PandoraObjects
@@ -198,22 +209,12 @@ public static class Constants
     public static HashSet<Type> types = new() { };
   }
 
-  public enum StatsNames
-  {
-    CanDash,
-    Speed,
-    Health,
-    Defense,
-    MaxHealth,
-    JumpForce,
-    EnableRegen,
-  }
-
   public enum Tags
   {
     Player,
     Enemy,
     RunningWall,
+    Rail,
   }
 }
 
@@ -296,11 +297,31 @@ public static class QualityOfLife
     string json = JsonUtility.ToJson(classObject, true);
     File.WriteAllText(path, DataCryptography.Encrypt(json));
   }
+
+  public static void CursorOptions(bool visible)
+  {
+    Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
+    Cursor.visible = visible;
+  }
+
+  /// <summary>
+  /// Itera sobre todos os Players ativos na cena e executa uma ação.
+  /// </summary>
+  public static void ForEachPlayer(Action<Player> action)
+  {
+    foreach (
+      var player in UnityEngine.Object.FindObjectsByType<Player>(
+        FindObjectsInactive.Exclude,
+        FindObjectsSortMode.None
+      )
+    )
+      action(player);
+  }
 }
 
 public static class ReflectionHelpers
 {
-  public static PropertyInfo GetPropertyByStatName(this Type type, string statName)
+  public static PropertyInfo GetPropertyByStatName(this Type type, StatType statType)
   {
     var properties = type.GetProperties(
       BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
@@ -308,7 +329,7 @@ public static class ReflectionHelpers
     foreach (var prop in properties)
     {
       var attr = prop.GetCustomAttribute<StatAttribute>();
-      if (attr != null && attr.Name == statName)
+      if (attr != null && attr.Type == statType)
         return prop;
     }
     return null;

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 
-public class PlayerActionStateInteraction : IState<Player>
+[System.Serializable]
+public class PlayerActionStateInteraction : IPlayerState<Player>
 {
-  public ActionType Type => ActionType.Interact;
+  public PlayerActionType Type => PlayerActionType.Interact;
 
-  public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<PlayerActionType> IncompatibleActions => new() { };
 
   public void Enter(Player player)
   {

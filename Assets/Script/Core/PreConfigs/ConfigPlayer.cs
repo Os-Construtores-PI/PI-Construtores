@@ -7,9 +7,6 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private float vidaMaxima;
 
-  [SerializeField]
-  private float defesa;
-
   [Header("Regeneração")]
   [SerializeField]
   private bool habilitarRegeneracao;
@@ -19,23 +16,23 @@ public class ConfigPlayer : ScriptableObject
 
   [Header("Combate")]
   [SerializeField]
-  private float cooldownCombate;
+  private float cooldownCombate = 2;
 
   [SerializeField]
-  private float cooldownDano;
+  private float cooldownDano = 2;
 
   [Header("Movimento [ANDAR]")]
   [SerializeField]
-  private float velocidade;
+  private float velocidade = 30f;
 
   [SerializeField]
-  private float velocidadeCorrida;
+  private float multiplicadorVelocidadeCorrida = 1.5f;
 
   [SerializeField]
   private float aceleracao;
 
   [SerializeField]
-  private float aceleracaoCorrida;
+  private float multiplicadorAceleracaoCorrida = 1.5f;
 
   [SerializeField]
   private float friccaoTerra;
@@ -72,6 +69,12 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private float cooldownDash;
 
+  [SerializeField]
+  private float distanciaDash;
+
+  [SerializeField]
+  private int maximoDeDashes;
+
   [Header("MECÂNICA [TROCA DE JOGADOR]")]
   [SerializeField]
   private float cooldownTrocaJogador;
@@ -96,13 +99,12 @@ public class ConfigPlayer : ScriptableObject
   public void SetConfig(Player player)
   {
     player.MaxHealth = vidaMaxima;
-    player.Defense = defesa;
     player.EnableRegen = habilitarRegeneracao;
     player.RegenerationInterval = intervaloRegeneracao;
     player.Speed = velocidade;
-    player.RunningSpeed = velocidadeCorrida;
+    player.RunSpeedMultiplier = multiplicadorVelocidadeCorrida;
     player.Acceleration = aceleracao;
-    player.AccelerationRunning = aceleracaoCorrida;
+    player.RunAccelMultiplier = multiplicadorAceleracaoCorrida;
     player.Friction = friccaoTerra;
     player.AirFriction = friccaoAr;
     player.JumpForce = forcaPulo;
@@ -114,7 +116,11 @@ public class ConfigPlayer : ScriptableObject
     player.DashDuration = duracaoDash;
     player.DashSpeed = velocidadeDash;
     player.DashCooldown = cooldownDash;
-    // TODO: Adicionar Troca de Jogador na Config
+    player.DashDistance = distanciaDash;
+    player.MaxDashCount = maximoDeDashes;
+    player.AttackCooldown = cooldownAtaque;
+    player.CombatCooldown = cooldownCombate;
+    player.DamagedCooldown = cooldownDano;
     player.WallSpeedMultiplier = multiplicadorVelocidadeParede;
     player.WallJumpMultiplier = multiplicadorForcaPuloParede;
     player.WallExitDuration = duracaoSaidaParede;
