@@ -149,7 +149,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     player.IsDashing = true;
     player.CanDash = false;
 
-    player.EffectsSystem.PlayEffect(EffectType.DashEffect, player.DashDuration);
+    player.EffectsSystem.PlayEffect(EntityEffectType.PlayerDashEffect, player.DashDuration);
     player.CurrentDashCount += 1;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
 
@@ -234,7 +234,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
     _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
-    player.EffectsSystem.StopEffect(EffectType.DashEffect);
+    player.EffectsSystem.StopEffect(EntityEffectType.PlayerDashEffect);
 
     if (!_hasHit)
     {

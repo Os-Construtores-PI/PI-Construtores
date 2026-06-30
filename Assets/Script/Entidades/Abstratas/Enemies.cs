@@ -20,6 +20,10 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField]
   private float _boostGrace = 20f;
 
+  [Header("Configurações de Morte")]
+  [SerializeField]
+  private float _deathEffectDuration = 1f;
+
   [Header("Knockback")]
   [SerializeField]
   protected float _knockbackForce = 60;
@@ -142,7 +146,17 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
-    gameObject.SetActive(false);
+    Sequence deathSequence = DOTween.Sequence();
+    deathSequence.AppendCallback(() =>
+    {
+      EffectsSystem.PlayEffect(EntityEffectType.EntityDeathEffect, _deathEffectDuration);
+    });
+    deathSequence.AppendInterval(_deathEffectDuration);
+    deathSequence.AppendCallback(() =>
+    {
+      EffectsSystem.StopEffect(EntityEffectType.EntityDeathEffect);
+      gameObject.SetActive(false);
+    });
   }
 
   private void AddItems()
@@ -286,12 +300,14 @@ public abstract class Enemies : CombatEntities, ILockable
     _damagePopupEffect.DOKill();
     _damagePopupEffect.localScale = Vector3.zero;
     _damagePopupEffect.gameObject.SetActive(true);
-
     Sequence popupSequence = DOTween.Sequence();
     popupSequence.Append(_damagePopupEffect.DOScale(Vector3.one, 0.1f).SetEase(Ease.OutBack));
     popupSequence.AppendInterval(0.25f);
     popupSequence.Append(_damagePopupEffect.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack));
-    popupSequence.OnComplete(() => _damagePopupEffect.gameObject.SetActive(false));
+    popupSequence.OnComplete(() =>
+    {
+      _damagePopupEffect.gameObject.SetActive(false);
+    });
   }
 
   protected virtual void TriggerSquish()
