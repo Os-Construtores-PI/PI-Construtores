@@ -148,16 +148,12 @@ public class MenuDirector : MonoBehaviour
     root.SetActive(true);
     root.transform.localScale = Vector3.one;
 
-    foreach (var t in root.GetComponentsInChildren<Transform>(true))
+    foreach (Button btn in root.GetComponentsInChildren<Button>(true))
     {
-        if (t.TryGetComponent(out Button btn))
-        {
-            btn.interactable = true;
-            currentButtons.Add(btn);
-        }
+        btn.interactable = true;
+        currentButtons.Add(btn);
 
-        if (t.TryGetComponent(out UIPulse pulse))
-            pulse.Play();
+        
     }
 }
 

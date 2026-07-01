@@ -33,7 +33,9 @@ public class MenuButtonSlide : MonoBehaviour
 
       ActiveAnimations++;
 
-        rect.DOKill();
+    Debug.Log($"Começou {name} | {ActiveAnimations}");
+
+    rect.DOKill();
 
         rect.anchoredPosition = finalPos + Vector2.right * _offSet;
 
@@ -73,6 +75,8 @@ public class MenuButtonSlide : MonoBehaviour
 
     if (ActiveAnimations == 0)
     {
+    //ActiveAnimations--;
+
         GameObject selected = EventSystem.current.currentSelectedGameObject;
 
         if (selected != null)
