@@ -132,7 +132,7 @@ public class MenuDirector : MonoBehaviour
 
   private void ShowPanel(string panelName, bool fade = false)
   {
-
+    MenuSelectionCursor.Instance.CanMove = false;
     MenuSelectionCursor.Instance.Hide();
 
     if (!panels.TryGetValue(panelName, out var roots))
@@ -157,9 +157,9 @@ public class MenuDirector : MonoBehaviour
     }
 }
 
-Canvas.ForceUpdateCanvases();
+     Canvas.ForceUpdateCanvases();
 
-SelectFirstButton();
+     SelectFirstButton();
 
 
 }
@@ -277,6 +277,23 @@ SelectFirstButton();
           obj.transform.DOKill();
       }
     }
+  }
+
+  public void ForceSelection()
+  {
+    if(EventSystem.current.currentSelectedGameObject == null)
+    {
+      SelectFirstButton();
+    }
+    GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    if (selected == null)
+      return;
+
+    Button btn = selected.GetComponent<Button>();
+
+    if(btn != null)
+      MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
   }
 
   #endregion

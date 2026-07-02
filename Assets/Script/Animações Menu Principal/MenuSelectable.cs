@@ -12,6 +12,8 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
     [SerializeField] private PreviewSettings preview;
 
+  public static bool CanSeletc;
+
   void Awake()
   {
     button = GetComponent<Button>();
@@ -20,6 +22,9 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
   public void OnSelect(BaseEventData eventData)
     {
+    if (!CanSeletc)
+      return;
+
         if(MenuSelectionCursor.Instance != null)
            MenuSelectionCursor.Instance.MoveTo(button);
           
@@ -29,6 +34,10 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+
+       if(!CanSeletc)
+        return;
+
         if(!button.interactable)
            return;
 

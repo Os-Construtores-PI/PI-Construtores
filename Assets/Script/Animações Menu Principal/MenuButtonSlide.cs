@@ -73,20 +73,12 @@ public class MenuButtonSlide : MonoBehaviour
 {
     ActiveAnimations--;
 
-    if (ActiveAnimations == 0)
-    {
-    //ActiveAnimations--;
+  if(ActiveAnimations == 0)
+  {
+    FindFirstObjectByType<MenuDirector>().ForceSelection();
+  }
 
-        GameObject selected = EventSystem.current.currentSelectedGameObject;
-
-        if (selected != null)
-        {
-            Button btn = selected.GetComponent<Button>();
-
-            if (btn != null)
-                MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
-        }
-    }
+    
 });
 
     }

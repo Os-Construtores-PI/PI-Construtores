@@ -28,6 +28,8 @@ public class MenuSelectionCursor : MonoBehaviour
     [SerializeField] private float idleSpeed = .45f;
 
     private Tween idleTween;
+
+  public bool CanMove { get; set; } = false;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   private void Awake()
   {
@@ -69,6 +71,9 @@ public class MenuSelectionCursor : MonoBehaviour
 
     public void ShowAfterAnimation(Button button)
     {
+       // CanMove = true;
+
+
         cursor.gameObject.SetActive(true);
         InternalMove(button, true);
     }
