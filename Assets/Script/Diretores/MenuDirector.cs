@@ -26,8 +26,12 @@ public class MenuDirector : MonoBehaviour
   [SerializeField]
   private LoadingScreen _loadingScreen;
 
+  private EventSystem _eventSystem;
+
   private void Awake()
   {
+    _eventSystem = EventSystem.current;
+
     Time.timeScale = 1f;
     Cursor.lockState = CursorLockMode.None;
     Cursor.visible = true;
@@ -72,6 +76,7 @@ public class MenuDirector : MonoBehaviour
 
   private void SelectFirstButton()
   {
+
     if (currentButtons.Count == 0)
       return;
 
@@ -132,8 +137,15 @@ public class MenuDirector : MonoBehaviour
 
   private void ShowPanel(string panelName, bool fade = false)
   {
-    MenuSelectionCursor.Instance.CanMove = false;
-    MenuSelectionCursor.Instance.Hide();
+    bool animatedMenu = panelName == Constants.MenuPanelNames.Menu;
+
+    if (animatedMenu)
+    {
+        _eventSystem.sendNavigationEvents = false;
+        MenuSelectable.CanSeletc = false;
+        MenuSelectionCursor.Instance.Hide();
+    }
+
 
     if (!panels.TryGetValue(panelName, out var roots))
         return;
@@ -295,6 +307,11 @@ public class MenuDirector : MonoBehaviour
     if(btn != null)
       MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
   }
+
+  public void EnableNavigation()
+{
+    _eventSystem.sendNavigationEvents = true;
+}
 
   #endregion
 }

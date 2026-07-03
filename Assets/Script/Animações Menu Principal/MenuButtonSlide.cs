@@ -33,7 +33,7 @@ public class MenuButtonSlide : MonoBehaviour
 
       ActiveAnimations++;
 
-    Debug.Log($"Começou {name} | {ActiveAnimations}");
+    Debug.Log($"Comeï¿½ou {name} | {ActiveAnimations}");
 
     rect.DOKill();
 
@@ -75,7 +75,12 @@ public class MenuButtonSlide : MonoBehaviour
 
   if(ActiveAnimations == 0)
   {
-    FindFirstObjectByType<MenuDirector>().ForceSelection();
+    MenuSelectable.CanSeletc = true;
+
+    MenuDirector director = FindFirstObjectByType<MenuDirector>();
+
+    director.EnableNavigation();
+    director.ForceSelection();
   }
 
     
