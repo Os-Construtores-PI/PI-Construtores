@@ -11,13 +11,23 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
     Button button;
 
     [SerializeField] private PreviewSettings preview;
+    [SerializeField] GameObject _spriteIndicador;
 
   public static bool CanSeletc;
 
   void Awake()
   {
     button = GetComponent<Button>();
+
+    if(_spriteIndicador != null)
+       _spriteIndicador.SetActive(false);
     
+  }
+
+  public void MostrarSprite()
+  {
+    if(_spriteIndicador != null)
+       _spriteIndicador.SetActive(true);
   }
 
   public void OnSelect(BaseEventData eventData)

@@ -77,6 +77,14 @@ public class MenuButtonSlide : MonoBehaviour
   {
     MenuSelectable.CanSeletc = true;
 
+    MenuSelectable[] buttons = 
+        FindObjectsByType<MenuSelectable>(
+          FindObjectsSortMode.None
+        );
+
+        foreach(var b in buttons)
+          b.MostrarSprite();
+
     MenuDirector director = FindFirstObjectByType<MenuDirector>();
 
     director.EnableNavigation();
