@@ -56,7 +56,7 @@ public class PlayerActionStateJump : IPlayerState<Player>
       player.AnimatorComponent?.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);
 
     player.CurrentJumpCount++;
-    player.EffectsSystem?.PlayEffect(EffectType.JumpEffect, 1);
+    player.EffectsSystem?.PlayEffect(EntityEffectType.PlayerJumpEffect, 1);
 
     player.MovementVector = targetVelocity;
     player.ActionLayer.ExitState(this, player);

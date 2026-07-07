@@ -158,15 +158,13 @@ public enum BillboardType
   CameraForward,
 }
 
-// LookUp
-
-public enum EffectType
+public enum EntityEffectType
 {
-  DashEffect,
-  JumpEffect,
-  BoostEffect,
-  ChargingEffect,
-  SpeedEffect,
+  PlayerDashEffect,
+  PlayerJumpEffect,
+  PlayerBoostEffect,
+  PlayerSpeedEffect,
+  EntityDeathEffect,
 }
 
 public enum TrailType

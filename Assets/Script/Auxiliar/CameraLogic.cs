@@ -13,7 +13,7 @@ public class CameraLogic : Entities
   private CinemachineCamera _currentCinemachineCamera;
   private CinemachineCamera _lockOnCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
-  private readonly Dictionary<EffectType, ParticleSystem> effects = new();
+  private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
 
   public override void Awake()
   {
@@ -33,7 +33,7 @@ public class CameraLogic : Entities
   {
     if (Time.timeScale < 1)
     {
-      foreach (KeyValuePair<EffectType, ParticleSystem> pair in effects)
+      foreach (KeyValuePair<EntityEffectType, ParticleSystem> pair in effects)
       {
         pair.Value.Stop();
       }
@@ -63,7 +63,7 @@ public class CameraLogic : Entities
   {
     foreach (ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())
     {
-      if (Lookups.Effects.LookupTable.TryGetValue(particle.tag, out EffectType effectType))
+      if (Lookups.Effects.LookupTable.TryGetValue(particle.tag, out EntityEffectType effectType))
       {
         effects.Add(effectType, particle);
       }
@@ -74,15 +74,15 @@ public class CameraLogic : Entities
   {
     if (set)
     {
-      effects[EffectType.SpeedEffect].Play();
+      effects[EntityEffectType.PlayerSpeedEffect].Play();
     }
     else
     {
-      effects[EffectType.SpeedEffect].Stop();
+      effects[EntityEffectType.PlayerSpeedEffect].Stop();
     }
   }
 
-  private IEnumerator StopEffectsRoutine(EffectType effectType, float waitTime)
+  private IEnumerator StopEffectsRoutine(EntityEffectType effectType, float waitTime)
   {
     yield return new WaitForSeconds(waitTime);
     effects[effectType].Stop();
