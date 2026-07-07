@@ -13,11 +13,21 @@ public class PlayerLocomotionStateHLocked : ILocomotionState<Player>
 
   public void FixedUpdate(Player player)
   {
-    ILocomotionState<Player>.ApplyGravity(player);
     if (player.IsGrounded)
     {
       player.CurrentJumpCount = 0;
       player.CurrentDashCount = 0;
+
+      if (player.MovementVector.y < 0f)
+      {
+        Vector3 move = player.MovementVector;
+        move.y = -2f;
+        player.MovementVector = move;
+      }
+    }
+    else
+    {
+      ILocomotionState<Player>.ApplyGravity(player);
     }
   }
 
