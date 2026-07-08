@@ -16,12 +16,15 @@ public class MenuPreview : MonoBehaviour
 
     [SerializeField] private float duration = .45f;
 
+
     private Tween currentTween;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   private void Awake()
   {
     Instance = this;
+
   }
+
 
   public void Show(PreviewSettings preview)
     {

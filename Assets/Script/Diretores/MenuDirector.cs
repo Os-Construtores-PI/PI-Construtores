@@ -173,6 +173,8 @@ public class MenuDirector : MonoBehaviour
 
      SelectFirstButton();
 
+     MenuPreview.Instance.gameObject.SetActive(false);
+
 
 }
 

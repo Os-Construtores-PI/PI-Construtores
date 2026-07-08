@@ -87,6 +87,9 @@ public class MenuButtonSlide : MonoBehaviour
 
     MenuDirector director = FindFirstObjectByType<MenuDirector>();
 
+    MenuPreview.Instance.gameObject.SetActive(true);
+
+
     director.EnableNavigation();
     director.ForceSelection();
   }
