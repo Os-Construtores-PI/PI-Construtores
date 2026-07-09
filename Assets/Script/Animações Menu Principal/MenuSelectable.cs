@@ -58,5 +58,11 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
           // MenuPreview.Instance.Show(preview);
     }
+
+    public void ForcePreview()
+   {
+      if(preview != null)
+         MenuPreview.Instance.Show(preview);
+   }
 }
 

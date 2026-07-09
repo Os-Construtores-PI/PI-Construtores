@@ -295,10 +295,10 @@ public class MenuDirector : MonoBehaviour
 
   public void ForceSelection()
   {
-    if(EventSystem.current.currentSelectedGameObject == null)
-    {
-      SelectFirstButton();
-    }
+    EventSystem.current.SetSelectedGameObject(null);
+
+    SelectFirstButton();
+    
     GameObject selected = EventSystem.current.currentSelectedGameObject;
 
     if (selected == null)
@@ -308,6 +308,11 @@ public class MenuDirector : MonoBehaviour
 
     if(btn != null)
       MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+
+    MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
+
+    if(selectable != null)
+       selectable.ForcePreview();
   }
 
   public void EnableNavigation()
@@ -316,4 +321,6 @@ public class MenuDirector : MonoBehaviour
 }
 
   #endregion
+
 }
+
