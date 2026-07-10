@@ -229,6 +229,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
     player.CanDash = true;
     player.IsDashing = false;
+    LevelPlayerRotation(player);
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
@@ -322,5 +323,16 @@ public class PlayerActionStateDash : IPlayerState<Player>
   {
     if (dashScript != null && dashScript.gameObject.activeInHierarchy)
       dashScript.OnDashReady();
+  }
+
+  private void LevelPlayerRotation(Player player)
+  {
+    Vector3 flatForward = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up);
+
+    if (flatForward.sqrMagnitude < 0.0001f)
+      flatForward = Vector3.ProjectOnPlane(player.DashDirection, Vector3.up);
+
+    if (flatForward.sqrMagnitude > 0.0001f)
+      player.transform.rotation = Quaternion.LookRotation(flatForward.normalized, Vector3.up);
   }
 }

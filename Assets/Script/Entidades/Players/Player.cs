@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -577,11 +577,20 @@ public class Player : CombatEntities
   public void LockCamera(bool state) => CameraLocked = state;
   #endregion
 
+  #region Ciclo de Vida Assíncrono
+  // CancellationTokenSource usado para cancelar tarefas assíncronas em andamento
+  // (ex.: SetupHUDDelayedAsync) caso o objeto seja destruído antes delas concluírem.
+  // Isso evita o equivalente assíncrono de "Coroutine ainda rodando em objeto morto".
+  private CancellationTokenSource _lifetimeCts;
+  #endregion
+
   #region Unity Lifecycle
   public override void Awake()
   {
     base.Awake();
     canPulse = false;
+
+    _lifetimeCts = new CancellationTokenSource();
 
     CharacterController = GetComponent<CharacterController>();
     AnimatorComponent = GetComponent<Animator>();
@@ -598,7 +607,11 @@ public class Player : CombatEntities
 
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
-    StartCoroutine(DelayedSetupHUD(HUD_INIT_DELAY));
+
+    // Fire-and-forget: Start não pode ser async Awaitable aqui pois a base
+    // class expõe "override void Start()". O token de cancelamento garante
+    // que a tarefa não tente rodar SetupHUD() após o objeto ser destruído.
+    _ = SetupHUDDelayedAsync(HUD_INIT_DELAY, _lifetimeCts.Token);
 
     SetupDashHUD();
     SetupCinemachine();
@@ -640,7 +653,14 @@ public class Player : CombatEntities
     CharacterController.Move(MovementVector * Time.deltaTime);
   }
 
-  public void OnDestroy() => DOTween.Kill(this);
+  public void OnDestroy()
+  {
+    DOTween.Kill(this);
+
+    // Cancela qualquer Awaitable pendente (ex.: SetupHUDDelayedAsync) e libera o token.
+    _lifetimeCts?.Cancel();
+    _lifetimeCts?.Dispose();
+  }
   #endregion
 
   #region Helpers de Inicialização
@@ -1118,10 +1138,20 @@ public class Player : CombatEntities
   #endregion
 
   #region HUD & Feedback
-  private IEnumerator DelayedSetupHUD(float duration)
+  // Substitui a antiga Coroutine "DelayedSetupHUD" por um método assíncrono
+  // usando o tipo nativo Awaitable do Unity (sem alocação de IEnumerator/enumerator
+  // boxing, e com suporte nativo a CancellationToken).
+  private async Awaitable SetupHUDDelayedAsync(float delay, CancellationToken token)
   {
-    yield return new WaitForSeconds(duration);
-    SetupHUD();
+    try
+    {
+      await Awaitable.WaitForSecondsAsync(delay, token);
+      SetupHUD();
+    }
+    catch (OperationCanceledException)
+    {
+      // Esperado quando o Player é destruído antes do delay terminar.
+    }
   }
 
   private void SetupHUD()
