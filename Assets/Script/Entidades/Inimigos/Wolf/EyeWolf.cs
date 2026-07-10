@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks; // apenas se precisar em outro lugar
 using UnityEngine;
 
 public class EyeWolf : MonoBehaviour
@@ -5,6 +7,10 @@ public class EyeWolf : MonoBehaviour
   [Header("Config do Campo de Visão")]
   public float _visionRange = 10f;
   public float _visionAngle = 120f;
+
+  [Header("Performance")]
+  [SerializeField, Tooltip("Intervalo em segundos entre cada scan de visão")]
+  private float _scanInterval = 0.2f;
 
   [Header("Camadas de Detecção")]
   public LayerMask _targetMask;
@@ -18,20 +24,43 @@ public class EyeWolf : MonoBehaviour
   public Transform DetectedPlayer;
 
   private Transform target;
-
-  private void Update()
-  {
-    ProcurarAlvos();
-  }
+  private CancellationTokenSource _scanCts;
 
   private void Start()
   {
     GameObject playerObj = GameObject.FindGameObjectWithTag("PlayersHolder");
-
     if (playerObj != null)
       target = playerObj.transform;
     else
       Debug.LogWarning("Player não encontrado! Verifique a Tag do Player");
+  }
+
+  // Método de ciclo de vida assíncrono nativo do Unity 6.
+  // Substitui o Update() — roda em loop próprio, sem sobrecarregar por frame.
+  private async Awaitable OnEnable()
+  {
+    _scanCts = new CancellationTokenSource();
+    var token = _scanCts.Token;
+
+    try
+    {
+      while (!token.IsCancellationRequested)
+      {
+        ProcurarAlvos();
+        await Awaitable.WaitForSecondsAsync(_scanInterval, token);
+      }
+    }
+    catch (System.OperationCanceledException)
+    {
+      // Esperado quando o objeto é desativado/destruído — não é erro.
+    }
+  }
+
+  private void OnDisable()
+  {
+    _scanCts?.Cancel();
+    _scanCts?.Dispose();
+    _scanCts = null;
   }
 
   public void ProcurarAlvos()
@@ -40,11 +69,9 @@ public class EyeWolf : MonoBehaviour
     DetectedPlayer = null;
 
     Collider[] targetsInArea = Physics.OverlapSphere(transform.position, _visionRange, _targetMask);
-
     foreach (var col in targetsInArea)
     {
       Transform t = col.transform;
-
       if (!t.CompareTag(Constants.Tags.Player.ToString()))
         continue;
 
@@ -69,7 +96,6 @@ public class EyeWolf : MonoBehaviour
         return true;
       }
     }
-
     return false;
   }
 
@@ -94,7 +120,6 @@ public class EyeWolf : MonoBehaviour
     return new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad));
   }
 
-  // Permite definir o target manualmente (opcional)
   public void SetTarget(Transform t)
   {
     DetectedPlayer = t;

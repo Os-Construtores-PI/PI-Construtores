@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
@@ -16,7 +16,7 @@ public class HudDirector : MonoBehaviour
 {
   // ─── Constantes ────────────────────────────────────────────────────────────
 
-  private static readonly WaitForSecondsRealtime WAIT_TELEPORT_FADE = new(1f);
+  private const float TELEPORT_FADE_SECONDS = 1f;
 
   private const float PANEL_TWEEN_DURATION = 0.25f;
   private const float PANEL_FADE_OPACITY = 0.8f;
@@ -63,7 +63,8 @@ public class HudDirector : MonoBehaviour
 
   private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
 
-  private readonly Dictionary<int, Coroutine> _shakeStopCoroutines = new();
+  // Substitui os antigos Coroutines de shake por CancellationTokenSource por jogador.
+  private readonly Dictionary<int, CancellationTokenSource> _shakeCts = new();
 
   private readonly Dictionary<(int, HudPanelType), Sequence> _tempPanelSequences = new();
 
@@ -113,6 +114,18 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
     GlobalEventBus.Instance.ScoreUpdate.RemoveListener(ScorePanel);
+  }
+
+  private void OnDestroy()
+  {
+    // Cancela qualquer shake pendente para evitar Awaitables órfãos.
+    foreach (var cts in _shakeCts.Values)
+      cts?.Cancel();
+
+    foreach (var cts in _shakeCts.Values)
+      cts?.Dispose();
+
+    _shakeCts.Clear();
   }
 
   private void Start()
@@ -454,7 +467,7 @@ public class HudDirector : MonoBehaviour
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Shake de Câmera
+  // Shake de Câmera (agora via Awaitable, sem Coroutines)
   // ═══════════════════════════════════════════════════════════════════════════
 
   public void CameraShake(int playerID, float amplitude, float frequency, float duration = 0f)
@@ -462,17 +475,13 @@ public class HudDirector : MonoBehaviour
     if (!_playerNoises.TryGetValue(playerID, out var noise))
       return;
 
-    if (_shakeStopCoroutines.TryGetValue(playerID, out var existing) && existing != null)
-    {
-      StopCoroutine(existing);
-      _shakeStopCoroutines[playerID] = null;
-    }
+    CancelPendingShakeStop(playerID);
 
     noise.AmplitudeGain = amplitude;
     noise.FrequencyGain = frequency;
 
     if (duration > 0f)
-      _shakeStopCoroutines[playerID] = StartCoroutine(StopShakingAfter(playerID, noise, duration));
+      ScheduleShakeStop(playerID, noise, duration);
   }
 
   public void RunningShake(int playerID, bool active)
@@ -480,31 +489,59 @@ public class HudDirector : MonoBehaviour
     if (active)
     {
       CameraShake(playerID, Running.Amplitude, Running.Frequency);
+      return;
     }
-    else
-    {
-      if (!_playerNoises.TryGetValue(playerID, out var noise))
-        return;
 
-      if (_shakeStopCoroutines.TryGetValue(playerID, out var existing) && existing != null)
-        StopCoroutine(existing);
+    if (!_playerNoises.TryGetValue(playerID, out var noise))
+      return;
 
-      _shakeStopCoroutines[playerID] = StartCoroutine(
-        StopShakingAfter(playerID, noise, Running.StopDelay)
-      );
-    }
+    CancelPendingShakeStop(playerID);
+    ScheduleShakeStop(playerID, noise, Running.StopDelay);
   }
 
-  private IEnumerator StopShakingAfter(
+  private void ScheduleShakeStop(
     int playerID,
     CinemachineBasicMultiChannelPerlin noise,
     float delay
   )
   {
-    yield return new WaitForSeconds(delay);
+    var cts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+    _shakeCts[playerID] = cts;
+
+    // Fire-and-forget: o Awaitable inicia imediatamente, como uma coroutine,
+    // mas é cancelável via token em vez de StopCoroutine.
+    StopShakingAfterAsync(playerID, noise, delay, cts.Token);
+  }
+
+  private void CancelPendingShakeStop(int playerID)
+  {
+    if (!_shakeCts.TryGetValue(playerID, out var existing) || existing == null)
+      return;
+
+    existing.Cancel();
+    existing.Dispose();
+    _shakeCts[playerID] = null;
+  }
+
+  private async Awaitable StopShakingAfterAsync(
+    int playerID,
+    CinemachineBasicMultiChannelPerlin noise,
+    float delay,
+    CancellationToken token
+  )
+  {
+    try
+    {
+      await Awaitable.WaitForSecondsAsync(delay, token);
+    }
+    catch (OperationCanceledException)
+    {
+      return;
+    }
+
     noise.AmplitudeGain = 0f;
     noise.FrequencyGain = 0f;
-    _shakeStopCoroutines[playerID] = null;
+    _shakeCts[playerID] = null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -634,24 +671,45 @@ public class HudDirector : MonoBehaviour
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Teleporte
+  // Teleporte (agora via Awaitable, sem Coroutines)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  private void TeleportFade(int playerID) => StartCoroutine(TeleportFadeRoutine(playerID));
+  private void TeleportFade(int playerID) => TeleportFadeAsync(playerID, destroyCancellationToken);
 
-  private IEnumerator TeleportFadeRoutine(int playerID)
+  private async Awaitable TeleportFadeAsync(int playerID, CancellationToken token)
   {
     GameObject teleportPanel = GetPanel(playerID, HudPanelType.TeleportFadePanel).FirstOrDefault();
 
     if (!teleportPanel)
     {
       Debug.LogWarning("[HudDirector] TeleportFadePanel não encontrado para o jogador " + playerID);
-      yield break;
+      return;
     }
 
     ShowPanel(HudPanelType.TeleportFadePanel, playerID, independent: false);
-    yield return WAIT_TELEPORT_FADE;
+
+    try
+    {
+      // Preserva o comportamento original de WaitForSecondsRealtime (imune ao timeScale),
+      // já que Awaitable.WaitForSecondsAsync usa tempo escalado por padrão.
+      await WaitRealtimeSecondsAsync(TELEPORT_FADE_SECONDS, token);
+    }
+    catch (OperationCanceledException)
+    {
+      return;
+    }
+
     HidePanel(HudPanelType.TeleportFadePanel, playerID, independent: false);
+  }
+
+  private static async Awaitable WaitRealtimeSecondsAsync(float seconds, CancellationToken token)
+  {
+    float elapsed = 0f;
+    while (elapsed < seconds)
+    {
+      await Awaitable.NextFrameAsync(token);
+      elapsed += Time.unscaledDeltaTime;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
