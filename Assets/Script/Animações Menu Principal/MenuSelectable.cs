@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class MenuSelectable : 
-MonoBehaviour, ISelectHandler, IPointerEnterHandler
+MonoBehaviour, ISelectHandler, IPointerEnterHandler, ISubmitHandler
 
 
 {
@@ -58,6 +58,11 @@ MonoBehaviour, ISelectHandler, IPointerEnterHandler
 
           // MenuPreview.Instance.Show(preview);
     }
+
+  public void OnSubmit(BaseEventData eventData)
+  {
+    MenuSelectionCursor.Instance.SetPressed(0.15f);
+  }
 
     public void ForcePreview()
    {

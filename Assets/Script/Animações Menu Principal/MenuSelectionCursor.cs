@@ -29,13 +29,34 @@ public class MenuSelectionCursor : MonoBehaviour
 
     private Tween idleTween;
 
+  [Header("Sprites")]
+  [SerializeField] private Image cursorImage;
+
+  [SerializeField] private Sprite _normalImage;
+  [SerializeField] private Sprite _pressedSprite;
+
   public bool CanMove { get; set; } = false;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   private void Awake()
   {
     Instance = this;
+
+    cursorImage.sprite = _normalImage;
   }
 
+  public void SetNormal()
+  {
+    cursorImage.sprite = _normalImage;
+  }
+
+  public void SetPressed(float delay)
+  {
+    cursorImage.sprite = _pressedSprite;
+
+    CancelInvoke(nameof(SetNormal));
+
+    Invoke(nameof(SetNormal), delay);
+  }
   public void MoveTo(Button button, bool instant = false)
     {
 
@@ -80,6 +101,8 @@ public class MenuSelectionCursor : MonoBehaviour
 
     private void InternalMove(Button button, bool instant)
     {
+       SetNormal();
+
         if (button == null)
         return;
 

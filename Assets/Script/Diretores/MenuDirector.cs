@@ -28,6 +28,8 @@ public class MenuDirector : MonoBehaviour
 
   private EventSystem _eventSystem;
 
+  [SerializeField] private float panelTransitionDelay = 0.35f;
+
   private void Awake()
   {
     _eventSystem = EventSystem.current;
@@ -200,7 +202,12 @@ public class MenuDirector : MonoBehaviour
   private void SwitchPanel(string from, string to, bool fade = false)
   {
     HidePanel(from, fade);
-    ShowPanel(to, fade);
+
+    DOVirtual.DelayedCall(panelTransitionDelay, () =>
+    {
+      ShowPanel(to, fade);
+    });
+    //ShowPanel(to, fade);
   }
 
   #endregion
