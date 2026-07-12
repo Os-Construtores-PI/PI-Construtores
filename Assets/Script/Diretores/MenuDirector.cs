@@ -180,6 +180,25 @@ public class MenuDirector : MonoBehaviour
 
 }
 
+private void LockCurrentPanel()
+  {
+    EventSystem.current.SetSelectedGameObject(null);
+
+    _eventSystem.sendNavigationEvents = false;
+
+    foreach (Button btn in currentButtons)
+    {
+        if(btn != null)
+            btn.interactable = false;
+    }
+
+    if (panels.TryGetValue(_currentPanel, out var roots))
+    {
+        foreach(var root in roots)
+            root.SetActive(false);
+    }
+  }
+
   private void HidePanel(string panelName, bool fade = false)
   {
     if (!panels.TryGetValue(panelName, out var roots))
@@ -239,6 +258,10 @@ public class MenuDirector : MonoBehaviour
       }
     }
     DataDirector.Instance.SaveHasSave(true);
+    if(_loadingScreen.IsLoading)
+       return;
+       
+    LockCurrentPanel();
     _loadingScreen.LoadScene(level);
   }
 
@@ -284,6 +307,10 @@ public class MenuDirector : MonoBehaviour
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
+
+    if(_loadingScreen.IsLoading)
+       return;
+    
     _loadingScreen.LoadScene(Constants.SceneNames.FirstLevel);
   }
 

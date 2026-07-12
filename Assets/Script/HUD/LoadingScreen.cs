@@ -16,6 +16,8 @@ public class LoadingScreen : MonoBehaviour
 
   public bool IsShowing {get; private set;}
 
+  public bool IsLoading { get; private set; }
+
 
   public void ShowLoading(float duration)
   {
@@ -69,6 +71,10 @@ public class LoadingScreen : MonoBehaviour
 
   public void LoadScene(string sceneName)
   {
+    if(IsLoading)
+       return;
+    IsLoading = true;
+    
     _loadingRoot.SetActive(true);
 
     StartCoroutine(LoadSceneAsync(sceneName));  
