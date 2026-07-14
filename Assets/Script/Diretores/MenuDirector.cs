@@ -30,6 +30,8 @@ public class MenuDirector : MonoBehaviour
 
   [SerializeField] private float panelTransitionDelay = 0.35f;
 
+  private int animationsRemaining;
+
   private void Awake()
   {
     _eventSystem = EventSystem.current;
@@ -51,6 +53,12 @@ public class MenuDirector : MonoBehaviour
 
   private void Update()
   {
+
+    if (BackPressed())
+    {
+      HandleBack();
+      return;
+    }
     if (EventSystem.current.currentSelectedGameObject != null)
       return;
 
@@ -89,6 +97,43 @@ public class MenuDirector : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(btn.gameObject);
         break;
       }
+    }
+  }
+
+  private bool BackPressed()
+  {
+    bool keyboard =
+        Keyboard.current != null &&
+        Keyboard.current.escapeKey.wasPressedThisFrame;
+
+    bool gamepad = 
+         Gamepad.current != null &&
+         Gamepad.current.buttonEast.wasPressedThisFrame;
+    
+    return keyboard || gamepad;
+  }
+
+  private void HandleBack()
+  {
+    if(_loadingScreen.IsLoading)
+       return;
+    
+    if(!MenuSelectable.CanSeletc)
+       return;
+    
+    switch (_currentPanel)
+    {
+      case Constants.MenuPanelNames.OptionsMenu:
+           ExitOptions();
+           break;
+      
+      case Constants.MenuPanelNames.AudioMenu:
+           ExitAudioOption();
+           break;
+      
+      case Constants.MenuPanelNames.SaveMenu:
+           ExitSaveMenu();
+           break;
     }
   }
 
@@ -169,6 +214,16 @@ public class MenuDirector : MonoBehaviour
 
         
     }
+}
+
+animationsRemaining = 0;
+
+foreach (var root in roots)
+{
+    MenuButtonSlide[] slides =
+        root.GetComponentsInChildren<MenuButtonSlide>(true);
+
+    animationsRemaining += slides.Length;
 }
 
      Canvas.ForceUpdateCanvases();
@@ -347,6 +402,28 @@ private void LockCurrentPanel()
 
     if(selectable != null)
        selectable.ForcePreview();
+  }
+
+  public void NotifyAnimationsFinished()
+  {
+    animationsRemaining--;
+
+    if(animationsRemaining > 0)
+       return;
+
+    MenuSelectable.CanSeletc = true;
+
+    MenuSelectable[] buttons =
+         FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None);
+    
+    foreach (var b in buttons)
+        b.MostrarSprite();
+    
+    MenuPreview.Instance.gameObject.SetActive(true);
+
+    EnableNavigation();
+
+    ForceSelection();
   }
 
   public void EnableNavigation()

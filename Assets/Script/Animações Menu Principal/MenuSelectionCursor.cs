@@ -57,6 +57,18 @@ public class MenuSelectionCursor : MonoBehaviour
 
     Invoke(nameof(SetNormal), delay);
   }
+
+  private void OnDisable()
+    {
+        cursor?.DOKill();
+        idleTween?.Kill();
+    }
+
+    private void OnDestroy()
+    {
+        cursor?.DOKill();
+        idleTween?.Kill();
+    }
   public void MoveTo(Button button, bool instant = false)
     {
 
@@ -66,6 +78,7 @@ public class MenuSelectionCursor : MonoBehaviour
 
     public void Hide()
     {
+        Debug.Log("HIDE CURSOR");
         cursor.DOKill();
         idleTween?.Kill();
         
@@ -81,6 +94,13 @@ public class MenuSelectionCursor : MonoBehaviour
 
     void StartIdle()
     {
+
+        if (cursor == null)
+        return;
+
+    idleTween?.Kill();
+
+
         idleTween =
             cursor.DOAnchorPosX(
                 cursor.anchoredPosition.x + idleDistance,
@@ -94,22 +114,26 @@ public class MenuSelectionCursor : MonoBehaviour
     {
        // CanMove = true;
 
+       Debug.Log("SHOW CURSOR");
+
 
         cursor.gameObject.SetActive(true);
         InternalMove(button, true);
+        
     }
 
     private void InternalMove(Button button, bool instant)
     {
-       SetNormal();
 
         if (button == null)
         return;
 
+       SetNormal();
     RectTransform target = button.GetComponent<RectTransform>();
 
     cursor.DOKill();
     idleTween?.Kill();
+    idleTween = null;
 
     Vector2 screenPoint =
         RectTransformUtility.WorldToScreenPoint(null, target.position);

@@ -14,7 +14,7 @@ public class MenuButtonSlide : MonoBehaviour
     RectTransform rect;
     Vector2 finalPos;
 
-    public static int ActiveAnimations;
+   // public static int ActiveAnimations;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
 
   void Awake()
@@ -23,6 +23,8 @@ public class MenuButtonSlide : MonoBehaviour
     finalPos = rect.anchoredPosition;
   }
 
+
+
   void OnEnable()
   {
     Play();
@@ -30,10 +32,6 @@ public class MenuButtonSlide : MonoBehaviour
 
   public void Play()
     {
-
-      ActiveAnimations++;
-
-    Debug.Log($"Come�ou {name} | {ActiveAnimations}");
 
     rect.DOKill();
 
@@ -71,28 +69,11 @@ public class MenuButtonSlide : MonoBehaviour
 
     seq.OnComplete(() =>
 {
-    ActiveAnimations--;
 
-  if(ActiveAnimations == 0)
-  {
-    MenuSelectable.CanSeletc = true;
+  MenuDirector director = FindFirstObjectByType<MenuDirector>();
 
-    MenuSelectable[] buttons = 
-        FindObjectsByType<MenuSelectable>(
-          FindObjectsSortMode.None
-        );
-
-        foreach(var b in buttons)
-          b.MostrarSprite();
-
-    MenuDirector director = FindFirstObjectByType<MenuDirector>();
-
-    MenuPreview.Instance.gameObject.SetActive(true);
-
-
-    director.EnableNavigation();
-    director.ForceSelection();
-  }
+  if(director != null)
+     director.NotifyAnimationsFinished();
 
     
 });
