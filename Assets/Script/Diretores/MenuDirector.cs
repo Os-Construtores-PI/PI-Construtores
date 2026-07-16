@@ -23,8 +23,8 @@ public class MenuDirector : MonoBehaviour
 
   private readonly Dictionary<string, List<GameObject>> panels = new();
 
-  [SerializeField]
-  private LoadingScreen _loadingScreen;
+
+  [SerializeField] private StageIntroDirector _stageIntro;
 
   private EventSystem _eventSystem;
 
@@ -115,8 +115,6 @@ public class MenuDirector : MonoBehaviour
 
   private void HandleBack()
   {
-    if(_loadingScreen.IsLoading)
-       return;
     
     if(!MenuSelectable.CanSeletc)
        return;
@@ -313,11 +311,12 @@ private void LockCurrentPanel()
       }
     }
     DataDirector.Instance.SaveHasSave(true);
-    if(_loadingScreen.IsLoading)
-       return;
        
     LockCurrentPanel();
-    _loadingScreen.LoadScene(level);
+    StageIntroData intro =
+         Resources.Load<StageIntroData>("Stages/Stage01");
+
+    _stageIntro.Play(intro);
   }
 
   public void ExitOptions()
@@ -345,11 +344,6 @@ private void LockCurrentPanel()
     SwitchPanel(Constants.MenuPanelNames.SaveMenu, Constants.MenuPanelNames.Menu);
   }
 
-  public void LoadScene(string sceneName)
-  {
-
-    _loadingScreen.LoadScene(sceneName);
-  }
 
   public void QuitGame()
   {
@@ -363,10 +357,10 @@ private void LockCurrentPanel()
   {
     DataDirector.Instance.SaveHasSave(false);
 
-    if(_loadingScreen.IsLoading)
-       return;
-    
-    _loadingScreen.LoadScene(Constants.SceneNames.FirstLevel);
+    StageIntroData intro =
+        Resources.Load<StageIntroData>("Stages/Stage01");
+
+    _stageIntro.Play(intro);
   }
 
   private void OnDestroy()

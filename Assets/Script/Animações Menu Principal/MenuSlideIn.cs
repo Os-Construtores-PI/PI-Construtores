@@ -34,8 +34,15 @@ public class MenuSlideIn : MonoBehaviour
     PlayAnimation();
   }
 
+
   public void PlayAnimation()
   {
+    if(rect == null)
+    {
+      rect = GetComponent<RectTransform>();
+      finalPosition = rect.anchoredPosition;
+
+    }
     rect.DOKill();
 
     RectTransform canvasRect =
