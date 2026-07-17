@@ -32,6 +32,8 @@ public class MenuDirector : MonoBehaviour
 
   private int animationsRemaining;
 
+  private bool _loadingGame;
+
   private void Awake()
   {
     _eventSystem = EventSystem.current;
@@ -53,6 +55,9 @@ public class MenuDirector : MonoBehaviour
 
   private void Update()
   {
+
+    if(_loadingGame)
+       return;
 
     if (BackPressed())
     {
@@ -182,6 +187,8 @@ public class MenuDirector : MonoBehaviour
 
   private void ShowPanel(string panelName, bool fade = false)
   {
+    Debug.Log("SHOW PANEL -> " + panelName);
+
     bool animatedMenu = panelName == Constants.MenuPanelNames.Menu;
 
     if (animatedMenu)
@@ -273,6 +280,8 @@ private void LockCurrentPanel()
 
   private void SwitchPanel(string from, string to, bool fade = false)
   {
+    if(_loadingGame)
+       return;
     HidePanel(from, fade);
 
     DOVirtual.DelayedCall(panelTransitionDelay, () =>
@@ -356,6 +365,12 @@ private void LockCurrentPanel()
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
+
+    if(panels.TryGetValue(Constants.MenuPanelNames.SaveMenu, out var roots))
+    {
+      foreach (var root in roots)
+          root.SetActive(false);
+    }
 
     StageIntroData intro =
         Resources.Load<StageIntroData>("Stages/Stage01");

@@ -1227,7 +1227,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &563282541
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1906,7 +1906,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &778696757
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2062,7 +2062,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &823203021
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2616,7 +2616,7 @@ GameObject:
   - component: {fileID: 1164055136}
   - component: {fileID: 1164055137}
   m_Layer: 5
-  m_Name: Text (Numero)
+  m_Name: Text (TEXTOSTAGE)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2638,7 +2638,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 66}
+  m_AnchoredPosition: {x: 0, y: -17.29}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1164055136
@@ -2699,7 +2699,7 @@ MonoBehaviour:
   m_fontSize: 62.54
   m_fontSizeBase: 62.54
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -3059,7 +3059,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1225327793
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3570,12 +3570,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageIntroDirector
   _root: {fileID: 2001287587}
-  _stageNumber: {fileID: 1164055137}
-  _stageTitle: {fileID: 1999622126}
+  _stageNumber: {fileID: 1999622126}
+  _stageTitle: {fileID: 1164055137}
   slideObjects:
   - {fileID: 1511777147}
   - {fileID: 1183766}
   - {fileID: 522120596}
+  - {fileID: 1538674743}
+  - {fileID: 1608403952}
 --- !u!4 &1271273102
 Transform:
   m_ObjectHideFlags: 0
@@ -4599,6 +4601,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1538674742}
+  - component: {fileID: 1538674743}
   m_Layer: 5
   m_Name: BGImagens
   m_TagString: Untagged
@@ -4629,6 +4632,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1538674743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1538674741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0.03
+  direction: 0
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!1 &1608403950
 GameObject:
   m_ObjectHideFlags: 0
@@ -4638,6 +4661,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1608403951}
+  - component: {fileID: 1608403952}
   m_Layer: 5
   m_Name: TextRoot
   m_TagString: Untagged
@@ -4666,6 +4690,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1608403952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608403950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0.5
+  direction: 1
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!1 &1658594349
 GameObject:
   m_ObjectHideFlags: 0
@@ -5036,8 +5080,9 @@ GameObject:
   - component: {fileID: 1999622128}
   - component: {fileID: 1999622127}
   - component: {fileID: 1999622126}
+  - component: {fileID: 1999622129}
   m_Layer: 5
-  m_Name: Text (Fase1)
+  m_Name: Text (NUMERO)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5090,10 +5135,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 128.11
-  m_fontSizeBase: 128.11
+  m_fontSize: 72
+  m_fontSizeBase: 74.7
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -5159,9 +5204,29 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 27}
+  m_AnchoredPosition: {x: -94.7, y: 73.3}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1999622129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999622125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0.5
+  direction: 1
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!1 &1999876052
 GameObject:
   m_ObjectHideFlags: 0
@@ -5180,7 +5245,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1999876053
 RectTransform:
   m_ObjectHideFlags: 0

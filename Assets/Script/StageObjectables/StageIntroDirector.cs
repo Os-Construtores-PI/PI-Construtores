@@ -36,7 +36,17 @@ public class StageIntroDirector : MonoBehaviour
 
     yield return new WaitForSeconds(data.WaitTime);
 
-    _root.SetActive(false);
+    Tween lastTween = null;
+
+    foreach (var slide in slideObjects)
+        {
+            lastTween = slide.PlayExitAnimation();
+        }
+    
+    if(lastTween != null)
+       yield return lastTween.WaitForCompletion();
+
+    yield return new WaitForSeconds(0.15f); // duração da animação
 
     SceneManager.LoadScene(data.SceneName);
     }
