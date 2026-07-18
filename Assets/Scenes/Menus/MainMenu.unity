@@ -4705,7 +4705,7 @@ MonoBehaviour:
   startOffset: 700
   duration: 0.8
   ease: 18
-  startDelay: 0.5
+  startDelay: 0.9
   direction: 1
   bounce: 1
   bounceScale: 1.05
@@ -5992,7 +5992,7 @@ RectTransform:
   m_Father: {fileID: 2693553888703755216}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.5580331, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -6712,6 +6712,7 @@ GameObject:
   - component: {fileID: 5885591533200620077}
   - component: {fileID: 6776885429826352446}
   - component: {fileID: 6776885429826352447}
+  - component: {fileID: 6776885429826352448}
   m_Layer: 5
   m_Name: OptionsExitButton
   m_TagString: Untagged
@@ -7035,7 +7036,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &4063861449690955135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7126,13 +7127,14 @@ GameObject:
   - component: {fileID: 7788052144249101301}
   - component: {fileID: 7282852660882888947}
   - component: {fileID: 1585498739441352108}
+  - component: {fileID: 7788052144249101302}
   m_Layer: 5
   m_Name: AudioMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4342241098235010587
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8186,7 +8188,7 @@ RectTransform:
   m_Father: {fileID: 8109911383105496362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.5580331, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8342,6 +8344,22 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6776885429826352448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2809714773629246325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 317df922bcb5b5a4e96ece480f691dd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeviceSpriteHint
+  targetImage: {fileID: 6776885429826352445}
+  keyboardSprite: {fileID: 843266798, guid: 2789a254862487149b89ef2ee222fc40, type: 3}
+  xboxSprite: {fileID: 1632988797, guid: 2789a254862487149b89ef2ee222fc40, type: 3}
+  playstationSprite: {fileID: 0}
 --- !u!224 &6823399174331795451
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8809,6 +8827,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &7788052144249101302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4257195683266068950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 317df922bcb5b5a4e96ece480f691dd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeviceSpriteHint
+  targetImage: {fileID: 6663858011430188194}
+  keyboardSprite: {fileID: 843266798, guid: 2789a254862487149b89ef2ee222fc40, type: 3}
+  xboxSprite: {fileID: 1632988797, guid: 2789a254862487149b89ef2ee222fc40, type: 3}
+  playstationSprite: {fileID: 0}
 --- !u!1 &7816247750636701041
 GameObject:
   m_ObjectHideFlags: 0
