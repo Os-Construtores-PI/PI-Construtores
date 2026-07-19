@@ -25,6 +25,7 @@ public class GlobalEventBus : MonoBehaviour
   public readonly UnityEvent Death = new();
   public readonly UnityEvent Respawn = new();
   public readonly UnityEvent EndGame = new();
+  public readonly UnityEvent EndGameProcessed = new();
   public readonly UnityEvent<bool> Pause = new();
   public readonly UnityEvent<bool> Options = new();
   public readonly UnityEvent<string> InputUpdate = new();

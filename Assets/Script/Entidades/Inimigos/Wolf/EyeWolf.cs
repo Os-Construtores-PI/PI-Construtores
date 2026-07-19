@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Tasks; // apenas se precisar em outro lugar
 using UnityEngine;
 
 public class EyeWolf : MonoBehaviour
@@ -12,6 +11,9 @@ public class EyeWolf : MonoBehaviour
   [SerializeField, Tooltip("Intervalo em segundos entre cada scan de visão")]
   private float _scanInterval = 0.2f;
 
+  [SerializeField, Tooltip("Tamanho do buffer usado no OverlapSphere (evita alocação de GC)")]
+  private int _maxTargets = 8;
+
   [Header("Camadas de Detecção")]
   public LayerMask _targetMask;
   public LayerMask _obstacleMask;
@@ -23,56 +25,53 @@ public class EyeWolf : MonoBehaviour
   [HideInInspector]
   public Transform DetectedPlayer;
 
-  private Transform target;
+  private string _playerTag;
+  private Collider[] _overlapBuffer;
   private CancellationTokenSource _scanCts;
 
-  private void Start()
+  public void Awake()
   {
-    GameObject playerObj = GameObject.FindGameObjectWithTag("PlayersHolder");
-    if (playerObj != null)
-      target = playerObj.transform;
-    else
-      Debug.LogWarning("Player não encontrado! Verifique a Tag do Player");
+    _playerTag = Constants.Tags.Player.ToString();
+    _overlapBuffer = new Collider[_maxTargets];
   }
 
-  // Método de ciclo de vida assíncrono nativo do Unity 6.
-  // Substitui o Update() — roda em loop próprio, sem sobrecarregar por frame.
-  private async Awaitable OnEnable()
+  public async Awaitable OnEnable()
   {
     _scanCts = new CancellationTokenSource();
     var token = _scanCts.Token;
-
     try
     {
       while (!token.IsCancellationRequested)
       {
-        ProcurarAlvos();
+        FindTargets();
         await Awaitable.WaitForSecondsAsync(_scanInterval, token);
       }
     }
-    catch (System.OperationCanceledException)
-    {
-      // Esperado quando o objeto é desativado/destruído — não é erro.
-    }
+    catch (System.OperationCanceledException) { }
   }
 
-  private void OnDisable()
+  public void OnDisable()
   {
     _scanCts?.Cancel();
     _scanCts?.Dispose();
     _scanCts = null;
   }
 
-  public void ProcurarAlvos()
+  public void FindTargets()
   {
     FoundPlayer = false;
     DetectedPlayer = null;
 
-    Collider[] targetsInArea = Physics.OverlapSphere(transform.position, _visionRange, _targetMask);
-    foreach (var col in targetsInArea)
+    int count = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _visionRange,
+      _overlapBuffer,
+      _targetMask
+    );
+    for (int i = 0; i < count; i++)
     {
-      Transform t = col.transform;
-      if (!t.CompareTag(Constants.Tags.Player.ToString()))
+      Transform t = _overlapBuffer[i].transform;
+      if (!t.CompareTag(_playerTag))
         continue;
 
       if (CanSeeTarget(t))
@@ -86,26 +85,33 @@ public class EyeWolf : MonoBehaviour
 
   public bool CanSeeTarget(Transform target)
   {
-    Vector3 dirToTarget = (target.position + Vector3.up * 1.5f - transform.position).normalized;
-    float dist = Vector3.Distance(transform.position, target.position);
+    Vector3 toTarget = target.position + Vector3.up * 1.5f - transform.position;
+    float dist = toTarget.magnitude;
+    Vector3 dirToTarget = toTarget / dist;
 
-    if (Vector3.Angle(transform.forward, dirToTarget) < _visionAngle / 2)
+    if (Vector3.Angle(transform.forward, dirToTarget) < _visionAngle / 2f)
     {
       if (!Physics.Raycast(transform.position, dirToTarget, dist, _obstacleMask))
-      {
         return true;
-      }
     }
     return false;
   }
 
-  private void OnDrawGizmos()
+  public void SetTarget(Transform t)
+  {
+    DetectedPlayer = t;
+    FoundPlayer = t != null;
+  }
+
+  public void OnDrawGizmos()
   {
     Gizmos.color = Color.yellow;
     Gizmos.DrawWireSphere(transform.position, _visionRange);
 
-    Vector3 angleA = DirecaodoAngulo(-_visionAngle / 2);
-    Vector3 angleB = DirecaodoAngulo(_visionAngle / 2);
+    Vector3 angleA = AngleDirection(-_visionAngle / 2f);
+    Vector3 angleB = AngleDirection(_visionAngle / 2f);
+    Gizmos.DrawLine(transform.position, transform.position + angleA * _visionRange);
+    Gizmos.DrawLine(transform.position, transform.position + angleB * _visionRange);
 
     if (FoundPlayer && DetectedPlayer != null)
     {
@@ -114,15 +120,9 @@ public class EyeWolf : MonoBehaviour
     }
   }
 
-  private Vector3 DirecaodoAngulo(float anguloemGraus)
+  private Vector3 AngleDirection(float eulerAngle)
   {
-    float rad = (anguloemGraus + transform.eulerAngles.y) * Mathf.Deg2Rad;
+    float rad = (eulerAngle + transform.eulerAngles.y) * Mathf.Deg2Rad;
     return new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad));
-  }
-
-  public void SetTarget(Transform t)
-  {
-    DetectedPlayer = t;
-    FoundPlayer = t != null;
   }
 }

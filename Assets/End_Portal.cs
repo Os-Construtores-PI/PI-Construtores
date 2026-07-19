@@ -27,7 +27,7 @@ public class End_Portal : BasePortal
     }
     else
     {
-      Debug.LogError("FinalSequenceDialogue n�o atribu�do no Inspector!");
+      Debug.LogError("[End_Portal] FinalSequenceDialogue não atribuído no Inspector!");
     }
 
     TriggerEndGame();

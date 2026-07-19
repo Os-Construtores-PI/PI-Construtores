@@ -90,7 +90,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.Teleport.AddListener(TeleportFade);
     GlobalEventBus.Instance.Death.AddListener(DeathPanel);
     GlobalEventBus.Instance.Respawn.AddListener(RespawnPanel);
-    GlobalEventBus.Instance.EndGame.AddListener(EndPanel);
+    GlobalEventBus.Instance.EndGameProcessed.AddListener(EndPanel);
     GlobalEventBus.Instance.LockOnVisibility.AddListener(SetLockOnVisibility);
     GlobalEventBus.Instance.Pause.AddListener(PausePanel);
     GlobalEventBus.Instance.Options.AddListener(OptionsPausePanel);
@@ -109,7 +109,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.Teleport.RemoveListener(TeleportFade);
     GlobalEventBus.Instance.Death.RemoveListener(DeathPanel);
     GlobalEventBus.Instance.Respawn.RemoveListener(RespawnPanel);
-    GlobalEventBus.Instance.EndGame.RemoveListener(EndPanel);
+    GlobalEventBus.Instance.EndGameProcessed.RemoveListener(EndPanel);
     GlobalEventBus.Instance.LockOnVisibility.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.Pause.RemoveListener(PausePanel);
     GlobalEventBus.Instance.Options.RemoveListener(OptionsPausePanel);
@@ -770,7 +770,8 @@ public class HudDirector : MonoBehaviour
         if (dataDirector != null && levelManager != null)
         {
           int currentSlot = dataDirector.GetCurrentSlot();
-          int score = dataDirector.GetPlayerScore(
+          int score = player.CurrentScore;
+          int previewScore = dataDirector.GetPlayerPreviewScore(
             currentSlot,
             SceneManager.GetActiveScene().name,
             player.ID
@@ -781,7 +782,12 @@ public class HudDirector : MonoBehaviour
             : 0f;
           ;
 
-          endGamePanel.Populate(score, maxScore, time, EndGamePanel.CalculateRank(score, maxScore));
+          endGamePanel.Populate(
+            score,
+            previewScore,
+            time,
+            EndGamePanel.CalculateRank(score, maxScore)
+          );
         }
       }
     });

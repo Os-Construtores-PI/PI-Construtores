@@ -84,10 +84,6 @@ public class EndGamePanel : MonoBehaviour
     };
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Preenchimento dos Outputs
-  // ═══════════════════════════════════════════════════════════════════════════
-
   public void Populate(int score, int previewScore, float time, RankType rank)
   {
     SetScore(score);

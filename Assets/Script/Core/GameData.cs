@@ -58,6 +58,7 @@ public class SavedPlayerData
   public float Health;
   public float Time;
   public int Score;
+  public int PreviewScore;
   public int HighestComboIndex = -1;
 
   public List<SavedStatEntry> SavedStats = new();

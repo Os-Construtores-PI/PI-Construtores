@@ -149,6 +149,7 @@ public class LevelManager : MonoBehaviour
       }
     });
 
+    GlobalEventBus.Instance.EndGameProcessed.Invoke();
     SetPlayersInput(false);
   }
 
