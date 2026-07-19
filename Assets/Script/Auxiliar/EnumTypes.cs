@@ -179,3 +179,12 @@ public enum PlayerAudioType
   Jump,
   Dash,
 }
+
+public enum RankType
+{
+  S,
+  A,
+  B,
+  C,
+  D,
+}

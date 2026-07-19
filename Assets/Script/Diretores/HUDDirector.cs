@@ -8,6 +8,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Constants.PlayerShakes;
 using static QualityOfLife;
@@ -57,6 +58,7 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, Image> interactionImages = new();
   private readonly Dictionary<int, Sprite> originalSprites = new();
   private readonly Dictionary<int, CameraLogic> _playerCachedCameras = new();
+  private readonly Dictionary<int, StopwatchHUD> _playerCachedStopwatches = new();
   private Dictionary<int, int> _playerCachedScores = new();
 
   private Player _playerHudOwner;
@@ -169,23 +171,30 @@ public class HudDirector : MonoBehaviour
 
     Canvas.ForceUpdateCanvases();
 
-    // Mapeia todos os painéis do HUD instanciado
     var panelMap = new Dictionary<HudPanelType, List<GameObject>>(
       HudPanelEqualityComparer.Instance
     );
     CollectPanelsRecursive(hudInstance.transform, panelMap);
     canvasMap[playerID] = panelMap;
 
-    // Vincula HealthHUD ao jogador
     HealthHUD healthHUD = hudInstance.GetComponentInChildren<HealthHUD>();
     if (healthHUD != null)
+    {
       healthHUD.BindToPlayer(player);
+    }
 
     BoostHUD boostHUD = hudInstance.GetComponentInChildren<BoostHUD>();
     if (boostHUD != null)
+    {
       boostHUD.BindToPlayer(player);
+    }
 
-    // Armazena referências do painel de interação
+    StopwatchHUD stopwatchHUD = hudInstance.GetComponentInChildren<StopwatchHUD>();
+    if (stopwatchHUD != null)
+    {
+      _playerCachedStopwatches[playerID] = stopwatchHUD;
+    }
+
     if (panelMap.TryGetValue(HudPanelType.InteractionPopup, out var panels) && panels.Count > 0)
     {
       var text = panels[0].GetComponentInChildren<TextMeshProUGUI>();
@@ -752,7 +761,29 @@ public class HudDirector : MonoBehaviour
     ForEachPlayer(player =>
     {
       DisableHud(player.ID);
-      ShowPanel(HudPanelType.EndGame, player.ID, independent: true);
+      var panels = ShowPanel(HudPanelType.EndGame, player.ID, independent: true);
+
+      if (panels.FirstOrDefault()?.GetComponent<EndGamePanel>() is { } endGamePanel)
+      {
+        var dataDirector = DataDirector.Instance;
+        var levelManager = FindAnyObjectByType<LevelManager>();
+        if (dataDirector != null && levelManager != null)
+        {
+          int currentSlot = dataDirector.GetCurrentSlot();
+          int score = dataDirector.GetPlayerScore(
+            currentSlot,
+            SceneManager.GetActiveScene().name,
+            player.ID
+          );
+          int maxScore = levelManager.ReferenceScore;
+          float time = _playerCachedStopwatches.TryGetValue(player.ID, out var sw)
+            ? sw.Elapsed
+            : 0f;
+          ;
+
+          endGamePanel.Populate(score, maxScore, time, EndGamePanel.CalculateRank(score, maxScore));
+        }
+      }
     });
   }
 

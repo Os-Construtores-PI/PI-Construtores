@@ -148,3 +148,10 @@ public struct PunchPanelSettings
       MaxRotationZ = 25f,
     };
 }
+
+[Serializable]
+public struct RankSpriteEntry
+{
+  public RankType Rank;
+  public Sprite Sprite;
+}

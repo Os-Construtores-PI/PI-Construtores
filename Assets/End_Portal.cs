@@ -10,7 +10,7 @@ public class End_Portal : BasePortal
 
   private bool actived = false;
 
-  private void OnTriggerEnter(Collider other)
+  public void OnTriggerEnter(Collider other)
   {
     if (actived)
       return;
@@ -30,13 +30,11 @@ public class End_Portal : BasePortal
       Debug.LogError("FinalSequenceDialogue n�o atribu�do no Inspector!");
     }
 
-    // gameObject.SetActive(false);
-
-    //TriggerEndGame();
+    TriggerEndGame();
   }
-  /*  private void TriggerEndGame()
-    {
-        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.Invoke();
-    }s
-  */
+
+  private void TriggerEndGame()
+  {
+    GlobalEventBus.Instance.EndGame.Invoke();
+  }
 }

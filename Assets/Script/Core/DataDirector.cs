@@ -252,7 +252,14 @@ public sealed class DataDirector : MonoBehaviour
     Commit();
   }
 
-  public void SaveLevelRecord(int slot, string scene, int playerIndex, int score, int comboIndex)
+  public void SaveLevelRecord(
+    int slot,
+    string scene,
+    int playerIndex,
+    int score,
+    float time,
+    int comboIndex
+  )
   {
     SavedLevelData lvl = GetSafeLevel(slot, scene);
 
@@ -261,6 +268,7 @@ public sealed class DataDirector : MonoBehaviour
 
     SavedPlayerData pd = lvl.savedPlayers[playerIndex];
     pd.Score = Mathf.Max(pd.Score, score);
+    pd.Time = time;
     pd.HighestComboIndex = Mathf.Max(pd.HighestComboIndex, comboIndex);
 
     Commit();
@@ -322,7 +330,6 @@ public sealed class DataDirector : MonoBehaviour
     foreach (var b in behaviours)
       b.enabled = false;
 
-    // estado base
     player.transform.position = data.Position;
     player.Health = data.Health;
     player.SetAmethysts(data.AmethystsCount);

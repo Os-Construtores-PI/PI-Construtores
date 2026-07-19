@@ -292,15 +292,19 @@ public class Player : CombatEntities
   #region Time
   [Header("Pontuação de tempo")]
   [SerializeField]
-  private int _initialTimePoints = 10000;
+  private int _maxTimeScore = 10000;
 
+  [Tooltip("Eixo X = Tempo (segundos). Eixo Y = Pontos (0 a 1).")]
   [SerializeField]
-  private int _timePointDiscountPerSecond = 10;
+  private AnimationCurve _timeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
 
-  public void ApplyDiscount(int totalSeconds)
+  public int CalculateTimeScoreCurve(float timeInSeconds)
   {
-    _initialTimePoints -= totalSeconds * _timePointDiscountPerSecond;
-    AddScore(_initialTimePoints);
+    float multiplier = _timeScoreCurve.Evaluate(timeInSeconds);
+
+    int finalScore = Mathf.RoundToInt(_maxTimeScore * multiplier);
+
+    return Mathf.Max(0, finalScore);
   }
 
   #endregion
@@ -578,9 +582,6 @@ public class Player : CombatEntities
   #endregion
 
   #region Ciclo de Vida Assíncrono
-  // CancellationTokenSource usado para cancelar tarefas assíncronas em andamento
-  // (ex.: SetupHUDDelayedAsync) caso o objeto seja destruído antes delas concluírem.
-  // Isso evita o equivalente assíncrono de "Coroutine ainda rodando em objeto morto".
   private CancellationTokenSource _lifetimeCts;
   #endregion
 
@@ -608,9 +609,6 @@ public class Player : CombatEntities
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
 
-    // Fire-and-forget: Start não pode ser async Awaitable aqui pois a base
-    // class expõe "override void Start()". O token de cancelamento garante
-    // que a tarefa não tente rodar SetupHUD() após o objeto ser destruído.
     _ = SetupHUDDelayedAsync(HUD_INIT_DELAY, _lifetimeCts.Token);
 
     SetupDashHUD();
