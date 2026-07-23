@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class EndGamePanel : MonoBehaviour
@@ -29,12 +31,6 @@ public class EndGamePanel : MonoBehaviour
   [SerializeField]
   private TextMeshProUGUI _timeOutput;
 
-  // ─── Botão ───────────────────────────────────────────────────────────────
-
-  [Header("Botão")]
-  [SerializeField]
-  private Button _gotoMenuButton;
-
   // ═══════════════════════════════════════════════════════════════════════════
   // Unity Events
   // ═══════════════════════════════════════════════════════════════════════════
@@ -42,6 +38,16 @@ public class EndGamePanel : MonoBehaviour
   private void Awake()
   {
     BuildRankSpriteMap();
+  }
+
+  private void Update()
+  {
+    ListeningForInput();
+  }
+
+  private void OnEnable()
+  {
+    DeviceInputManager.Instance.ForceRefresh();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -127,17 +133,47 @@ public class EndGamePanel : MonoBehaviour
       Debug.LogWarning($"[EndGamePanel] Nenhum sprite mapeado para o rank {rank}.");
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Botão
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  public void BindGotoMenuButton(Action onClick)
+  private void ListeningForInput()
   {
-    if (!_gotoMenuButton)
-      return;
+    bool advancePressed = false;
+    bool resetPressed = false;
+    if (Keyboard.current != null)
+    {
+      if (Keyboard.current.fKey.wasPressedThisFrame)
+        advancePressed = true;
+      if (Keyboard.current.rKey.wasPressedThisFrame)
+        resetPressed = true;
+    }
 
-    _gotoMenuButton.onClick.RemoveAllListeners();
-    if (onClick != null)
-      _gotoMenuButton.onClick.AddListener(() => onClick());
+    if (Gamepad.current != null)
+    {
+      if (Gamepad.current.aButton.wasPressedThisFrame)
+        advancePressed = true;
+      if (Gamepad.current.bButton.wasPressedThisFrame)
+        resetPressed = true;
+    }
+
+    if (advancePressed)
+    {
+      OnAdvance();
+    }
+    else if (resetPressed)
+    {
+      OnReset();
+    }
+  }
+
+  private void OnAdvance()
+  {
+    Debug.Log("[EndGamePanel] Avançar acionado!");
+    Time.timeScale = 1;
+    SceneManager.LoadScene(Constants.SceneNames.MainMenu);
+  }
+
+  private void OnReset()
+  {
+    Debug.Log("[EndGamePanel] Resetar acionado!");
+    Time.timeScale = 1;
+    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
   }
 }

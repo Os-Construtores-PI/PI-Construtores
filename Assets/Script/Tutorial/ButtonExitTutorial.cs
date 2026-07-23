@@ -9,28 +9,15 @@ public class ButtonExitTutorial : MonoBehaviour
   private Image buttonIcon;
   private PlayerInput playerInput;
 
-  [Header("Sprites Por Device")]
-  [SerializeField]
-  private Sprite KeyboardIcon; //F
-
-  [SerializeField]
-  private Sprite XboxIcon; //A
-
-  [SerializeField]
-  private Sprite PlaystationIcon; // X
-
   private void OnEnable()
   {
     if (PlayerInput.all.Count > 0)
       playerInput = PlayerInput.all[0];
 
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged += AtualizarIcone;
-
     if (TutorialGlobal.Instance != null)
       TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
 
-    AtualizarIcone(DeviceSpriteManager.Instance?.GetCurrentDevice());
+    DeviceInputManager.Instance.ForceRefresh();
   }
 
   private void OnDisable() { }
@@ -44,7 +31,6 @@ public class ButtonExitTutorial : MonoBehaviour
     if (!TutorialGlobal.Instance.IsTutorialActive)
       return;
 
-    // A��o �nica (F / A / X)
     if (playerInput.actions["Confirm"].WasPerformedThisFrame())
     {
       ClosedTutorial();
@@ -53,7 +39,7 @@ public class ButtonExitTutorial : MonoBehaviour
 
   public void ClosedTutorial()
   {
-    TutorialGlobal.Instance.FecharTutorial();
+    TutorialGlobal.Instance.CloseTutorial();
   }
 
   private void OnTutorialStateChanged(bool ativo)
@@ -62,24 +48,6 @@ public class ButtonExitTutorial : MonoBehaviour
       buttonIcon.enabled = ativo;
 
     if (ativo)
-      AtualizarIcone(DeviceSpriteManager.Instance?.GetCurrentDevice());
-  }
-
-  private void AtualizarIcone(string device)
-  {
-    if (buttonIcon == null)
-      return;
-    if (TutorialGlobal.Instance == null)
-      return;
-    if (!TutorialGlobal.Instance.IsTutorialActive)
-      return;
-
-    buttonIcon.sprite = device switch
-    {
-      "Keyboard" => KeyboardIcon,
-      "Xbox" => XboxIcon,
-      "Playstation" => PlaystationIcon,
-      _ => buttonIcon.sprite,
-    };
+      DeviceInputManager.Instance.ForceRefresh();
   }
 }

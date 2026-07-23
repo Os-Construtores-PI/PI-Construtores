@@ -38,13 +38,13 @@ public abstract class InteractableObject : MonoBehaviour
   {
     if (player == null)
       return _keyboardSprites;
-    Debug.Log($"[GetCorrentSprite] _ultimoDispositivo do player = {player._ultimoDispositivo}");
+    Debug.Log($"[GetCorrentSprite] _ultimoDispositivo do player = {player.LastDevice}");
 
-    return player._ultimoDispositivo switch
+    return player.LastDevice switch
     {
-      InputType.Keyboard => _keyboardSprites,
-      InputType.JoystickPlaystation => _playstationSprites,
-      InputType.JoystickXbox => _xboxSprites,
+      DeviceType.Keyboard => _keyboardSprites,
+      DeviceType.Playstation => _playstationSprites,
+      DeviceType.Xbox => _xboxSprites,
       _ => _keyboardSprites,
     };
   }

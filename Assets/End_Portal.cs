@@ -19,16 +19,16 @@ public class End_Portal : BasePortal
 
     actived = true;
 
-    FinalSequenceDialogue sequence = FindAnyObjectByType<FinalSequenceDialogue>();
+    // FinalSequenceDialogue sequence = FindAnyObjectByType<FinalSequenceDialogue>();
 
-    if (sequence != null)
-    {
-      sequence.StartFinalSequence(enemyFinalTrigger);
-    }
-    else
-    {
-      Debug.LogError("[End_Portal] FinalSequenceDialogue não atribuído no Inspector!");
-    }
+    // if (sequence != null)
+    // {
+    //   sequence.StartFinalSequence(enemyFinalTrigger);
+    // }
+    // else
+    // {
+    //   Debug.LogError("[End_Portal] FinalSequenceDialogue não atribuído no Inspector!");
+    // }
 
     TriggerEndGame();
   }

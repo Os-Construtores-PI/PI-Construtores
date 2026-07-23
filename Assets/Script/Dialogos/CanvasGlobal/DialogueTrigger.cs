@@ -5,84 +5,62 @@ using UnityEngine.UI;
 
 public class DialogueTrigger : MonoBehaviour
 {
-  [TextArea(2, 4)]
-  public string[] _dialogo = new string[] { };
-
-  //private bool _primeiraVez = true;
-  public TextMeshProUGUI _TextoTutor;
-  public DialogueGlobal _dialogoGlobal;
-  public Image _iconInteracao; // icon "Press F"
-  public PlayerInput _playerInput;
-  private bool _jogadorDentro = false;
-
-  private bool _canInteractAgain = true;
-
-  private bool _isPaused = false;
-
-  [Header("Configuração do Dialogo")]
   [SerializeField]
-  private bool _dialogoApenasUmaVez;
+  private string[] _dialogueLines = { };
 
-  private bool _dialogoConsumido = false;
+  [SerializeField]
+  private TextMeshProUGUI _tutorialText;
 
-  [Header("Icone de Interação (Animado")]
+  [SerializeField]
+  private Image _interactionIcon;
+
+  [SerializeField]
+  private bool _dialogueOnlyOnce;
+
   [SerializeField]
   private ImageTriggerEvent _imageTriggerEvent;
 
-  [Header("Layout do Dialogo")]
-  public DialogueLayoutType _layoutType = DialogueLayoutType.Pandora;
+  [SerializeField]
+  private DialogueLayoutType _layoutType = DialogueLayoutType.Pandora;
 
-  private void Start()
-  {
-    _dialogoGlobal = DialogueGlobal.Instance;
-    _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
+  private PlayerInput _playerInput;
+  private bool _playerInside;
+  private bool _canInteractAgain = true;
+  private bool _isPaused;
+  private bool _dialogueConsumed;
 
-    if (_iconInteracao != null)
-      _iconInteracao.gameObject.SetActive(false);
-
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged += OnDeviceChanged;
-  }
+  public PlayerInput PlayerInput => _playerInput;
+  public string[] DialogueLines => _dialogueLines;
+  public DialogueLayoutType LayoutType => _layoutType;
 
   private void OnEnable()
   {
-    if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.Pause.AddListener(OnPauseChangedOn);
+    GlobalEventBus.Instance?.Pause.AddListener(OnPauseChanged);
   }
 
   private void OnDisable()
   {
-    if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChangedOn);
+    GlobalEventBus.Instance?.Pause.RemoveListener(OnPauseChanged);
   }
 
-  private void OnDestroy()
-  {
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged -= OnDeviceChanged;
-  }
-
-  private void OnPauseChangedOn(bool isPaused)
+  private void OnPauseChanged(bool isPaused)
   {
     _isPaused = isPaused;
 
-    if (_iconInteracao == null)
+    if (_interactionIcon == null)
       return;
 
     if (isPaused)
     {
-      _iconInteracao.gameObject.SetActive(false);
-
-      if (_playerInput != null)
-        _playerInput.actions["Interaction"]?.Disable();
+      _interactionIcon.gameObject.SetActive(false);
+      _playerInput?.actions["Interaction"]?.Disable();
     }
     else
     {
-      if (_playerInput != null)
-        _playerInput.actions["Interaction"]?.Enable();
+      _playerInput?.actions["Interaction"]?.Enable();
 
-      if (_jogadorDentro && !_dialogoConsumido)
-        _iconInteracao.gameObject.SetActive(true);
+      if (_playerInside && !_dialogueConsumed)
+        _interactionIcon.gameObject.SetActive(true);
     }
   }
 
@@ -91,27 +69,19 @@ public class DialogueTrigger : MonoBehaviour
     if (!other.CompareTag("Player"))
       return;
 
-    if (_dialogoApenasUmaVez && _dialogoConsumido)
+    if (_dialogueOnlyOnce && _dialogueConsumed)
       return;
 
     _playerInput = other.GetComponent<PlayerInput>();
+    _playerInside = true;
 
-    _jogadorDentro = true;
+    if (_tutorialText != null && _dialogueLines != null && _dialogueLines.Length > 0)
+      _tutorialText.text = _dialogueLines[0];
 
-    // Exibe primeira linha do diálogo no tutor
-    if (_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
-      _TextoTutor.text = _dialogo[0];
+    if (_interactionIcon != null)
+      _interactionIcon.gameObject.SetActive(true);
 
-    // Mostra sprite atual do painel de interação
-    if (_iconInteracao != null)
-    {
-      AtualizaSpriteDoIcone();
-      _iconInteracao.gameObject.SetActive(true);
-    }
-
-    // vincula este trigger ao DialogueGlobal
-    if (_dialogoGlobal != null)
-      _dialogoGlobal.SetTrigger(this);
+    DialogueGlobal.Instance?.SetTrigger(this);
   }
 
   private void OnTriggerExit(Collider other)
@@ -119,109 +89,78 @@ public class DialogueTrigger : MonoBehaviour
     if (!other.CompareTag("Player"))
       return;
 
-    _jogadorDentro = false;
+    _playerInside = false;
 
-    if (_iconInteracao != null)
-      _iconInteracao.gameObject.SetActive(false);
+    if (_interactionIcon != null)
+      _interactionIcon.gameObject.SetActive(false);
 
-    // remove vínculo do trigger
-    if (_dialogoGlobal != null && _dialogoGlobal._currentTrigger == this)
-      _dialogoGlobal._currentTrigger = null;
+    if (DialogueGlobal.Instance?.CurrentTrigger == this)
+      DialogueGlobal.Instance.CurrentTrigger = null;
   }
 
   private void Update()
   {
-    if (_isPaused)
+    if (_isPaused || DialogueGlobal.Instance == null || !_playerInside || _playerInput == null)
       return;
 
-    if (_dialogoGlobal == null)
-    {
-      _dialogoGlobal = DialogueGlobal.Instance;
-      return;
-    }
-
-    if (!_jogadorDentro || _playerInput == null || _dialogoGlobal == null)
+    if (_dialogueOnlyOnce && _dialogueConsumed)
       return;
 
-    if (_dialogoApenasUmaVez && _dialogoConsumido)
-      return;
-
-    // Não deixa interagir enquanto o diálogo está ativo
-    if (_dialogoGlobal.IsDialogueActive)
+    if (DialogueGlobal.Instance.IsDialogueActive)
       return;
 
     if (_canInteractAgain && _playerInput.actions["Interaction"].WasPerformedThisFrame())
-      AbrirDialogo();
+      OpenDialogue();
   }
 
-  public void AbrirDialogo()
+  public void OpenDialogue()
   {
     try
     {
-      _playerInput.actions["Interaction"]?.Reset();
+      _playerInput?.actions["Interaction"]?.Reset();
     }
     catch { }
 
-    if (_iconInteracao != null)
-      _iconInteracao.gameObject.SetActive(false);
+    if (_interactionIcon != null)
+      _interactionIcon.gameObject.SetActive(false);
 
-    if (_imageTriggerEvent != null)
-      _imageTriggerEvent.Hide();
+    _imageTriggerEvent?.Hide();
 
-    _dialogoGlobal.SetTrigger(this);
-    _dialogoGlobal.IniciarDialogo(_dialogo);
+    DialogueGlobal.Instance.SetTrigger(this);
+    DialogueGlobal.Instance.StartDialogue(_dialogueLines);
   }
 
-  public void OnDialogoFechado()
+  public void OnDialogueClosed()
   {
-    if (_dialogoApenasUmaVez)
+    if (_dialogueOnlyOnce)
     {
-      _dialogoConsumido = true;
+      _dialogueConsumed = true;
 
-      if (_iconInteracao != null)
-        _iconInteracao.gameObject.SetActive(false);
+      if (_interactionIcon != null)
+        _interactionIcon.gameObject.SetActive(false);
 
       return;
     }
 
-    if (_jogadorDentro && _iconInteracao != null)
-      _iconInteracao.gameObject.SetActive(true);
+    if (_playerInside)
+    {
+      if (_interactionIcon != null)
+        _interactionIcon.gameObject.SetActive(true);
 
-    if (_jogadorDentro && _imageTriggerEvent != null)
-      _imageTriggerEvent.Show();
+      _imageTriggerEvent?.Show();
+    }
 
-    BloquearInteracao();
+    BlockInteraction();
   }
 
-  public void AtualizaSpriteDoIcone()
-  {
-    if (_iconInteracao == null)
-      return;
-
-    if (DeviceSpriteManager.Instance != null)
-      _iconInteracao.sprite = DeviceSpriteManager.Instance.GetCurrentSprite();
-  }
-
-  private void OnDeviceChanged(string novoDevice)
-  {
-    if (_jogadorDentro)
-      AtualizaSpriteDoIcone();
-  }
-
-  public void BloquearInteracao()
+  private void BlockInteraction()
   {
     _canInteractAgain = false;
-    Invoke(nameof(DesbloquearInteracao), 0.15f);
+    Invoke(nameof(UnblockInteraction), 0.15f);
   }
 
-  public void DesbloquearInteracao()
+  private void UnblockInteraction()
   {
     _canInteractAgain = true;
-  }
-
-  public enum DialogueLayoutType
-  {
-    Pandora,
-    Enemy,
   }
 }

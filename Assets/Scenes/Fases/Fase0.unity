@@ -6667,6 +6667,7 @@ Transform:
   - {fileID: 835189205}
   - {fileID: 1373358449}
   - {fileID: 1090890003}
+  - {fileID: 1338112255}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &167311001
@@ -37025,6 +37026,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3710855701900655912, guid: 0df7bd78dd88e32bdb8de5b4f7b97bee, type: 3}
+      propertyPath: finalSequence
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 3710855701900655912, guid: 0df7bd78dd88e32bdb8de5b4f7b97bee, type: 3}
+      propertyPath: enemyFinalTrigger
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5039808416877758485, guid: 0df7bd78dd88e32bdb8de5b4f7b97bee, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.1
@@ -55961,6 +55970,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 309107292042115001, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
   m_PrefabInstance: {fileID: 1608992343}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1338112254
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1338112255}
+  - component: {fileID: 1338112256}
+  m_Layer: 0
+  m_Name: DeviceInputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1338112255
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338112254}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 163289721}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1338112256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338112254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20158747424b00743ba7de399e367082, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeviceInputManager
 --- !u!1001 &1341218121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66755,15 +66808,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dialogo:
-  - "Argh... Minha cabe\xE7a...\r                                        \naquela
-    <color=orange>caixa</color>... mas que...?"
-  - "Espera... aonde eu t\xF4...?\nCad\xEA meu <color=orange>quarto</color>...?"
-  _TextoTutor: {fileID: 0}
-  _dialogoGlobal: {fileID: 0}
-  _iconInteracao: {fileID: 8816518375097549249}
-  _playerInput: {fileID: 0}
-  _dialogoApenasUmaVez: 0
+  _dialogueLines: []
+  _tutorialText: {fileID: 0}
+  _interactionIcon: {fileID: 0}
+  _dialogueOnlyOnce: 0
   _imageTriggerEvent: {fileID: 493686442}
   _layoutType: 0
 --- !u!222 &1463309480
@@ -75500,14 +75548,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dialogo:
-  - "Um... <color=orange>portal</color>... n\xE3o sei se devo atravessar...\nmas
-    \xE9 melhor do eu ficar parada aqui..."
-  _TextoTutor: {fileID: 0}
-  _dialogoGlobal: {fileID: 0}
-  _iconInteracao: {fileID: 8816518375097549249}
-  _playerInput: {fileID: 0}
-  _dialogoApenasUmaVez: 0
+  _dialogueLines: []
+  _tutorialText: {fileID: 0}
+  _interactionIcon: {fileID: 0}
+  _dialogueOnlyOnce: 0
   _imageTriggerEvent: {fileID: 752177625}
   _layoutType: 0
 --- !u!222 &1866569630
@@ -83419,15 +83463,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dialogo:
-  - "O que \xE9... aquela coisa...?"
-  - "Melhor eu desviar \ndaquelas <color=orange>coisas</color>, n\xE3o parecem \nnada
-    amig\xE1veis..."
-  _TextoTutor: {fileID: 0}
-  _dialogoGlobal: {fileID: 0}
-  _iconInteracao: {fileID: 8816518375097549249}
-  _playerInput: {fileID: 0}
-  _dialogoApenasUmaVez: 0
+  _dialogueLines: []
+  _tutorialText: {fileID: 0}
+  _interactionIcon: {fileID: 0}
+  _dialogueOnlyOnce: 0
   _imageTriggerEvent: {fileID: 669590617}
   _layoutType: 0
 --- !u!222 &2007771805
@@ -87323,10 +87362,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a37bfdb9f1dbc144dbeb24463da0295b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icons:
-  - Destiny: 
-    Sprite: {fileID: 0}
-  somMenu: {fileID: 11400000, guid: b85e5c59d9b71bd4bb87859ba25a7c92, type: 2}
+  _icons: []
+  _uiAudioConfig: {fileID: 0}
+  _backgroundMusicConfig: {fileID: 0}
   _popupComboImages:
   - Sprite: {fileID: 21300000, guid: 75dd6739bd224554eb5aaebfe9186146, type: 3}
     Type: 1
@@ -89284,15 +89322,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d615048892627499979d06994197a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dialogo:
-  - "O que \xE9... aquela coisa...?"
-  - "Melhor eu desviar \ndaquelas <color=orange>coisas</color>, n\xE3o parecem \nnada
-    amig\xE1veis..."
-  _TextoTutor: {fileID: 0}
-  _dialogoGlobal: {fileID: 0}
-  _iconInteracao: {fileID: 8816518375097549249}
-  _playerInput: {fileID: 0}
-  _dialogoApenasUmaVez: 0
+  _dialogueLines: []
+  _tutorialText: {fileID: 0}
+  _interactionIcon: {fileID: 0}
+  _dialogueOnlyOnce: 0
   _imageTriggerEvent: {fileID: 8116903700548354167}
   _layoutType: 0
 --- !u!114 &5411445106229217025
@@ -89307,10 +89340,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54a808ab1c69b7946b5a91c632ee6f51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialTrigger
-  interactionIcon: {fileID: 7461720482878722140}
-  interactionSprite: {fileID: 8816518375097549249}
-  apenasUmaVez: 0
-  tutorialType: 0
+  _interactionIcon: {fileID: 0}
+  _interactionSprite: {fileID: 0}
+  _onlyOnce: 0
+  _tutorialType: 0
 --- !u!114 &5429460668137862588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89335,6 +89368,8 @@ MonoBehaviour:
   _dialogueReturnPlayButton: {fileID: 0}
   _dialogueAdvancedXboxButton: {fileID: 0}
   _dialogueReturnXboxButton: {fileID: 0}
+  _currentDevice: Keyboard
+  _playerInputs: []
 --- !u!1 &5486508982808559911
 GameObject:
   m_ObjectHideFlags: 0
@@ -89443,10 +89478,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54a808ab1c69b7946b5a91c632ee6f51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialTrigger
-  interactionIcon: {fileID: 9149273643412217278}
-  interactionSprite: {fileID: 8816518375097549249}
-  apenasUmaVez: 0
-  tutorialType: 2
+  _interactionIcon: {fileID: 0}
+  _interactionSprite: {fileID: 0}
+  _onlyOnce: 0
+  _tutorialType: 0
 --- !u!1 &5958348659024729338
 GameObject:
   m_ObjectHideFlags: 0

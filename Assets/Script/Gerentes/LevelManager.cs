@@ -64,7 +64,6 @@ public class LevelManager : MonoBehaviour
   private IEnumerator IntroDialogueRoutine()
   {
     yield return new WaitUntil(() => DialogueGlobal.Instance != null);
-    yield return new WaitUntil(() => DialogueGlobal.Instance._painelDialogo != null);
 
     yield return null;
 
@@ -81,11 +80,11 @@ public class LevelManager : MonoBehaviour
     void OnDialogueEnd()
     {
       dialogueFinished = true;
-      DialogueGlobal.Instance.OndialogueEnd -= OnDialogueEnd;
+      DialogueGlobal.Instance.OnDialogueEnd -= OnDialogueEnd;
     }
 
-    DialogueGlobal.Instance.OndialogueEnd += OnDialogueEnd;
-    DialogueGlobal.Instance.IniciarDialogo(introDialogue._dialogo);
+    DialogueGlobal.Instance.OnDialogueEnd += OnDialogueEnd;
+    DialogueGlobal.Instance.StartDialogue(introDialogue.DialogueLines);
 
     yield return new WaitUntil(() => dialogueFinished);
 

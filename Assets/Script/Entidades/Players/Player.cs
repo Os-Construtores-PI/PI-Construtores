@@ -234,7 +234,7 @@ public class Player : CombatEntities
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
-  public InputType _ultimoDispositivo = InputType.Keyboard;
+  public DeviceType LastDevice = DeviceType.Keyboard;
   #endregion
 
   #region Flags de Input - Pulo
@@ -598,7 +598,7 @@ public class Player : CombatEntities
     PlayerInput = GetComponent<PlayerInput>();
 
     _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
-    DetectarDispositivo(PlayerInput);
+    DetectDevice(PlayerInput);
   }
 
   public override void Start()
@@ -940,47 +940,22 @@ public class Player : CombatEntities
 
   public void OnEnable()
   {
-    PlayerInput.onControlsChanged += DetectarDispositivo;
-    DetectarDispositivo(PlayerInput);
+    PlayerInput.onControlsChanged += DetectDevice;
+    DetectDevice(PlayerInput);
   }
 
-  public void OnDisable() => PlayerInput.onControlsChanged -= DetectarDispositivo;
+  public void OnDisable() => PlayerInput.onControlsChanged -= DetectDevice;
 
-  private void DetectarDispositivo(PlayerInput input)
+  private void DetectDevice(PlayerInput input)
   {
-    switch (input.currentControlScheme)
-    {
-      case "Keyboard&Mouse":
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-      case "Gamepad":
-        var gp = Gamepad.current;
-        if (gp != null)
-        {
-          _ultimoDispositivo =
-            (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-              ? InputType.JoystickPlaystation
-              : InputType.JoystickXbox;
-        }
-        break;
-      default:
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-    }
-    GlobalEventBus.Instance.InputUpdate.Invoke(_ultimoDispositivo.ToString());
+    GlobalEventBus.Instance.InputUpdate.Invoke(input);
   }
   #endregion
 
   #region Pulo
   private void TryJump()
   {
-    if (
-      DialogueGlobal.Instance != null
-      && (
-        DialogueGlobal.Instance.IsDialogueActive
-        || DialogueGlobal.Instance._bloquearJumpTemporariamente
-      )
-    )
+    if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
     if (CurrentJumpCount >= MaxJumpCount)
       return;
@@ -1021,7 +996,7 @@ public class Player : CombatEntities
       return;
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.Pause.Invoke(!GameState.IsPaused);
+    GlobalEventBus.Instance.Pause.Invoke(!GameContext.IsPaused);
   }
   #endregion
 
