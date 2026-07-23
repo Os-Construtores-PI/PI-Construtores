@@ -27,13 +27,13 @@ public static class Lookups
 {
   public static class Effects
   {
-    public static Dictionary<string, EffectType> LookupTable = new()
+    public static Dictionary<string, EntityEffectType> LookupTable = new()
     {
-      { EffectType.JumpEffect.ToString(), EffectType.JumpEffect },
-      { EffectType.DashEffect.ToString(), EffectType.DashEffect },
-      { EffectType.ChargingEffect.ToString(), EffectType.ChargingEffect },
-      { EffectType.BoostEffect.ToString(), EffectType.BoostEffect },
-      { EffectType.SpeedEffect.ToString(), EffectType.SpeedEffect },
+      { EntityEffectType.PlayerJumpEffect.ToString(), EntityEffectType.PlayerJumpEffect },
+      { EntityEffectType.PlayerDashEffect.ToString(), EntityEffectType.PlayerDashEffect },
+      { EntityEffectType.PlayerBoostEffect.ToString(), EntityEffectType.PlayerBoostEffect },
+      { EntityEffectType.PlayerSpeedEffect.ToString(), EntityEffectType.PlayerSpeedEffect },
+      { EntityEffectType.EntityDeathEffect.ToString(), EntityEffectType.EntityDeathEffect },
     };
   }
 

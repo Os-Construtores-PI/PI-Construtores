@@ -6,21 +6,24 @@ public class BasicMenuLogic : MonoBehaviour
 {
   [Header("Audio")]
   [SerializeField]
-  private somMenu somMenu;
+  private BackgroundMusicConfig _backgroundMusicConfig;
+
+  [SerializeField]
+  private UIAudioConfig _uiAudioConfig;
 
   #region  === MENU GAMEOVER ===
   public void Respawn()
   {
-    if (AudioManager.Instance != null && somMenu != null)
-      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     GlobalEventBus.Instance.Respawn.Invoke();
   }
 
   public void OpenMenuGameOver()
   {
-    if (AudioManager.Instance != null && somMenu != null)
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
     {
-      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     }
   }
 
@@ -34,22 +37,22 @@ public class BasicMenuLogic : MonoBehaviour
   public void OpenOptions()
   {
     GlobalEventBus.Instance.Options.Invoke(true);
-    AudioManager.Instance.PlaySFX(somMenu.click); // abrir options
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
   }
 
   public void ContinueGame()
   {
     GlobalEventBus.Instance.Pause.Invoke(false);
-    AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
   }
 
-  private void OnEnable()
+  public void OnEnable()
   {
     if (GlobalEventBus.Instance != null)
       GlobalEventBus.Instance.Pause.AddListener(OnPauseChanged);
   }
 
-  private void OnDisable()
+  public void OnDisable()
   {
     if (GlobalEventBus.Instance != null)
       GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChanged);
@@ -57,18 +60,16 @@ public class BasicMenuLogic : MonoBehaviour
 
   private void OnPauseChanged(bool isPaused)
   {
-    if (AudioManager.Instance == null || somMenu == null)
+    if (AudioManager.Instance == null || _uiAudioConfig == null)
       return;
 
     if (isPaused)
     {
-      // 🔊 abriu pause
-      AudioManager.Instance.PlaySFX(somMenu.pause);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
     }
     else
     {
-      // 🔊 fechou pause
-      AudioManager.Instance.PlaySFX(somMenu.back);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
     }
   }
 
@@ -91,7 +92,7 @@ public class BasicMenuLogic : MonoBehaviour
 
     Resources.UnloadUnusedAssets();
 
-    AudioManager.Instance.PlaySFX(somMenu.back);
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
   }
   #endregion
 }

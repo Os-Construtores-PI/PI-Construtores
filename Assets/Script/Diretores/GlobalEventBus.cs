@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(-100)]
 public class GlobalEventBus : MonoBehaviour
@@ -25,9 +26,10 @@ public class GlobalEventBus : MonoBehaviour
   public readonly UnityEvent Death = new();
   public readonly UnityEvent Respawn = new();
   public readonly UnityEvent EndGame = new();
+  public readonly UnityEvent EndGameProcessed = new();
   public readonly UnityEvent<bool> Pause = new();
   public readonly UnityEvent<bool> Options = new();
-  public readonly UnityEvent<string> InputUpdate = new();
+  public readonly UnityEvent<PlayerInput> InputUpdate = new();
   #endregion
 
   public void Awake()

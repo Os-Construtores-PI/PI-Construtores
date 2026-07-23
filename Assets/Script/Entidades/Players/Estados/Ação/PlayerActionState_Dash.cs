@@ -149,7 +149,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     player.IsDashing = true;
     player.CanDash = false;
 
-    player.EffectsSystem.PlayEffect(EffectType.DashEffect, player.DashDuration);
+    player.EffectsSystem.PlayEffect(EntityEffectType.PlayerDashEffect, player.DashDuration);
     player.CurrentDashCount += 1;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
 
@@ -229,12 +229,13 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
     player.CanDash = true;
     player.IsDashing = false;
+    LevelPlayerRotation(player);
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
     _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
-    player.EffectsSystem.StopEffect(EffectType.DashEffect);
+    player.EffectsSystem.StopEffect(EntityEffectType.PlayerDashEffect);
 
     if (!_hasHit)
     {
@@ -322,5 +323,16 @@ public class PlayerActionStateDash : IPlayerState<Player>
   {
     if (dashScript != null && dashScript.gameObject.activeInHierarchy)
       dashScript.OnDashReady();
+  }
+
+  private void LevelPlayerRotation(Player player)
+  {
+    Vector3 flatForward = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up);
+
+    if (flatForward.sqrMagnitude < 0.0001f)
+      flatForward = Vector3.ProjectOnPlane(player.DashDirection, Vector3.up);
+
+    if (flatForward.sqrMagnitude > 0.0001f)
+      player.transform.rotation = Quaternion.LookRotation(flatForward.normalized, Vector3.up);
   }
 }

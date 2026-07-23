@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -234,7 +234,7 @@ public class Player : CombatEntities
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
-  public InputType _ultimoDispositivo = InputType.Keyboard;
+  public DeviceType LastDevice = DeviceType.Keyboard;
   #endregion
 
   #region Flags de Input - Pulo
@@ -292,15 +292,19 @@ public class Player : CombatEntities
   #region Time
   [Header("Pontuação de tempo")]
   [SerializeField]
-  private int _initialTimePoints = 10000;
+  private int _maxTimeScore = 10000;
 
+  [Tooltip("Eixo X = Tempo (segundos). Eixo Y = Pontos (0 a 1).")]
   [SerializeField]
-  private int _timePointDiscountPerSecond = 10;
+  private AnimationCurve _timeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
 
-  public void ApplyDiscount(int totalSeconds)
+  public int CalculateTimeScoreCurve(float timeInSeconds)
   {
-    _initialTimePoints -= totalSeconds * _timePointDiscountPerSecond;
-    AddScore(_initialTimePoints);
+    float multiplier = _timeScoreCurve.Evaluate(timeInSeconds);
+
+    int finalScore = Mathf.RoundToInt(_maxTimeScore * multiplier);
+
+    return Mathf.Max(0, finalScore);
   }
 
   #endregion
@@ -577,18 +581,24 @@ public class Player : CombatEntities
   public void LockCamera(bool state) => CameraLocked = state;
   #endregion
 
+  #region Ciclo de Vida Assíncrono
+  private CancellationTokenSource _lifetimeCts;
+  #endregion
+
   #region Unity Lifecycle
   public override void Awake()
   {
     base.Awake();
     canPulse = false;
 
+    _lifetimeCts = new CancellationTokenSource();
+
     CharacterController = GetComponent<CharacterController>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
     _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
-    DetectarDispositivo(PlayerInput);
+    DetectDevice(PlayerInput);
   }
 
   public override void Start()
@@ -598,7 +608,8 @@ public class Player : CombatEntities
 
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
-    StartCoroutine(DelayedSetupHUD(HUD_INIT_DELAY));
+
+    _ = SetupHUDDelayedAsync(HUD_INIT_DELAY, _lifetimeCts.Token);
 
     SetupDashHUD();
     SetupCinemachine();
@@ -640,7 +651,14 @@ public class Player : CombatEntities
     CharacterController.Move(MovementVector * Time.deltaTime);
   }
 
-  public void OnDestroy() => DOTween.Kill(this);
+  public void OnDestroy()
+  {
+    DOTween.Kill(this);
+
+    // Cancela qualquer Awaitable pendente (ex.: SetupHUDDelayedAsync) e libera o token.
+    _lifetimeCts?.Cancel();
+    _lifetimeCts?.Dispose();
+  }
   #endregion
 
   #region Helpers de Inicialização
@@ -922,47 +940,22 @@ public class Player : CombatEntities
 
   public void OnEnable()
   {
-    PlayerInput.onControlsChanged += DetectarDispositivo;
-    DetectarDispositivo(PlayerInput);
+    PlayerInput.onControlsChanged += DetectDevice;
+    DetectDevice(PlayerInput);
   }
 
-  public void OnDisable() => PlayerInput.onControlsChanged -= DetectarDispositivo;
+  public void OnDisable() => PlayerInput.onControlsChanged -= DetectDevice;
 
-  private void DetectarDispositivo(PlayerInput input)
+  private void DetectDevice(PlayerInput input)
   {
-    switch (input.currentControlScheme)
-    {
-      case "Keyboard&Mouse":
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-      case "Gamepad":
-        var gp = Gamepad.current;
-        if (gp != null)
-        {
-          _ultimoDispositivo =
-            (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-              ? InputType.JoystickPlaystation
-              : InputType.JoystickXbox;
-        }
-        break;
-      default:
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-    }
-    GlobalEventBus.Instance.InputUpdate.Invoke(_ultimoDispositivo.ToString());
+    GlobalEventBus.Instance.InputUpdate.Invoke(input);
   }
   #endregion
 
   #region Pulo
   private void TryJump()
   {
-    if (
-      DialogueGlobal.Instance != null
-      && (
-        DialogueGlobal.Instance.IsDialogueActive
-        || DialogueGlobal.Instance._bloquearJumpTemporariamente
-      )
-    )
+    if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
     if (CurrentJumpCount >= MaxJumpCount)
       return;
@@ -1003,7 +996,7 @@ public class Player : CombatEntities
       return;
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.Pause.Invoke(!GameState.IsPaused);
+    GlobalEventBus.Instance.Pause.Invoke(!GameContext.IsPaused);
   }
   #endregion
 
@@ -1118,10 +1111,20 @@ public class Player : CombatEntities
   #endregion
 
   #region HUD & Feedback
-  private IEnumerator DelayedSetupHUD(float duration)
+  // Substitui a antiga Coroutine "DelayedSetupHUD" por um método assíncrono
+  // usando o tipo nativo Awaitable do Unity (sem alocação de IEnumerator/enumerator
+  // boxing, e com suporte nativo a CancellationToken).
+  private async Awaitable SetupHUDDelayedAsync(float delay, CancellationToken token)
   {
-    yield return new WaitForSeconds(duration);
-    SetupHUD();
+    try
+    {
+      await Awaitable.WaitForSecondsAsync(delay, token);
+      SetupHUD();
+    }
+    catch (OperationCanceledException)
+    {
+      // Esperado quando o Player é destruído antes do delay terminar.
+    }
   }
 
   private void SetupHUD()

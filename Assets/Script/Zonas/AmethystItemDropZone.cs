@@ -34,7 +34,7 @@ public class AmethystItemDropZone : ItemDropZone
 
   [Header("Áudio")]
   [SerializeField]
-  private somMenu _somMenu;
+  private AudioClip _pickupAudio;
 
   private Vector3 _initialScale;
 
@@ -64,8 +64,8 @@ public class AmethystItemDropZone : ItemDropZone
 
   private void PlayAudioFeedback()
   {
-    if (AudioManager.Instance != null && _somMenu != null && _somMenu.amestinstSong != null)
-      AudioManager.Instance.PlaySFX(_somMenu.amestinstSong);
+    if (AudioManager.Instance != null && _pickupAudio != null)
+      AudioManager.Instance.PlaySFX(_pickupAudio);
   }
 
   private void DisableInteraction()

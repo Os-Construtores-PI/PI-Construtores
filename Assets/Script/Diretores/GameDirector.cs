@@ -2,17 +2,6 @@ using System.Collections;
 using UnityEngine;
 using static TutorialGlobal;
 
-/// <summary>
-/// Responsabilidade: estado global do jogo.
-/// - Inicializa os sistemas da cena (PlayerDirector, música, DataDirector)
-/// - Controla pause/unpause
-/// - Expõe utilitário de lock de player (usado pelo GlobalEventBus e pelo LevelManager)
-/// - Reage a mudanças de estado do Tutorial
-///
-/// NÃO é responsabilidade deste script:
-/// - Diálogos de introdução de fase (→ LevelManager)
-/// - Eventos de morte/respawn/fim de jogo (→ LevelManager)
-/// </summary>
 public class GameDirector : MonoBehaviour
 {
   private bool _worldStarted = false;
@@ -28,8 +17,8 @@ public class GameDirector : MonoBehaviour
     GlobalEventBus.Instance.Pause.AddListener(SetPauseWorld);
     GlobalEventBus.Instance.LockDialogue.AddListener(SetLockPlayer);
 
-    if (TutorialGlobal.Instance != null)
-      TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
+    if (Instance != null)
+      Instance.OnTutorialStateChanged += OnTutorialStateChanged;
   }
 
   private void OnDestroy()
@@ -40,15 +29,12 @@ public class GameDirector : MonoBehaviour
       GlobalEventBus.Instance.LockDialogue.RemoveListener(SetLockPlayer);
     }
 
-    if (TutorialGlobal.Instance != null)
-      TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
+    if (Instance != null)
+      Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
   }
 
   // ─── Inicialização ────────────────────────────────────────────────────────
 
-  /// <summary>
-  /// Inicializa todos os sistemas da cena. Chamado pelo LevelManager.
-  /// </summary>
   public void StartWorld()
   {
     if (_worldStarted)
@@ -95,16 +81,16 @@ public class GameDirector : MonoBehaviour
 
   public void TogglePauseWorld()
   {
-    SetPauseWorld(!GameState.IsPaused);
+    SetPauseWorld(!GameContext.IsPaused);
   }
 
   public void SetPauseWorld(bool setPause)
   {
-    if (setPause && !GameState.CanPause())
+    if (setPause && !GameContext.CanPause())
       return;
 
     Time.timeScale = setPause ? 0f : 1f;
-    GameState.IsPaused = setPause;
+    GameContext.IsPaused = setPause;
 
     if (!setPause && playerDirector?.FirstPlayerContext != null)
     {
@@ -122,10 +108,6 @@ public class GameDirector : MonoBehaviour
 
   // ─── Lock de player ───────────────────────────────────────────────────────
 
-  /// <summary>
-  /// Trava ou destrava o controle e câmera de um player.
-  /// Usado como listener do GlobalEventBus.LockDialogue e pelo LevelManager.
-  /// </summary>
   public void SetLockPlayer(Player player, bool set)
   {
     if (player == null)
@@ -140,25 +122,25 @@ public class GameDirector : MonoBehaviour
 
   // ─── Tutorial ─────────────────────────────────────────────────────────────
 
-  private void OnTutorialStateChanged(bool ativo)
+  private void OnTutorialStateChanged(bool active)
   {
     if (!playerDirector || playerDirector.FirstPlayerContext == null)
       return;
 
-    var ctx = playerDirector.FirstPlayerContext;
+    var player = playerDirector.FirstPlayerContext;
 
-    if (ativo)
+    if (active)
     {
-      SetLockPlayer(ctx, true);
+      SetLockPlayer(player, true);
     }
     else
     {
-      ctx.IgnoreGameplayInputThisFrame = true;
-      StartCoroutine(DestravarPlayerNextFrame(ctx));
+      player.IgnoreGameplayInputThisFrame = true;
+      StartCoroutine(UnlockPlayerInNextFrame(player));
     }
   }
 
-  private IEnumerator DestravarPlayerNextFrame(Player player)
+  private IEnumerator UnlockPlayerInNextFrame(Player player)
   {
     yield return null;
 

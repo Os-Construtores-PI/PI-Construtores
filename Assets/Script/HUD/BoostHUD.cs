@@ -32,8 +32,6 @@ public class BoostHUD : BarHUD
     _boundPlayer = player;
     _boundPlayer.BoostChanged.AddListener(UpdateSlider);
     _slider.DOValue(player.BoostValue, 0.35f).SetEase(Ease.OutQuad);
-    print(player.BoostValue);
-    print(_slider.value);
   }
 
   protected override void UpdateSlider(float normalizedValue)

@@ -130,6 +130,12 @@ public enum PlayerActionType
   RailSlide,
 }
 
+public enum DialogueLayoutType
+{
+  Pandora,
+  Enemy,
+}
+
 public enum WolfActionType
 {
   Patrol,
@@ -137,11 +143,11 @@ public enum WolfActionType
   Attack,
 }
 
-public enum InputType
+public enum DeviceType
 {
   Keyboard,
-  JoystickXbox,
-  JoystickPlaystation,
+  Xbox,
+  Playstation,
 }
 
 public enum LevelPathType
@@ -158,15 +164,13 @@ public enum BillboardType
   CameraForward,
 }
 
-// LookUp
-
-public enum EffectType
+public enum EntityEffectType
 {
-  DashEffect,
-  JumpEffect,
-  BoostEffect,
-  ChargingEffect,
-  SpeedEffect,
+  PlayerDashEffect,
+  PlayerJumpEffect,
+  PlayerBoostEffect,
+  PlayerSpeedEffect,
+  EntityDeathEffect,
 }
 
 public enum TrailType
@@ -180,4 +184,13 @@ public enum PlayerAudioType
 {
   Jump,
   Dash,
+}
+
+public enum RankType
+{
+  S,
+  A,
+  B,
+  C,
+  D,
 }

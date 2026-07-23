@@ -56,7 +56,9 @@ public class SavedPlayerData
   public int AmethystsCount;
   public Vector3 Position;
   public float Health;
+  public float Time;
   public int Score;
+  public int PreviewScore;
   public int HighestComboIndex = -1;
 
   public List<SavedStatEntry> SavedStats = new();
