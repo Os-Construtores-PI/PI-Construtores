@@ -47,6 +47,8 @@ public sealed class DataDirector : MonoBehaviour
   #region RAM / DISK
   private void LoadFromDisk()
   {
+
+    
     _gameData = LoadOrCreate(GamePath, () => new SavedGameData(_maxSlots));
     _configData = LoadOrCreate(ConfigPath, () => new SavedConfigData());
     EnsureInvariants();
@@ -125,6 +127,8 @@ public sealed class DataDirector : MonoBehaviour
     lvl.savedPlayers ??= new List<SavedPlayerData>();
     lvl.savedDroppedItems ??= new List<SavedDroppedItem>();
     return lvl;
+
+
   }
 
   private SavedLevelData FindLevel(int slotIndex, string scene)
@@ -245,6 +249,7 @@ public sealed class DataDirector : MonoBehaviour
     int comboIndex
   )
   {
+
     SavedLevelData lvl = GetSafeLevel(slot, scene);
     SavedPlayerData pd = EnsurePlayerSlot(lvl, playerIndex);
 
@@ -461,6 +466,7 @@ public sealed class DataDirector : MonoBehaviour
       .FirstOrDefault();
 
     return chosenSlot != null;
+    
   }
 
   public void ResetRunTimeState()

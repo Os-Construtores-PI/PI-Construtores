@@ -17,6 +17,8 @@ public class MenuDirector : MonoBehaviour
   [SerializeField]
   private GameObject _continueButton;
 
+  [SerializeField] private GameObject _newGame;
+
   private string _currentPanel;
 
   private List<Button> currentButtons = new();
@@ -92,8 +94,24 @@ public class MenuDirector : MonoBehaviour
   private void SelectFirstButton()
   {
 
-    if (currentButtons.Count == 0)
-      return;
+    // Só força o Novo Jogo no menu principal
+    if (_currentPanel == Constants.MenuPanelNames.Menu && _newGame != null)
+    {
+        Button newGameButton = _newGame.GetComponent<Button>();
+
+        if (newGameButton != null &&
+            newGameButton.gameObject.activeInHierarchy &&
+            newGameButton.interactable)
+        {
+            EventSystem.current.SetSelectedGameObject(newGameButton.gameObject);
+
+            Debug.Log(EventSystem.current.currentSelectedGameObject);
+
+            Canvas.ForceUpdateCanvases();
+            return;
+        }
+    }
+
 
     foreach (var btn in currentButtons)
     {
@@ -148,12 +166,24 @@ public class MenuDirector : MonoBehaviour
   public void UpdateContinueButton()
   {
     if (_continueButton == null)
-      return;
+        return;
 
     bool show =
-      DataDirector.Instance.AnySlotHasCheckpoint(out _) || DataDirector.Instance.AnySlotCompleted();
+        DataDirector.Instance.AnySlotHasCheckpoint(out _) ||
+        DataDirector.Instance.AnySlotCompleted();
 
     _continueButton.SetActive(show);
+
+    if (_continueButton == null)
+        return;
+
+    bool checkpoint = DataDirector.Instance.AnySlotHasCheckpoint(out _);
+    bool completed  = DataDirector.Instance.AnySlotCompleted();
+
+    Debug.Log($"Checkpoint: {checkpoint}");
+    Debug.Log($"Completed : {completed}");
+
+    _continueButton.SetActive(checkpoint || completed);
   }
 
   #endregion
@@ -226,7 +256,7 @@ animationsRemaining = 0;
 foreach (var root in roots)
 {
     MenuButtonSlide[] slides =
-        root.GetComponentsInChildren<MenuButtonSlide>(true);
+        root.GetComponentsInChildren<MenuButtonSlide>(false);
 
     animationsRemaining += slides.Length;
 }
@@ -393,11 +423,16 @@ private void LockCurrentPanel()
 
   public void ForceSelection()
   {
-    EventSystem.current.SetSelectedGameObject(null);
+    Debug.Log("FORCE SELECTION");
+
+    EventSystem.current.SetSelectedGameObject(_newGame);
 
     SelectFirstButton();
     
     GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    Debug.Log("Selected = " +
+        (selected == null ? "NULL" : selected.name));
 
     if (selected == null)
       return;
@@ -405,7 +440,10 @@ private void LockCurrentPanel()
     Button btn = selected.GetComponent<Button>();
 
     if(btn != null)
+    {
+      Debug.Log("SHOW CURSOR");
       MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+    }
 
     MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
 
@@ -417,8 +455,12 @@ private void LockCurrentPanel()
   {
     animationsRemaining--;
 
+    Debug.Log("Animations Remaining = " + animationsRemaining);
+
     if(animationsRemaining > 0)
        return;
+
+       Debug.Log("TODAS TERMINARAM");
 
     MenuSelectable.CanSeletc = true;
 

@@ -112,9 +112,6 @@ public class MenuSelectionCursor : MonoBehaviour
 
     public void ShowAfterAnimation(Button button)
     {
-       // CanMove = true;
-
-       Debug.Log("SHOW CURSOR");
 
 
         cursor.gameObject.SetActive(true);
