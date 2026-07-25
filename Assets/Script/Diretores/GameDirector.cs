@@ -12,6 +12,9 @@ public class GameDirector : MonoBehaviour
   [SerializeField]
   public PlayerDirector playerDirector;
 
+  [SerializeField] private StageIntroDirector stageIntro;
+  [SerializeField] private StageIntroData stageData;
+
   private void Start()
   {
     GlobalEventBus.Instance.Pause.AddListener(SetPauseWorld);
@@ -75,6 +78,20 @@ public class GameDirector : MonoBehaviour
     DataDirector.Instance.CollectScene();
 
     Debug.Log("[GameDirector] StartWorld executado com sucesso!");
+
+    if (DataDirector.Instance.ShowStageIntro)
+{
+    DataDirector.Instance.ShowStageIntro = false;
+    StartCoroutine(StartStageRoutine());
+}
+else
+{
+    // Apenas garante que o jogador está liberado
+    Player player = playerDirector.FirstPlayerContext;
+
+    if (player != null)
+        SetLockPlayer(player, false);
+}
   }
 
   // ─── Pause ────────────────────────────────────────────────────────────────
@@ -151,5 +168,20 @@ public class GameDirector : MonoBehaviour
 
     player.IgnoreGameplayInputThisFrame = false;
     player.WaitForJumpRelease = true;
+  }
+
+  private IEnumerator StartStageRoutine()
+  {
+    yield return null;
+
+    Player player = playerDirector.FirstPlayerContext;
+
+    if (player != null)
+        SetLockPlayer(player, true);
+
+    yield return StartCoroutine(stageIntro.Play(stageData));
+
+    if (player != null)
+        SetLockPlayer(player, false);
   }
 }

@@ -17,21 +17,19 @@ public class StageIntroDirector : MonoBehaviour
     [SerializeField] TMP_Text _stageTitle;
 
     [SerializeField] private MenuSlideIn[] slideObjects;
+
+    public bool IsPlaying { get; private set; }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public void Play(StageIntroData data)
+    public IEnumerator Play(StageIntroData data)
     {
-        StartCoroutine(PlayRoutine(data));
-    }
+        IsPlaying = true;
 
-    private IEnumerator PlayRoutine(StageIntroData data)
-    {
-        _root.SetActive(true);
-        
+    _root.SetActive(true);
 
-        _stageNumber.text = data.StageNumber;
-        _stageTitle.text = data.StageTitle;
+    _stageNumber.text = data.StageNumber;
+    _stageTitle.text = data.StageTitle;
 
-        foreach (var slide in slideObjects)
+    foreach (var slide in slideObjects)
         slide.PlayAnimation();
 
     yield return new WaitForSeconds(data.WaitTime);
@@ -39,15 +37,16 @@ public class StageIntroDirector : MonoBehaviour
     Tween lastTween = null;
 
     foreach (var slide in slideObjects)
-        {
-            lastTween = slide.PlayExitAnimation();
-        }
-    
-    if(lastTween != null)
-       yield return lastTween.WaitForCompletion();
+        lastTween = slide.PlayExitAnimation();
 
-    yield return new WaitForSeconds(0.15f); // duração da animação
+    if (lastTween != null)
+        yield return lastTween.WaitForCompletion();
 
-    SceneManager.LoadScene(data.SceneName);
+    yield return new WaitForSeconds(0.15f);
+
+    _root.SetActive(false);
+
+    IsPlaying = false;
     }
+
 }

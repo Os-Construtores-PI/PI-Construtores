@@ -25,6 +25,8 @@ public sealed class DataDirector : MonoBehaviour
   private string ConfigPath => Constants.PersistentNames.ConfigPath;
   private static string ActiveSceneName => SceneManager.GetActiveScene().name;
 
+  public bool ShowStageIntro = true;
+
   #region UNITY
   private void Awake()
   {
@@ -43,6 +45,22 @@ public sealed class DataDirector : MonoBehaviour
     LoadFromDisk();
   }
   #endregion
+
+  public void RestartCurrentLevel()
+  {
+    SavedSlotData slot = GetSafeSlot(_currentSlot);
+
+    string scene = ActiveSceneName;
+
+    // Remove COMPLETAMENTE os dados da fase atual
+
+    slot.savedLevelDatas.RemoveAll(level => level.levelName == scene);
+
+    // Atualiza o último nível salve
+    slot.lastLevelName = scene;
+
+    Commit();
+  }
 
   #region RAM / DISK
   private void LoadFromDisk()

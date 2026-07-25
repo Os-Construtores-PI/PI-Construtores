@@ -1,6 +1,8 @@
 ﻿using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class BasicMenuLogic : MonoBehaviour
 {
@@ -11,7 +13,46 @@ public class BasicMenuLogic : MonoBehaviour
   [SerializeField]
   private UIAudioConfig _uiAudioConfig;
 
+  [SerializeField] private float selectableScale = 1.08f;
+  [SerializeField] private float scaleSpeed = 10f;
+
+
+  private Button _currentButton;
+  private Vector3 _currentTargetScale = Vector3.one;
+
+  [SerializeField] private LoadingScreen _loadingScreen;
+
   #region  === MENU GAMEOVER ===
+
+  private void Update()
+  {
+    GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    if(selected == null)
+       return;
+    
+    Button button = selected.GetComponent<Button>();
+
+    if(button != _currentButton)
+    {
+      if(_currentButton != null)
+         _currentButton.transform.localScale = Vector3.one;
+        
+      _currentButton = button;
+
+      if(_currentButton != null)
+         _currentTargetScale = Vector3.one * selectableScale;
+    }
+
+    if(_currentButton != null)
+    {
+      _currentButton.transform.localScale = Vector3.Lerp(
+        _currentButton.transform.localScale,
+        _currentTargetScale,
+        Time.unscaledDeltaTime * scaleSpeed
+      );
+    }
+  }
   public void Respawn()
   {
     if (AudioManager.Instance != null && _backgroundMusicConfig != null)
@@ -36,8 +77,21 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === MENU PAUSE ===
   public void OpenOptions()
   {
-    GlobalEventBus.Instance.Options.Invoke(true);
-    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    Time.timeScale = 1f;
+
+    GlobalEventBus.Instance.Pause.Invoke(false);
+
+    DOTween.KillAll();
+
+    if(DataDirector.Instance != null)
+    {
+      DataDirector.Instance.ResetRunTimeState();
+      DataDirector.Instance.RestartCurrentLevel();
+
+      DataDirector.Instance.ShowStageIntro = false;
+    }
+
+    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
   }
 
   public void ContinueGame()
@@ -84,15 +138,17 @@ public class BasicMenuLogic : MonoBehaviour
 
     GlobalEventBus.Instance.Pause.Invoke(false);
 
+    DOTween.KillAll();
+
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();
-    SceneManager.LoadScene(Constants.SceneNames.MainMenu);
 
-    DOTween.KillAll();
 
     Resources.UnloadUnusedAssets();
 
     AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+    
+    _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
   }
   #endregion
 }

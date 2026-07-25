@@ -26,7 +26,6 @@ public class MenuDirector : MonoBehaviour
   private readonly Dictionary<string, List<GameObject>> panels = new();
 
 
-  [SerializeField] private StageIntroDirector _stageIntro;
 
   private EventSystem _eventSystem;
 
@@ -350,12 +349,12 @@ private void LockCurrentPanel()
       }
     }
     DataDirector.Instance.SaveHasSave(true);
+
+    DataDirector.Instance.ShowStageIntro = true;
        
     LockCurrentPanel();
-    StageIntroData intro =
-         Resources.Load<StageIntroData>("Stages/Stage01");
-
-    _stageIntro.Play(intro);
+    
+    SceneManager.LoadScene(level);
   }
 
   public void ExitOptions()
@@ -396,16 +395,15 @@ private void LockCurrentPanel()
   {
     DataDirector.Instance.SaveHasSave(false);
 
+    DataDirector.Instance.ShowStageIntro = true;
+
     if(panels.TryGetValue(Constants.MenuPanelNames.SaveMenu, out var roots))
     {
       foreach (var root in roots)
           root.SetActive(false);
     }
 
-    StageIntroData intro =
-        Resources.Load<StageIntroData>("Stages/Stage01");
-
-    _stageIntro.Play(intro);
+    SceneManager.LoadScene("Fase0");
   }
 
   private void OnDestroy()
