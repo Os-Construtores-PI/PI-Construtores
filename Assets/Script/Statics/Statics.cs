@@ -171,14 +171,6 @@ public static class Constants
     public const float GraplingHookSpeed = 10f;
   }
 
-  public static class MenuPanelNames
-  {
-    public const string Menu = nameof(Menu);
-    public const string AudioMenu = nameof(AudioMenu);
-    public const string OptionsMenu = nameof(OptionsMenu);
-    public const string SaveMenu = nameof(SaveMenu);
-  }
-
   public static class PlayerCommonObjects
   {
     public static HashSet<Type> types = new()

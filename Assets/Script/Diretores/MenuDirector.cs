@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,29 +8,36 @@ using UnityEngine.UI;
 
 public class MenuDirector : MonoBehaviour
 {
-  [Header("Canvas Roots")]
+  [Header("Canvas Raiz")]
   [SerializeField]
-  private Transform[] canvasRoots;
+  private Transform canvasRoot;
 
   [SerializeField]
   private GameObject _continueButton;
 
-  [SerializeField] private GameObject _newGame;
+  [SerializeField]
+  private GameObject _newGame;
 
-  private string _currentPanel;
+  [SerializeField]
+  private float panelTransitionDelay = 0.35f;
 
-  private List<Button> currentButtons = new();
+  private static readonly Dictionary<MenuPanelTypes, string> PanelNames = new()
+  {
+    { MenuPanelTypes.Menu, "Menu" },
+    { MenuPanelTypes.OptionsMenu, "OptionsMenu" },
+    { MenuPanelTypes.AudioMenu, "AudioMenu" },
+    { MenuPanelTypes.SaveMenu, "SaveMenu" },
+    { MenuPanelTypes.LeaderboardMenu, "LeaderboardMenu" },
+  };
 
   private readonly Dictionary<string, List<GameObject>> panels = new();
+  private readonly List<Button> currentButtons = new();
+  private readonly Stack<MenuPanelTypes> panelHistory = new();
 
-
+  private MenuPanelTypes _currentPanel = MenuPanelTypes.None;
 
   private EventSystem _eventSystem;
-
-  [SerializeField] private float panelTransitionDelay = 0.35f;
-
   private int animationsRemaining;
-
   private bool _loadingGame;
 
   private void Awake()
@@ -46,7 +51,7 @@ public class MenuDirector : MonoBehaviour
     BuildPanelMap();
   }
 
-  #region Start
+  #region Start / Update
 
   private void Start()
   {
@@ -56,27 +61,25 @@ public class MenuDirector : MonoBehaviour
 
   private void Update()
   {
-
-    if(_loadingGame)
-       return;
+    if (_loadingGame)
+      return;
 
     if (BackPressed())
     {
       HandleBack();
       return;
     }
+
     if (EventSystem.current.currentSelectedGameObject != null)
       return;
 
-    if (Gamepad.current != null)
+    Gamepad gamepad = Gamepad.current;
+    if (
+      gamepad != null
+      && (gamepad.dpad.ReadValue() != Vector2.zero || gamepad.leftStick.ReadValue() != Vector2.zero)
+    )
     {
-      if (
-        Gamepad.current.dpad.ReadValue() != Vector2.zero
-        || Gamepad.current.leftStick.ReadValue() != Vector2.zero
-      )
-      {
-        SelectFirstButton();
-      }
+      SelectFirstButton();
     }
 
     if (Keyboard.current.anyKey.wasPressedThisFrame)
@@ -84,33 +87,31 @@ public class MenuDirector : MonoBehaviour
       SelectFirstButton();
     }
 
-    if (Input.GetKeyDown(KeyCode.F12))
+#if UNITY_EDITOR
+    if (Keyboard.current.f12Key.wasPressedThisFrame)
     {
       DataDirector.Instance.ClearGameData();
     }
+#endif
   }
 
   private void SelectFirstButton()
   {
-
-    // Só força o Novo Jogo no menu principal
-    if (_currentPanel == Constants.MenuPanelNames.Menu && _newGame != null)
+    if (_currentPanel == MenuPanelTypes.Menu && _newGame != null)
     {
-        Button newGameButton = _newGame.GetComponent<Button>();
+      Button newGameButton = _newGame.GetComponent<Button>();
 
-        if (newGameButton != null &&
-            newGameButton.gameObject.activeInHierarchy &&
-            newGameButton.interactable)
-        {
-            EventSystem.current.SetSelectedGameObject(newGameButton.gameObject);
-
-            Debug.Log(EventSystem.current.currentSelectedGameObject);
-
-            Canvas.ForceUpdateCanvases();
-            return;
-        }
+      if (
+        newGameButton != null
+        && newGameButton.gameObject.activeInHierarchy
+        && newGameButton.interactable
+      )
+      {
+        EventSystem.current.SetSelectedGameObject(newGameButton.gameObject);
+        Canvas.ForceUpdateCanvases();
+        return;
+      }
     }
-
 
     foreach (var btn in currentButtons)
     {
@@ -124,60 +125,40 @@ public class MenuDirector : MonoBehaviour
 
   private bool BackPressed()
   {
-    bool keyboard =
-        Keyboard.current != null &&
-        Keyboard.current.escapeKey.wasPressedThisFrame;
+    bool keyboard = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+    bool gamepad = Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame;
 
-    bool gamepad = 
-         Gamepad.current != null &&
-         Gamepad.current.buttonEast.wasPressedThisFrame;
-    
     return keyboard || gamepad;
   }
 
   private void HandleBack()
   {
-    
-    if(!MenuSelectable.CanSeletc)
-       return;
-    
-    switch (_currentPanel)
-    {
-      case Constants.MenuPanelNames.OptionsMenu:
-           ExitOptions();
-           break;
-      
-      case Constants.MenuPanelNames.AudioMenu:
-           ExitAudioOption();
-           break;
-      
-      case Constants.MenuPanelNames.SaveMenu:
-           ExitSaveMenu();
-           break;
-    }
+    if (!MenuSelectable.CanSelect)
+      return;
+
+    GoBack();
+  }
+
+  public void GoBack()
+  {
+    if (panelHistory.Count == 0)
+      return;
+
+    SwitchPanel(_currentPanel, panelHistory.Pop());
   }
 
   private void InitMenu()
   {
-    ShowPanel(Constants.MenuPanelNames.Menu);
+    ShowPanel(MenuPanelTypes.Menu);
   }
 
   public void UpdateContinueButton()
   {
     if (_continueButton == null)
-        return;
-
-    bool show =
-        DataDirector.Instance.AnySlotHasCheckpoint(out _) ||
-        DataDirector.Instance.AnySlotCompleted();
-
-    _continueButton.SetActive(show);
-
-    if (_continueButton == null)
-        return;
+      return;
 
     bool checkpoint = DataDirector.Instance.AnySlotHasCheckpoint(out _);
-    bool completed  = DataDirector.Instance.AnySlotCompleted();
+    bool completed = DataDirector.Instance.AnySlotCompleted();
 
     Debug.Log($"Checkpoint: {checkpoint}");
     Debug.Log($"Completed : {completed}");
@@ -187,137 +168,145 @@ public class MenuDirector : MonoBehaviour
 
   #endregion
 
-
   #region Panel Discovery
 
   private void BuildPanelMap()
   {
     panels.Clear();
 
-    foreach (var root in canvasRoots)
-      CollectPanelsRecursive(root);
+    CollectPanelsRecursive(canvasRoot);
   }
 
   private void CollectPanelsRecursive(Transform parent)
   {
     foreach (Transform child in parent)
     {
-      if (!panels.ContainsKey(child.name))
-        panels[child.name] = new List<GameObject>();
+      if (!panels.TryGetValue(child.name, out var list))
+      {
+        list = new List<GameObject>();
+        panels[child.name] = list;
+      }
 
-      panels[child.name].Add(child.gameObject);
+      list.Add(child.gameObject);
       CollectPanelsRecursive(child);
     }
   }
 
   #endregion
 
-  #region Public Panel API
+  #region Panel API
 
-  private void ShowPanel(string panelName, bool fade = false)
+  private bool TryGetPanelRoots(MenuPanelTypes panel, out List<GameObject> roots)
   {
-    Debug.Log("SHOW PANEL -> " + panelName);
+    roots = null;
+    return PanelNames.TryGetValue(panel, out var panelName)
+      && panels.TryGetValue(panelName, out roots);
+  }
 
-    bool animatedMenu = panelName == Constants.MenuPanelNames.Menu;
+  private void ShowPanel(MenuPanelTypes panel)
+  {
+    Debug.Log("SHOW PANEL -> " + panel);
+
+    bool animatedMenu = panel == MenuPanelTypes.Menu;
 
     if (animatedMenu)
     {
-        _eventSystem.sendNavigationEvents = false;
-        MenuSelectable.CanSeletc = false;
-        MenuSelectionCursor.Instance.Hide();
+      _eventSystem.sendNavigationEvents = false;
+      MenuSelectable.CanSelect = false;
+      MenuSelectionCursor.Instance.Hide();
     }
 
+    if (!TryGetPanelRoots(panel, out var roots))
+      return;
 
-    if (!panels.TryGetValue(panelName, out var roots))
-        return;
-
-    _currentPanel = panelName;
+    _currentPanel = panel;
     currentButtons.Clear();
+    animationsRemaining = 0;
 
     EventSystem.current.SetSelectedGameObject(null);
 
     foreach (var root in roots)
-{
-    root.SetActive(true);
-    root.transform.localScale = Vector3.one;
-
-    foreach (Button btn in root.GetComponentsInChildren<Button>(true))
     {
+      root.SetActive(true);
+      root.transform.localScale = Vector3.one;
+
+      foreach (Button btn in root.GetComponentsInChildren<Button>(true))
+      {
         btn.interactable = true;
         currentButtons.Add(btn);
+      }
 
-        
+      animationsRemaining += root.GetComponentsInChildren<MenuButtonSlide>(false).Length;
     }
-}
 
-animationsRemaining = 0;
+    Canvas.ForceUpdateCanvases();
 
-foreach (var root in roots)
-{
-    MenuButtonSlide[] slides =
-        root.GetComponentsInChildren<MenuButtonSlide>(false);
+    SelectFirstButton();
 
-    animationsRemaining += slides.Length;
-}
+    MenuPreview.Instance.gameObject.SetActive(false);
+  }
 
-     Canvas.ForceUpdateCanvases();
-
-     SelectFirstButton();
-
-     MenuPreview.Instance.gameObject.SetActive(false);
-
-
-}
-
-private void LockCurrentPanel()
+  private void LockCurrentPanel()
   {
     EventSystem.current.SetSelectedGameObject(null);
-
     _eventSystem.sendNavigationEvents = false;
 
     foreach (Button btn in currentButtons)
     {
-        if(btn != null)
-            btn.interactable = false;
+      if (btn != null)
+        btn.interactable = false;
     }
 
-    if (panels.TryGetValue(_currentPanel, out var roots))
+    if (TryGetPanelRoots(_currentPanel, out var roots))
     {
-        foreach(var root in roots)
-            root.SetActive(false);
+      foreach (var root in roots)
+        root.SetActive(false);
     }
   }
 
-  private void HidePanel(string panelName, bool fade = false)
+  private void HidePanel(MenuPanelTypes panel, System.Action onComplete = null)
   {
-    if (!panels.TryGetValue(panelName, out var roots))
+    if (!TryGetPanelRoots(panel, out var roots))
+    {
+      onComplete?.Invoke();
       return;
+    }
 
     EventSystem.current.SetSelectedGameObject(null);
+
+    int remaining = roots.Count;
 
     foreach (var root in roots)
     {
       root.transform.DOKill();
+      root.transform.DOScale(Vector3.zero, .25f)
+        .SetLink(root)
+        .OnComplete(() =>
+        {
+          if (root != null)
+            root.SetActive(false);
 
-      root.transform.DOScale(Vector3.zero, .25f).SetLink(root).OnComplete(() =>
-      {
-        if (root != null)
-          root.SetActive(false);
-      });
+          if (--remaining <= 0)
+            onComplete?.Invoke();
+        });
     }
   }
 
-  private void SwitchPanel(string from, string to, bool fade = false)
+  private void SwitchPanel(MenuPanelTypes from, MenuPanelTypes to)
   {
-    if(_loadingGame)
-       return;
-    HidePanel(from, fade);
+    if (_loadingGame)
+      return;
 
-    DOVirtual.DelayedCall(panelTransitionDelay, () =>
-    {
-      ShowPanel(to, fade);
-    });
-    //ShowPanel(to, fade);
+    HidePanel(from, () => ShowPanel(to));
+  }
+
+  public void OpenPanel(MenuPanelTypes next)
+  {
+    if (_loadingGame)
+      return;
+
+    panelHistory.Push(_currentPanel);
+    SwitchPanel(_currentPanel, next);
   }
 
   #endregion
@@ -326,7 +315,7 @@ private void LockCurrentPanel()
 
   public void EnterOptions()
   {
-    SwitchPanel(Constants.MenuPanelNames.Menu, Constants.MenuPanelNames.OptionsMenu);
+    OpenPanel(MenuPanelTypes.OptionsMenu);
   }
 
   public void ContinueGame()
@@ -348,40 +337,29 @@ private void LockCurrentPanel()
         return;
       }
     }
+
     DataDirector.Instance.SaveHasSave(true);
-
     DataDirector.Instance.ShowStageIntro = true;
-       
-    LockCurrentPanel();
-    
-    SceneManager.LoadScene(level);
-  }
 
-  public void ExitOptions()
-  {
-    SwitchPanel(Constants.MenuPanelNames.OptionsMenu, Constants.MenuPanelNames.Menu);
+    LockCurrentPanel();
+
+    SceneManager.LoadScene(level);
   }
 
   public void EnterAudioOptions()
   {
-    SwitchPanel(Constants.MenuPanelNames.OptionsMenu, Constants.MenuPanelNames.AudioMenu);
-  }
-
-  public void ExitAudioOption()
-  {
-    SwitchPanel(Constants.MenuPanelNames.AudioMenu, Constants.MenuPanelNames.OptionsMenu);
+    OpenPanel(MenuPanelTypes.AudioMenu);
   }
 
   public void EnterSaveMenu()
   {
-    SwitchPanel(Constants.MenuPanelNames.Menu, Constants.MenuPanelNames.SaveMenu);
+    OpenPanel(MenuPanelTypes.SaveMenu);
   }
 
-  public void ExitSaveMenu()
+  public void EnterLeaderboardMenu()
   {
-    SwitchPanel(Constants.MenuPanelNames.SaveMenu, Constants.MenuPanelNames.Menu);
+    OpenPanel(MenuPanelTypes.LeaderboardMenu);
   }
-
 
   public void QuitGame()
   {
@@ -394,13 +372,12 @@ private void LockCurrentPanel()
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
-
     DataDirector.Instance.ShowStageIntro = true;
 
-    if(panels.TryGetValue(Constants.MenuPanelNames.SaveMenu, out var roots))
+    if (TryGetPanelRoots(MenuPanelTypes.SaveMenu, out var roots))
     {
       foreach (var root in roots)
-          root.SetActive(false);
+        root.SetActive(false);
     }
 
     SceneManager.LoadScene("Fase0");
@@ -408,12 +385,11 @@ private void LockCurrentPanel()
 
   private void OnDestroy()
   {
-
     foreach (var panel in panels)
     {
       foreach (var obj in panel.Value)
       {
-        if(obj != null)
+        if (obj != null)
           obj.transform.DOKill();
       }
     }
@@ -426,18 +402,17 @@ private void LockCurrentPanel()
     EventSystem.current.SetSelectedGameObject(_newGame);
 
     SelectFirstButton();
-    
+
     GameObject selected = EventSystem.current.currentSelectedGameObject;
 
-    Debug.Log("Selected = " +
-        (selected == null ? "NULL" : selected.name));
+    Debug.Log("Selected = " + (selected == null ? "NULL" : selected.name));
 
     if (selected == null)
       return;
 
     Button btn = selected.GetComponent<Button>();
 
-    if(btn != null)
+    if (btn != null)
     {
       Debug.Log("SHOW CURSOR");
       MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
@@ -445,8 +420,8 @@ private void LockCurrentPanel()
 
     MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
 
-    if(selectable != null)
-       selectable.ForcePreview();
+    if (selectable != null)
+      selectable.ForcePreview();
   }
 
   public void NotifyAnimationsFinished()
@@ -455,19 +430,18 @@ private void LockCurrentPanel()
 
     Debug.Log("Animations Remaining = " + animationsRemaining);
 
-    if(animationsRemaining > 0)
-       return;
+    if (animationsRemaining > 0)
+      return;
 
-       Debug.Log("TODAS TERMINARAM");
+    Debug.Log("TODAS TERMINARAM");
 
-    MenuSelectable.CanSeletc = true;
+    MenuSelectable.CanSelect = true;
 
-    MenuSelectable[] buttons =
-         FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None);
-    
+    MenuSelectable[] buttons = FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None);
+
     foreach (var b in buttons)
-        b.MostrarSprite();
-    
+      b.MostrarSprite();
+
     MenuPreview.Instance.gameObject.SetActive(true);
 
     EnableNavigation();
@@ -476,11 +450,9 @@ private void LockCurrentPanel()
   }
 
   public void EnableNavigation()
-{
+  {
     _eventSystem.sendNavigationEvents = true;
-}
+  }
 
   #endregion
-
 }
-

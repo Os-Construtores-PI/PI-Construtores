@@ -194,3 +194,13 @@ public enum RankType
   C,
   D,
 }
+
+public enum MenuPanelTypes
+{
+  None,
+  Menu,
+  OptionsMenu,
+  AudioMenu,
+  SaveMenu,
+  LeaderboardMenu,
+}
