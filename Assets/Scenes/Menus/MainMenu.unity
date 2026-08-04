@@ -5846,6 +5846,7 @@ GameObject:
   - component: {fileID: 634231270155457205}
   - component: {fileID: 634231270155457204}
   - component: {fileID: 634231270155457209}
+  - component: {fileID: 634231270155457210}
   m_Layer: 0
   m_Name: EntriesContainer
   m_TagString: Untagged
@@ -6243,6 +6244,26 @@ MonoBehaviour:
   FinishedInstancing:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &634231270155457210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 228957790492497574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0
+  direction: 1
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!114 &731972176435279650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7354,6 +7375,7 @@ GameObject:
   - component: {fileID: 2239324881962624665}
   - component: {fileID: 2349913550221805811}
   - component: {fileID: 2349913550221805810}
+  - component: {fileID: 2349913550221805812}
   m_Layer: 0
   m_Name: Elipse 2
   m_TagString: Untagged
@@ -7399,6 +7421,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2349913550221805809}
   m_CullTransparentMesh: 1
+--- !u!114 &2349913550221805812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2349913550221805809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0272263eb45aff4db65369fabf964f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFloating
+  direction: 0
+  _distance: 30
+  _duration: 3
+  ease: 4
+  _entranceDelay: 0.8
+  _randomStart: 1
 --- !u!1 &2359058449361970350
 GameObject:
   m_ObjectHideFlags: 0
@@ -8265,6 +8305,7 @@ GameObject:
   - component: {fileID: 7026925140480163782}
   - component: {fileID: 7026925140480163784}
   - component: {fileID: 7026925140480163783}
+  - component: {fileID: 7026925140480163785}
   m_Layer: 0
   m_Name: Level1Container
   m_TagString: Untagged
@@ -8338,12 +8379,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3983424337639341642}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 605ed2f0bcb2343fab3e7e5c220179a3, type: 3}
+  m_Script: {fileID: 11500000, guid: 6f42662a886d10f4daf0c8b4696de747, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RotatingObject
-  _xRotateSpeed: 0
-  _yRotateSpeed: 0
-  _zRotateSpeed: -90
+  m_EditorClassIdentifier: Assembly-CSharp::RotateUI
+  rotationSpeed: 90
+  clockWise: 1
+  floating: 1
+  floatDistance: 8
+  floatDuration: 2
 --- !u!1 &4037982427286819597
 GameObject:
   m_ObjectHideFlags: 0
@@ -9085,6 +9128,7 @@ GameObject:
   - component: {fileID: 4286994707982055122}
   - component: {fileID: 5273189827906085734}
   - component: {fileID: 5273189827906085733}
+  - component: {fileID: 5273189827906085735}
   m_Layer: 0
   m_Name: Elipse 3
   m_TagString: Untagged
@@ -9130,6 +9174,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5273189827906085732}
   m_CullTransparentMesh: 1
+--- !u!114 &5273189827906085735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5273189827906085732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0272263eb45aff4db65369fabf964f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFloating
+  direction: 0
+  _distance: 30
+  _duration: 3
+  ease: 4
+  _entranceDelay: 0.8
+  _randomStart: 1
 --- !u!224 &5315243919810290661
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9220,6 +9282,7 @@ GameObject:
   - component: {fileID: 578046508268327521}
   - component: {fileID: 5453204153313227644}
   - component: {fileID: 5453204153313227643}
+  - component: {fileID: 5453204153313227645}
   m_Layer: 0
   m_Name: Borda Superior
   m_TagString: Untagged
@@ -9265,6 +9328,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5453204153313227642}
   m_CullTransparentMesh: 1
+--- !u!114 &5453204153313227645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5453204153313227642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0
+  direction: 2
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!224 &5460264353245276442
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9425,12 +9508,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 79855043396089846}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 605ed2f0bcb2343fab3e7e5c220179a3, type: 3}
+  m_Script: {fileID: 11500000, guid: 6f42662a886d10f4daf0c8b4696de747, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RotatingObject
-  _xRotateSpeed: 0
-  _yRotateSpeed: 0
-  _zRotateSpeed: 90
+  m_EditorClassIdentifier: Assembly-CSharp::RotateUI
+  rotationSpeed: 90
+  clockWise: 0
+  floating: 1
+  floatDistance: 8
+  floatDuration: 2
 --- !u!222 &5650622561829366486
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10586,6 +10671,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3833767820827856658}
   m_CullTransparentMesh: 1
+--- !u!114 &7026925140480163785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3833767820827856658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0
+  direction: 2
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!95 &7148239973768107361
 Animator:
   serializedVersion: 7
@@ -11617,6 +11722,7 @@ GameObject:
   - component: {fileID: 1008180881973973697}
   - component: {fileID: 8573412596742638496}
   - component: {fileID: 8573412596742638495}
+  - component: {fileID: 8573412596742638497}
   m_Layer: 0
   m_Name: Borda Inferior
   m_TagString: Untagged
@@ -11662,6 +11768,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8573412596742638494}
   m_CullTransparentMesh: 1
+--- !u!114 &8573412596742638497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8573412596742638494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 700
+  duration: 0.8
+  ease: 18
+  startDelay: 0
+  direction: 3
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
 --- !u!222 &8687860043653075026
 CanvasRenderer:
   m_ObjectHideFlags: 0
