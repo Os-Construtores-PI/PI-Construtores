@@ -31,6 +31,9 @@ public class EndGamePanel : MonoBehaviour
   [SerializeField]
   private TextMeshProUGUI _timeOutput;
 
+  [SerializeField]
+  private TextMeshProUGUI _uuidOutput;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Unity Events
   // ═══════════════════════════════════════════════════════════════════════════
@@ -90,27 +93,28 @@ public class EndGamePanel : MonoBehaviour
     };
   }
 
-  public void Populate(int score, int previewScore, float time, RankType rank)
+  public void Populate(int score, int previewScore, float time, string uuid, RankType rank)
   {
     SetScore(score);
     SetPreviewScore(previewScore);
     SetTime(time);
     SetRank(rank);
+    SetUUID(uuid);
   }
 
-  public void SetScore(int score)
+  private void SetScore(int score)
   {
     if (_scoreOutput)
       _scoreOutput.text = score.ToString("D8");
   }
 
-  public void SetPreviewScore(int previewScore)
+  private void SetPreviewScore(int previewScore)
   {
     if (_previewScoreOutput)
       _previewScoreOutput.text = previewScore.ToString("D8");
   }
 
-  public void SetTime(float seconds)
+  private void SetTime(float seconds)
   {
     if (!_timeOutput)
       return;
@@ -119,7 +123,7 @@ public class EndGamePanel : MonoBehaviour
     _timeOutput.text = span.Hours > 0 ? span.ToString(@"hh\:mm\:ss") : span.ToString(@"mm\:ss\.ff");
   }
 
-  public void SetRank(RankType rank)
+  private void SetRank(RankType rank)
   {
     if (!_rankOutput)
       return;
@@ -131,6 +135,14 @@ public class EndGamePanel : MonoBehaviour
       _rankOutput.sprite = sprite;
     else
       Debug.LogWarning($"[EndGamePanel] Nenhum sprite mapeado para o rank {rank}.");
+  }
+
+  private void SetUUID(string uuid)
+  {
+    if (!_uuidOutput)
+      return;
+
+    _uuidOutput.text = uuid;
   }
 
   private void ListeningForInput()

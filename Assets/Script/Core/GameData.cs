@@ -39,6 +39,7 @@ public class SavedLevelData
   public int levelScore;
   public LevelPathType lastPath;
   public List<SavedPlayerData> savedPlayers = new();
+  public List<SavedLevelFinish> savedFinishes = new();
   public List<SavedDroppedItem> savedDroppedItems = new();
 
   public SavedLevelData(string levelname)
@@ -48,9 +49,31 @@ public class SavedLevelData
 }
 
 [System.Serializable]
+public class SavedLevelFinish
+{
+  public string FinishUUID;
+  public int PlayerIndex;
+  public int Score;
+  public float Time;
+  public int HighestComboIndex;
+  public DateTime When;
+
+  public SavedLevelFinish(int playerIndex, int score, float time, int comboIndex)
+  {
+    FinishUUID = Guid.NewGuid().ToString();
+    PlayerIndex = playerIndex;
+    Score = score;
+    Time = time;
+    HighestComboIndex = comboIndex;
+    When = DateTime.Now;
+  }
+}
+
+[System.Serializable]
 public class SavedPlayerData
 {
   public int PlayerId;
+  public string PlayerUUID;
   public DateTime Lastsave;
   public List<SavedItemEntry> Inventory = new();
   public int AmethystsCount;

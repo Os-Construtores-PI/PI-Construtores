@@ -838,6 +838,11 @@ public class HudDirector : MonoBehaviour
             SceneManager.GetActiveScene().name,
             player.ID
           );
+          string uuid = dataDirector.GetLastFinishUUID(
+            currentSlot,
+            SceneManager.GetActiveScene().name,
+            player.ID
+          );
           int maxScore = levelManager.ReferenceScore;
           float time = _playerCachedStopwatches.TryGetValue(player.ID, out var sw)
             ? sw.Elapsed
@@ -848,6 +853,7 @@ public class HudDirector : MonoBehaviour
             score,
             previewScore,
             time,
+            uuid,
             EndGamePanel.CalculateRank(score, maxScore)
           );
         }
