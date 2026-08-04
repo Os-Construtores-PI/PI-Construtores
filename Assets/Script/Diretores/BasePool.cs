@@ -90,6 +90,8 @@ public abstract class BasePool : MonoBehaviour
 
   public int GetAmountPool() => _initialAmount;
 
+  public void SetAmountPool(int newAmount) => _initialAmount = newAmount;
+
   public Transform GetParentTransform() => _parent;
 
   private void EnsureParentExists()

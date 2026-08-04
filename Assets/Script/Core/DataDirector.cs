@@ -65,8 +65,6 @@ public sealed class DataDirector : MonoBehaviour
   #region RAM / DISK
   private void LoadFromDisk()
   {
-
-    
     _gameData = LoadOrCreate(GamePath, () => new SavedGameData(_maxSlots));
     _configData = LoadOrCreate(ConfigPath, () => new SavedConfigData());
     EnsureInvariants();
@@ -145,8 +143,6 @@ public sealed class DataDirector : MonoBehaviour
     lvl.savedPlayers ??= new List<SavedPlayerData>();
     lvl.savedDroppedItems ??= new List<SavedDroppedItem>();
     return lvl;
-
-
   }
 
   private SavedLevelData FindLevel(int slotIndex, string scene)
@@ -258,7 +254,7 @@ public sealed class DataDirector : MonoBehaviour
     Commit();
   }
 
-  public void SaveLevelRecord(
+  public string SaveLevelRecord(
     int slot,
     string scene,
     int playerIndex,
@@ -267,17 +263,11 @@ public sealed class DataDirector : MonoBehaviour
     int comboIndex
   )
   {
-
-    SavedLevelData lvl = GetSafeLevel(slot, scene);
-    SavedPlayerData pd = EnsurePlayerSlot(lvl, playerIndex);
-
-    pd.PreviewScore = pd.Score;
-    pd.Score = Mathf.Max(pd.Score, score);
-    print($"PreviewScore: {pd.PreviewScore} // Score: {pd.Score}");
-    pd.Time = time;
-    pd.HighestComboIndex = Mathf.Max(pd.HighestComboIndex, comboIndex);
-
+    var lvl = GetSafeLevel(slot, scene);
+    var finish = new SavedLevelFinish(playerIndex, score, time, comboIndex);
+    lvl.savedFinishes.Add(finish);
     Commit();
+    return finish.FinishUUID;
   }
 
   public void SavePlayerStats(int slot, string scene, int playerIndex, int health, int amethysts)
@@ -406,6 +396,22 @@ public sealed class DataDirector : MonoBehaviour
     return selector(lvl.savedPlayers[playerIndex]);
   }
 
+  public IReadOnlyList<SavedLevelFinish> GetLevelFinishes(int slot, string scene)
+  {
+    var lvl = FindLevel(slot, scene);
+    return lvl?.savedFinishes ?? new List<SavedLevelFinish>();
+  }
+
+  public string GetLastFinishUUID(int slot, string scene, int playerIndex)
+  {
+    var lvl = FindLevel(slot, scene);
+    return lvl
+      ?.savedFinishes.Where(f => f.PlayerIndex == playerIndex)
+      .OrderByDescending(f => f.When)
+      .FirstOrDefault()
+      ?.FinishUUID;
+  }
+
   public int GetPlayerHighestComboIndex(int slot, string scene, int playerIndex = 0) =>
     GetPlayerField(slot, scene, playerIndex, p => p.HighestComboIndex);
 
@@ -484,7 +490,6 @@ public sealed class DataDirector : MonoBehaviour
       .FirstOrDefault();
 
     return chosenSlot != null;
-    
   }
 
   public void ResetRunTimeState()

@@ -7,6 +7,7 @@ public class ManualSingleSpawner : BasePool
   [SerializeField, Tooltip("Prefab to instantiate and pool.")]
   protected GameObject objectToPool;
 
+  [HideInInspector]
   public UnityEvent<List<GameObject>> FinishedInstancing = new();
 
   public void Start()
