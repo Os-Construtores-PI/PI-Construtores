@@ -15,10 +15,10 @@ public class RankingEntry : MonoBehaviour
   [SerializeField]
   private TextMeshProUGUI _timeOutput;
 
-  public void SetData(int rankingPosition, int playerId, int score, float time)
+  public void SetData(int rankingPosition, string finishUUID, int score, float time)
   {
     _rankingOutput.text = rankingPosition.ToString();
-    _idOutput.text = playerId.ToString();
+    _idOutput.text = finishUUID;
     _scoreOutput.text = score.ToString();
     _timeOutput.text = FormatTime(time);
   }

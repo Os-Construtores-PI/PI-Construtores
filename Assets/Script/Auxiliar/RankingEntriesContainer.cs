@@ -42,7 +42,7 @@ public class RankingEntriesContainer : MonoBehaviour
       if (entryObject.TryGetComponent(out RankingEntry rankingEntry))
       {
         SavedLevelFinish finish = _levelFinishes[i];
-        rankingEntry.SetData(i + 1, finish.PlayerIndex, finish.Score, finish.Time);
+        rankingEntry.SetData(i + 1, finish.FinishUUID, finish.Score, finish.Time);
       }
     }
   }
