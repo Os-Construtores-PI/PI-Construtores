@@ -9,9 +9,11 @@ public class StageIntroData : ScriptableObject
 {
     [Header("Stage")]
 
-    public string StageNumber;
+    [Tooltip("Sprite contendo o número da Fase")]
+    public Sprite StageNumberSprite;
 
-    public string StageTitle;
+  [Tooltip("Sprite contendo nome/titulo da Fase")]
+  public Sprite StageTitleSprite;
 
     //[Scene]
 

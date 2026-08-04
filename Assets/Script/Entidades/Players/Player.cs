@@ -146,6 +146,7 @@ public class Player : CombatEntities
   public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
   {
     MainCamera = mainCam;
+    MainCamera.ForceCameraPosition(transform.position, transform.rotation);
     BoostCamera = boostCam;
     _myCamera = camera;
   }

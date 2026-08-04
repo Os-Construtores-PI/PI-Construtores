@@ -1,8 +1,9 @@
-using TMPro;
+
 using UnityEngine;
 using System.Collections;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class StageIntroDirector : MonoBehaviour
 {
@@ -12,9 +13,9 @@ public class StageIntroDirector : MonoBehaviour
 
     [Header("Text")]
 
-    [SerializeField] TMP_Text _stageNumber;
+    [SerializeField] Image _stageNumber;
 
-    [SerializeField] TMP_Text _stageTitle;
+    [SerializeField] Image _stageTitle;
 
     [SerializeField] private MenuSlideIn[] slideObjects;
 
@@ -26,8 +27,8 @@ public class StageIntroDirector : MonoBehaviour
 
     _root.SetActive(true);
 
-    _stageNumber.text = data.StageNumber;
-    _stageTitle.text = data.StageTitle;
+    _stageNumber.sprite = data.StageTitleSprite;
+    _stageTitle.sprite = data.StageNumberSprite;
 
     foreach (var slide in slideObjects)
         slide.PlayAnimation();

@@ -88,4 +88,11 @@ public class AudioManager : MonoBehaviour
   {
     ambientSource.Stop();
   }
+
+  public void SetMusicVolume(float volume)
+  {
+    volume = Mathf.Clamp01(volume);
+
+    musicSource.volume = volume;
+  }
 }

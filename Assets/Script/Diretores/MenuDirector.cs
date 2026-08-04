@@ -19,7 +19,24 @@ public class MenuDirector : MonoBehaviour
   private GameObject _newGame;
 
   [SerializeField]
+  private Scrollbar _rankingScrollbar;
+
+  [SerializeField]
   private float panelTransitionDelay = 0.35f;
+
+  [System.Serializable]
+  private struct PanelSelectable
+  {
+    public MenuPanelTypes panel;
+    public GameObject selectable;
+  }
+
+  [Header("Objeto Selecionado Padrão por Painel")]
+  [Tooltip(
+    "Objeto que será selecionado quando o painel terminar de ser exibido/transicionado. Se não for definido, cai no fallback (primeiro botão interagível)."
+  )]
+  [SerializeField]
+  private List<PanelSelectable> _defaultSelectables = new();
 
   private static readonly Dictionary<MenuPanelTypes, string> PanelNames = new()
   {
@@ -31,10 +48,16 @@ public class MenuDirector : MonoBehaviour
   };
 
   private readonly Dictionary<string, List<GameObject>> panels = new();
+  private readonly Dictionary<MenuPanelTypes, GameObject> defaultSelectableMap = new();
   private readonly List<Button> currentButtons = new();
   private readonly Stack<MenuPanelTypes> panelHistory = new();
 
   private MenuPanelTypes _currentPanel = MenuPanelTypes.None;
+
+  // Painel que está aguardando suas animações de entrada terminarem
+  // antes de poder selecionar algo. Enquanto isso for != None,
+  // nenhuma seleção "prematura" deve ocorrer para esse painel.
+  private MenuPanelTypes _pendingAnimationPanel = MenuPanelTypes.None;
 
   private EventSystem _eventSystem;
   private int animationsRemaining;
@@ -49,6 +72,7 @@ public class MenuDirector : MonoBehaviour
     Cursor.visible = true;
 
     BuildPanelMap();
+    BuildDefaultSelectableMap();
   }
 
   #region Start / Update
@@ -71,6 +95,12 @@ public class MenuDirector : MonoBehaviour
     }
 
     if (EventSystem.current.currentSelectedGameObject != null)
+      return;
+
+    // Enquanto um painel está aguardando o fim de suas animações,
+    // não force nenhuma seleção via input — isso é feito só quando
+    // NotifyAnimationsFinished confirmar que a transição acabou.
+    if (_pendingAnimationPanel != MenuPanelTypes.None)
       return;
 
     Gamepad gamepad = Gamepad.current;
@@ -97,7 +127,34 @@ public class MenuDirector : MonoBehaviour
 
   private void SelectFirstButton()
   {
-    if (_currentPanel == MenuPanelTypes.Menu && _newGame != null)
+    SelectDefaultOrFirstButton(_currentPanel);
+  }
+
+  /// <summary>
+  /// Seleciona o objeto configurado como padrão para o painel informado.
+  /// Se não houver um objeto padrão válido (nulo, inativo ou não interagível),
+  /// cai no comportamento antigo de fallback (botão "Novo Jogo" no Menu, ou
+  /// o primeiro botão ativo/interagível da lista).
+  /// </summary>
+  private void SelectDefaultOrFirstButton(MenuPanelTypes panel)
+  {
+    if (
+      defaultSelectableMap.TryGetValue(panel, out var defaultObj)
+      && defaultObj != null
+      && defaultObj.activeInHierarchy
+    )
+    {
+      Button defaultButton = defaultObj.GetComponent<Button>();
+
+      if (defaultButton == null || defaultButton.interactable)
+      {
+        EventSystem.current.SetSelectedGameObject(defaultObj);
+        Canvas.ForceUpdateCanvases();
+        return;
+      }
+    }
+
+    if (panel == MenuPanelTypes.Menu && _newGame != null)
     {
       Button newGameButton = _newGame.GetComponent<Button>();
 
@@ -134,6 +191,9 @@ public class MenuDirector : MonoBehaviour
   private void HandleBack()
   {
     if (!MenuSelectable.CanSelect)
+      return;
+
+    if (_pendingAnimationPanel != MenuPanelTypes.None)
       return;
 
     GoBack();
@@ -192,6 +252,17 @@ public class MenuDirector : MonoBehaviour
     }
   }
 
+  private void BuildDefaultSelectableMap()
+  {
+    defaultSelectableMap.Clear();
+
+    foreach (var entry in _defaultSelectables)
+    {
+      if (entry.selectable != null)
+        defaultSelectableMap[entry.panel] = entry.selectable;
+    }
+  }
+
   #endregion
 
   #region Panel API
@@ -207,9 +278,9 @@ public class MenuDirector : MonoBehaviour
   {
     Debug.Log("SHOW PANEL -> " + panel);
 
-    bool animatedMenu = panel == MenuPanelTypes.Menu;
+    bool isMainMenu = panel == MenuPanelTypes.Menu;
 
-    if (animatedMenu)
+    if (isMainMenu)
     {
       _eventSystem.sendNavigationEvents = false;
       MenuSelectable.CanSelect = false;
@@ -222,6 +293,7 @@ public class MenuDirector : MonoBehaviour
     _currentPanel = panel;
     currentButtons.Clear();
     animationsRemaining = 0;
+    _pendingAnimationPanel = MenuPanelTypes.None;
 
     EventSystem.current.SetSelectedGameObject(null);
 
@@ -241,7 +313,19 @@ public class MenuDirector : MonoBehaviour
 
     Canvas.ForceUpdateCanvases();
 
-    SelectFirstButton();
+    if (animationsRemaining > 0)
+    {
+      // Este painel tem animação de entrada (MenuButtonSlide). A seleção
+      // só deve acontecer quando a transição estiver 100% completa —
+      // isso é feito em NotifyAnimationsFinished, nunca aqui.
+      _pendingAnimationPanel = panel;
+    }
+    else
+    {
+      // Sem animação de entrada: a transição já está completa agora,
+      // então pode selecionar imediatamente.
+      SelectDefaultOrFirstButton(panel);
+    }
 
     MenuPreview.Instance.gameObject.SetActive(false);
   }
@@ -424,6 +508,32 @@ public class MenuDirector : MonoBehaviour
       selectable.ForcePreview();
   }
 
+  /// <summary>
+  /// Versão genérica de ForceSelection para painéis que não são o Menu
+  /// principal: seleciona o objeto padrão (ou fallback) do painel e
+  /// posiciona o cursor de seleção sobre ele, sem depender de campos
+  /// específicos do Menu (como _newGame) ou do MenuPreview.
+  /// </summary>
+  private void FinishGenericPanelSelection(MenuPanelTypes panel)
+  {
+    SelectDefaultOrFirstButton(panel);
+
+    GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    if (selected == null)
+      return;
+
+    Button btn = selected.GetComponent<Button>();
+
+    if (btn != null)
+      MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+
+    MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
+
+    if (selectable != null)
+      selectable.ForcePreview();
+  }
+
   public void NotifyAnimationsFinished()
   {
     animationsRemaining--;
@@ -435,6 +545,9 @@ public class MenuDirector : MonoBehaviour
 
     Debug.Log("TODAS TERMINARAM");
 
+    MenuPanelTypes finishedPanel = _pendingAnimationPanel;
+    _pendingAnimationPanel = MenuPanelTypes.None;
+
     MenuSelectable.CanSelect = true;
 
     MenuSelectable[] buttons = FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None);
@@ -442,11 +555,17 @@ public class MenuDirector : MonoBehaviour
     foreach (var b in buttons)
       b.MostrarSprite();
 
-    MenuPreview.Instance.gameObject.SetActive(true);
-
     EnableNavigation();
 
-    ForceSelection();
+    if (finishedPanel == MenuPanelTypes.Menu)
+    {
+      MenuPreview.Instance.gameObject.SetActive(true);
+      ForceSelection();
+    }
+    else if (finishedPanel != MenuPanelTypes.None)
+    {
+      FinishGenericPanelSelection(finishedPanel);
+    }
   }
 
   public void EnableNavigation()
