@@ -19,13 +19,20 @@ public class RigidbodyBasedEnemy : Enemies
 
   protected void MoveWithRigidbody(Vector3 targetPos, float speed)
   {
-    if (_rb == null)
+    if(_rb == null) return;
+
+    Vector3 dir = targetPos - transform.position;
+
+    if (dir.sqrMagnitude < 0.01f)
       return;
 
-    Vector3 dir = (targetPos - transform.position).normalized;
-    dir.y = 0;
+    dir.Normalize();
 
-    _rb.MovePosition(transform.position + speed * Time.fixedDeltaTime * dir);
+    Vector3 nextPosition =
+      transform.position + dir * speed * Time.fixedDeltaTime;
+
+    _rb.MovePosition(nextPosition);
+
     RotateTowards(targetPos);
   }
 
