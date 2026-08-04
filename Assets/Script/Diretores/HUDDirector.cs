@@ -423,6 +423,7 @@ public class HudDirector : MonoBehaviour
     {
       EnableButton(rootGo);
       rootGo.transform.DOKill();
+      rootGo.SetActive(true);
 
       rootGo.transform.localScale = Vector3.one;
       rootGo.transform.localRotation = Quaternion.Euler(
