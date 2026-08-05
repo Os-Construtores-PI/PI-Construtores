@@ -254,11 +254,12 @@ public sealed class DataDirector : MonoBehaviour
     Commit();
   }
 
-  public void SavePreview(int slot, string scene, int playerIndex, int previewScore)
+  public void SavePreviewScore(int slot, string scene, int playerIndex, int score)
   {
     SavedLevelData lvl = GetSafeLevel(slot, scene);
     SavedPlayerData pd = EnsurePlayerSlot(lvl, playerIndex);
-    pd.PreviewScore = previewScore;
+    pd.PreviewScore = score;
+    pd.Score = Mathf.Max(pd.Score, score);
     Commit();
   }
 
