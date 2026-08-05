@@ -649,14 +649,34 @@ public class Player : CombatEntities
     UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
-    CharacterController.Move(MovementVector * Time.deltaTime);
+    CollisionFlags flags = CharacterController.Move(MovementVector * Time.fixedDeltaTime);
+
+    if ((flags & CollisionFlags.Below) != 0)
+    {
+      CheckDeathGround();
+    }
+  }
+
+  private void CheckDeathGround()
+  {
+    Vector3 origin = transform.position + CharacterController.center;
+    float radius = CharacterController.radius;
+
+    Collider[] hits = Physics.OverlapSphere(origin, radius, LayerMask.GetMask("DeathZone"));
+
+    if (hits.Length <= 0)
+      return;
+
+    if (Health > 0)
+    {
+      Health = 0;
+    }
   }
 
   public void OnDestroy()
   {
     DOTween.Kill(this);
 
-    // Cancela qualquer Awaitable pendente (ex.: SetupHUDDelayedAsync) e libera o token.
     _lifetimeCts?.Cancel();
     _lifetimeCts?.Dispose();
   }
