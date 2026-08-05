@@ -133,11 +133,11 @@ public class LevelManager : MonoBehaviour
         int timeBonus = player.CalculateTimeScoreCurve(elapsedSeconds);
         player.AddScore(timeBonus);
 
-        _dataSystem.SavePreview(
+        _dataSystem.SavePreviewScore(
           _dataSystem.GetCurrentSlot(),
           SceneManager.GetActiveScene().name,
           playerIndex: player.ID,
-          previewScore: player.CurrentScore
+          score: player.CurrentScore
         );
 
         _dataSystem.SaveLevelRecord(
@@ -149,9 +149,9 @@ public class LevelManager : MonoBehaviour
           comboIndex: player.HighestComboIndex
         );
 
-        Debug.Log(
-          $"[LevelManager] Recorde salvo! Player {player.ID} | Score Final: {player.CurrentScore} (Bônus Tempo: {timeBonus}) | Tempo: {elapsedSeconds}s"
-        );
+        // Debug.Log(
+        //   $"[LevelManager] Recorde salvo! Player {player.ID} | Score Final: {player.CurrentScore} (Bônus Tempo: {timeBonus}) | Tempo: {elapsedSeconds}s"
+        // );
       }
     });
 
