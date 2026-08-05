@@ -22618,15 +22618,38 @@ MonoBehaviour:
   CurrentDashCount: 0
   DashDuration: 0
   _modelTransform: {fileID: 6707445767027251514}
-  _ultimoDispositivo: 0
+  LastDevice: 0
   JumpInteractionPressed: 0
   BoostChanged:
     m_PersistentCalls:
       m_Calls: []
   _maxBoostValue: 100
   _initialBoostValue: 100
-  _initialTimePoints: 10000
-  _timePointDiscountPerSecond: 10
+  _maxTimeScore: 60000
+  _timeScoreCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 60
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   _stagesOfCombo:
   - Multiplier: 2
     TimeToExitStage: 3

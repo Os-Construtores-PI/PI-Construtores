@@ -91,6 +91,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>
     player.AnimatorComponent.SetBool(IsSlidingHash, true);
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
+    player.SpeedLines.Invoke(true);
 
     float3 tangentLocal = CurrentRail.Spline.EvaluateTangent(_t);
     Vector3 tangentWorld = CurrentRail.transform.TransformDirection(tangentLocal);
@@ -113,6 +114,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>
     player.transform.up = Vector3.up;
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
+    player.SpeedLines.Invoke(false);
     player.Stats.ModifyStatByMultiplierCoroutine(StatType.JumpForce, 2, 1f);
 
     player.LocomotionLayer.ChangeState(player.Moving, player);
