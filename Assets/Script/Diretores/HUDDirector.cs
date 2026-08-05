@@ -584,7 +584,7 @@ public class HudDirector : MonoBehaviour
 
     // Fire-and-forget: o Awaitable inicia imediatamente, como uma coroutine,
     // mas é cancelável via token em vez de StopCoroutine.
-    StopShakingAfterAsync(playerID, noise, delay, cts.Token);
+    _ = StopShakingAfterAsync(playerID, noise, delay, cts.Token);
   }
 
   private void CancelPendingShakeStop(int playerID)
@@ -748,7 +748,10 @@ public class HudDirector : MonoBehaviour
   // Teleporte (agora via Awaitable, sem Coroutines)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  private void TeleportFade(int playerID) => TeleportFadeAsync(playerID, destroyCancellationToken);
+  private void TeleportFade(int playerID)
+  {
+    _ = TeleportFadeAsync(playerID, destroyCancellationToken);
+  }
 
   private async Awaitable TeleportFadeAsync(int playerID, CancellationToken token)
   {

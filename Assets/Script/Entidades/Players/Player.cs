@@ -291,19 +291,17 @@ public class Player : CombatEntities
   #region Score
 
   #region Time
-  [Header("Pontuação de tempo")]
-  [SerializeField]
-  private int _maxTimeScore = 10000;
+  [HideInInspector]
+  public int MaxTimeScore = 10000;
 
-  [Tooltip("Eixo X = Tempo (segundos). Eixo Y = Pontos (0 a 1).")]
-  [SerializeField]
-  private AnimationCurve _timeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
+  [HideInInspector]
+  public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
 
   public int CalculateTimeScoreCurve(float timeInSeconds)
   {
-    float multiplier = _timeScoreCurve.Evaluate(timeInSeconds);
+    float multiplier = TimeScoreCurve.Evaluate(timeInSeconds);
 
-    int finalScore = Mathf.RoundToInt(_maxTimeScore * multiplier);
+    int finalScore = Mathf.RoundToInt(MaxTimeScore * multiplier);
 
     return Mathf.Max(0, finalScore);
   }
