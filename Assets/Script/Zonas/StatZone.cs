@@ -259,8 +259,6 @@ public class StatZone : MonoBehaviour
   private bool IsValidEntity(Collider other, out CombatEntities entity)
   {
     entity = null;
-    if (other.gameObject.layer != LayerMask.GetMask("Entity"))
-      return false;
 
     return other.TryGetComponent(out entity) && entity.Stats != null;
   }
