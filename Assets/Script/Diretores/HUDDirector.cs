@@ -847,19 +847,12 @@ public class HudDirector : MonoBehaviour
             SceneManager.GetActiveScene().name,
             player.ID
           );
-          int maxScore = levelManager.ReferenceScore;
           float time = _playerCachedStopwatches.TryGetValue(player.ID, out var sw)
             ? sw.Elapsed
             : 0f;
           ;
 
-          endGamePanel.Populate(
-            score,
-            previewScore,
-            time,
-            uuid,
-            EndGamePanel.CalculateRank(score, maxScore)
-          );
+          endGamePanel.Populate(score, previewScore, time, uuid, levelManager.GetRank(time));
         }
       }
     });

@@ -748,6 +748,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
   _damageCooldown: 0.1
+  _defaultDamageLayers:
+    serializedVersion: 2
+    m_Bits: 5120
 --- !u!1 &3661732791685758232
 GameObject:
   m_ObjectHideFlags: 0
@@ -5919,8 +5922,8 @@ MonoBehaviour:
   regenerationInterval: 5
   Damaged: 0
   _lockInRange: 40
-  _deathEffectDuration: 1
   _boostGrace: 20
+  _deathEffectDuration: 1
   _knockbackForce: 45
   _knockbackRadius: 10
   _verticalMultiplier: 1
@@ -5942,6 +5945,8 @@ MonoBehaviour:
   flashDuration: 0.25
   flashMaterial: {fileID: 2100000, guid: 95120fc78f952614684e7d0a09b4bf7c, type: 2}
   _damagePopupEffect: {fileID: 800041141345270520}
+  _canRespawn: 1
+  _respawnDelay: 5
   _willRotate: 0
   tipoPath: 0
   modoPath: 1

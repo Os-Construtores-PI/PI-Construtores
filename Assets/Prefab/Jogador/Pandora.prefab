@@ -22625,8 +22625,8 @@ MonoBehaviour:
       m_Calls: []
   _maxBoostValue: 100
   _initialBoostValue: 100
-  _maxTimeScore: 60000
-  _timeScoreCurve:
+  MaxTimeScore: 10000
+  TimeScoreCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -28352,6 +28352,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CanTakeDamage: 1
   _damageCooldown: 1
+  _defaultDamageLayers:
+    serializedVersion: 2
+    m_Bits: 6144
 --- !u!65 &3666272637302261351
 BoxCollider:
   m_ObjectHideFlags: 0

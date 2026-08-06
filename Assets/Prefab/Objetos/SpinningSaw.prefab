@@ -241,6 +241,7 @@ GameObject:
   - component: {fileID: 7462989755743235440}
   - component: {fileID: 5692300561888286213}
   - component: {fileID: 6905412309394521513}
+  - component: {fileID: 2155533756767283106}
   m_Layer: 12
   m_Name: SpinningSaw
   m_TagString: Untagged
@@ -276,7 +277,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
-  _maxDamage: 10
+  Hit:
+    m_PersistentCalls:
+      m_Calls: []
+  _maxDamage: 20
 --- !u!65 &5692300561888286213
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -320,3 +324,22 @@ MonoBehaviour:
   _gizmoSphereSize: 1
   _gizmoLineColor: {r: 1, g: 1, b: 1, a: 1}
   _loopNum: -1
+--- !u!114 &2155533756767283106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8291220781220180662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81da1cdd4ebfcb2458a703e2b7300037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatZone
+  _statType: 0
+  _zoneTier: 5
+  _modifyType: 2
+  _timeType: 1
+  _exitBehavior: 2
+  _effectDuration: 10
+  _statCooldown: 10

@@ -75,22 +75,22 @@ public enum ComboPopupType
 
 public enum HealthHUDType
 {
-  PLAYER,
-  ENEMY,
-  ENTITY,
+  Player,
+  Enemy,
+  Entity,
 }
 
-public enum ModifyTYPE
+public enum ModifyType
 {
-  CUSTOM,
-  POSITIVE,
-  NEGATIVE,
+  Custom,
+  Positive,
+  Negative,
 }
 
-public enum TimeTYPE
+public enum TimeType
 {
-  PERMANENT,
-  TEMPORARY,
+  Permanent,
+  Temporary,
 }
 
 public enum ImpactPopupType
@@ -109,8 +109,8 @@ public enum ColorCode
 
 public enum GameMode
 {
-  SINGLEPLAYER,
-  MULTIPLAYER,
+  Singleplayer,
+  Multiplayer,
 }
 
 public enum PlayerActionType

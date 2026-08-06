@@ -50,7 +50,7 @@ public class PlayerActionStateJump : IPlayerState<Player>
 
     // ─── Rail Slide cancel ────────────────────────────────────────────────
     if (player.ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
-      player.WantsToCancelRailSlide = true;
+      player.RailSlide.RequestCancel();
 
     if (player.CurrentJumpCount > 0)
       player.AnimatorComponent?.SetTrigger(Constants.AnimatorTriggerNames.DoubleJump);

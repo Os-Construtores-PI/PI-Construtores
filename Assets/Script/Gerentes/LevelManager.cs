@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -13,8 +15,21 @@ public class LevelManager : MonoBehaviour
   private DialogueTrigger introDialogue;
 
   [SerializeField]
-  private int _referenceScore;
-  public int ReferenceScore => _referenceScore;
+  private List<RankTime> _rankTimes = new();
+  public List<RankTime> RankTimes => _rankTimes;
+
+  public RankType GetRank(float seconds)
+  {
+    var sorted = _rankTimes.OrderBy(rt => rt.Seconds).ToList();
+
+    foreach (var rankTime in sorted)
+    {
+      if (seconds <= rankTime.Seconds)
+        return rankTime.Rank;
+    }
+
+    return sorted.Count > 0 ? sorted[^1].Rank : default;
+  }
 
   public void Start()
   {

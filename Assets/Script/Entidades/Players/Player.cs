@@ -256,6 +256,7 @@ public class Player : CombatEntities
   public bool BlockJumpByDialogue { get; set; } = false;
   #endregion
 
+
   #region Boost
 
   [HideInInspector]
@@ -582,6 +583,9 @@ public class Player : CombatEntities
 
   #region Ciclo de Vida Assíncrono
   private CancellationTokenSource _lifetimeCts;
+
+  public CancellationToken GetCancellationToken() => _lifetimeCts.Token;
+
   #endregion
 
   #region Unity Lifecycle

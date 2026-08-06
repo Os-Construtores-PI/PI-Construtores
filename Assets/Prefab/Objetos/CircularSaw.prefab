@@ -227,6 +227,7 @@ GameObject:
   - component: {fileID: 6941975495238799739}
   - component: {fileID: 5412521792589880059}
   - component: {fileID: 6179347772547755021}
+  - component: {fileID: 5718895956646109140}
   m_Layer: 12
   m_Name: Serra
   m_TagString: Untagged
@@ -339,8 +340,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d24f83ea26f6ee49874d49fc66772b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxComponent
+  Hit:
+    m_PersistentCalls:
+      m_Calls: []
   _maxDamage: 10
-  _upForce: 1
+--- !u!114 &5718895956646109140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5631615313976087766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81da1cdd4ebfcb2458a703e2b7300037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatZone
+  _statType: 0
+  _zoneTier: 5
+  _modifyType: 2
+  _timeType: 1
+  _exitBehavior: 2
+  _effectDuration: 10
+  _statCooldown: 10
 --- !u!1 &6080898650966978623
 GameObject:
   m_ObjectHideFlags: 0

@@ -76,23 +76,6 @@ public class EndGamePanel : MonoBehaviour
     }
   }
 
-  public static RankType CalculateRank(int score, int maxScore)
-  {
-    if (maxScore <= 0)
-      return RankType.D;
-
-    float ratio = (float)score / maxScore;
-
-    return ratio switch
-    {
-      >= 0.95f => RankType.S,
-      >= 0.8f => RankType.A,
-      >= 0.6f => RankType.B,
-      >= 0.4f => RankType.C,
-      _ => RankType.D,
-    };
-  }
-
   public void Populate(int score, int previewScore, float time, string uuid, RankType rank)
   {
     SetScore(score);

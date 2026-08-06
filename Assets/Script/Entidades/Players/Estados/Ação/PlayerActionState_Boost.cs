@@ -77,7 +77,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     if (player.HurtboxCollider != null)
     {
-      player.HurtboxCollider.TriggerInvulnerability(1000f);
+      player.HurtboxCollider.OverrideDamageLayers(LayerMask.GetMask("WorldHit"));
     }
 
     if (_boostHitboxCollider != null)
@@ -131,7 +131,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     if (player.HurtboxCollider != null)
     {
-      player.HurtboxCollider.ResetInvulnerability();
+      player.HurtboxCollider.ResetDamageLayers();
     }
 
     if (_boostHitboxCollider != null)
