@@ -13,6 +13,7 @@ public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
   private CancellationTokenSource _linkedCts;
 
   private bool _isExiting;
+  private string _speedSourceId;
 
   public void Enter(Player player)
   {
@@ -75,20 +76,10 @@ public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
 
   private void ApplyWallEffects(Player player)
   {
-    player.Stats.CancelModifications(StatType.Speed);
-
-    player.Stats.ModifyStatImmediate<float>(
-      StatType.Speed,
-      ModifyType.Positive,
-      player.WallSpeedMultiplier
-    );
+    _speedSourceId = player.Stats.ApplyMultiplier(StatType.Speed, player.WallSpeedMultiplier);
     player.WallSpeedApplied = true;
 
-    player.Stats.ModifyStatImmediate<bool>(
-      StatType.CanDash,
-      ModifyType.Negative,
-      QualityTier.COMMON
-    );
+    player.Stats.SetBool(StatType.CanDash, false);
 
     player.GravityValue = -1.5f;
   }
@@ -119,13 +110,16 @@ public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
 
   private async Task ExitWallSlideAsync(Player player)
   {
-    player.Stats.CancelModifications(StatType.Speed);
+    if (!string.IsNullOrEmpty(_speedSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _speedSourceId);
+      _speedSourceId = null;
+    }
     player.WallSpeedApplied = false;
 
-    player.Stats.CancelModifications(StatType.CanDash);
+    player.Stats.SetBool(StatType.CanDash, true);
 
     player.GravityValue = player.InitialGravityValue;
-
     player.TouchingWall = false;
 
     player.ActionLayer.ExitStateDeferred(this, player);
@@ -135,8 +129,12 @@ public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
   {
     _wallSlideCts?.Cancel();
 
-    player.Stats.CancelModifications(StatType.Speed);
-    player.Stats.CancelModifications(StatType.CanDash);
+    if (!string.IsNullOrEmpty(_speedSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _speedSourceId);
+      _speedSourceId = null;
+    }
+    player.Stats.SetBool(StatType.CanDash, true);
 
     player.WallSpeedApplied = false;
     player.TouchingWall = false;

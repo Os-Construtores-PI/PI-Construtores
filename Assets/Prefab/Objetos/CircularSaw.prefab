@@ -214,6 +214,80 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4371940331926740878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7427316072434604854}
+  - component: {fileID: 4515480961954911718}
+  - component: {fileID: 642700797269147825}
+  m_Layer: 0
+  m_Name: Efeito
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7427316072434604854
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4371940331926740878}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5213350589176317912}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4515480961954911718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4371940331926740878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81da1cdd4ebfcb2458a703e2b7300037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatZone
+  _statType: 0
+  _modifyType: 1
+  _value: 0.75
+  _timeType: 1
+  _exitBehavior: 2
+  _effectDuration: 10
+  _statCooldown: 10
+  _debug: 0
+--- !u!65 &642700797269147825
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4371940331926740878}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 0.5, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5631615313976087766
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,7 +301,6 @@ GameObject:
   - component: {fileID: 6941975495238799739}
   - component: {fileID: 5412521792589880059}
   - component: {fileID: 6179347772547755021}
-  - component: {fileID: 5718895956646109140}
   m_Layer: 12
   m_Name: Serra
   m_TagString: Untagged
@@ -247,7 +320,8 @@ Transform:
   m_LocalPosition: {x: 0, y: -0.008676648, z: -0.7679842}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7427316072434604854}
   m_Father: {fileID: 2091950428847620504}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4006619183602121642
@@ -344,25 +418,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   _maxDamage: 10
---- !u!114 &5718895956646109140
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5631615313976087766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81da1cdd4ebfcb2458a703e2b7300037, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StatZone
-  _statType: 0
-  _zoneTier: 5
-  _modifyType: 2
-  _timeType: 1
-  _exitBehavior: 2
-  _effectDuration: 10
-  _statCooldown: 10
 --- !u!1 &6080898650966978623
 GameObject:
   m_ObjectHideFlags: 0

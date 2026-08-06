@@ -9,16 +9,6 @@ public enum ErrorType
   ID_ERROR,
 }
 
-public enum QualityTier
-{
-  NONE,
-  COMMON,
-  UNCOMMON,
-  RARE,
-  EPIC,
-  LEGENDARY,
-}
-
 public enum StatType
 {
   Speed,
@@ -82,9 +72,8 @@ public enum HealthHUDType
 
 public enum ModifyType
 {
-  Custom,
-  Positive,
-  Negative,
+  Delta,
+  Multiplier,
 }
 
 public enum TimeType

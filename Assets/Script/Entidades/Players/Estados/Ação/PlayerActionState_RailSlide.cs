@@ -270,7 +270,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   {
     try
     {
-      await player.Stats.ModifyStatByMultiplierAsync(StatType.JumpForce, 2f, 1f, _linkedCts.Token);
+      await player.Stats.ApplyMultiplierAsync(StatType.JumpForce, 2f, 1f, _linkedCts.Token);
     }
     catch (OperationCanceledException) { }
   }

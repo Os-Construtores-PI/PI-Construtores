@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -12,15 +13,35 @@ public class Stats : IDisposable
   // INTERNAL FIELDS
   // =========================================================
 
-  private readonly List<StatModification> activeModifications = new();
   private readonly Dictionary<StatType, float> _numstats = new();
   private readonly Dictionary<StatType, bool> _boolstats = new();
   private readonly Dictionary<StatType, float> numericBaseValues = new();
   private readonly Dictionary<StatType, bool> boolBaseValues = new();
 
-  private readonly Dictionary<StatType, CancellationTokenSource> _activeTokens = new();
+  private readonly Dictionary<StatType, List<ActiveMultiplier>> _activeMultipliers = new();
+  private readonly Dictionary<StatType, List<ActiveDelta>> _activeDeltas = new();
 
   private bool _disposed;
+
+  // =========================================================
+  // STRUCTS
+  // =========================================================
+
+  private struct ActiveMultiplier
+  {
+    public float Value;
+    public CancellationTokenSource Cts;
+    public float ExpireTime;
+    public string SourceId;
+  }
+
+  private struct ActiveDelta
+  {
+    public float Value;
+    public CancellationTokenSource Cts;
+    public float ExpireTime;
+    public string SourceId;
+  }
 
   // =========================================================
   // EVENTS
@@ -39,20 +60,32 @@ public class Stats : IDisposable
       return;
     _disposed = true;
 
-    foreach (var cts in _activeTokens.Values)
+    foreach (var multipliers in _activeMultipliers.Values)
     {
-      cts?.Cancel();
-      cts?.Dispose();
+      foreach (var m in multipliers)
+      {
+        m.Cts?.Cancel();
+        m.Cts?.Dispose();
+      }
     }
-    _activeTokens.Clear();
-    activeModifications.Clear();
+    _activeMultipliers.Clear();
+
+    foreach (var deltas in _activeDeltas.Values)
+    {
+      foreach (var d in deltas)
+      {
+        d.Cts?.Cancel();
+        d.Cts?.Dispose();
+      }
+    }
+    _activeDeltas.Clear();
 
     OnNumModified?.RemoveAllListeners();
     OnBoolModified?.RemoveAllListeners();
   }
 
   // =========================================================
-  // REGISTER  (Add / Remove)
+  // REGISTER (Add / Remove)
   // =========================================================
 
   public bool AddStat<T>(StatType statType, T value)
@@ -85,11 +118,13 @@ public class Stats : IDisposable
   public bool RemoveStat<T>(StatType statType)
     where T : IComparable
   {
-    CancelModifications(statType);
+    CancelAllForStat(statType);
 
     if (typeof(T) == typeof(float))
     {
       numericBaseValues.Remove(statType);
+      _activeMultipliers.Remove(statType);
+      _activeDeltas.Remove(statType);
       return _numstats.Remove(statType);
     }
 
@@ -104,7 +139,7 @@ public class Stats : IDisposable
   }
 
   // =========================================================
-  // READ  (Get)
+  // READ (Get)
   // =========================================================
 
   public bool TryGetNum(StatType statType, out float value) =>
@@ -116,8 +151,34 @@ public class Stats : IDisposable
   public bool TryGetBaseNum(StatType statType, out float value) =>
     numericBaseValues.TryGetValue(statType, out value);
 
+  public float GetCurrentValue(StatType statType)
+  {
+    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
+      return 0f;
+
+    float totalMultiplier = 1f;
+    if (_activeMultipliers.TryGetValue(statType, out var multipliers))
+    {
+      foreach (var m in multipliers)
+      {
+        totalMultiplier *= m.Value;
+      }
+    }
+
+    float totalDelta = 0f;
+    if (_activeDeltas.TryGetValue(statType, out var deltas))
+    {
+      foreach (var d in deltas)
+      {
+        totalDelta += d.Value;
+      }
+    }
+
+    return baseVal * totalMultiplier + totalDelta;
+  }
+
   // =========================================================
-  // DIRECT WRITE  (Set)
+  // DIRECT WRITE (Set)
   // =========================================================
 
   public void SetStat<T>(StatType statType, T value)
@@ -143,324 +204,355 @@ public class Stats : IDisposable
       return false;
 
     numericBaseValues[statType] = newBase;
-    _numstats[statType] = newBase;
-    OnNumModified?.Invoke(statType, newBase);
+    RecalculateStat(statType);
     return true;
   }
 
   // =========================================================
-  // MODIFICATION TIER — ASYNC
+  // MULTIPLIER MODIFICATIONS (Stackable)
   // =========================================================
 
-  public bool ModifyStatImmediate<T>(StatType statType, ModifyType type, QualityTier tier)
-    where T : IComparable
+  public string ApplyMultiplier(StatType statType, float multiplier)
   {
-    float multiplier = Tiers.GetMultiplier(tier);
-    float direction = type == ModifyType.Positive ? 1f : -1f;
+    if (!numericBaseValues.ContainsKey(statType))
+      return null;
 
-    if (typeof(T) == typeof(float))
+    string sourceId = Guid.NewGuid().ToString();
+
+    var activeMult = new ActiveMultiplier
     {
-      if (!_numstats.ContainsKey(statType))
-        return false;
-      float original = numericBaseValues[statType];
-      SetStat(statType, original + original * (multiplier - 1f) * direction);
-      activeModifications.Add(new StatModification(statType, tier, type, false));
-      return true;
-    }
+      Value = multiplier,
+      Cts = new CancellationTokenSource(),
+      ExpireTime = float.MaxValue,
+      SourceId = sourceId,
+    };
 
-    if (typeof(T) == typeof(bool))
-    {
-      if (!_boolstats.ContainsKey(statType))
-        return false;
-      SetStat(statType, type == ModifyType.Positive);
-      activeModifications.Add(new StatModification(statType, tier, type, false));
-      return true;
-    }
+    if (!_activeMultipliers.ContainsKey(statType))
+      _activeMultipliers[statType] = new List<ActiveMultiplier>();
 
-    Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
-    return false;
+    _activeMultipliers[statType].Add(activeMult);
+    RecalculateStat(statType);
+
+    return sourceId;
   }
 
-  public async Task<bool> ModifyStatAsync<T>(
+  public async Task<string> ApplyMultiplierAsync(
     StatType statType,
-    ModifyType type,
-    QualityTier tier,
+    float multiplier,
     float duration,
     CancellationToken externalToken = default
   )
-    where T : IComparable
   {
-    if (duration <= 0f)
-      return ModifyStatImmediate<T>(statType, type, tier);
+    if (!numericBaseValues.ContainsKey(statType))
+      return null;
 
-    CancelModifications(statType);
+    if (duration <= 0f || float.IsInfinity(duration) || float.IsNaN(duration))
+    {
+      return ApplyMultiplier(statType, multiplier);
+    }
 
-    float multiplier = Tiers.GetMultiplier(tier);
-    float direction = type == ModifyType.Positive ? 1f : -1f;
+    string sourceId = Guid.NewGuid().ToString();
+    var cts = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
 
-    using var cts = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
-    _activeTokens[statType] = cts;
+    var activeMult = new ActiveMultiplier
+    {
+      Value = multiplier,
+      Cts = cts,
+      ExpireTime = Time.time + duration,
+      SourceId = sourceId,
+    };
+
+    if (!_activeMultipliers.ContainsKey(statType))
+      _activeMultipliers[statType] = new List<ActiveMultiplier>();
+
+    _activeMultipliers[statType].Add(activeMult);
+    RecalculateStat(statType);
 
     try
     {
-      if (typeof(T) == typeof(float))
+      float elapsed = 0f;
+      while (elapsed < duration)
       {
-        if (!_numstats.ContainsKey(statType))
-          return false;
-        float original = numericBaseValues[statType];
-        float modifiedValue = original + original * (multiplier - 1f) * direction;
-
-        SetStat(statType, modifiedValue);
-        activeModifications.Add(new StatModification(statType, tier, type, true, duration, cts));
-
-        await RunTimerAsync(statType, duration, cts.Token);
-
-        if (!cts.Token.IsCancellationRequested)
-        {
-          SetStat(statType, original);
-        }
-        return true;
+        cts.Token.ThrowIfCancellationRequested();
+        elapsed += Time.deltaTime;
+        await Task.Yield();
       }
 
-      if (typeof(T) == typeof(bool))
-      {
-        if (!_boolstats.ContainsKey(statType))
-          return false;
-        bool original = boolBaseValues[statType];
-
-        SetStat(statType, type == ModifyType.Positive);
-        activeModifications.Add(new StatModification(statType, tier, type, true, duration, cts));
-
-        await RunTimerAsync(statType, duration, cts.Token);
-
-        if (!cts.Token.IsCancellationRequested)
-        {
-          SetStat(statType, original);
-        }
-        return true;
-      }
-
-      Debug.LogWarning($"[Stats] Tipo não suportado: {typeof(T)}");
-      return false;
+      RemoveMultiplier(statType, sourceId);
+      return sourceId;
     }
     catch (OperationCanceledException)
     {
-      if (typeof(T) == typeof(float) && numericBaseValues.ContainsKey(statType))
-        SetStat(statType, numericBaseValues[statType]);
-      else if (typeof(T) == typeof(bool) && boolBaseValues.ContainsKey(statType))
-        SetStat(statType, boolBaseValues[statType]);
-
-      return false;
+      RemoveMultiplier(statType, sourceId);
+      throw;
     }
     finally
     {
-      activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
-      _activeTokens.Remove(statType);
       cts.Dispose();
     }
   }
 
+  public bool RemoveMultiplier(StatType statType, string sourceId)
+  {
+    if (string.IsNullOrEmpty(sourceId))
+      return false;
+    if (!_activeMultipliers.TryGetValue(statType, out var multipliers))
+      return false;
+
+    var toRemove = multipliers.FirstOrDefault(m => m.SourceId == sourceId);
+    if (toRemove.Cts == null)
+      return false;
+
+    multipliers.Remove(toRemove);
+    toRemove.Cts?.Cancel();
+    toRemove.Cts?.Dispose();
+
+    if (multipliers.Count == 0)
+      _activeMultipliers.Remove(statType);
+
+    RecalculateStat(statType);
+    return true;
+  }
+
   // =========================================================
-  // MODIFICATION CUSTOMIZED — ASYNC
+  // DELTA MODIFICATIONS (Stackable)
   // =========================================================
 
-  public bool ModifyStatByMultiplier(StatType statType, float multiplier)
+  public string ApplyDelta(StatType statType, float delta)
   {
-    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
-      return false;
+    if (!numericBaseValues.ContainsKey(statType))
+      return null;
 
-    SetStat(statType, baseVal * multiplier);
-    activeModifications.Add(
-      new StatModification(statType, QualityTier.NONE, ModifyType.Custom, false)
-    );
-    return true;
+    string sourceId = Guid.NewGuid().ToString();
+
+    var activeDelta = new ActiveDelta
+    {
+      Value = delta,
+      Cts = new CancellationTokenSource(),
+      ExpireTime = float.MaxValue,
+      SourceId = sourceId,
+    };
+
+    if (!_activeDeltas.ContainsKey(statType))
+      _activeDeltas[statType] = new List<ActiveDelta>();
+
+    _activeDeltas[statType].Add(activeDelta);
+    RecalculateStat(statType);
+
+    return sourceId;
   }
 
-  public async Task<bool> ModifyStatByMultiplierAsync(
-    StatType statType,
-    float multiplier,
-    float duration,
-    CancellationToken ct = default
-  )
-  {
-    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
-      return false;
-    if (duration <= 0f)
-      return ModifyStatByMultiplier(statType, multiplier);
-
-    CancelModifications(statType);
-    using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-    _activeTokens[statType] = cts;
-
-    try
-    {
-      activeModifications.Add(
-        new StatModification(statType, QualityTier.NONE, ModifyType.Custom, true, duration, cts)
-      );
-      SetStat(statType, baseVal * multiplier);
-
-      await RunTimerAsync(statType, duration, cts.Token);
-
-      if (!cts.Token.IsCancellationRequested)
-        SetStat(statType, baseVal);
-
-      return true;
-    }
-    catch (OperationCanceledException)
-    {
-      SetStat(statType, baseVal);
-      return false;
-    }
-    finally
-    {
-      activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
-      _activeTokens.Remove(statType);
-    }
-  }
-
-  public bool ModifyStatToTarget(StatType statType, float targetValue)
-  {
-    if (!_numstats.ContainsKey(statType))
-      return false;
-
-    SetStat(statType, targetValue);
-    activeModifications.Add(
-      new StatModification(statType, QualityTier.NONE, ModifyType.Custom, false)
-    );
-    return true;
-  }
-
-  public async Task<bool> ModifyStatToTargetAsync(
-    StatType statType,
-    float targetValue,
-    float duration,
-    CancellationToken ct = default
-  )
-  {
-    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
-      return false;
-    if (duration <= 0f)
-      return ModifyStatToTarget(statType, targetValue);
-
-    CancelModifications(statType);
-    using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-    _activeTokens[statType] = cts;
-
-    try
-    {
-      activeModifications.Add(
-        new StatModification(statType, QualityTier.NONE, ModifyType.Custom, true, duration, cts)
-      );
-      SetStat(statType, targetValue);
-
-      await RunTimerAsync(statType, duration, cts.Token);
-
-      if (!cts.Token.IsCancellationRequested)
-        SetStat(statType, baseVal);
-
-      return true;
-    }
-    catch (OperationCanceledException)
-    {
-      SetStat(statType, baseVal);
-      return false;
-    }
-    finally
-    {
-      activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
-      _activeTokens.Remove(statType);
-    }
-  }
-
-  public bool ModifyStatByDelta(StatType statType, float delta)
-  {
-    if (!_numstats.TryGetValue(statType, out float current))
-      return false;
-
-    SetStat(statType, current + delta);
-    activeModifications.Add(
-      new StatModification(statType, QualityTier.NONE, ModifyType.Custom, false)
-    );
-    return true;
-  }
-
-  public async Task<bool> ModifyStatByDeltaAsync(
+  public async Task<string> ApplyDeltaAsync(
     StatType statType,
     float delta,
     float duration,
-    CancellationToken ct = default
+    CancellationToken externalToken = default
   )
   {
-    if (!numericBaseValues.TryGetValue(statType, out float baseVal))
-      return false;
-    if (duration <= 0f)
-      return ModifyStatByDelta(statType, delta);
+    if (!numericBaseValues.ContainsKey(statType))
+      return null;
 
-    CancelModifications(statType);
-    using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-    _activeTokens[statType] = cts;
+    if (duration <= 0f || float.IsInfinity(duration) || float.IsNaN(duration))
+    {
+      return ApplyDelta(statType, delta);
+    }
+
+    string sourceId = Guid.NewGuid().ToString();
+    var cts = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
+
+    var activeDelta = new ActiveDelta
+    {
+      Value = delta,
+      Cts = cts,
+      ExpireTime = Time.time + duration,
+      SourceId = sourceId,
+    };
+
+    if (!_activeDeltas.ContainsKey(statType))
+      _activeDeltas[statType] = new List<ActiveDelta>();
+
+    _activeDeltas[statType].Add(activeDelta);
+    RecalculateStat(statType);
 
     try
     {
-      activeModifications.Add(
-        new StatModification(statType, QualityTier.NONE, ModifyType.Custom, true, duration, cts)
-      );
-      SetStat(statType, baseVal + delta);
+      float elapsed = 0f;
+      while (elapsed < duration)
+      {
+        cts.Token.ThrowIfCancellationRequested();
+        elapsed += Time.deltaTime;
+        await Task.Yield();
+      }
 
-      await RunTimerAsync(statType, duration, cts.Token);
+      RemoveDelta(statType, sourceId);
+      return sourceId;
+    }
+    catch (OperationCanceledException)
+    {
+      RemoveDelta(statType, sourceId);
+      throw;
+    }
+    finally
+    {
+      cts.Dispose();
+    }
+  }
 
-      if (!cts.Token.IsCancellationRequested)
-        SetStat(statType, baseVal);
+  public bool RemoveDelta(StatType statType, string sourceId)
+  {
+    if (string.IsNullOrEmpty(sourceId))
+      return false;
+    if (!_activeDeltas.TryGetValue(statType, out var deltas))
+      return false;
 
+    var toRemove = deltas.FirstOrDefault(d => d.SourceId == sourceId);
+    if (toRemove.Cts == null)
+      return false;
+
+    deltas.Remove(toRemove);
+    toRemove.Cts?.Cancel();
+    toRemove.Cts?.Dispose();
+
+    if (deltas.Count == 0)
+      _activeDeltas.Remove(statType);
+
+    RecalculateStat(statType);
+    return true;
+  }
+
+  // =========================================================
+  // TARGET VALUE (Set para um valor específico, temporário)
+  // =========================================================
+
+  public async Task<string> SetToTargetAsync(
+    StatType statType,
+    float targetValue,
+    float duration,
+    CancellationToken externalToken = default
+  )
+  {
+    if (!numericBaseValues.ContainsKey(statType))
+      return null;
+
+    float currentValue = GetCurrentValue(statType);
+    float delta = targetValue - currentValue;
+
+    return await ApplyDeltaAsync(statType, delta, duration, externalToken);
+  }
+
+  // =========================================================
+  // BOOL MODIFICATIONS
+  // =========================================================
+
+  public bool SetBool(StatType statType, bool value)
+  {
+    if (!_boolstats.ContainsKey(statType))
+      return false;
+
+    _boolstats[statType] = value;
+    OnBoolModified?.Invoke(statType, value);
+    return true;
+  }
+
+  public bool ToggleBool(StatType statType)
+  {
+    if (!_boolstats.TryGetValue(statType, out bool current))
+      return false;
+
+    return SetBool(statType, !current);
+  }
+
+  public async Task<bool> SetBoolAsync(
+    StatType statType,
+    bool value,
+    float duration,
+    CancellationToken externalToken = default
+  )
+  {
+    if (!_boolstats.ContainsKey(statType))
+      return false;
+
+    bool original = boolBaseValues[statType];
+
+    SetBool(statType, value);
+
+    try
+    {
+      float elapsed = 0f;
+      while (elapsed < duration)
+      {
+        externalToken.ThrowIfCancellationRequested();
+        elapsed += Time.deltaTime;
+        await Task.Yield();
+      }
+
+      SetBool(statType, original);
       return true;
     }
     catch (OperationCanceledException)
     {
-      SetStat(statType, baseVal);
-      return false;
-    }
-    finally
-    {
-      activeModifications.RemoveAll(mod => mod.StatType == statType && mod.IsTemporary);
-      _activeTokens.Remove(statType);
+      SetBool(statType, original);
+      throw;
     }
   }
 
   // =========================================================
-  // ACTIVE MODIFICATIONS MANAGEMENT
+  // CANCELLATION
   // =========================================================
 
-  public void CancelModifications(StatType statType)
+  public void CancelAllForStat(StatType statType)
   {
-    if (_activeTokens.TryGetValue(statType, out var cts))
+    if (_activeMultipliers.TryGetValue(statType, out var multipliers))
     {
-      cts?.Cancel();
+      foreach (var m in multipliers)
+      {
+        m.Cts?.Cancel();
+        m.Cts?.Dispose();
+      }
+      _activeMultipliers.Remove(statType);
     }
 
-    activeModifications.RemoveAll(mod => mod.StatType == statType);
+    if (_activeDeltas.TryGetValue(statType, out var deltas))
+    {
+      foreach (var d in deltas)
+      {
+        d.Cts?.Cancel();
+        d.Cts?.Dispose();
+      }
+      _activeDeltas.Remove(statType);
+    }
 
     if (numericBaseValues.ContainsKey(statType))
-      SetStat(statType, numericBaseValues[statType]);
-    else if (boolBaseValues.ContainsKey(statType))
-      SetStat(statType, boolBaseValues[statType]);
+    {
+      _numstats[statType] = numericBaseValues[statType];
+      OnNumModified?.Invoke(statType, numericBaseValues[statType]);
+    }
   }
 
   public void CancelAllModifications()
   {
-    foreach (var cts in _activeTokens.Values)
+    var allStats = new List<StatType>();
+    allStats.AddRange(_activeMultipliers.Keys);
+    allStats.AddRange(_activeDeltas.Keys);
+
+    foreach (var statType in allStats.Distinct())
     {
-      cts?.Cancel();
+      CancelAllForStat(statType);
     }
-    _activeTokens.Clear();
-    activeModifications.Clear();
   }
 
-  public IReadOnlyList<StatModification> GetActiveModifications() =>
-    activeModifications.AsReadOnly();
+  // =========================================================
+  // QUERIES
+  // =========================================================
 
-  // =========================================================
-  // SERIALIZATION
-  // =========================================================
+  public int GetActiveMultiplierCount(StatType statType) =>
+    _activeMultipliers.TryGetValue(statType, out var m) ? m.Count : 0;
+
+  public int GetActiveDeltaCount(StatType statType) =>
+    _activeDeltas.TryGetValue(statType, out var d) ? d.Count : 0;
+
+  public bool HasActiveModifications(StatType statType) =>
+    GetActiveMultiplierCount(statType) > 0 || GetActiveDeltaCount(statType) > 0;
 
   public Dictionary<StatType, float> GetNumericStats() => new(_numstats);
 
@@ -477,6 +569,8 @@ public class Stats : IDisposable
     _boolstats.Clear();
     numericBaseValues.Clear();
     boolBaseValues.Clear();
+    _activeMultipliers.Clear();
+    _activeDeltas.Clear();
 
     foreach (var kvp in nums)
     {
@@ -495,38 +589,13 @@ public class Stats : IDisposable
   // PRIVATE HELPERS
   // =========================================================
 
-  private async Task RunTimerAsync(StatType statType, float duration, CancellationToken ct)
+  private void RecalculateStat(StatType statType)
   {
-    float elapsed = 0f;
+    if (!numericBaseValues.ContainsKey(statType))
+      return;
 
-    while (elapsed < duration)
-    {
-      ct.ThrowIfCancellationRequested();
-
-      elapsed += Time.deltaTime;
-      float remaining = Mathf.Max(0f, duration - elapsed);
-      UpdateTemporaryTime(statType, remaining);
-
-      await Task.Yield();
-    }
-  }
-
-  private void UpdateTemporaryTime(StatType statType, float timeLeft)
-  {
-    for (int i = 0; i < activeModifications.Count; i++)
-    {
-      if (activeModifications[i].StatType == statType && activeModifications[i].IsTemporary)
-      {
-        var old = activeModifications[i];
-        activeModifications[i] = new StatModification(
-          old.StatType,
-          old.Tier,
-          old.ModifyType,
-          true,
-          timeLeft,
-          old.CancellationSource
-        );
-      }
-    }
+    float newValue = GetCurrentValue(statType);
+    _numstats[statType] = newValue;
+    OnNumModified?.Invoke(statType, newValue);
   }
 }

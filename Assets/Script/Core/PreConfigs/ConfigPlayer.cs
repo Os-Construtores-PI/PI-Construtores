@@ -81,7 +81,7 @@ public class ConfigPlayer : ScriptableObject
 
   [Header("MECÂNICA [CORRIDA NA PAREDE]")]
   [SerializeField]
-  private QualityTier multiplicadorVelocidadeParede;
+  private float multiplicadorVelocidadeParede;
 
   [SerializeField]
   private float multiplicadorForcaPuloParede;

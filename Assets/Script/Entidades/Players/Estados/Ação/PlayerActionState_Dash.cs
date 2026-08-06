@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [System.Serializable]
 public class PlayerActionStateDash : IPlayerState<Player>
@@ -236,6 +237,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(EntityEffectType.PlayerDashEffect);
+    Gamepad.current?.SetMotorSpeeds(0, 0);
 
     if (!_hasHit)
     {
@@ -275,6 +277,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
       _vibrationFrequency,
       _vibrationDuration
     );
+    Gamepad.current?.SetMotorSpeeds(.5f, .1f);
 
     _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(0f) * _bounceUpwardForce;
 

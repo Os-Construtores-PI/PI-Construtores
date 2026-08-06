@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [System.Serializable]
 public class PlayerActionStateBoost : IPlayerState<Player>
@@ -54,7 +56,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private SphereCollider _boostCollectionCollider;
 
   private float _playerOriginalSpeed;
-  private float _velocity;
+  private float _boostSpeedRatio;
+  private string _boostSourceId;
 
   private Quaternion _boostRotation;
   #endregion
@@ -62,12 +65,16 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   #region IState Callbacks
   public void Enter(Player player)
   {
-    _velocity = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
+    float boostSpeed = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
+    _boostSpeedRatio = boostSpeed / player.Speed;
+
     _playerOriginalSpeed = player.Speed;
     _boostRotation = player.transform.rotation;
-    float velocityFraction = _velocity / _maxVelocity;
+
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
-    player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
+
+    _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
+
     player.SpeedLines.Invoke(true);
 
     if (_boostCollectionCollider != null)
@@ -85,6 +92,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       _boostHitboxCollider.enabled = true;
     }
 
+    float velocityFraction = boostSpeed / _maxVelocity;
     player.CustomShake.Invoke(
       player.ID,
       _enterShakeAmplitude * velocityFraction,
@@ -96,6 +104,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
+
+    Gamepad.current?.SetMotorSpeeds(.1f, .2f);
 
     _fovTween?.Kill();
     _fovTween = DOTween.To(
@@ -113,13 +123,20 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   public void Exit(Player player)
   {
-    _velocity = 0f;
+    if (!string.IsNullOrEmpty(_boostSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+      _boostSourceId = null;
+    }
+
+    _boostSpeedRatio = 0f;
 
     float currentYVelocity = player.MovementVector.y;
     player.MovementVector = Vector3.zero;
     player.MovementVector.y = currentYVelocity;
 
-    player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
+    Gamepad.current?.SetMotorSpeeds(0, 0);
+
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
     player.SpeedLines.Invoke(false);
@@ -178,7 +195,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       player.transform.rotation = _boostRotation;
     }
 
-    Vector3 newMovementVector = player.transform.forward * _velocity;
+    Vector3 newMovementVector = player.transform.forward * player.Speed;
     newMovementVector.y = player.MovementVector.y;
 
     player.MovementVector = newMovementVector;

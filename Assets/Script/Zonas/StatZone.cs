@@ -17,11 +17,15 @@ public class StatZone : MonoBehaviour
   [SerializeField]
   private StatType _statType;
 
+  [Tooltip("Tipo de modificação: Multiplier (x2.0, x0.5) ou Delta (+10, -5)")]
   [SerializeField]
-  private QualityTier _zoneTier;
+  private ModifyType _modifyType = ModifyType.Multiplier;
 
+  [Tooltip(
+    "Valor da modificação. Para Multiplier: 2.0 = dobro, 0.5 = metade. Para Delta: valor a somar/subtrair."
+  )]
   [SerializeField]
-  private ModifyType _modifyType;
+  private float _value = 0.5f;
 
   [Header("Modo de Operação")]
   [Tooltip("Temporary = efeito reverte após duração. Permanent = altera valor base para sempre.")]
@@ -30,13 +34,13 @@ public class StatZone : MonoBehaviour
 
   [Header("Comportamento na Saída (só para Temporary)")]
   [Tooltip(
-    "CancelImmediately = some na hora. PersistForDuration = dura o tempo do statDuration. PersistWithGracePeriod = dura o gracePeriod após sair."
+    "CancelImmediately = some na hora. PersistForDuration = dura o tempo do effectDuration. PersistWithGracePeriod = dura o gracePeriod após sair."
   )]
   [SerializeField]
   private ExitBehavior _exitBehavior = ExitBehavior.PersistWithGracePeriod;
 
   [Header("Durações")]
-  [Tooltip("Para Temporary + PersistForDuration: tempo total do efeito.")]
+  [Tooltip("Para Temporary: tempo total do efeito (ou grace period).")]
   [SerializeField]
   private float _effectDuration = 5f;
 
@@ -44,8 +48,9 @@ public class StatZone : MonoBehaviour
   [SerializeField]
   private float _statCooldown = 10f;
 
-  private Type _cachedStatValueType;
-  private bool _cachedIsNumeric;
+  [Header("Debug")]
+  [SerializeField]
+  private bool _debug = false;
 
   private readonly Dictionary<CombatEntities, EntityEffectData> _activeEffects = new();
   private readonly Dictionary<CombatEntities, float> _cooldowns = new();
@@ -55,16 +60,15 @@ public class StatZone : MonoBehaviour
     public CancellationTokenSource Cts;
     public bool IsInside;
     public float ExitTime;
+    public string SourceId;
   }
 
   private void Awake()
   {
-    _cachedStatValueType = StatTypeMap.GetType(_statType);
-    _cachedIsNumeric = _cachedStatValueType == typeof(float);
-
     if (_timeType == TimeType.Permanent && _exitBehavior != ExitBehavior.CancelImmediately)
     {
-      Debug.LogWarning($"[StatZone] {_statType} é Permanent — _exitBehavior será ignorado.");
+      if (_debug)
+        Debug.LogWarning($"[StatZone] {_statType} é Permanent — _exitBehavior será ignorado.");
     }
   }
 
@@ -88,6 +92,7 @@ public class StatZone : MonoBehaviour
       Cts = cts,
       IsInside = true,
       ExitTime = -1f,
+      SourceId = null,
     };
 
     _ = RunEffectLifecycleAsync(entity, cts);
@@ -134,15 +139,25 @@ public class StatZone : MonoBehaviour
     if (stats == null)
       return;
 
+    string sourceId = null;
+
     try
     {
-      Debug.Log(
-        $"[StatZone] +{_statType} em {entity.name} | Mode: {_timeType} | Exit: {_exitBehavior}"
-      );
+      if (_debug)
+        Debug.Log(
+          $"[StatZone] +{_statType} ({_modifyType}: {_value}) em {entity.name} | Mode: {_timeType} | Exit: {_exitBehavior}"
+        );
 
       if (_timeType == TimeType.Temporary)
       {
-        await ApplyTemporaryEffectAsync(stats, cts.Token);
+        sourceId = await ApplyTemporaryEffectAsync(stats, cts.Token);
+
+        // Atualiza o sourceId no dicionário
+        if (_activeEffects.TryGetValue(entity, out var data))
+        {
+          data.SourceId = sourceId;
+          _activeEffects[entity] = data;
+        }
       }
       else
       {
@@ -154,21 +169,27 @@ public class StatZone : MonoBehaviour
         await WaitForEffectEndAsync(entity, cts.Token);
       }
 
-      if (_timeType == TimeType.Temporary || _exitBehavior == ExitBehavior.CancelImmediately)
-      {
-        _cooldowns[entity] = Time.time + _statCooldown;
-      }
-      else if (_timeType == TimeType.Permanent)
-      {
-        _cooldowns[entity] = Time.time + _statCooldown;
-      }
+      _cooldowns[entity] = Time.time + _statCooldown;
     }
     catch (OperationCanceledException)
     {
-      Debug.Log($"[StatZone] -{_statType} cancelado para {entity.name}");
+      if (_debug)
+        Debug.Log($"[StatZone] -{_statType} cancelado para {entity.name}");
     }
     finally
     {
+      if (!string.IsNullOrEmpty(sourceId))
+      {
+        if (_modifyType == ModifyType.Multiplier)
+        {
+          stats.RemoveMultiplier(_statType, sourceId);
+        }
+        else
+        {
+          stats.RemoveDelta(_statType, sourceId);
+        }
+      }
+
       if (_activeEffects.TryGetValue(entity, out var current) && current.Cts == cts)
       {
         _activeEffects.Remove(entity);
@@ -177,34 +198,35 @@ public class StatZone : MonoBehaviour
     }
   }
 
-  private async Task ApplyTemporaryEffectAsync(Stats stats, CancellationToken ct)
+  private async Task<string> ApplyTemporaryEffectAsync(Stats stats, CancellationToken ct)
   {
-    if (_cachedIsNumeric)
+    if (_modifyType == ModifyType.Multiplier)
     {
-      await stats.ModifyStatAsync<float>(_statType, _modifyType, _zoneTier, _effectDuration, ct);
+      return await stats.ApplyMultiplierAsync(_statType, _value, _effectDuration, ct);
     }
     else
     {
-      await stats.ModifyStatAsync<bool>(_statType, _modifyType, _zoneTier, _effectDuration, ct);
+      return await stats.ApplyDeltaAsync(_statType, _value, _effectDuration, ct);
     }
   }
 
   private void ApplyPermanentEffect(Stats stats)
   {
-    if (_cachedIsNumeric)
+    if (_modifyType == ModifyType.Multiplier)
     {
-      float multiplier = Tiers.GetMultiplier(_zoneTier);
-      float direction = _modifyType == ModifyType.Positive ? 1f : -1f;
-
       if (stats.TryGetBaseNum(_statType, out float baseValue))
       {
-        float newBase = baseValue + baseValue * (multiplier - 1f) * direction;
+        float newBase = baseValue * _value;
         stats.SetBaseStat(_statType, newBase);
       }
     }
     else
     {
-      stats.ModifyStatImmediate<bool>(_statType, _modifyType, _zoneTier);
+      if (stats.TryGetBaseNum(_statType, out float baseValue))
+      {
+        float newBase = baseValue + _value;
+        stats.SetBaseStat(_statType, newBase);
+      }
     }
   }
 
@@ -234,7 +256,8 @@ public class StatZone : MonoBehaviour
       await Task.Yield();
     }
 
-    Debug.Log($"[StatZone] {entity.name} saiu da zona. Grace period: {_effectDuration}s");
+    if (_debug)
+      Debug.Log($"[StatZone] {entity.name} saiu da zona. Grace period: {_effectDuration}s");
 
     float exitTime = Time.time;
     while (Time.time - exitTime < _effectDuration)
@@ -243,14 +266,16 @@ public class StatZone : MonoBehaviour
 
       if (IsEntityInside(entity))
       {
-        Debug.Log($"[StatZone] {entity.name} voltou — grace cancelado.");
+        if (_debug)
+          Debug.Log($"[StatZone] {entity.name} voltou — grace cancelado.");
         return;
       }
 
       await Task.Yield();
     }
 
-    Debug.Log($"[StatZone] Grace period expirado para {entity.name}");
+    if (_debug)
+      Debug.Log($"[StatZone] Grace period expirado para {entity.name}");
   }
 
   private bool IsEntityInside(CombatEntities entity) =>
@@ -259,7 +284,6 @@ public class StatZone : MonoBehaviour
   private bool IsValidEntity(Collider other, out CombatEntities entity)
   {
     entity = null;
-
     return other.TryGetComponent(out entity) && entity.Stats != null;
   }
 

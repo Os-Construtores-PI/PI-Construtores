@@ -54,7 +54,7 @@ public class Player : CombatEntities
   public float RunAccelMultiplier;
 
   [HideInInspector]
-  public QualityTier WallSpeedMultiplier;
+  public float WallSpeedMultiplier;
 
   [HideInInspector]
   public float Acceleration;

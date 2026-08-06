@@ -5,13 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [Serializable]
-public struct StatEntry
-{
-  public string stat_name;
-  public QualityTier tier;
-}
-
-[Serializable]
 public struct Spawner
 {
   public string spawner_tag;
@@ -25,7 +18,6 @@ public struct Spawner
 public readonly struct StatModification : IEquatable<StatModification>
 {
   public readonly StatType StatType;
-  public readonly QualityTier Tier;
   public readonly ModifyType ModifyType;
   public readonly bool IsTemporary;
   public readonly float RemainingTime;
@@ -35,7 +27,6 @@ public readonly struct StatModification : IEquatable<StatModification>
 
   public StatModification(
     StatType statType,
-    QualityTier tier,
     ModifyType modifyType,
     bool isTemporary,
     float remainingTime = 0f,
@@ -43,7 +34,6 @@ public readonly struct StatModification : IEquatable<StatModification>
   )
   {
     StatType = statType;
-    Tier = tier;
     ModifyType = modifyType;
     IsTemporary = isTemporary;
     RemainingTime = remainingTime;
@@ -55,16 +45,16 @@ public readonly struct StatModification : IEquatable<StatModification>
     string tempText = IsTemporary
       ? $" (temporário, {RemainingTime:0.0}s restantes)"
       : " (permanente)";
-    return $"[{StatType}] {Tier} {ModifyType}{tempText}";
+    return $"[{StatType}]{ModifyType}{tempText}";
   }
 
   public readonly bool Equals(StatModification other) =>
-    StatType == other.StatType && Tier == other.Tier && ModifyType == other.ModifyType;
+    StatType == other.StatType && ModifyType == other.ModifyType;
 
   public override readonly bool Equals(object obj) =>
     obj is StatModification other && Equals(other);
 
-  public override readonly int GetHashCode() => HashCode.Combine(StatType, Tier, ModifyType);
+  public override readonly int GetHashCode() => HashCode.Combine(StatType, ModifyType);
 }
 
 public struct Typestats
