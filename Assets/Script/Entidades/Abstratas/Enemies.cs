@@ -21,7 +21,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   [Header("Configurações de Morte")]
   [SerializeField]
-  private float _deathEffectDuration = 1f;
+  private float _deathEffectDuration = 1.6f;
 
   [Header("Knockback")]
   [SerializeField]
@@ -143,6 +143,7 @@ public abstract class Enemies : CombatEntities, ILockable
       LayerMask.GetMask("Entity", "Player"),
       QueryTriggerInteraction.Collide
     );
+
     for (int i = 0; i < quantity; i++)
     {
       Collider hit = scanResult[i];
@@ -156,22 +157,20 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
-    Sequence deathSequence = DOTween.Sequence();
-    deathSequence.AppendCallback(() =>
-    {
-      EffectsSystem.PlayEffect(EntityEffectType.EntityDeathEffect, _deathEffectDuration);
-    });
-    deathSequence.AppendInterval(_deathEffectDuration);
-    deathSequence.AppendCallback(() =>
-    {
-      EffectsSystem.StopEffect(EntityEffectType.EntityDeathEffect);
-      gameObject.SetActive(false);
-    });
+    EffectsSystem.PlayEffect(
+      EntityEffectType.EntityDeathEffect,
+      _deathEffectDuration,
+      onComplete: HandleDeathPostEffect
+    );
+  }
+
+  private void HandleDeathPostEffect()
+  {
+    gameObject.SetActive(false);
 
     if (_canRespawn)
     {
-      deathSequence.AppendInterval(_respawnDelay);
-      deathSequence.AppendCallback(Respawn);
+      DOTween.Sequence().AppendInterval(_respawnDelay).AppendCallback(Respawn);
     }
   }
 
@@ -184,6 +183,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   protected virtual void ResetForRespawn()
   {
+    EffectsSystem.ResetEffect(EntityEffectType.EntityDeathEffect);
     target = null;
     playerInArea = false;
     memoryTriggered = false;
