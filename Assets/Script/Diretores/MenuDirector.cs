@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 public class MenuDirector : MonoBehaviour
 {
@@ -20,6 +21,8 @@ public class MenuDirector : MonoBehaviour
 
   [SerializeField]
   private Scrollbar _rankingScrollbar;
+
+  [SerializeField] private float selectedPressedDuration = 0.12f;
 
   [SerializeField]
   private float panelTransitionDelay = 0.35f;
@@ -381,7 +384,7 @@ public class MenuDirector : MonoBehaviour
     if (_loadingGame)
       return;
 
-    HidePanel(from, () => ShowPanel(to));
+    StartCoroutine(PlaySelectionFeedback(from, to));
   }
 
   public void OpenPanel(MenuPanelTypes next)
@@ -571,6 +574,27 @@ public class MenuDirector : MonoBehaviour
   public void EnableNavigation()
   {
     _eventSystem.sendNavigationEvents = true;
+  }
+
+  private IEnumerator PlaySelectionFeedback(MenuPanelTypes from, MenuPanelTypes to)
+  {
+    if(MenuSelectionCursor.Instance != null)
+    {
+      MenuSelectionCursor.Instance.SetPressed(selectedPressedDuration);
+    }
+
+    yield return new WaitForSecondsRealtime(selectedPressedDuration);
+
+    bool finished = false;
+
+    HidePanel(from, () =>
+    {
+      finished = true;
+    });
+
+    yield return new WaitUntil(() => finished);
+
+    ShowPanel(to);
   }
 
   #endregion

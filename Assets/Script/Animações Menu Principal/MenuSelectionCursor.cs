@@ -35,6 +35,10 @@ public class MenuSelectionCursor : MonoBehaviour
   [SerializeField] private Sprite _normalImage;
   [SerializeField] private Sprite _pressedSprite;
 
+  [Header("Click FeedBack")]
+  [SerializeField] private float _pressedDuration = 0.12f;
+  private Coroutine _pressedCoroutine;
+
   public bool CanMove { get; set; } = false;
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   private void Awake()
@@ -49,19 +53,45 @@ public class MenuSelectionCursor : MonoBehaviour
     cursorImage.sprite = _normalImage;
   }
 
-  public void SetPressed(float delay)
+  public void SetPressed(float delay = -1f)
+  {
+    if (cursorImage == null)
+      return;
+
+    if (delay < 0f)
+       delay = _pressedDuration;
+
+    if(_pressedCoroutine != null)
+    {
+      StopCoroutine(_pressedCoroutine);
+      _pressedCoroutine = null;
+    }
+
+    _pressedCoroutine = StartCoroutine(PressedRoutine(delay));
+  }
+
+  private IEnumerator PressedRoutine(float delay)
   {
     cursorImage.sprite = _pressedSprite;
 
-    CancelInvoke(nameof(SetNormal));
+    yield return new WaitForSecondsRealtime(delay);
 
-    Invoke(nameof(SetNormal), delay);
+    cursorImage.sprite = _normalImage;
+
+    _pressedCoroutine = null;
   }
 
   private void OnDisable()
     {
         cursor?.DOKill();
         idleTween?.Kill();
+
+       if(_pressedCoroutine != null)
+    {
+      StopCoroutine(_pressedCoroutine);
+      _pressedCoroutine = null;
+    }
+
     }
 
     private void OnDestroy()
@@ -114,7 +144,10 @@ public class MenuSelectionCursor : MonoBehaviour
     {
 
 
+
         cursor.gameObject.SetActive(true);
+         SetNormal();
+
         InternalMove(button, true);
         
     }
@@ -125,7 +158,7 @@ public class MenuSelectionCursor : MonoBehaviour
         if (button == null)
         return;
 
-       SetNormal();
+       //SetNormal();
     RectTransform target = button.GetComponent<RectTransform>();
 
     cursor.DOKill();
