@@ -197,7 +197,7 @@ GameObject:
   - component: {fileID: 3463240799645783829}
   - component: {fileID: 6961253378331736362}
   m_Layer: 11
-  m_Name: HitBoxEnemy.1
+  m_Name: HitBoxEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -430,7 +430,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WolfBasicEnemy
   _currentHealthDebug: 0
   _maxHealth: 100
-  _defense: 10
   Stats:
     OnNumModified:
       m_PersistentCalls:
@@ -445,7 +444,7 @@ MonoBehaviour:
   Damaged: 0
   _lockInRange: 20
   _boostGrace: 20
-  _deathEffectDuration: 1
+  _deathEffectDuration: 1.6
   _knockbackForce: 40
   _knockbackRadius: 10
   _verticalMultiplier: 10
@@ -1113,7 +1112,7 @@ GameObject:
   - component: {fileID: 7132225952384934605}
   - component: {fileID: 4396666372110037767}
   m_Layer: 11
-  m_Name: HitBoxEnemy.1
+  m_Name: HitBoxEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
