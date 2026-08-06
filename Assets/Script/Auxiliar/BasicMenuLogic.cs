@@ -13,14 +13,17 @@ public class BasicMenuLogic : MonoBehaviour
   [SerializeField]
   private UIAudioConfig _uiAudioConfig;
 
-  [SerializeField] private float selectableScale = 1.08f;
-  [SerializeField] private float scaleSpeed = 10f;
+  [SerializeField]
+  private float selectableScale = 1.08f;
 
+  [SerializeField]
+  private float scaleSpeed = 10f;
 
   private Button _currentButton;
   private Vector3 _currentTargetScale = Vector3.one;
 
-  [SerializeField] private LoadingScreen _loadingScreen;
+  [SerializeField]
+  private LoadingScreen _loadingScreen;
 
   #region  === MENU GAMEOVER ===
 
@@ -28,23 +31,23 @@ public class BasicMenuLogic : MonoBehaviour
   {
     GameObject selected = EventSystem.current.currentSelectedGameObject;
 
-    if(selected == null)
-       return;
-    
+    if (selected == null)
+      return;
+
     Button button = selected.GetComponent<Button>();
 
-    if(button != _currentButton)
+    if (button != _currentButton)
     {
-      if(_currentButton != null)
-         _currentButton.transform.localScale = Vector3.one;
-        
+      if (_currentButton != null)
+        _currentButton.transform.localScale = Vector3.one;
+
       _currentButton = button;
 
-      if(_currentButton != null)
-         _currentTargetScale = Vector3.one * selectableScale;
+      if (_currentButton != null)
+        _currentTargetScale = Vector3.one * selectableScale;
     }
 
-    if(_currentButton != null)
+    if (_currentButton != null)
     {
       _currentButton.transform.localScale = Vector3.Lerp(
         _currentButton.transform.localScale,
@@ -53,6 +56,7 @@ public class BasicMenuLogic : MonoBehaviour
       );
     }
   }
+
   public void Respawn()
   {
     if (AudioManager.Instance != null && _backgroundMusicConfig != null)
@@ -71,6 +75,7 @@ public class BasicMenuLogic : MonoBehaviour
   public void ResetScene()
   {
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    GameContext.ShowStageIntro = true;
   }
   #endregion === MENU GAMEOVER ===
 
@@ -83,14 +88,13 @@ public class BasicMenuLogic : MonoBehaviour
 
     DOTween.KillAll();
 
-    if(DataDirector.Instance != null)
+    if (DataDirector.Instance != null)
     {
       DataDirector.Instance.ResetRunTimeState();
       DataDirector.Instance.RestartCurrentLevel();
-
-      DataDirector.Instance.ShowStageIntro = false;
     }
 
+    GameContext.ShowStageIntro = true;
     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
   }
 
@@ -134,7 +138,7 @@ public class BasicMenuLogic : MonoBehaviour
   {
     Time.timeScale = 1f;
 
-   // DOTween.Kill(transform);
+    // DOTween.Kill(transform);
 
     GlobalEventBus.Instance.Pause.Invoke(false);
 
@@ -143,11 +147,10 @@ public class BasicMenuLogic : MonoBehaviour
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();
 
-
     Resources.UnloadUnusedAssets();
 
     AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
-    
+
     _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
   }
   #endregion
