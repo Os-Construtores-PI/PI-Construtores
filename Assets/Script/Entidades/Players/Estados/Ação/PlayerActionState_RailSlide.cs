@@ -21,16 +21,22 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   public HashSet<PlayerActionType> IncompatibleActions => _incompatibleActions;
 
   public SplineContainer CurrentRail { get; set; }
+
   private float _currentRailLength;
   private float _railProgress;
   private float _direction = 1f;
-
   private float _currentSpeed;
+  private bool _isActive;
+  private bool _isSnapping;
   private bool _isExiting;
 
-  private CancellationTokenSource _slideCts;
-  private CancellationTokenSource _linkedCts;
-  private Task _activeSlideTask;
+  // Flag para cancelamento externo (ex: Jump chamando RequestCancel)
+  private bool _cancelRequested;
+
+  // Snap
+  private Vector3 _snapStartPosition;
+  private Vector3 _snapTargetPosition;
+  private float _snapProgress;
 
   [SerializeField]
   private float _snapDuration = 0.12f;
@@ -38,6 +44,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private float _speedRampDuration = 0.25f;
 
+  // Exit
   [SerializeField]
   private float _exitVelocityMultiplier = 1.35f;
 
@@ -55,12 +62,16 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
   public event Action<int> OnScoreAwarded;
 
+  private CancellationTokenSource _exitBuffCts;
+
   public void SetRail(SplineContainer rail) => CurrentRail = rail;
 
-  public void RequestCancel() => _slideCts?.Cancel();
+  public void RequestCancel() => _cancelRequested = true;
 
   public void Enter(Player player)
   {
+    _cancelRequested = false;
+    player.WantsToCancelRailSlide = false;
     _isExiting = false;
 
     if (CurrentRail == null || CurrentRail.Spline.Count == 0)
@@ -70,67 +81,6 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       return;
     }
 
-    _activeSlideTask = RunRailSlideLifecycleAsync(player);
-  }
-
-  public void Exit(Player player)
-  {
-    if (_isExiting)
-      return;
-    _isExiting = true;
-
-    _slideCts?.Cancel();
-
-    CleanupPlayerState(player);
-  }
-
-  public void Update(Player player) { }
-
-  public void FixedUpdate(Player player) { }
-
-  private async Task RunRailSlideLifecycleAsync(Player player)
-  {
-    _slideCts = new CancellationTokenSource();
-    var playerLifetime = player.GetCancellationToken();
-    _linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_slideCts.Token, playerLifetime);
-
-    try
-    {
-      InitializeRailData(player);
-      SetupPlayerForSlide(player);
-
-      await SnapToRailAsync(player, _linkedCts.Token);
-
-      await SlideAlongRailAsync(player, _linkedCts.Token);
-
-      if (!_linkedCts.Token.IsCancellationRequested && !_isExiting)
-      {
-        await ExitWithMomentumAsync(player);
-      }
-    }
-    catch (OperationCanceledException)
-    {
-      Debug.Log("[RailSlide] Slide cancelado (input do jogador ou troca de state)");
-      if (!_isExiting && player.WantsToCancelRailSlide)
-      {
-        player.WantsToCancelRailSlide = false;
-        await ExitWithMomentumAsync(player);
-      }
-    }
-    catch (Exception ex)
-    {
-      Debug.LogError($"[RailSlide] Erro inesperado: {ex.Message}");
-    }
-    finally
-    {
-      CleanupPlayerState(player);
-      CleanupTokens();
-      CurrentRail = null;
-    }
-  }
-
-  private void InitializeRailData(Player player)
-  {
     _currentRailLength = CurrentRail.Spline.GetLength();
 
     float3 localPlayerPos = CurrentRail.transform.InverseTransformPoint(player.transform.position);
@@ -141,16 +91,85 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       out _railProgress
     );
 
-    float3 tangentLocal = CurrentRail.Spline.EvaluateTangent(_railProgress);
-    Vector3 tangentWorld = CurrentRail.transform.TransformDirection(tangentLocal);
-    float angle = Vector3.Angle(tangentWorld, player.transform.forward);
-    _direction = angle > 90f ? -1f : 1f;
+    _snapStartPosition = player.transform.position;
+    _snapTargetPosition =
+      CurrentRail.transform.TransformPoint(nearestLocal) + ComputeOffset(_railProgress);
+    _snapProgress = 0f;
+    _isSnapping = true;
 
     var railObject = CurrentRail.GetComponent<RailObject>();
     float entrySpeed = new Vector3(player.MovementVector.x, 0f, player.MovementVector.z).magnitude;
     float minRailSpeed = railObject != null ? railObject.SlideSpeed * 0.4f : 4f;
     _currentSpeed = Mathf.Max(entrySpeed, minRailSpeed);
+
+    float3 tangentLocal = CurrentRail.Spline.EvaluateTangent(_railProgress);
+    Vector3 tangentWorld = CurrentRail.transform.TransformDirection(tangentLocal);
+    float angle = Vector3.Angle(tangentWorld, player.transform.forward);
+    _direction = angle > 90f ? -1f : 1f;
+
+    SetupPlayerForSlide(player);
+    _isActive = true;
   }
+
+  public void Exit(Player player)
+  {
+    if (_isExiting)
+      return;
+    _isExiting = true;
+    _isActive = false;
+    _isSnapping = false;
+    _cancelRequested = false;
+
+    _exitBuffCts?.Cancel();
+
+    CleanupPlayerState(player);
+    CurrentRail = null;
+  }
+
+  public void Update(Player player)
+  {
+    if (!_isActive || CurrentRail == null)
+      return;
+
+    if (_cancelRequested)
+    {
+      _cancelRequested = false;
+      player.WantsToCancelRailSlide = false;
+      ExitWithMomentum(player);
+      return;
+    }
+
+    if (player.WantsToCancelRailSlide)
+    {
+      player.WantsToCancelRailSlide = false;
+      ExitWithMomentum(player);
+      return;
+    }
+
+    var railObject = CurrentRail.GetComponent<RailObject>();
+    float targetSpeed = railObject != null ? railObject.SlideSpeed : 10f;
+
+    _currentSpeed = Mathf.MoveTowards(
+      _currentSpeed,
+      targetSpeed,
+      targetSpeed / _speedRampDuration * Time.deltaTime
+    );
+
+    float distanceThisFrame = _currentSpeed * Time.deltaTime;
+    _railProgress += distanceThisFrame * _direction / _currentRailLength;
+
+    if (_railProgress >= 1f || _railProgress <= 0f)
+    {
+      _railProgress = Mathf.Clamp01(_railProgress);
+      ExitWithMomentum(player);
+      return;
+    }
+
+    UpdatePlayerTransform(player);
+    OnScoreAwarded?.Invoke(_slideIncrementScore);
+  }
+
+  public void FixedUpdate(Player player) { }
 
   private void SetupPlayerForSlide(Player player)
   {
@@ -160,58 +179,6 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.CurrentDashCount = 0;
     player.SpeedLines?.Invoke(true);
     player.LocomotionLayer.ChangeState(player.Locked, player);
-  }
-
-  private async Task SnapToRailAsync(Player player, CancellationToken ct)
-  {
-    Vector3 startPos = player.transform.position;
-    Vector3 targetPos =
-      CurrentRail.transform.TransformPoint(CurrentRail.Spline.EvaluatePosition(_railProgress))
-      + ComputeOffset(_railProgress);
-
-    float elapsed = 0f;
-
-    while (elapsed < _snapDuration)
-    {
-      ct.ThrowIfCancellationRequested();
-
-      elapsed += Time.deltaTime;
-      float t = Mathf.Clamp01(elapsed / _snapDuration);
-      float ease = 1f - Mathf.Pow(1f - t, 3f);
-
-      player.transform.position = Vector3.Lerp(startPos, targetPos, ease);
-      await Task.Yield();
-    }
-
-    player.transform.position = targetPos;
-  }
-
-  private async Task SlideAlongRailAsync(Player player, CancellationToken ct)
-  {
-    var railObject = CurrentRail.GetComponent<RailObject>();
-    float targetSpeed = railObject != null ? railObject.SlideSpeed : 10f;
-
-    while (_railProgress > 0f && _railProgress < 1f)
-    {
-      ct.ThrowIfCancellationRequested();
-
-      _currentSpeed = Mathf.MoveTowards(
-        _currentSpeed,
-        targetSpeed,
-        targetSpeed / _speedRampDuration * Time.deltaTime
-      );
-
-      float distanceThisFrame = _currentSpeed * Time.deltaTime;
-      _railProgress += distanceThisFrame * _direction / _currentRailLength;
-
-      UpdatePlayerTransform(player);
-
-      OnScoreAwarded?.Invoke(_slideIncrementScore);
-
-      await Task.Yield();
-    }
-
-    _railProgress = Mathf.Clamp01(_railProgress);
   }
 
   private void UpdatePlayerTransform(Player player)
@@ -231,11 +198,32 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       player.transform.rotation = Quaternion.LookRotation(tangent * _direction, up);
     }
 
-    player.transform.position = splinePos + ComputeOffsetFromVectors(up, tangent);
+    Vector3 finalPos = splinePos + ComputeOffsetFromVectors(up, tangent);
+
+    if (_isSnapping)
+    {
+      _snapProgress += Time.deltaTime / _snapDuration;
+      float ease = 1f - Mathf.Pow(1f - Mathf.Clamp01(_snapProgress), 3f);
+      player.transform.position = Vector3.Lerp(_snapStartPosition, finalPos, ease);
+
+      if (_snapProgress >= 1f)
+        _isSnapping = false;
+    }
+    else
+    {
+      player.transform.position = finalPos;
+    }
   }
 
-  private async Task ExitWithMomentumAsync(Player player)
+  private void ExitWithMomentum(Player player)
   {
+    if (CurrentRail == null || _isExiting)
+    {
+      if (!_isExiting)
+        player.ActionLayer.ExitState(this, player);
+      return;
+    }
+
     Vector3 tangent = CurrentRail.transform.TransformDirection(
       CurrentRail.Spline.EvaluateTangent(_railProgress)
     );
@@ -257,22 +245,34 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       horizontal.z
     );
 
-    await ApplyExitBuffAsync(player);
+    ApplyExitBuffAsync(player);
 
-    if (!_isExiting)
-    {
-      _isExiting = true;
-      player.ActionLayer.ExitState(this, player);
-    }
+    player.ActionLayer.ExitState(this, player);
   }
 
-  private async Task ApplyExitBuffAsync(Player player)
+  private async void ApplyExitBuffAsync(Player player)
   {
+    _exitBuffCts?.Dispose();
+    _exitBuffCts = new CancellationTokenSource();
+
     try
     {
-      await player.Stats.ApplyMultiplierAsync(StatType.JumpForce, 2f, 1f, _linkedCts.Token);
+      var playerLifetime = player.GetCancellationToken();
+      using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+        _exitBuffCts.Token,
+        playerLifetime
+      );
+
+      await player.Stats.ApplyMultiplierAsync(StatType.JumpForce, 2f, 1f, linkedCts.Token);
     }
-    catch (OperationCanceledException) { }
+    catch (OperationCanceledException)
+    {
+      Debug.Log("[RailSlide] Buff de saída cancelado.");
+    }
+    catch (Exception ex)
+    {
+      Debug.LogError($"[RailSlide] Erro ao aplicar buff: {ex.Message}");
+    }
   }
 
   private void CleanupPlayerState(Player player)
@@ -289,19 +289,14 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.LocomotionLayer.ChangeState(player.Moving, player);
   }
 
-  private void CleanupTokens()
-  {
-    _slideCts?.Dispose();
-    _slideCts = null;
-
-    _linkedCts?.Dispose();
-    _linkedCts = null;
-  }
-
   public void Dispose()
   {
-    _slideCts?.Cancel();
-    CleanupTokens();
+    _isActive = false;
+    _isSnapping = false;
+    _cancelRequested = false;
+    _exitBuffCts?.Cancel();
+    _exitBuffCts?.Dispose();
+    CurrentRail = null;
   }
 
   private Vector3 ComputeOffset(float t)

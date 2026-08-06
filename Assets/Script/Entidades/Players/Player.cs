@@ -630,10 +630,11 @@ public class Player : CombatEntities
   public override void Update()
   {
     base.Update();
-#if UNITY_EDITOR
-    if (Input.GetKeyDown(KeyCode.F1))
+    if (Keyboard.current != null && Keyboard.current.f1Key.IsPressed())
+    {
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-#endif
+      GameContext.ShowStageIntro = true;
+    }
 
     ComboTimer();
 
@@ -814,10 +815,7 @@ public class Player : CombatEntities
   private Func<Vector3, RailObject> BuildRailEntryScanner() =>
     playerPos =>
     {
-      if (
-        RailSlide.CurrentRail != null
-        || ActionLayer.GetActive<PlayerActionStateRailSlide>() != null
-      )
+      if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
         return null;
 
       Vector3 moveDir =
@@ -852,7 +850,6 @@ public class Player : CombatEntities
         float alignment = Vector3.Dot((nearestPoint - playerPos).normalized, moveDir);
         if (alignment >= _railEntryMinDot)
         {
-          // Cálculo de score usando peso constante
           float score = alignment - (distance / _railEntryRadius) * RAIL_SCORE_WEIGHT;
           if (score > bestScore)
           {
@@ -869,7 +866,7 @@ public class Player : CombatEntities
     var (executed, rail) = _railEntryScanner.Scan(transform.position);
     if (executed && rail != null)
     {
-      RailSlide.CurrentRail = rail.GetComponent<SplineContainer>();
+      RailSlide.SetRail(rail.GetComponent<SplineContainer>());
       ActionLayer.PushState(RailSlide, this);
     }
   }
