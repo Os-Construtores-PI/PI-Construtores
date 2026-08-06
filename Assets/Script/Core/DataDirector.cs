@@ -25,8 +25,6 @@ public sealed class DataDirector : MonoBehaviour
   private string ConfigPath => Constants.PersistentNames.ConfigPath;
   private static string ActiveSceneName => SceneManager.GetActiveScene().name;
 
-  public bool ShowStageIntro = true;
-
   #region UNITY
   private void Awake()
   {

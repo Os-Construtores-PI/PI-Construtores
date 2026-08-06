@@ -170,5 +170,6 @@ public class EndGamePanel : MonoBehaviour
     Debug.Log("[EndGamePanel] Resetar acionado!");
     Time.timeScale = 1;
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    GameContext.ShowStageIntro = true;
   }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -5,7 +6,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Collections;
 
 public class MenuDirector : MonoBehaviour
 {
@@ -22,7 +22,8 @@ public class MenuDirector : MonoBehaviour
   [SerializeField]
   private Scrollbar _rankingScrollbar;
 
-  [SerializeField] private float selectedPressedDuration = 0.12f;
+  [SerializeField]
+  private float selectedPressedDuration = 0.12f;
 
   [SerializeField]
   private float panelTransitionDelay = 0.35f;
@@ -426,7 +427,7 @@ public class MenuDirector : MonoBehaviour
     }
 
     DataDirector.Instance.SaveHasSave(true);
-    DataDirector.Instance.ShowStageIntro = true;
+    GameContext.ShowStageIntro = true;
 
     LockCurrentPanel();
 
@@ -459,7 +460,7 @@ public class MenuDirector : MonoBehaviour
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
-    DataDirector.Instance.ShowStageIntro = true;
+    GameContext.ShowStageIntro = true;
 
     if (TryGetPanelRoots(MenuPanelTypes.SaveMenu, out var roots))
     {
@@ -578,7 +579,7 @@ public class MenuDirector : MonoBehaviour
 
   private IEnumerator PlaySelectionFeedback(MenuPanelTypes from, MenuPanelTypes to)
   {
-    if(MenuSelectionCursor.Instance != null)
+    if (MenuSelectionCursor.Instance != null)
     {
       MenuSelectionCursor.Instance.SetPressed(selectedPressedDuration);
     }
@@ -587,10 +588,13 @@ public class MenuDirector : MonoBehaviour
 
     bool finished = false;
 
-    HidePanel(from, () =>
-    {
-      finished = true;
-    });
+    HidePanel(
+      from,
+      () =>
+      {
+        finished = true;
+      }
+    );
 
     yield return new WaitUntil(() => finished);
 
