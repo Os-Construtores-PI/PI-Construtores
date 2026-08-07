@@ -676,8 +676,9 @@ public class Player : CombatEntities
     }
   }
 
-  public void OnDestroy()
+  public override void OnDestroy()
   {
+    base.OnDestroy();
     DOTween.Kill(this);
 
     _lifetimeCts?.Cancel();
