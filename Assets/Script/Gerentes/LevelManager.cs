@@ -208,6 +208,9 @@ public class LevelManager : MonoBehaviour
       }
 
       player.transform.SetParent(null, true);
+      player.ActionLayer.PopEveryState(player);
+      player.MovementVector = Vector3.zero;
+
       Debug.Log($"[LevelManager] SetParent(null) aplicado em {player.name}.");
 
       GameObject stopwatch = _hudDirector.GetPanel(player.ID, HudPanelType.Stopwatch)[0];

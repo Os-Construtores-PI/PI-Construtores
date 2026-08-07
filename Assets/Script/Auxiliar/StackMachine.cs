@@ -72,6 +72,15 @@ public class StackStateMachine<T> : PlayerStateMachine<T>
 
   public void PopStateDeferred(T entity) => _pendingOps.Enqueue(() => PopState(entity));
 
+  public void PopEveryState(T entity)
+  {
+    foreach (var state in _stateStack.ToArray())
+      state.Exit(entity);
+
+    _stateStack.Clear();
+    _pendingOps.Clear();
+  }
+
   // ── Exit ─────────────────────────────────────────────────────────────────
   public void ExitState(IPlayerState<T> state, T entity)
   {
