@@ -25,6 +25,11 @@ public abstract class Entities : BaseRenderedGameObject
     InitializeEffects();
   }
 
+  public virtual void OnDestroy()
+  {
+    EffectsSystem?.Dispose();
+  }
+
   private void InitializeEffects()
   {
     Transform effectContainer = transform.Find("Effects");
