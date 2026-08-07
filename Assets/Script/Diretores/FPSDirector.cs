@@ -26,6 +26,10 @@ public class FPSDirector : MonoBehaviour
   [SerializeField, Tooltip("Exibir FPS atual no console (a cada segundo).")]
   private bool showFPSInConsole = false;
 
+  [Header("Debug")]
+  [SerializeField, Tooltip("Ativa logs de debug no console.")]
+  private bool Debug = false;
+
   public int CurrentTargetFPS => Application.targetFrameRate;
   public bool IsVSyncEnabled => QualitySettings.vSyncCount > 0;
   public int CurrentVSyncCount => QualitySettings.vSyncCount;
@@ -50,7 +54,8 @@ public class FPSDirector : MonoBehaviour
       if (_fpsTimer >= 1f)
       {
         _lastFPS = _frameCount;
-        Debug.Log($"[FPSDirector] FPS Atual: {_lastFPS}");
+        if (Debug)
+          UnityEngine.Debug.Log($"[FPSDirector] FPS Atual: {_lastFPS}");
         _frameCount = 0;
         _fpsTimer = 0f;
       }
@@ -70,26 +75,31 @@ public class FPSDirector : MonoBehaviour
     {
       QualitySettings.vSyncCount = 0;
       Application.targetFrameRate = backgroundFPS;
-      Debug.Log($"[FPSDirector] Janela em segundo plano. FPS limitado a {backgroundFPS}");
+      if (Debug)
+        UnityEngine.Debug.Log(
+          $"[FPSDirector] Janela em segundo plano. FPS limitado a {backgroundFPS}"
+        );
     }
   }
 
   // ============================================
-  // FUNÇÕES PÚBLICAS — Ligue em botões da UI
+  // FUNÇÕES PÚBLICAS
   // ============================================
 
   public void SetTargetFPS(int fps)
   {
     targetFPS = fps;
     ApplySettings();
-    Debug.Log($"[FPSDirector] Target FPS definido: {fps}");
+    if (Debug)
+      UnityEngine.Debug.Log($"[FPSDirector] Target FPS definido: {fps}");
   }
 
   public void SetVSync(bool enabled)
   {
     useVSync = enabled;
     ApplySettings();
-    Debug.Log($"[FPSDirector] VSync: {(enabled ? "ON" : "OFF")}");
+    if (Debug)
+      UnityEngine.Debug.Log($"[FPSDirector] VSync: {(enabled ? "ON" : "OFF")}");
   }
 
   public void SetVSyncCount(int count)
@@ -99,7 +109,8 @@ public class FPSDirector : MonoBehaviour
     {
       ApplySettings();
     }
-    Debug.Log($"[FPSDirector] VSync Count: {vSyncCount}");
+    if (Debug)
+      UnityEngine.Debug.Log($"[FPSDirector] VSync Count: {vSyncCount}");
   }
 
   public void ToggleVSync()
@@ -110,13 +121,15 @@ public class FPSDirector : MonoBehaviour
   public void SetBackgroundLimit(bool enabled)
   {
     limitFPSOnBackground = enabled;
-    Debug.Log($"[FPSDirector] Limite em background: {(enabled ? "ON" : "OFF")}");
+    if (Debug)
+      UnityEngine.Debug.Log($"[FPSDirector] Limite em background: {(enabled ? "ON" : "OFF")}");
   }
 
   public void SetBackgroundFPS(int fps)
   {
     backgroundFPS = Mathf.Max(1, fps);
-    Debug.Log($"[FPSDirector] Background FPS: {backgroundFPS}");
+    if (Debug)
+      UnityEngine.Debug.Log($"[FPSDirector] Background FPS: {backgroundFPS}");
   }
 
   public void SetShowFPS(bool show)
@@ -144,8 +157,18 @@ public class FPSDirector : MonoBehaviour
 
   public void SetPreset144FPS() => SetTargetFPS(144);
 
+  public void SetLogDebug(bool enabled)
+  {
+    Debug = enabled;
+  }
+
   public void ApplySettings()
   {
+    if (Debug)
+      UnityEngine.Debug.Log(
+        $"[FPSDirector] Aplicando: VSync={useVSync} (count={vSyncCount}), TargetFPS={targetFPS}"
+      );
+
     if (useVSync)
     {
       QualitySettings.vSyncCount = Mathf.Clamp(vSyncCount, 1, 4);
@@ -167,6 +190,7 @@ public class FPSDirector : MonoBehaviour
     backgroundFPS = 30;
     showFPSInConsole = false;
     ApplySettings();
-    Debug.Log("[FPSDirector] Configurações resetadas para padrão.");
+    if (Debug)
+      UnityEngine.Debug.Log("[FPSDirector] Configurações resetadas para padrão.");
   }
 }
