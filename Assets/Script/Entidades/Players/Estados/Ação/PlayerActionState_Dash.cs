@@ -37,6 +37,13 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private float _speedExponent = 0.1f;
 
+  [Header("Vibração do Gamepad no Acerto")]
+  [SerializeField]
+  private float _hitRumbleLowFrequency = 0.5f;
+
+  [SerializeField]
+  private float _hitRumbleHighFrequency = 0.1f;
+
   [Header("Configurações de Quicada e GraceTime")]
   [SerializeField]
   private float _bounceUpwardForce = 6f;
@@ -277,7 +284,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
       _vibrationFrequency,
       _vibrationDuration
     );
-    Gamepad.current?.SetMotorSpeeds(.5f, .1f);
+    Gamepad.current?.SetMotorSpeeds(_hitRumbleLowFrequency, _hitRumbleHighFrequency);
 
     _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(0f) * _bounceUpwardForce;
 

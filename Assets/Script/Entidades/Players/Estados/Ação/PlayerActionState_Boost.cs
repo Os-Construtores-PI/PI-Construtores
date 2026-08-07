@@ -48,12 +48,34 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _rotationSpeed = 180f;
 
+  [Header("Vibração do Gamepad na Corrida")]
+  [SerializeField]
+  private float _runRumbleLowFrequency = 0.1f;
+
+  [SerializeField]
+  private float _runRumbleHighFrequency = 0.2f;
+
+  [Header("Vibração do Gamepad no Acerto")]
+  [SerializeField]
+  private float _hitRumbleLowFrequency = 0.5f;
+
+  [SerializeField]
+  private float _hitRumbleHighFrequency = 0.8f;
+
+  [SerializeField]
+  private float _hitRumbleDuration = 0.2f;
+
   [Header("Boost Componentes")]
   [SerializeField]
   private Collider _boostHitboxCollider;
 
   [SerializeField]
+  private HitboxComponent _boostHitboxComponent;
+
+  [SerializeField]
   private SphereCollider _boostCollectionCollider;
+
+  private CancellationTokenSource _hitRumbleCts;
 
   private float _playerOriginalSpeed;
   private float _boostSpeedRatio;
@@ -92,6 +114,9 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       _boostHitboxCollider.enabled = true;
     }
 
+    var hitbox = _boostHitboxCollider.GetComponent<HitboxComponent>();
+    hitbox?.Hit.AddListener(OnBoostHitDetected);
+
     float velocityFraction = boostSpeed / _maxVelocity;
     player.CustomShake.Invoke(
       player.ID,
@@ -105,7 +130,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
 
-    Gamepad.current?.SetMotorSpeeds(.1f, .2f);
+    Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
 
     _fovTween?.Kill();
     _fovTween = DOTween.To(
@@ -123,6 +148,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   public void Exit(Player player)
   {
+    _hitRumbleCts?.Cancel();
+    _hitRumbleCts?.Dispose();
+    _hitRumbleCts = null;
+
     if (!string.IsNullOrEmpty(_boostSourceId))
     {
       player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
@@ -208,6 +237,33 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   }
 
   public void FixedUpdate(Player player) { }
+
+  private void OnBoostHitDetected()
+  {
+    TriggerHitRumbleAsync();
+  }
+
+  private async void TriggerHitRumbleAsync()
+  {
+    _hitRumbleCts?.Cancel();
+    _hitRumbleCts?.Dispose();
+    _hitRumbleCts = new CancellationTokenSource();
+
+    var token = _hitRumbleCts.Token;
+
+    try
+    {
+      Gamepad.current?.SetMotorSpeeds(_hitRumbleLowFrequency, _hitRumbleHighFrequency);
+
+      await System.Threading.Tasks.Task.Delay(
+        System.TimeSpan.FromSeconds(_hitRumbleDuration),
+        token
+      );
+
+      Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
+    }
+    catch (System.OperationCanceledException) { }
+  }
 
   #endregion
 }
