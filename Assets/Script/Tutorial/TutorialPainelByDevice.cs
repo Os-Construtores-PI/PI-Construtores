@@ -7,33 +7,16 @@ public class TutorialPainelByDevice : MonoBehaviour
   [SerializeField]
   private Image tutorialImage;
 
-  [Header("Painels")]
-  [SerializeField]
-  private Sprite keyboardPainel;
-
-  [SerializeField]
-  private Sprite xboxPainel;
-
-  [SerializeField]
-  private Sprite playstationPainel;
-
-  // Start is called once before the first execution of Update after the MonoBehaviour is created
   private void OnEnable()
   {
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged += Atualizar;
-
     if (TutorialGlobal.Instance != null)
       TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
 
-    Atualizar(DeviceSpriteManager.Instance.GetCurrentDevice());
+    DeviceInputManager.Instance.ForceRefresh();
   }
 
   private void OnDisable()
   {
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged -= Atualizar;
-
     if (TutorialGlobal.Instance != null)
       TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
   }
@@ -49,25 +32,7 @@ public class TutorialPainelByDevice : MonoBehaviour
     if (tutorialImage != null)
     {
       tutorialImage.enabled = true;
-      Atualizar(DeviceSpriteManager.Instance.GetCurrentDevice());
+      DeviceInputManager.Instance.ForceRefresh();
     }
-  }
-
-  private void Atualizar(string device)
-  {
-    if (TutorialGlobal.Instance == null)
-      return;
-    if (!TutorialGlobal.Instance.IsTutorialActive)
-      return;
-    if (tutorialImage == null)
-      return;
-
-    tutorialImage.sprite = device switch
-    {
-      "Keyboard" => keyboardPainel,
-      "Xbox" => xboxPainel,
-      "Playstation" => playstationPainel,
-      _ => tutorialImage.sprite,
-    };
   }
 }

@@ -7,58 +7,48 @@ public class TutorialTrigger : MonoBehaviour
 {
   [Header("UI")]
   [SerializeField]
-  private ImageTriggerEvent interactionIcon;
+  private ImageTriggerEvent _interactionIcon;
 
   [SerializeField]
-  private Image interactionSprite;
+  private Image _interactionSprite;
 
   [Header("Config")]
   [SerializeField]
-  private bool apenasUmaVez;
+  private bool _onlyOnce;
 
   [Header("Tutorial")]
   [SerializeField]
-  private TutorialType tutorialType;
+  private TutorialType _tutorialType;
 
-  private PlayerInput playerInput;
-  private bool jogadorDentro;
-  private bool tutorialConsumido;
+  private PlayerInput _playerInput;
+  private bool _playerInside;
+  private bool _tutorialConsumed;
 
-  // Start is called once before the first execution of Update after the MonoBehaviour is created
   public void Start()
   {
-    if (interactionSprite != null)
-      interactionSprite.gameObject.SetActive(false);
-
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged += AtualizarSprite;
+    if (_interactionSprite != null)
+      _interactionSprite.gameObject.SetActive(false);
 
     Debug.Log($"[TutorialTrigger] Start ativo em {gameObject.name}");
-  }
-
-  public void OnDestroy()
-  {
-    if (DeviceSpriteManager.Instance != null)
-      DeviceSpriteManager.Instance.OnDeviceChanged -= AtualizarSprite;
   }
 
   public void OnTriggerEnter(Collider other)
   {
     if (!other.CompareTag("Player"))
       return;
-    if (apenasUmaVez && tutorialConsumido)
+    if (_onlyOnce && _tutorialConsumed)
       return;
 
-    playerInput = other.GetComponent<PlayerInput>();
-    jogadorDentro = true;
+    _playerInput = other.GetComponent<PlayerInput>();
+    _playerInside = true;
 
-    AtualizarSprite(DeviceSpriteManager.Instance.GetCurrentDevice());
+    DeviceInputManager.Instance.ForceRefresh();
 
-    if (interactionSprite != null)
-      interactionSprite.gameObject.SetActive(true);
+    if (_interactionSprite != null)
+      _interactionSprite.gameObject.SetActive(true);
 
-    if (interactionIcon != null)
-      interactionIcon.Hide();
+    if (_interactionIcon != null)
+      _interactionIcon.Hide();
   }
 
   public void OnTriggerExit(Collider other)
@@ -66,73 +56,62 @@ public class TutorialTrigger : MonoBehaviour
     if (!other.CompareTag("Player"))
       return;
 
-    jogadorDentro = false;
+    _playerInside = false;
 
-    if (interactionSprite != null)
-      interactionSprite.gameObject.SetActive(false);
+    if (_interactionSprite != null)
+      _interactionSprite.gameObject.SetActive(false);
 
-    if (interactionIcon != null)
-      interactionIcon.Show();
+    if (_interactionIcon != null)
+      _interactionIcon.Show();
   }
 
-  // Update is called once per frame
   public void Update()
   {
-    if (!jogadorDentro || playerInput == null)
+    if (!_playerInside || _playerInput == null)
       return;
     if (TutorialGlobal.Instance == null)
       return;
     if (TutorialGlobal.Instance.IsTutorialActive)
       return;
-    if (GameState.IsPaused)
+    if (GameContext.IsPaused)
       return;
 
-    Player player = playerInput.GetComponent<Player>();
+    Player player = _playerInput.GetComponent<Player>();
 
     if (player != null && player.IgnoreGameplayInputThisFrame)
       return;
 
-    if (playerInput.actions["Interaction"].WasPerformedThisFrame())
+    if (_playerInput.actions["Interaction"].WasPerformedThisFrame())
     {
       Debug.Log("[TutorialTrigger] Interaction triggered");
-      AbriirTutorial();
+      OpenTutorial();
     }
   }
 
-  public void AbriirTutorial()
+  public void OpenTutorial()
   {
-    if (GameState.IsPaused)
+    if (GameContext.CanPause())
       return;
 
-    if (TutorialGlobal.Instance == null)
+    if (Instance == null)
       return;
 
-    if (TutorialGlobal.Instance.IsTutorialActive)
-      tutorialConsumido = true;
+    if (Instance.IsTutorialActive)
+      _tutorialConsumed = true;
 
-    if (interactionSprite != null)
-      interactionSprite.gameObject.SetActive(false);
+    if (_interactionSprite != null)
+      _interactionSprite.gameObject.SetActive(false);
 
-    if (interactionIcon != null)
-      interactionIcon.Hide();
+    if (_interactionIcon != null)
+      _interactionIcon.Hide();
 
-    TutorialGlobal.Instance.AbrirTutorial(tutorialType);
-  }
-
-  private void AtualizarSprite(string device)
-  {
-    if (interactionSprite == null)
-      return;
-
-    interactionSprite.sprite = DeviceSpriteManager.Instance.GetSprite(
-      DeviceSpriteManager.InputIconType.Interact
-    );
+    Instance.OpenTutorial(_tutorialType);
   }
 
   public enum TutorialType
   {
-    Movimento,
-    Combate,
+    Movement,
+    Combat,
     Dash,
     WallRun,
   }

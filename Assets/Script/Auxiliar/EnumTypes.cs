@@ -9,16 +9,6 @@ public enum ErrorType
   ID_ERROR,
 }
 
-public enum QualityTier
-{
-  NONE,
-  COMMON,
-  UNCOMMON,
-  RARE,
-  EPIC,
-  LEGENDARY,
-}
-
 public enum StatType
 {
   Speed,
@@ -75,22 +65,21 @@ public enum ComboPopupType
 
 public enum HealthHUDType
 {
-  PLAYER,
-  ENEMY,
-  ENTITY,
+  Player,
+  Enemy,
+  Entity,
 }
 
-public enum ModifyTYPE
+public enum ModifyType
 {
-  CUSTOM,
-  POSITIVE,
-  NEGATIVE,
+  Delta,
+  Multiplier,
 }
 
-public enum TimeTYPE
+public enum TimeType
 {
-  PERMANENT,
-  TEMPORARY,
+  Permanent,
+  Temporary,
 }
 
 public enum ImpactPopupType
@@ -109,8 +98,8 @@ public enum ColorCode
 
 public enum GameMode
 {
-  SINGLEPLAYER,
-  MULTIPLAYER,
+  Singleplayer,
+  Multiplayer,
 }
 
 public enum PlayerActionType
@@ -130,6 +119,12 @@ public enum PlayerActionType
   RailSlide,
 }
 
+public enum DialogueLayoutType
+{
+  Pandora,
+  Enemy,
+}
+
 public enum WolfActionType
 {
   Patrol,
@@ -137,11 +132,11 @@ public enum WolfActionType
   Attack,
 }
 
-public enum InputType
+public enum DeviceType
 {
   Keyboard,
-  JoystickXbox,
-  JoystickPlaystation,
+  Xbox,
+  Playstation,
 }
 
 public enum LevelPathType
@@ -178,4 +173,23 @@ public enum PlayerAudioType
 {
   Jump,
   Dash,
+}
+
+public enum RankType
+{
+  S,
+  A,
+  B,
+  C,
+  D,
+}
+
+public enum MenuPanelTypes
+{
+  None,
+  Menu,
+  OptionsMenu,
+  AudioMenu,
+  SaveMenu,
+  LeaderboardMenu,
 }

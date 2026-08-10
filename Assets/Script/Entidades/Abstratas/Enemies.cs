@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
-using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -22,7 +21,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   [Header("Configurações de Morte")]
   [SerializeField]
-  private float _deathEffectDuration = 1f;
+  private float _deathEffectDuration = 1.6f;
 
   [Header("Knockback")]
   [SerializeField]
@@ -117,9 +116,20 @@ public abstract class Enemies : CombatEntities, ILockable
   [SerializeField]
   private RectTransform _damagePopupEffect;
 
+  [Header("Respawn")]
+  [SerializeField]
+  private bool _canRespawn = true;
+
+  [SerializeField]
+  private float _respawnDelay = 5f;
+
   public override void Start()
   {
     base.Start();
+    if (spawnpos == default)
+    {
+      spawnpos = transform.position;
+    }
     SetupOriginals();
     AddItems();
   }
@@ -133,6 +143,7 @@ public abstract class Enemies : CombatEntities, ILockable
       LayerMask.GetMask("Entity", "Player"),
       QueryTriggerInteraction.Collide
     );
+
     for (int i = 0; i < quantity; i++)
     {
       Collider hit = scanResult[i];
@@ -146,17 +157,40 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
-    Sequence deathSequence = DOTween.Sequence();
-    deathSequence.AppendCallback(() =>
+    EffectsSystem.PlayEffect(
+      EntityEffectType.EntityDeathEffect,
+      _deathEffectDuration,
+      onComplete: HandleDeathPostEffect
+    );
+  }
+
+  private void HandleDeathPostEffect()
+  {
+    gameObject.SetActive(false);
+
+    if (_canRespawn)
     {
-      EffectsSystem.PlayEffect(EntityEffectType.EntityDeathEffect, _deathEffectDuration);
-    });
-    deathSequence.AppendInterval(_deathEffectDuration);
-    deathSequence.AppendCallback(() =>
-    {
-      EffectsSystem.StopEffect(EntityEffectType.EntityDeathEffect);
-      gameObject.SetActive(false);
-    });
+      DOTween.Sequence().AppendInterval(_respawnDelay).AppendCallback(Respawn);
+    }
+  }
+
+  protected virtual void Respawn()
+  {
+    transform.position = spawnpos;
+    ResetForRespawn();
+    gameObject.SetActive(true);
+  }
+
+  protected virtual void ResetForRespawn()
+  {
+    EffectsSystem.ResetEffect(EntityEffectType.EntityDeathEffect);
+    target = null;
+    playerInArea = false;
+    memoryTriggered = false;
+    memoryCooldownWalker = 0f;
+    visionIntervalwalker = 0f;
+    attackIntervalwalker = 0f;
+    Health = MaxHealth;
   }
 
   private void AddItems()

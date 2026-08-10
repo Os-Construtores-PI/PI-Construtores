@@ -17,69 +17,68 @@ public class DialogueGlobal : MonoBehaviour
   }
 
   [SerializeField]
-  private somMenu _somMenu;
-
-  [Header("Settings")]
-  [SerializeField]
-  private float _delayAntesdotexto = 0.25f;
+  private DialogueAudioConfig _dialogueAudioConfig;
 
   [SerializeField]
-  private float _tempoPorLetra = 0.015f;
-
-  [Header("UI Layouts")]
-  [SerializeField]
-  private GameObject pandoraLayout;
+  private float _timePerLetter = 0.015f;
 
   [SerializeField]
-  private GameObject enemyLayout;
+  private GameObject _pandoraLayout;
 
   [SerializeField]
-  private TMP_Text _textoPandora;
+  private GameObject _enemyLayout;
 
   [SerializeField]
-  private TMP_Text _textoEnemy;
+  private TMP_Text _pandoraText;
 
-  [Header("General UI")]
-  public GameObject _painelDialogo;
-  public GameObject _botoesDialogo;
-  public GameObject _botoesGameplay;
-  public Button _botaoAvancar;
-  public Button _botaoRetornar;
+  [SerializeField]
+  private TMP_Text _enemyText;
 
-  public static DialogueGlobal Instance;
-  public TMP_Text _textoDialogo; // Referência dinâmica baseada no layout
+  [SerializeField]
+  private GameObject _dialoguePanel;
+
+  [SerializeField]
+  private GameObject _dialogueButtons;
+
+  [SerializeField]
+  private GameObject _gameplayButtons;
+
+  [SerializeField]
+  private Button _advanceButton;
+
+  [SerializeField]
+  private Button _returnButton;
+
+  public static DialogueGlobal Instance { get; private set; }
+  public DialogueTrigger CurrentTrigger { get; set; }
+  public bool IsDialogueActive => _dialogueActive;
+
+  public event Action OnDialogueStart;
+  public event Action OnDialogueEnd;
 
   private DialogueState _state = DialogueState.Closed;
-  private Tween _tweenPainel;
+  private Tween _tweenPanel;
   private Tween _tweenText;
-  private string[] _falasAtuais;
-  private int _index = 0;
-  private bool _dialogoAtivo = false;
-  private bool _dialogoPronto = false;
-  public bool _bloquearJumpTemporariamente;
+  private TMP_Text _dialogueText;
+  private string[] _currentLines;
+  private int _index;
+  private bool _dialogueActive;
+  private bool _dialogueReady;
+  private bool _blockAdvanceInput;
+  private bool _waitingForButtonRelease;
+  private bool _isTyping;
 
-  private PlayerDirector playerDirectoor;
+  private float _nextInputTime;
+  private readonly float _inputDelay = 0.15f;
+
+  private PlayerDirector _playerDirector;
   private GameDirector _gameDirector;
   private Player _player;
   private Player _lockedPlayer;
-  private PlayerInput _Interactable;
+  private PlayerInput _interactableInput;
   private PlayerInput _defaultPlayerInput;
 
-  public DialogueTrigger _currentTrigger;
-  public bool IsDialogueActive => _dialogoAtivo;
-
-  public event Action OndialogueStart;
-  public event Action OndialogueEnd;
-
-  private bool _blockAdvanceInput = false;
-
-  private float _nextInputTime = 0f;
-  private float _inputDelay = 0.15f;
-
-  private bool _waitingForButtonRelease = false;
-  private bool _isTyping = false;
-
-  void Awake()
+  private void Awake()
   {
     if (Instance != null && Instance != this)
     {
@@ -88,75 +87,84 @@ public class DialogueGlobal : MonoBehaviour
     }
     Instance = this;
 
-    playerDirectoor = FindAnyObjectByType<PlayerDirector>();
+    _playerDirector = FindAnyObjectByType<PlayerDirector>();
     _gameDirector = FindAnyObjectByType<GameDirector>();
 
-    if (playerDirectoor != null)
-      _player = playerDirectoor.FirstPlayerContext;
+    if (_playerDirector != null)
+      _player = _playerDirector.FirstPlayerContext;
 
     if (_player != null)
       _defaultPlayerInput = _player.PlayerInput;
 
-    if (_painelDialogo != null)
-      _painelDialogo.SetActive(false);
+    if (_dialoguePanel != null)
+      _dialoguePanel.SetActive(false);
   }
 
   public void SetTrigger(DialogueTrigger trigger)
   {
-    _currentTrigger = trigger;
-    ApplyLayout(trigger._layoutType);
+    CurrentTrigger = trigger;
+    if (trigger != null)
+      ApplyLayout(trigger.LayoutType);
   }
 
-  public void IniciarDialogo(string[] falas)
+  public void StartDialogue(string[] lines)
   {
     _blockAdvanceInput = true;
-    if (_state != DialogueState.Closed || falas == null || falas.Length == 0)
+    if (_state != DialogueState.Closed || lines == null || lines.Length == 0)
       return;
 
     _state = DialogueState.Opening;
-    _dialogoAtivo = true;
-    _dialogoPronto = false;
-    Time.timeScale = 0;
+    _dialogueActive = true;
+    _dialogueReady = false;
+    Time.timeScale = 0f;
 
     SetupInput(true);
-
     _waitingForButtonRelease = true;
 
-    _Interactable.actions["AdvanceDialogue"]?.Reset();
-    _Interactable.actions["ReturnDialogue"]?.Reset();
+    _interactableInput?.actions["AdvanceDialogue"]?.Reset();
+    _interactableInput?.actions["ReturnDialogue"]?.Reset();
 
-    OndialogueStart?.Invoke();
+    OnDialogueStart?.Invoke();
 
-    if (AudioManager.Instance != null && _somMenu != null)
-      AudioManager.Instance.PlaySFX(_somMenu.dialogueOpen);
-    _falasAtuais = falas;
+    if (AudioManager.Instance != null && _dialogueAudioConfig != null)
+      AudioManager.Instance.PlaySFX(_dialogueAudioConfig.DialogueOpen);
+
+    _currentLines = lines;
     _index = 0;
-    AtualizarVisibilidadedosBotoes();
-    LimparFala();
-    _painelDialogo.SetActive(true);
-    _painelDialogo.transform.localScale = Vector3.zero;
 
-    if (_botoesGameplay != null)
-      _botoesGameplay.SetActive(false);
+    UpdateButtonsVisibility();
+    ClearLine();
 
-    if (_botoesDialogo != null)
-      _botoesDialogo.SetActive(true);
+    if (_dialoguePanel != null)
+    {
+      _dialoguePanel.SetActive(true);
+      _dialoguePanel.transform.localScale = Vector3.zero;
+    }
 
-    _tweenPainel?.Kill();
+    if (_gameplayButtons != null)
+      _gameplayButtons.SetActive(false);
+
+    if (_dialogueButtons != null)
+      _dialogueButtons.SetActive(true);
+
+    _tweenPanel?.Kill();
     _tweenText?.Kill();
     StopAllCoroutines();
 
-    _tweenPainel = _painelDialogo
-      .transform.DOScale(1f, 0.30f)
-      .SetEase(Ease.OutBack)
-      .SetUpdate(true)
-      .OnComplete(() =>
-      {
-        _state = DialogueState.Open;
-        _dialogoPronto = true;
-        _blockAdvanceInput = false;
-        AtualizarFala();
-      });
+    if (_dialoguePanel != null)
+    {
+      _tweenPanel = _dialoguePanel
+        .transform.DOScale(1f, 0.30f)
+        .SetEase(Ease.OutBack)
+        .SetUpdate(true)
+        .OnComplete(() =>
+        {
+          _state = DialogueState.Open;
+          _dialogueReady = true;
+          _blockAdvanceInput = false;
+          UpdateLine();
+        });
+    }
 
     _lockedPlayer = _player;
 
@@ -169,11 +177,11 @@ public class DialogueGlobal : MonoBehaviour
 
   private void SetupInput(bool isDialogue)
   {
-    _Interactable = _currentTrigger?._playerInput ?? _defaultPlayerInput;
-    if (_Interactable == null)
+    _interactableInput = CurrentTrigger?.PlayerInput ?? _defaultPlayerInput;
+    if (_interactableInput == null)
       return;
 
-    var actions = _Interactable.actions;
+    var actions = _interactableInput.actions;
     actions.Enable();
 
     if (isDialogue)
@@ -183,7 +191,7 @@ public class DialogueGlobal : MonoBehaviour
       actions["Move"]?.Disable();
       actions["Attack"]?.Disable();
       actions["Dash"]?.Disable();
-      _Interactable.SwitchCurrentActionMap("Dialogue");
+      _interactableInput.SwitchCurrentActionMap("Dialogue");
     }
     else
     {
@@ -192,63 +200,62 @@ public class DialogueGlobal : MonoBehaviour
       actions["Move"]?.Enable();
       actions["Attack"]?.Enable();
       actions["Dash"]?.Enable();
-
-      _Interactable.SwitchCurrentActionMap("Player");
+      _interactableInput.SwitchCurrentActionMap("Player");
     }
   }
 
-  public void ProximaFala()
+  public void NextLine()
   {
-    if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open)
+    if (!_dialogueActive || !_dialogueReady || _state != DialogueState.Open)
       return;
 
     if (_isTyping)
     {
-      CompletarTextoInstantanemante();
+      CompleteTextInstantly();
       return;
     }
 
-    if (_index >= _falasAtuais.Length - 1)
+    if (_index >= _currentLines.Length - 1)
     {
-      FecharDialogo();
+      CloseDialogue();
       return;
     }
 
-    if (AudioManager.Instance != null && _somMenu != null)
-      AudioManager.Instance.PlaySFX(_somMenu.dialogueNext);
+    if (AudioManager.Instance != null && _dialogueAudioConfig != null)
+      AudioManager.Instance.PlaySFX(_dialogueAudioConfig.DialogueNext);
+
     _index++;
-    AtualizarFala();
+    UpdateLine();
   }
 
-  public void VoltarFala()
+  public void PreviousLine()
   {
-    if (!_dialogoAtivo || !_dialogoPronto || _state != DialogueState.Open || _index <= 0)
+    if (!_dialogueActive || !_dialogueReady || _state != DialogueState.Open || _index <= 0)
       return;
-    if (AudioManager.Instance != null && _somMenu != null)
-      AudioManager.Instance.PlaySFX(_somMenu.dialogueBack);
+
+    if (AudioManager.Instance != null && _dialogueAudioConfig != null)
+      AudioManager.Instance.PlaySFX(_dialogueAudioConfig.DialogueBack);
 
     _index--;
-    AtualizarFala();
+    UpdateLine();
   }
 
-  public void FecharDialogo()
+  public void CloseDialogue()
   {
     if (_state == DialogueState.Closed || _state == DialogueState.Closing)
       return;
 
     _state = DialogueState.Closing;
-    //StopAllCoroutines();
+    _dialogueActive = false;
+    _dialogueReady = false;
 
-    _dialogoAtivo = false;
-    _dialogoPronto = false;
-    AtualizarVisibilidadedosBotoes();
+    UpdateButtonsVisibility();
+    OnDialogueEnd?.Invoke();
 
-    OndialogueEnd?.Invoke();
-
-    if (_botoesDialogo != null)
-      _botoesDialogo.SetActive(false);
-    if (_botoesGameplay != null)
-      _botoesGameplay.SetActive(true);
+    if (_dialogueButtons != null)
+      _dialogueButtons.SetActive(false);
+    if (_gameplayButtons != null)
+      _gameplayButtons.SetActive(true);
 
     if (_gameDirector != null && _lockedPlayer != null)
       _gameDirector.SetLockPlayer(_lockedPlayer, false);
@@ -256,24 +263,26 @@ public class DialogueGlobal : MonoBehaviour
     if (_lockedPlayer != null)
       _lockedPlayer.BlockJumpByDialogue = false;
 
-    _currentTrigger?.OnDialogoFechado();
-
-    StartCoroutine(FechaDialogoSeguro());
+    CurrentTrigger?.OnDialogueClosed();
+    StartCoroutine(CloseDialogueSafely());
   }
 
   private void Update()
   {
-    if (_state != DialogueState.Open || !_dialogoPronto || _Interactable == null)
+    if (_state != DialogueState.Open || !_dialogueReady || _interactableInput == null)
       return;
 
-    var advanceAction = _Interactable.actions["AdvanceDialogue"];
-    var returnAction = _Interactable.actions["ReturnDialogue"];
+    var actions = _interactableInput.actions;
+    if (actions == null)
+      return;
+
+    var advanceAction = actions["AdvanceDialogue"];
+    var returnAction = actions["ReturnDialogue"];
 
     if (_waitingForButtonRelease)
     {
       if (!advanceAction.IsPressed())
         _waitingForButtonRelease = false;
-
       return;
     }
 
@@ -283,115 +292,124 @@ public class DialogueGlobal : MonoBehaviour
     if (!_blockAdvanceInput && advanceAction.WasPressedThisFrame())
     {
       _nextInputTime = Time.unscaledTime + _inputDelay;
-      ProximaFala();
+      NextLine();
       return;
     }
 
     if (returnAction.WasPressedThisFrame())
     {
       _nextInputTime = Time.unscaledTime + _inputDelay;
-      VoltarFala();
+      PreviousLine();
     }
   }
 
-  private void AtualizarFala()
+  private void UpdateLine()
   {
-    if (_falasAtuais == null || _index < 0 || _index >= _falasAtuais.Length)
+    if (_currentLines == null || _index < 0 || _index >= _currentLines.Length)
       return;
 
-    //StopAllCoroutines();
-    MostrarFala(_falasAtuais[_index]);
-    AtualizarVisibilidadedosBotoes();
+    ShowLine(_currentLines[_index]);
+    UpdateButtonsVisibility();
   }
 
-  private void MostrarFala(string texto)
+  private void ShowLine(string text)
   {
-    _textoDialogo.text = texto;
-    _textoDialogo.maxVisibleCharacters = 0;
-    _textoDialogo.ForceMeshUpdate();
+    if (_dialogueText == null)
+      return;
 
-    float duracao = Mathf.Clamp(texto.Length * _tempoPorLetra, 0.10f, 1.0f);
+    _dialogueText.text = text;
+    _dialogueText.maxVisibleCharacters = 0;
+    _dialogueText.ForceMeshUpdate();
 
+    float duration = Mathf.Clamp(text.Length * _timePerLetter, 0.10f, 1.0f);
     _isTyping = true;
 
     _tweenText = DOTween
       .To(
-        () => _textoDialogo.maxVisibleCharacters,
-        v => _textoDialogo.maxVisibleCharacters = v,
-        texto.Length,
-        duracao
+        () => _dialogueText.maxVisibleCharacters,
+        v => _dialogueText.maxVisibleCharacters = v,
+        text.Length,
+        duration
       )
       .SetEase(Ease.Linear)
       .SetUpdate(true)
-      .OnComplete(() =>
-      {
-        _isTyping = false;
-      });
+      .OnComplete(() => _isTyping = false);
   }
 
-  private void LimparFala()
+  private void ClearLine()
   {
+    if (_dialogueText == null)
+      return;
+
     _tweenText?.Kill();
-    _textoDialogo.text = string.Empty;
-    _textoDialogo.maxVisibleCharacters = 0;
-    _textoDialogo.ForceMeshUpdate();
+    _dialogueText.text = string.Empty;
+    _dialogueText.maxVisibleCharacters = 0;
+    _dialogueText.ForceMeshUpdate();
   }
 
-  private void ApplyLayout(DialogueTrigger.DialogueLayoutType type)
+  private void ApplyLayout(DialogueLayoutType type)
   {
-    pandoraLayout.SetActive(type == DialogueTrigger.DialogueLayoutType.Pandora);
-    enemyLayout.SetActive(type == DialogueTrigger.DialogueLayoutType.Enemy);
-    _textoDialogo =
-      (type == DialogueTrigger.DialogueLayoutType.Pandora) ? _textoPandora : _textoEnemy;
+    if (_pandoraLayout != null)
+      _pandoraLayout.SetActive(type == DialogueLayoutType.Pandora);
+
+    if (_enemyLayout != null)
+      _enemyLayout.SetActive(type == DialogueLayoutType.Enemy);
+
+    _dialogueText = (type == DialogueLayoutType.Pandora) ? _pandoraText : _enemyText;
   }
 
-  private void AtualizarVisibilidadedosBotoes()
+  private void UpdateButtonsVisibility()
   {
-    if (_botaoRetornar != null)
-      _botaoRetornar.gameObject.SetActive(_index > 0);
-    if (_botaoAvancar != null)
-      _botaoAvancar.gameObject.SetActive(true);
+    if (_returnButton != null)
+      _returnButton.gameObject.SetActive(_index > 0);
+
+    if (_advanceButton != null)
+      _advanceButton.gameObject.SetActive(true);
   }
 
   private void OnDisable()
   {
     StopAllCoroutines();
-    _tweenPainel?.Kill();
+    _tweenPanel?.Kill();
     _tweenText?.Kill();
   }
 
-  private IEnumerator FechaDialogoSeguro()
+  private IEnumerator CloseDialogueSafely()
   {
-    var dialogueAction = _Interactable.currentActionMap.FindAction("AdvanceDialogue");
+    var dialogueAction = _interactableInput?.actions?["AdvanceDialogue"];
 
     while (dialogueAction != null && dialogueAction.IsPressed())
       yield return null;
 
     yield return null;
 
-    _Interactable.SwitchCurrentActionMap("Player");
+    SetupInput(false);
 
     if (_lockedPlayer != null)
-    {
       _lockedPlayer.WaitForJumpRelease = true;
-    }
 
-    _painelDialogo
-      .transform.DOScale(0f, 0.2f)
-      .SetEase(Ease.InBack)
-      .SetUpdate(true)
-      .OnComplete(() =>
-      {
-        _painelDialogo.SetActive(false);
-        _state = DialogueState.Closed;
-        Time.timeScale = 1f;
-      });
+    if (_dialoguePanel != null)
+    {
+      _dialoguePanel
+        .transform.DOScale(0f, 0.2f)
+        .SetEase(Ease.InBack)
+        .SetUpdate(true)
+        .OnComplete(() =>
+        {
+          _dialoguePanel.SetActive(false);
+          _state = DialogueState.Closed;
+          Time.timeScale = 1f;
+        });
+    }
   }
 
-  private void CompletarTextoInstantanemante()
+  private void CompleteTextInstantly()
   {
+    if (_dialogueText == null)
+      return;
+
     _tweenText?.Kill();
-    _textoDialogo.maxVisibleCharacters = _textoDialogo.text.Length;
+    _dialogueText.maxVisibleCharacters = _dialogueText.text.Length;
     _isTyping = false;
   }
 }

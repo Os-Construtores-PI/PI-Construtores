@@ -1,55 +1,116 @@
 ﻿using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class BasicMenuLogic : MonoBehaviour
 {
   [Header("Audio")]
   [SerializeField]
-  private somMenu somMenu;
+  private BackgroundMusicConfig _backgroundMusicConfig;
+
+  [SerializeField]
+  private UIAudioConfig _uiAudioConfig;
+
+  [SerializeField]
+  private float selectableScale = 1.08f;
+
+  [SerializeField]
+  private float scaleSpeed = 10f;
+
+  private Button _currentButton;
+  private Vector3 _currentTargetScale = Vector3.one;
+
+  [SerializeField]
+  private LoadingScreen _loadingScreen;
 
   #region  === MENU GAMEOVER ===
+
+  private void Update()
+  {
+    GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    if (selected == null)
+      return;
+
+    Button button = selected.GetComponent<Button>();
+
+    if (button != _currentButton)
+    {
+      if (_currentButton != null)
+        _currentButton.transform.localScale = Vector3.one;
+
+      _currentButton = button;
+
+      if (_currentButton != null)
+        _currentTargetScale = Vector3.one * selectableScale;
+    }
+
+    if (_currentButton != null)
+    {
+      _currentButton.transform.localScale = Vector3.Lerp(
+        _currentButton.transform.localScale,
+        _currentTargetScale,
+        Time.unscaledDeltaTime * scaleSpeed
+      );
+    }
+  }
+
   public void Respawn()
   {
-    if (AudioManager.Instance != null && somMenu != null)
-      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     GlobalEventBus.Instance.Respawn.Invoke();
   }
 
   public void OpenMenuGameOver()
   {
-    if (AudioManager.Instance != null && somMenu != null)
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
     {
-      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     }
   }
 
   public void ResetScene()
   {
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    GameContext.ShowStageIntro = true;
   }
   #endregion === MENU GAMEOVER ===
 
   #region  === MENU PAUSE ===
   public void OpenOptions()
   {
-    GlobalEventBus.Instance.Options.Invoke(true);
-    AudioManager.Instance.PlaySFX(somMenu.click); // abrir options
+    Time.timeScale = 1f;
+
+    GlobalEventBus.Instance.Pause.Invoke(false);
+
+    DOTween.KillAll();
+
+    if (DataDirector.Instance != null)
+    {
+      DataDirector.Instance.ResetRunTimeState();
+      DataDirector.Instance.RestartCurrentLevel();
+    }
+
+    GameContext.ShowStageIntro = true;
+    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
   }
 
   public void ContinueGame()
   {
     GlobalEventBus.Instance.Pause.Invoke(false);
-    AudioManager.Instance.PlaySFX(somMenu.click); // som de voltar
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
   }
 
-  private void OnEnable()
+  public void OnEnable()
   {
     if (GlobalEventBus.Instance != null)
       GlobalEventBus.Instance.Pause.AddListener(OnPauseChanged);
   }
 
-  private void OnDisable()
+  public void OnDisable()
   {
     if (GlobalEventBus.Instance != null)
       GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChanged);
@@ -57,18 +118,16 @@ public class BasicMenuLogic : MonoBehaviour
 
   private void OnPauseChanged(bool isPaused)
   {
-    if (AudioManager.Instance == null || somMenu == null)
+    if (AudioManager.Instance == null || _uiAudioConfig == null)
       return;
 
     if (isPaused)
     {
-      // 🔊 abriu pause
-      AudioManager.Instance.PlaySFX(somMenu.pause);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
     }
     else
     {
-      // 🔊 fechou pause
-      AudioManager.Instance.PlaySFX(somMenu.back);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
     }
   }
 
@@ -79,19 +138,20 @@ public class BasicMenuLogic : MonoBehaviour
   {
     Time.timeScale = 1f;
 
-    DOTween.Kill(transform);
+    // DOTween.Kill(transform);
 
     GlobalEventBus.Instance.Pause.Invoke(false);
 
+    DOTween.KillAll();
+
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();
-    SceneManager.LoadScene(Constants.SceneNames.MainMenu);
-
-    DOTween.KillAll();
 
     Resources.UnloadUnusedAssets();
 
-    AudioManager.Instance.PlaySFX(somMenu.back);
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+
+    _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
   }
   #endregion
 }

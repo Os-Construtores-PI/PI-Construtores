@@ -1,19 +1,10 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Responsabilidade: ciclo de vida do nível.
-/// - Orquestra o início da fase (StartWorld + intro dialogue)
-/// - Responde a eventos de morte, respawn e fim de jogo
-/// - Gerencia ativação/desativação de input dos players durante o nível
-///
-/// NÃO é responsabilidade deste script:
-/// - Estado global de pause (→ GameDirector)
-/// - Inicialização de sistemas da cena (→ GameDirector.StartWorld)
-/// - Reação ao Tutorial (→ GameDirector)
-/// </summary>
 public class LevelManager : MonoBehaviour
 {
   private DataDirector _dataSystem;
@@ -23,7 +14,24 @@ public class LevelManager : MonoBehaviour
   [SerializeField]
   private DialogueTrigger introDialogue;
 
-  private void Start()
+  [SerializeField]
+  private List<RankTime> _rankTimes = new();
+  public List<RankTime> RankTimes => _rankTimes;
+
+  public RankType GetRank(float seconds)
+  {
+    var sorted = _rankTimes.OrderBy(rt => rt.Seconds).ToList();
+
+    foreach (var rankTime in sorted)
+    {
+      if (seconds <= rankTime.Seconds)
+        return rankTime.Rank;
+    }
+
+    return sorted.Count > 0 ? sorted[^1].Rank : default;
+  }
+
+  public void Start()
   {
     _dataSystem = DataDirector.Instance;
     _gameDirector = FindAnyObjectByType<GameDirector>();
@@ -42,10 +50,8 @@ public class LevelManager : MonoBehaviour
     StartCoroutine(StartLevelRoutine());
   }
 
-  private void OnDestroy()
+  public void OnDestroy()
   {
-    // CRÍTICO: sem isso, listeners acumulam se a cena recarregar.
-    // Na segunda morte, PlayerDeathHandler roda duas vezes → double-pause → crash silencioso.
     if (GlobalEventBus.Instance == null)
       return;
 
@@ -56,12 +62,6 @@ public class LevelManager : MonoBehaviour
     Debug.Log("[LevelManager] Listeners removidos do GlobalEventBus.");
   }
 
-  // ─── Início da fase ───────────────────────────────────────────────────────
-
-  /// <summary>
-  /// Orquestra o início do nível: inicializa sistemas via GameDirector,
-  /// depois executa o diálogo de intro se houver um configurado.
-  /// </summary>
   private IEnumerator StartLevelRoutine()
   {
     if (!_gameDirector)
@@ -76,14 +76,9 @@ public class LevelManager : MonoBehaviour
       yield return StartCoroutine(IntroDialogueRoutine());
   }
 
-  /// <summary>
-  /// Trava o player, exibe o diálogo de intro da fase e destrava ao fim.
-  /// Fica aqui pois é um fluxo específico do nível, não do jogo global.
-  /// </summary>
   private IEnumerator IntroDialogueRoutine()
   {
     yield return new WaitUntil(() => DialogueGlobal.Instance != null);
-    yield return new WaitUntil(() => DialogueGlobal.Instance._painelDialogo != null);
 
     yield return null;
 
@@ -100,11 +95,11 @@ public class LevelManager : MonoBehaviour
     void OnDialogueEnd()
     {
       dialogueFinished = true;
-      DialogueGlobal.Instance.OndialogueEnd -= OnDialogueEnd;
+      DialogueGlobal.Instance.OnDialogueEnd -= OnDialogueEnd;
     }
 
-    DialogueGlobal.Instance.OndialogueEnd += OnDialogueEnd;
-    DialogueGlobal.Instance.IniciarDialogo(introDialogue._dialogo);
+    DialogueGlobal.Instance.OnDialogueEnd += OnDialogueEnd;
+    DialogueGlobal.Instance.StartDialogue(introDialogue.DialogueLines);
 
     yield return new WaitUntil(() => dialogueFinished);
 
@@ -142,21 +137,40 @@ public class LevelManager : MonoBehaviour
 
     Debug.Log("[LevelManager] PlayerEndGameHandler chamado.");
     _gameDirector.SetPauseWorld(true);
+
     QualityOfLife.ForEachPlayer(player =>
     {
-      GameObject stopwatch = _hudDirector.GetPanel(player.ID, HudPanelType.Stopwatch)[0];
-      if (stopwatch != null && stopwatch.TryGetComponent(out StopwatchHUD stopwatchHUD))
+      GameObject stopwatchObj = _hudDirector.GetPanel(player.ID, HudPanelType.Stopwatch)[0];
+
+      if (stopwatchObj != null && stopwatchObj.TryGetComponent(out StopwatchHUD stopwatchHUD))
       {
-        player.ApplyDiscount((int)stopwatchHUD.Elapsed);
-        _dataSystem.SaveLevelRecord(
+        float elapsedSeconds = (float)stopwatchHUD.Elapsed;
+        int timeBonus = player.CalculateTimeScoreCurve(elapsedSeconds);
+        player.AddScore(timeBonus);
+
+        _dataSystem.SavePreviewScore(
           _dataSystem.GetCurrentSlot(),
           SceneManager.GetActiveScene().name,
-          player.ID,
-          player.CurrentScore,
-          player.HighestComboIndex
+          playerIndex: player.ID,
+          score: player.CurrentScore
         );
+
+        _dataSystem.SaveLevelRecord(
+          slot: _dataSystem.GetCurrentSlot(),
+          scene: SceneManager.GetActiveScene().name,
+          playerIndex: player.ID,
+          score: player.CurrentScore,
+          time: elapsedSeconds,
+          comboIndex: player.HighestComboIndex
+        );
+
+        // Debug.Log(
+        //   $"[LevelManager] Recorde salvo! Player {player.ID} | Score Final: {player.CurrentScore} (Bônus Tempo: {timeBonus}) | Tempo: {elapsedSeconds}s"
+        // );
       }
     });
+
+    GlobalEventBus.Instance.EndGameProcessed.Invoke();
     SetPlayersInput(false);
   }
 
@@ -194,6 +208,9 @@ public class LevelManager : MonoBehaviour
       }
 
       player.transform.SetParent(null, true);
+      player.ActionLayer.PopEveryState(player);
+      player.MovementVector = Vector3.zero;
+
       Debug.Log($"[LevelManager] SetParent(null) aplicado em {player.name}.");
 
       GameObject stopwatch = _hudDirector.GetPanel(player.ID, HudPanelType.Stopwatch)[0];

@@ -31,12 +31,14 @@ public class DirectionalTrampoline : LockableInteractableObject
     }
   }
 
+#if UNITY_EDITOR
   public override void OnDrawGizmos()
   {
     base.OnDrawGizmos();
     Gizmos.color = _gizmoColor;
     Gizmos.DrawRay(transform.position, transform.up * 10);
   }
+#endif
 
   public void OnTriggerEnter(Collider collision)
   {

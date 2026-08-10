@@ -9,29 +9,29 @@ public class UIButtonSound
     ISubmitHandler
 {
   [SerializeField]
-  private somMenu _somMenu;
+  private UIAudioConfig _uiAudioConfig;
 
   public void OnPointerEnter(PointerEventData eventData)
   {
     if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_somMenu.hover);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
   }
 
   public void OnPointerClick(PointerEventData eventData)
   {
     if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_somMenu.click);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
   }
 
   public void OnSelect(BaseEventData eventData)
   {
     if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_somMenu.hover);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
   }
 
   public void OnSubmit(BaseEventData eventData)
   {
     if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_somMenu.click);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
   }
 }

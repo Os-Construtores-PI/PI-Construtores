@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [System.Serializable]
 public class PlayerActionStateDash : IPlayerState<Player>
@@ -35,6 +36,13 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   [SerializeField]
   private float _speedExponent = 0.1f;
+
+  [Header("Vibração do Gamepad no Acerto")]
+  [SerializeField]
+  private float _hitRumbleLowFrequency = 0.5f;
+
+  [SerializeField]
+  private float _hitRumbleHighFrequency = 0.1f;
 
   [Header("Configurações de Quicada e GraceTime")]
   [SerializeField]
@@ -236,6 +244,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(EntityEffectType.PlayerDashEffect);
+    Gamepad.current?.SetMotorSpeeds(0, 0);
 
     if (!_hasHit)
     {
@@ -275,6 +284,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
       _vibrationFrequency,
       _vibrationDuration
     );
+    Gamepad.current?.SetMotorSpeeds(_hitRumbleLowFrequency, _hitRumbleHighFrequency);
 
     _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(0f) * _bounceUpwardForce;
 

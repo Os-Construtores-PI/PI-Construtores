@@ -10,7 +10,7 @@ public class End_Portal : BasePortal
 
   private bool actived = false;
 
-  private void OnTriggerEnter(Collider other)
+  public void OnTriggerEnter(Collider other)
   {
     if (actived)
       return;
@@ -19,24 +19,22 @@ public class End_Portal : BasePortal
 
     actived = true;
 
-    FinalSequenceDialogue sequence = FindAnyObjectByType<FinalSequenceDialogue>();
+    // FinalSequenceDialogue sequence = FindAnyObjectByType<FinalSequenceDialogue>();
 
-    if (sequence != null)
-    {
-      sequence.StartFinalSequence(enemyFinalTrigger);
-    }
-    else
-    {
-      Debug.LogError("FinalSequenceDialogue n�o atribu�do no Inspector!");
-    }
+    // if (sequence != null)
+    // {
+    //   sequence.StartFinalSequence(enemyFinalTrigger);
+    // }
+    // else
+    // {
+    //   Debug.LogError("[End_Portal] FinalSequenceDialogue não atribuído no Inspector!");
+    // }
 
-    // gameObject.SetActive(false);
-
-    //TriggerEndGame();
+    TriggerEndGame();
   }
-  /*  private void TriggerEndGame()
-    {
-        GlobalEventBus.Instance.PLAYERTRIGGEREDENDGAME.Invoke();
-    }s
-  */
+
+  private void TriggerEndGame()
+  {
+    GlobalEventBus.Instance.EndGame.Invoke();
+  }
 }

@@ -17,6 +17,8 @@ public class RotateUI : MonoBehaviour
 
   private Tween floatTween;
 
+  private float _angle;
+
 
   private void Awake()
   {
@@ -40,7 +42,9 @@ public class RotateUI : MonoBehaviour
   {
     float dir = clockWise ? -1f : 1f;
 
-    rect.Rotate(0f, 0f, rotationSpeed * dir * Time.deltaTime);
+    _angle += rotationSpeed * dir * Time.deltaTime;
+
+    rect.localEulerAngles = new Vector3(0f, 0f, _angle);
   }
 
   private void OnDisable()

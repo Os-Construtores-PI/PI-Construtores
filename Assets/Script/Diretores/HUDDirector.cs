@@ -1,13 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DG.Tweening;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Constants.PlayerShakes;
 using static QualityOfLife;
@@ -16,7 +17,7 @@ public class HudDirector : MonoBehaviour
 {
   // ─── Constantes ────────────────────────────────────────────────────────────
 
-  private static readonly WaitForSecondsRealtime WAIT_TELEPORT_FADE = new(1f);
+  private const float TELEPORT_FADE_SECONDS = 1f;
 
   private const float PANEL_TWEEN_DURATION = 0.25f;
   private const float PANEL_FADE_OPACITY = 0.8f;
@@ -25,11 +26,14 @@ public class HudDirector : MonoBehaviour
 
   [Header("Icons")]
   [SerializeField]
-  private List<IconImage> icons = new();
+  private List<IconImage> _icons = new();
 
   [Header("Audio")]
   [SerializeField]
-  private somMenu somMenu;
+  private UIAudioConfig _uiAudioConfig;
+
+  [SerializeField]
+  private BackgroundMusicConfig _backgroundMusicConfig;
 
   [Header("Imagens de popup de combo")]
   [SerializeField]
@@ -57,13 +61,12 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, Image> interactionImages = new();
   private readonly Dictionary<int, Sprite> originalSprites = new();
   private readonly Dictionary<int, CameraLogic> _playerCachedCameras = new();
+  private readonly Dictionary<int, StopwatchHUD> _playerCachedStopwatches = new();
   private Dictionary<int, int> _playerCachedScores = new();
-
-  private Player _playerHudOwner;
 
   private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
 
-  private readonly Dictionary<int, Coroutine> _shakeStopCoroutines = new();
+  private readonly Dictionary<int, CancellationTokenSource> _shakeCts = new();
 
   private readonly Dictionary<(int, HudPanelType), Sequence> _tempPanelSequences = new();
 
@@ -87,7 +90,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.Teleport.AddListener(TeleportFade);
     GlobalEventBus.Instance.Death.AddListener(DeathPanel);
     GlobalEventBus.Instance.Respawn.AddListener(RespawnPanel);
-    GlobalEventBus.Instance.EndGame.AddListener(EndPanel);
+    GlobalEventBus.Instance.EndGameProcessed.AddListener(EndPanel);
     GlobalEventBus.Instance.LockOnVisibility.AddListener(SetLockOnVisibility);
     GlobalEventBus.Instance.Pause.AddListener(PausePanel);
     GlobalEventBus.Instance.Options.AddListener(OptionsPausePanel);
@@ -106,13 +109,24 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.Teleport.RemoveListener(TeleportFade);
     GlobalEventBus.Instance.Death.RemoveListener(DeathPanel);
     GlobalEventBus.Instance.Respawn.RemoveListener(RespawnPanel);
-    GlobalEventBus.Instance.EndGame.RemoveListener(EndPanel);
+    GlobalEventBus.Instance.EndGameProcessed.RemoveListener(EndPanel);
     GlobalEventBus.Instance.LockOnVisibility.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.Pause.RemoveListener(PausePanel);
     GlobalEventBus.Instance.Options.RemoveListener(OptionsPausePanel);
     GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
     GlobalEventBus.Instance.ScoreUpdate.RemoveListener(ScorePanel);
+  }
+
+  private void OnDestroy()
+  {
+    foreach (var cts in _shakeCts.Values)
+      cts?.Cancel();
+
+    foreach (var cts in _shakeCts.Values)
+      cts?.Dispose();
+
+    _shakeCts.Clear();
   }
 
   private void Start()
@@ -140,15 +154,11 @@ public class HudDirector : MonoBehaviour
   // Inicialização
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// <summary>
-  /// Instancia e configura o HUD para um jogador específico.
-  /// </summary>
   public GameObject InitializeHUD(Player player, Transform hudParent, GameObject hudPrefab)
   {
     if (player == null || hudPrefab == null || hudParent == null)
       return null;
 
-    _playerHudOwner = player;
     int playerID = player.ID;
 
     GameObject hudInstance = Instantiate(hudPrefab, hudParent);
@@ -156,23 +166,30 @@ public class HudDirector : MonoBehaviour
 
     Canvas.ForceUpdateCanvases();
 
-    // Mapeia todos os painéis do HUD instanciado
     var panelMap = new Dictionary<HudPanelType, List<GameObject>>(
       HudPanelEqualityComparer.Instance
     );
     CollectPanelsRecursive(hudInstance.transform, panelMap);
     canvasMap[playerID] = panelMap;
 
-    // Vincula HealthHUD ao jogador
     HealthHUD healthHUD = hudInstance.GetComponentInChildren<HealthHUD>();
     if (healthHUD != null)
+    {
       healthHUD.BindToPlayer(player);
+    }
 
     BoostHUD boostHUD = hudInstance.GetComponentInChildren<BoostHUD>();
     if (boostHUD != null)
+    {
       boostHUD.BindToPlayer(player);
+    }
 
-    // Armazena referências do painel de interação
+    StopwatchHUD stopwatchHUD = hudInstance.GetComponentInChildren<StopwatchHUD>();
+    if (stopwatchHUD != null)
+    {
+      _playerCachedStopwatches[playerID] = stopwatchHUD;
+    }
+
     if (panelMap.TryGetValue(HudPanelType.InteractionPopup, out var panels) && panels.Count > 0)
     {
       var text = panels[0].GetComponentInChildren<TextMeshProUGUI>();
@@ -255,6 +272,10 @@ public class HudDirector : MonoBehaviour
   // Controle de Painéis
   // ═══════════════════════════════════════════════════════════════════════════
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Controle de Painéis
+  // ═══════════════════════════════════════════════════════════════════════════
+
   private void HidePanel(
     HudPanelType panel,
     int playerID,
@@ -263,11 +284,54 @@ public class HudDirector : MonoBehaviour
     bool instant = false
   )
   {
-    foreach (var go in GetPanelObjects(playerID, panel))
+    var roots = GetPanel(playerID, panel);
+
+    foreach (var rootGo in roots)
     {
-      DisableButton(go);
-      ApplyFadeOut(go, fade, instant, independent);
-      ApplyScaleOut(go, instant, independent);
+      if (rootGo == null)
+        continue;
+
+      DisableButton(rootGo);
+
+      if (instant)
+      {
+        // Cancela animações pendentes e define o estado final imediatamente
+        rootGo.transform.DOKill();
+        foreach (var child in rootGo.GetComponentsInChildren<Transform>(true))
+        {
+          child.transform.DOKill();
+          if (fade && child.gameObject.TryGetComponent(out Image image))
+          {
+            var c = image.color;
+            image.color = new Color(c.r, c.g, c.b, 0f);
+          }
+        }
+        rootGo.transform.localScale = Vector3.zero;
+        rootGo.SetActive(false); // Desativa imediatamente, disparando OnDisable
+      }
+      else
+      {
+        // Garante que o painel esteja ativo para executar a animação de saída
+        rootGo.SetActive(true);
+
+        foreach (var child in rootGo.GetComponentsInChildren<Transform>(true))
+        {
+          ApplyFadeOut(child.gameObject, fade, instant, independent);
+        }
+
+        rootGo.transform.DOKill();
+        rootGo
+          .transform.DOScale(Vector3.zero, PANEL_TWEEN_DURATION)
+          .SetUpdate(UpdateType.Normal, independent)
+          .OnComplete(() =>
+          {
+            // Desativa o GameObject ao final da animação, disparando OnDisable nos scripts
+            if (rootGo != null)
+            {
+              rootGo.SetActive(false);
+            }
+          });
+      }
     }
   }
 
@@ -278,18 +342,37 @@ public class HudDirector : MonoBehaviour
     bool fade = false
   )
   {
-    var panels = GetPanel(playerID, panel);
+    var roots = GetPanel(playerID, panel);
 
-    foreach (var go in GetPanelObjects(playerID, panel))
+    foreach (var rootGo in roots)
     {
-      EnableButton(go);
-      ApplyFadeIn(go, fade, independent);
-      go.transform.DOScale(Vector3.one, PANEL_TWEEN_DURATION)
+      if (rootGo == null)
+        continue;
+
+      bool wasActive = rootGo.activeSelf;
+
+      rootGo.SetActive(true);
+      EnableButton(rootGo);
+
+      foreach (var child in rootGo.GetComponentsInChildren<Transform>(true))
+      {
+        ApplyFadeIn(child.gameObject, fade, independent);
+      }
+
+      rootGo.transform.DOKill();
+
+      if (!wasActive)
+      {
+        rootGo.transform.localScale = Vector3.zero;
+      }
+
+      rootGo
+        .transform.DOScale(Vector3.one, PANEL_TWEEN_DURATION)
         .SetUpdate(UpdateType.Normal, independent);
     }
 
     EventSystem.current.SetSelectedGameObject(null);
-    return panels;
+    return roots;
   }
 
   private void ShowPanelTemporary(HudPanelType panel, int playerID, float duration)
@@ -334,19 +417,23 @@ public class HudDirector : MonoBehaviour
     PunchPanelSettings settings
   )
   {
-    foreach (var go in GetPanelObjects(playerID, panel))
-      EnableButton(go);
+    var roots = GetPanel(playerID, panel);
 
-    foreach (var go in GetPanel(playerID, panel))
+    foreach (var rootGo in roots)
     {
-      go.transform.DOKill();
-      go.transform.localScale = Vector3.one;
-      go.transform.localRotation = Quaternion.Euler(
+      EnableButton(rootGo);
+      rootGo.transform.DOKill();
+      rootGo.SetActive(true);
+
+      rootGo.transform.localScale = Vector3.one;
+      rootGo.transform.localRotation = Quaternion.Euler(
         0f,
         0f,
         UnityEngine.Random.Range(-settings.MaxRotationZ, settings.MaxRotationZ)
       );
-      go.transform.DOPunchScale(
+
+      rootGo
+        .transform.DOPunchScale(
           Vector3.one * settings.Strength,
           settings.TweenDuration,
           vibrato: settings.Vibrato,
@@ -454,7 +541,7 @@ public class HudDirector : MonoBehaviour
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Shake de Câmera
+  // Shake de Câmera (agora via Awaitable, sem Coroutines)
   // ═══════════════════════════════════════════════════════════════════════════
 
   public void CameraShake(int playerID, float amplitude, float frequency, float duration = 0f)
@@ -462,17 +549,13 @@ public class HudDirector : MonoBehaviour
     if (!_playerNoises.TryGetValue(playerID, out var noise))
       return;
 
-    if (_shakeStopCoroutines.TryGetValue(playerID, out var existing) && existing != null)
-    {
-      StopCoroutine(existing);
-      _shakeStopCoroutines[playerID] = null;
-    }
+    CancelPendingShakeStop(playerID);
 
     noise.AmplitudeGain = amplitude;
     noise.FrequencyGain = frequency;
 
     if (duration > 0f)
-      _shakeStopCoroutines[playerID] = StartCoroutine(StopShakingAfter(playerID, noise, duration));
+      ScheduleShakeStop(playerID, noise, duration);
   }
 
   public void RunningShake(int playerID, bool active)
@@ -480,31 +563,59 @@ public class HudDirector : MonoBehaviour
     if (active)
     {
       CameraShake(playerID, Running.Amplitude, Running.Frequency);
+      return;
     }
-    else
-    {
-      if (!_playerNoises.TryGetValue(playerID, out var noise))
-        return;
 
-      if (_shakeStopCoroutines.TryGetValue(playerID, out var existing) && existing != null)
-        StopCoroutine(existing);
+    if (!_playerNoises.TryGetValue(playerID, out var noise))
+      return;
 
-      _shakeStopCoroutines[playerID] = StartCoroutine(
-        StopShakingAfter(playerID, noise, Running.StopDelay)
-      );
-    }
+    CancelPendingShakeStop(playerID);
+    ScheduleShakeStop(playerID, noise, Running.StopDelay);
   }
 
-  private IEnumerator StopShakingAfter(
+  private void ScheduleShakeStop(
     int playerID,
     CinemachineBasicMultiChannelPerlin noise,
     float delay
   )
   {
-    yield return new WaitForSeconds(delay);
+    var cts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+    _shakeCts[playerID] = cts;
+
+    // Fire-and-forget: o Awaitable inicia imediatamente, como uma coroutine,
+    // mas é cancelável via token em vez de StopCoroutine.
+    _ = StopShakingAfterAsync(playerID, noise, delay, cts.Token);
+  }
+
+  private void CancelPendingShakeStop(int playerID)
+  {
+    if (!_shakeCts.TryGetValue(playerID, out var existing) || existing == null)
+      return;
+
+    existing.Cancel();
+    existing.Dispose();
+    _shakeCts[playerID] = null;
+  }
+
+  private async Awaitable StopShakingAfterAsync(
+    int playerID,
+    CinemachineBasicMultiChannelPerlin noise,
+    float delay,
+    CancellationToken token
+  )
+  {
+    try
+    {
+      await Awaitable.WaitForSecondsAsync(delay, token);
+    }
+    catch (OperationCanceledException)
+    {
+      return;
+    }
+
     noise.AmplitudeGain = 0f;
     noise.FrequencyGain = 0f;
-    _shakeStopCoroutines[playerID] = null;
+    _shakeCts[playerID] = null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -634,24 +745,46 @@ public class HudDirector : MonoBehaviour
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Teleporte
+  // Teleporte (agora via Awaitable, sem Coroutines)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  private void TeleportFade(int playerID) => StartCoroutine(TeleportFadeRoutine(playerID));
+  private void TeleportFade(int playerID)
+  {
+    _ = TeleportFadeAsync(playerID, destroyCancellationToken);
+  }
 
-  private IEnumerator TeleportFadeRoutine(int playerID)
+  private async Awaitable TeleportFadeAsync(int playerID, CancellationToken token)
   {
     GameObject teleportPanel = GetPanel(playerID, HudPanelType.TeleportFadePanel).FirstOrDefault();
 
     if (!teleportPanel)
     {
       Debug.LogWarning("[HudDirector] TeleportFadePanel não encontrado para o jogador " + playerID);
-      yield break;
+      return;
     }
 
     ShowPanel(HudPanelType.TeleportFadePanel, playerID, independent: false);
-    yield return WAIT_TELEPORT_FADE;
+
+    try
+    {
+      await WaitRealtimeSecondsAsync(TELEPORT_FADE_SECONDS, token);
+    }
+    catch (OperationCanceledException)
+    {
+      return;
+    }
+
     HidePanel(HudPanelType.TeleportFadePanel, playerID, independent: false);
+  }
+
+  private static async Awaitable WaitRealtimeSecondsAsync(float seconds, CancellationToken token)
+  {
+    float elapsed = 0f;
+    while (elapsed < seconds)
+    {
+      await Awaitable.NextFrameAsync(token);
+      elapsed += Time.unscaledDeltaTime;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -661,9 +794,9 @@ public class HudDirector : MonoBehaviour
   private void DeathPanel()
   {
     CursorOptions(visible: true);
-    if (AudioManager.Instance != null && somMenu != null)
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
     {
-      AudioManager.Instance.PlaySFX(somMenu.gameOverMenu);
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     }
 
     ForEachPlayer(player =>
@@ -694,7 +827,34 @@ public class HudDirector : MonoBehaviour
     ForEachPlayer(player =>
     {
       DisableHud(player.ID);
-      ShowPanel(HudPanelType.EndGame, player.ID, independent: true);
+      var panels = ShowPanel(HudPanelType.EndGame, player.ID, independent: true);
+
+      if (panels.FirstOrDefault()?.GetComponent<EndGamePanel>() is { } endGamePanel)
+      {
+        var dataDirector = DataDirector.Instance;
+        var levelManager = FindAnyObjectByType<LevelManager>();
+        if (dataDirector != null && levelManager != null)
+        {
+          int currentSlot = dataDirector.GetCurrentSlot();
+          int score = player.CurrentScore;
+          int previewScore = dataDirector.GetPlayerPreviewScore(
+            currentSlot,
+            SceneManager.GetActiveScene().name,
+            player.ID
+          );
+          string uuid = dataDirector.GetLastFinishUUID(
+            currentSlot,
+            SceneManager.GetActiveScene().name,
+            player.ID
+          );
+          float time = _playerCachedStopwatches.TryGetValue(player.ID, out var sw)
+            ? sw.Elapsed
+            : 0f;
+          ;
+
+          endGamePanel.Populate(score, previewScore, time, uuid, levelManager.GetRank(time));
+        }
+      }
     });
   }
 
@@ -829,7 +989,7 @@ public class HudDirector : MonoBehaviour
   // Helpers Gerais
   // ═══════════════════════════════════════════════════════════════════════════
 
-  private IconImage? GetIcon(string destiny) => icons.Find(icon => icon.Destiny == destiny);
+  private IconImage? GetIcon(string destiny) => _icons.Find(icon => icon.Destiny == destiny);
 
   public List<GameObject> GetPanel(int playerID, HudPanelType panel) =>
     canvasMap.TryGetValue(playerID, out var dict) && dict.TryGetValue(panel, out var result)

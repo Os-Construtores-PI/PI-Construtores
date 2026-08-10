@@ -81,7 +81,7 @@ public class ConfigPlayer : ScriptableObject
 
   [Header("MECÂNICA [CORRIDA NA PAREDE]")]
   [SerializeField]
-  private QualityTier multiplicadorVelocidadeParede;
+  private float multiplicadorVelocidadeParede;
 
   [SerializeField]
   private float multiplicadorForcaPuloParede;
@@ -95,6 +95,14 @@ public class ConfigPlayer : ScriptableObject
 
   [SerializeField]
   private float cooldownAtaque;
+
+  [Header("Pontuação")]
+  [SerializeField]
+  private int _pontuacaoTempo;
+
+  [Tooltip("Eixo X = Tempo (segundos). Eixo Y = Pontos (0 a 1).")]
+  [SerializeField]
+  private AnimationCurve _pontuacaoCurva = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
 
   public void SetConfig(Player player)
   {
@@ -126,5 +134,7 @@ public class ConfigPlayer : ScriptableObject
     player.WallExitDuration = duracaoSaidaParede;
     player.WillAttack = podeAtacar;
     player.AttackCooldown = cooldownAtaque;
+    player.MaxTimeScore = _pontuacaoTempo;
+    player.TimeScoreCurve = _pontuacaoCurva;
   }
 }

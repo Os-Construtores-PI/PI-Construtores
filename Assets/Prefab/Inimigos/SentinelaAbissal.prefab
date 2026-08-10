@@ -499,7 +499,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 67
+  _maxDamage: 34
 --- !u!135 &1350594096594787259
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -748,6 +748,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
   _damageCooldown: 0.1
+  _defaultDamageLayers:
+    serializedVersion: 2
+    m_Bits: 5120
 --- !u!1 &3661732791685758232
 GameObject:
   m_ObjectHideFlags: 0
@@ -1027,7 +1030,7 @@ ParticleSystem:
   emitterVelocityMode: 0
   looping: 0
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -5904,8 +5907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentHealthDebug: 0
-  _maxHealth: 2000
-  _defense: 2000
+  _maxHealth: 500
   Stats:
     OnNumModified:
       m_PersistentCalls:
@@ -5919,8 +5921,8 @@ MonoBehaviour:
   regenerationInterval: 5
   Damaged: 0
   _lockInRange: 40
-  _deathEffectDuration: 1
   _boostGrace: 20
+  _deathEffectDuration: 1.6
   _knockbackForce: 45
   _knockbackRadius: 10
   _verticalMultiplier: 1
@@ -5942,6 +5944,8 @@ MonoBehaviour:
   flashDuration: 0.25
   flashMaterial: {fileID: 2100000, guid: 95120fc78f952614684e7d0a09b4bf7c, type: 2}
   _damagePopupEffect: {fileID: 800041141345270520}
+  _canRespawn: 1
+  _respawnDelay: 5
   _willRotate: 0
   tipoPath: 0
   modoPath: 1

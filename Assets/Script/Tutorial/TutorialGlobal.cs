@@ -4,18 +4,19 @@ using UnityEngine.InputSystem;
 
 public class TutorialGlobal : MonoBehaviour
 {
-  public static TutorialGlobal Instance;
+  public static TutorialGlobal Instance { get; private set; }
 
+  [Header("Audio")]
   [SerializeField]
-  private somMenu _somMenu;
+  private TutorialAudioConfig _tutorialAudioConfig;
 
-  [Header("Ui")]
+  [Header("UI")]
   [SerializeField]
   private GameObject tutorialHUD;
 
-  [Header("Tutoriais")]
+  [Header("Tutorials")]
   [SerializeField]
-  private GameObject movimentoTutorial;
+  private GameObject movementTutorial;
 
   [SerializeField]
   private GameObject dashTutorial;
@@ -24,9 +25,7 @@ public class TutorialGlobal : MonoBehaviour
 
   public bool IsTutorialActive { get; private set; }
 
-  private PlayerInput _playerInput;
-
-  private Tween currentTween;
+  private Tween _currentTween;
 
   private void Awake()
   {
@@ -36,9 +35,8 @@ public class TutorialGlobal : MonoBehaviour
       return;
     }
 
-    //tutorialHUD.SetActive(false);
-    DesativarTodos();
     Instance = this;
+    DeactivateAll();
   }
 
   private void Start()
@@ -46,64 +44,75 @@ public class TutorialGlobal : MonoBehaviour
     tutorialHUD.SetActive(false);
   }
 
-  public void AbrirTutorial(TutorialTrigger.TutorialType tipo)
+  public void OpenTutorial(TutorialTrigger.TutorialType type)
   {
     if (IsTutorialActive)
       return;
 
     IsTutorialActive = true;
-    GameState.IsTutorialActive = true;
+    GameContext.IsTutorialActive = true;
 
-    if (AudioManager.Instance != null && _somMenu != null)
-      AudioManager.Instance.PlaySFX(_somMenu.tutorialOpen);
+    if (AudioManager.Instance != null && _tutorialAudioConfig != null)
+    {
+      AudioManager.Instance.PlaySFX(_tutorialAudioConfig.TutorialOpen);
+    }
 
-    DeviceSpriteManager.Instance?.ForceRefresh();
+    DeviceInputManager.Instance?.ForceRefresh();
 
-    DesativarTodos();
-    //AtivarTutorial(tipo);
-
+    DeactivateAll();
     tutorialHUD.SetActive(true);
 
-    GameObject painel = GetPainel(tipo);
-    if (painel != null)
-      AnimarEntrada(painel);
+    GameObject panel = GetPanel(type);
+    if (panel != null)
+    {
+      AnimateEntrance(panel);
+    }
 
     OnTutorialStateChanged?.Invoke(true);
   }
 
-  public void FecharTutorial()
+  public void CloseTutorial()
   {
     if (!IsTutorialActive)
       return;
 
     IsTutorialActive = false;
-    GameState.IsTutorialActive = false;
+    GameContext.IsTutorialActive = false;
 
-    if (AudioManager.Instance != null && _somMenu != null)
-      AudioManager.Instance.PlaySFX(_somMenu.tutorialBack);
+    if (AudioManager.Instance != null && _tutorialAudioConfig != null)
+    {
+      AudioManager.Instance.PlaySFX(_tutorialAudioConfig.TutorialClose);
+    }
 
-    tutorialHUD.SetActive(false);
-    GameObject painelAtivo = GetPainelAtivo();
-    if (painelAtivo != null)
-      AnimarSaida(painelAtivo);
-    DeviceSpriteManager.Instance?.ForceRefresh();
+    GameObject activePanel = GetActivePanel();
+    if (activePanel != null)
+    {
+      AnimateExit(activePanel);
+    }
+    else
+    {
+      tutorialHUD.SetActive(false);
+      Time.timeScale = 1f;
+    }
+
+    DeviceInputManager.Instance?.ForceRefresh();
     OnTutorialStateChanged?.Invoke(false);
   }
 
-  private void AnimarEntrada(GameObject painel)
+  private void AnimateEntrance(GameObject panel)
   {
-    currentTween?.Kill();
+    _currentTween?.Kill();
 
-    Time.timeScale = 0;
-    painel.SetActive(true);
+    Time.timeScale = 0f;
+    panel.SetActive(true);
 
-    CanvasGroup cg = painel.GetComponent<CanvasGroup>();
-    RectTransform rt = painel.GetComponent<RectTransform>();
+    CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+    RectTransform rt = panel.GetComponent<RectTransform>();
 
     cg.alpha = 0f;
     rt.localScale = Vector3.one * 0.9f;
 
-    currentTween = DOTween
+    _currentTween = DOTween
       .Sequence()
       .Append(cg.DOFade(1f, 0.25f))
       .Join(rt.DOScale(1f, 0.25f))
@@ -111,14 +120,14 @@ public class TutorialGlobal : MonoBehaviour
       .SetUpdate(UpdateType.Normal, true);
   }
 
-  private void AnimarSaida(GameObject painel)
+  private void AnimateExit(GameObject panel)
   {
-    currentTween?.Kill();
+    _currentTween?.Kill();
 
-    CanvasGroup cg = painel.GetComponent<CanvasGroup>();
-    RectTransform rt = painel.GetComponent<RectTransform>();
-    Time.timeScale = 1;
-    currentTween = DOTween
+    CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+    RectTransform rt = panel.GetComponent<RectTransform>();
+
+    _currentTween = DOTween
       .Sequence()
       .Append(cg.DOFade(0f, 0.2f))
       .Join(rt.DOScale(0.9f, 0.2f))
@@ -126,51 +135,37 @@ public class TutorialGlobal : MonoBehaviour
       .SetUpdate(UpdateType.Normal, true)
       .OnComplete(() =>
       {
-        painel.SetActive(false);
+        panel.SetActive(false);
         tutorialHUD.SetActive(false);
+        Time.timeScale = 1f;
       });
   }
 
-  private void DesativarTodos()
+  private void DeactivateAll()
   {
-    if (movimentoTutorial != null)
-      movimentoTutorial.SetActive(false);
+    if (movementTutorial != null)
+      movementTutorial.SetActive(false);
     if (dashTutorial != null)
       dashTutorial.SetActive(false);
   }
 
-  private GameObject GetPainel(TutorialTrigger.TutorialType tipo)
+  private GameObject GetPanel(TutorialTrigger.TutorialType type)
   {
-    return tipo switch
+    return type switch
     {
-      TutorialTrigger.TutorialType.Movimento => movimentoTutorial,
+      TutorialTrigger.TutorialType.Movement => movementTutorial,
       TutorialTrigger.TutorialType.Dash => dashTutorial,
       _ => null,
     };
   }
 
-  private GameObject GetPainelAtivo()
+  private GameObject GetActivePanel()
   {
-    if (movimentoTutorial != null && movimentoTutorial.activeSelf)
-      return movimentoTutorial;
+    if (movementTutorial != null && movementTutorial.activeSelf)
+      return movementTutorial;
     if (dashTutorial != null && dashTutorial.activeSelf)
       return dashTutorial;
+
     return null;
-  }
-
-  public static class GameState
-  {
-    public static bool IsTutorialActive;
-    public static bool IsDialogueActive;
-    public static bool IsPaused;
-
-    public static bool CanPause()
-    {
-      if (IsTutorialActive)
-        return false;
-      if (IsDialogueActive)
-        return false;
-      return true;
-    }
   }
 }

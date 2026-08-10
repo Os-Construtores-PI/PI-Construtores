@@ -22223,7 +22223,7 @@ CharacterController:
   serializedVersion: 3
   m_Height: 1.75
   m_Radius: 0.5
-  m_SlopeLimit: 60
+  m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.01
@@ -22592,13 +22592,12 @@ MonoBehaviour:
     _jumpHeightMultiplierPerExtraJump: 0.35
     _wallJumpHorizontalBias: 6.5
   RailSlide:
-    CurrentRail: {fileID: 0}
     _snapDuration: 0.12
     _speedRampDuration: 0.25
-    exitVelocityMultiplier: 1.2
-    exitVerticalBias: 1.6
-    exitMinHorizontalSpeed: 8
-    modelOffset: {x: 0, y: 1.2, z: 0}
+    _exitVelocityMultiplier: 1.35
+    _exitVerticalBias: 1.6
+    _exitMinHorizontalSpeed: 8
+    _modelOffset: {x: 0, y: 2, z: 0}
     _slideIncrementScore: 1
   MovementVector: {x: 0, y: 0, z: 0}
   Direction: {x: 0, y: 0, z: 0}
@@ -22618,15 +22617,38 @@ MonoBehaviour:
   CurrentDashCount: 0
   DashDuration: 0
   _modelTransform: {fileID: 6707445767027251514}
-  _ultimoDispositivo: 0
+  LastDevice: 0
   JumpInteractionPressed: 0
   BoostChanged:
     m_PersistentCalls:
       m_Calls: []
   _maxBoostValue: 100
   _initialBoostValue: 100
-  _initialTimePoints: 10000
-  _timePointDiscountPerSecond: 10
+  MaxTimeScore: 10000
+  TimeScoreCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 60
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   _stagesOfCombo:
   - Multiplier: 2
     TimeToExitStage: 3
@@ -28329,6 +28351,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CanTakeDamage: 1
   _damageCooldown: 1
+  _defaultDamageLayers:
+    serializedVersion: 2
+    m_Bits: 6144
 --- !u!65 &3666272637302261351
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -29875,7 +29900,7 @@ MonoBehaviour:
   Hit:
     m_PersistentCalls:
       m_Calls: []
-  _maxDamage: 20
+  _maxDamage: 999
 --- !u!65 &8688263318238171917
 BoxCollider:
   m_ObjectHideFlags: 0

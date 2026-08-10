@@ -17,7 +17,7 @@ public class DialogueAutoActivator : MonoBehaviour
 
     if (targetTrigger != null)
     {
-      targetTrigger.AbriirTutorial();
+      targetTrigger.OpenTutorial();
       alreadyTriggered = true;
     }
     else

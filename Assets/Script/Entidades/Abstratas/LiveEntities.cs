@@ -16,9 +16,6 @@ public abstract class LiveEntities : Entities
   [SerializeField, Min(1f)]
   protected float _maxHealth = 100f;
 
-  [SerializeField, Min(0f)]
-  protected float _defense = 10f;
-
   private float _health;
 
   [HideInInspector]

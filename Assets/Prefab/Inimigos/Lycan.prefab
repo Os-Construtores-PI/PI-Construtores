@@ -175,6 +175,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EyeWolf
   _visionRange: 10
   _visionAngle: 120
+  _scanInterval: 0.2
+  _maxTargets: 8
   _targetMask:
     serializedVersion: 2
     m_Bits: 64
@@ -195,7 +197,7 @@ GameObject:
   - component: {fileID: 3463240799645783829}
   - component: {fileID: 6961253378331736362}
   m_Layer: 11
-  m_Name: HitBoxEnemy.1
+  m_Name: HitBoxEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -428,7 +430,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WolfBasicEnemy
   _currentHealthDebug: 0
   _maxHealth: 100
-  _defense: 10
   Stats:
     OnNumModified:
       m_PersistentCalls:
@@ -442,8 +443,8 @@ MonoBehaviour:
   regenerationInterval: 5
   Damaged: 0
   _lockInRange: 20
-  _deathEffectDuration: 1
   _boostGrace: 20
+  _deathEffectDuration: 1.6
   _knockbackForce: 40
   _knockbackRadius: 10
   _verticalMultiplier: 10
@@ -465,6 +466,8 @@ MonoBehaviour:
   flashDuration: 0.1
   flashMaterial: {fileID: 2100000, guid: 95120fc78f952614684e7d0a09b4bf7c, type: 2}
   _damagePopupEffect: {fileID: 3905301648716936355}
+  _canRespawn: 1
+  _respawnDelay: 5
   _vision: {fileID: 2803687888766019626}
   _animator: {fileID: 5541610149168451512}
   _stopDistance: 10
@@ -1109,7 +1112,7 @@ GameObject:
   - component: {fileID: 7132225952384934605}
   - component: {fileID: 4396666372110037767}
   m_Layer: 11
-  m_Name: HitBoxEnemy.1
+  m_Name: HitBoxEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1507,6 +1510,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HurtboxComponent
   CanTakeDamage: 1
   _damageCooldown: 1
+  _defaultDamageLayers:
+    serializedVersion: 2
+    m_Bits: 5120
 --- !u!65 &7985684535753207095
 BoxCollider:
   m_ObjectHideFlags: 0

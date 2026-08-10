@@ -82,6 +82,12 @@ public class DeviceSpriteManager : MonoBehaviour
       DontDestroyOnLoad(gameObject);
       return;
     }
+
+     _playerInputs =
+        FindObjectsByType<PlayerInput>(FindObjectsSortMode.None);
+
+    if (_playerInputs.Length > 0)
+        DetectarDevice(_playerInputs[0]);
   }
 
   private void OnDestroy()
@@ -150,6 +156,14 @@ public class DeviceSpriteManager : MonoBehaviour
       "Xbox" => _xboxSprite,
       _ => _KeyBoardSprite,
     };
+  }
+
+  public void RefreshCurrentDevice()
+  {
+    if(_playerInputs.Length > 0)
+    {
+      DetectarDevice(_playerInputs[0]);
+    }
   }
 
   public Sprite GetSprite(InputIconType type)

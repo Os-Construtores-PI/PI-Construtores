@@ -129,10 +129,10 @@ public class PlayerDirector : MonoBehaviour
   {
     switch (DataDirector.Instance.GetGameMode())
     {
-      case GameMode.SINGLEPLAYER:
+      case GameMode.Singleplayer:
         ActivateSinglePlayer();
         break;
-      case GameMode.MULTIPLAYER:
+      case GameMode.Multiplayer:
         ActivateMultiplayer();
         break;
     }

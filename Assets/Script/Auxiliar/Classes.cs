@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -194,56 +196,153 @@ public class SoundsWorker<TEnum>
 
 #region Effects
 
-
-public class EffectsWorker
+public class EffectsWorker : IDisposable
 {
   private readonly Dictionary<EntityEffectType, GameObject> effects = new();
+  private readonly Dictionary<EntityEffectType, CancellationTokenSource> activeTokens = new();
 
   public void InitEffects(Transform transform)
   {
     effects.Clear();
+    CancelAllTokens();
+
     foreach (Transform child in transform)
     {
       if (Lookups.Effects.LookupTable.TryGetValue(child.tag, out EntityEffectType effectType))
       {
         effects.Add(effectType, child.gameObject);
-        StopEffect(effectType);
+
+        foreach (ParticleSystem ps in child.GetComponentsInChildren<ParticleSystem>(true))
+        {
+          ParticleSystem.MainModule main = ps.main;
+          main.playOnAwake = false;
+        }
+
+        StopAndClear(effectType);
       }
     }
   }
 
-  public void PlayEffect(EntityEffectType effectType, float duration)
+  public async void PlayEffect(
+    EntityEffectType effectType,
+    float duration,
+    Action onComplete = null
+  )
   {
     if (
-      effects.TryGetValue(effectType, out GameObject effect)
-      && effect.TryGetComponent(out ParticleSystem particleSystem)
+      !effects.TryGetValue(effectType, out GameObject effect)
+      || !effect
+      || !effect.TryGetComponent(out ParticleSystem particleSystem)
     )
-    {
-      particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-      ParticleSystem.MainModule main = particleSystem.main;
-      main.duration = duration;
-      particleSystem.Play(true);
+      return;
 
-      SetLights(effect, true);
+    CancelToken(effectType);
+    var cts = new CancellationTokenSource();
+    activeTokens[effectType] = cts;
+
+    particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    await Task.Yield();
+
+    // Bail out if another call superseded us while we were suspended.
+    if (!IsCurrent(effectType, cts) || !effect)
+      return;
+
+    particleSystem.Clear(true);
+    particleSystem.Simulate(0f, true, true);
+    particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+    ParticleSystem.MainModule main = particleSystem.main;
+    main.duration = duration;
+    main.loop = false;
+    particleSystem.Play(true);
+    SetLights(effect, true);
+
+    try
+    {
+      await Task.Delay(TimeSpan.FromSeconds(duration), cts.Token);
     }
+    catch (OperationCanceledException)
+    {
+      return;
+    }
+    catch (ObjectDisposedException)
+    {
+      return;
+    } // safety net for the same race
+
+    if (!IsCurrent(effectType, cts) || !effect)
+      return;
+
+    activeTokens.Remove(effectType);
+    StopAndClear(effectType);
+    onComplete?.Invoke();
   }
+
+  private bool IsCurrent(EntityEffectType effectType, CancellationTokenSource cts) =>
+    activeTokens.TryGetValue(effectType, out var current) && ReferenceEquals(current, cts);
 
   public void StopEffect(EntityEffectType effectType)
   {
-    if (
-      effects.TryGetValue(effectType, out GameObject effect)
-      && effect.TryGetComponent(out ParticleSystem particleSystem)
-    )
+    CancelToken(effectType);
+    StopAndClear(effectType);
+  }
+
+  public void ResetEffect(EntityEffectType effectType)
+  {
+    CancelToken(effectType);
+    StopAndClear(effectType);
+  }
+
+  private void StopAndClear(EntityEffectType effectType)
+  {
+    if (!effects.TryGetValue(effectType, out GameObject effect) || !effect) // <- Unity null check
+      return;
+
+    foreach (ParticleSystem ps in effect.GetComponentsInChildren<ParticleSystem>(true))
     {
-      particleSystem.Stop(true);
-      SetLights(effect, false);
+      if (!ps)
+        continue;
+      ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+      ps.Clear(true);
+      ps.Simulate(0f, true, true);
+      ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
+    SetLights(effect, false);
   }
 
   private void SetLights(GameObject effect, bool state)
   {
+    if (!effect)
+      return;
     foreach (Light light in effect.GetComponentsInChildren<Light>(true))
-      light.enabled = state;
+      if (light)
+        light.enabled = state;
+  }
+
+  private void CancelToken(EntityEffectType effectType)
+  {
+    if (activeTokens.TryGetValue(effectType, out CancellationTokenSource cts))
+    {
+      cts.Cancel();
+      cts.Dispose();
+      activeTokens.Remove(effectType);
+    }
+  }
+
+  private void CancelAllTokens()
+  {
+    foreach (var cts in activeTokens.Values)
+    {
+      cts.Cancel();
+      cts.Dispose();
+    }
+    activeTokens.Clear();
+  }
+
+  public void Dispose()
+  {
+    CancelAllTokens();
+    effects.Clear();
   }
 }
 

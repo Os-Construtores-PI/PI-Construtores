@@ -19,12 +19,29 @@ public class UIPulse : MonoBehaviour
     tween = transform
       .DOScale(pulseScale, duration)
       .SetLoops(-1, LoopType.Yoyo)
-      .SetEase(Ease.InOutSine);
+      .SetEase(Ease.InOutSine)
+      .SetLink(gameObject);
+  }
+
+  private void OnDisable()
+  {
+    Stop();
+  }
+
+  private void OnDestroy()
+  {
+    Stop();
   }
 
   public void Stop()
   {
     tween?.Kill();
+    tween = null;
+
+    if(!this || !gameObject)
+       return;
+    
+
     transform.localScale = Vector3.one;
   }
 }

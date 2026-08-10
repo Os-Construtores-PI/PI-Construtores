@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
-
-[Serializable]
-public struct StatEntry
-{
-  public string stat_name;
-  public QualityTier tier;
-}
 
 [Serializable]
 public struct Spawner
@@ -21,27 +15,29 @@ public struct Spawner
 }
 
 [Serializable]
-public struct StatModification
+public readonly struct StatModification : IEquatable<StatModification>
 {
-  public StatType StatType;
-  public QualityTier Tier;
-  public ModifyTYPE ModifyType;
-  public bool IsTemporary;
-  public float RemainingTime;
+  public readonly StatType StatType;
+  public readonly ModifyType ModifyType;
+  public readonly bool IsTemporary;
+  public readonly float RemainingTime;
+
+  [NonSerialized]
+  public readonly CancellationTokenSource CancellationSource;
 
   public StatModification(
     StatType statType,
-    QualityTier tier,
-    ModifyTYPE modifyType,
+    ModifyType modifyType,
     bool isTemporary,
-    float remainingTime = 0f
+    float remainingTime = 0f,
+    CancellationTokenSource cts = null
   )
   {
     StatType = statType;
-    Tier = tier;
     ModifyType = modifyType;
     IsTemporary = isTemporary;
     RemainingTime = remainingTime;
+    CancellationSource = cts;
   }
 
   public override readonly string ToString()
@@ -49,8 +45,16 @@ public struct StatModification
     string tempText = IsTemporary
       ? $" (temporário, {RemainingTime:0.0}s restantes)"
       : " (permanente)";
-    return $"[{StatType}] {Tier} {ModifyType}{tempText}";
+    return $"[{StatType}]{ModifyType}{tempText}";
   }
+
+  public readonly bool Equals(StatModification other) =>
+    StatType == other.StatType && ModifyType == other.ModifyType;
+
+  public override readonly bool Equals(object obj) =>
+    obj is StatModification other && Equals(other);
+
+  public override readonly int GetHashCode() => HashCode.Combine(StatType, ModifyType);
 }
 
 public struct Typestats
@@ -147,4 +151,18 @@ public struct PunchPanelSettings
       Elasticity = 0.5f,
       MaxRotationZ = 25f,
     };
+}
+
+[Serializable]
+public struct RankSpriteEntry
+{
+  public RankType Rank;
+  public Sprite Sprite;
+}
+
+[Serializable]
+public struct RankTime
+{
+  public RankType Rank;
+  public int Seconds;
 }
