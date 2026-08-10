@@ -310,7 +310,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       return;
 
     player.AnimatorComponent.SetBool(IsSlidingHash, false);
-    player.transform.up = Vector3.up;
+    player.Motor.Engine.SetRotation(Quaternion.Euler(Vector3.up));
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
     player.SpeedLines?.Invoke(false);

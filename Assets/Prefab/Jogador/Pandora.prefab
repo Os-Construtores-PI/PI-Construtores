@@ -22469,8 +22469,6 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
-  RunSpeedMultiplier: 0
-  RunAccelMultiplier: 0
   WallSpeedMultiplier: 2
   Acceleration: 5
   AccelerationRunning: 10
@@ -22547,8 +22545,8 @@ MonoBehaviour:
     _vibrationDuration: 0.25
   GroundSlam:
     _groundSlamHitboxCollider: {fileID: 5232564754573124142}
-    SlamForce: 200
-    MaxImpactCap: 30
+    SlamForce: 400
+    MaxImpactCap: 45
     BounceConversionRate: 0.85
     BounceFrontImpulse: 50
     BounceComboBonus:
@@ -22583,13 +22581,12 @@ MonoBehaviour:
     _exitVelocityMultiplier: 1.35
     _exitVerticalBias: 1.6
     _exitMinHorizontalSpeed: 8
-    _modelOffset: {x: 0, y: 1.5, z: 0}
+    _modelOffset: {x: 0, y: 1.55, z: 0}
     _slideIncrementScore: 20
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
   MoveInput: {x: 0, y: 0}
   LastWallNormal: {x: 0, y: 0, z: 0}
-  IsRunning: 0
   IsImpulsioned: 0
   WallSpeedApplied: 0
   TouchingWall: 0
@@ -22647,9 +22644,9 @@ MonoBehaviour:
   - {fileID: 6507626406025360012}
   - {fileID: 6841662986189966198}
   enemyScanRadius: 10
-  _railEntryRadius: 3
+  _railEntryRadius: 6
   _railEntryForwardOffset: 0.6
-  _railEntryMinDot: 0.3
+  _railEntryMinDot: 0.2
   _railLayerMask:
     serializedVersion: 2
     m_Bits: 1

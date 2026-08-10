@@ -26,13 +26,7 @@ public class ConfigPlayer : ScriptableObject
   private float velocidade = 30f;
 
   [SerializeField]
-  private float multiplicadorVelocidadeCorrida = 1.5f;
-
-  [SerializeField]
   private float aceleracao;
-
-  [SerializeField]
-  private float multiplicadorAceleracaoCorrida = 1.5f;
 
   [SerializeField]
   private float friccaoTerra;
@@ -106,9 +100,7 @@ public class ConfigPlayer : ScriptableObject
     player.EnableRegen = habilitarRegeneracao;
     player.RegenerationInterval = intervaloRegeneracao;
     player.Speed = velocidade;
-    player.RunSpeedMultiplier = multiplicadorVelocidadeCorrida;
     player.Acceleration = aceleracao;
-    player.RunAccelMultiplier = multiplicadorAceleracaoCorrida;
     player.Friction = friccaoTerra;
     player.AirFriction = friccaoAr;
     player.JumpForce = forcaPulo;

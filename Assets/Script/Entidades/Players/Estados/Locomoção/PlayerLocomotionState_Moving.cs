@@ -24,9 +24,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     _justLanded = false;
     _requestBounce = false;
 
-    player.Stats.AddStat(StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
-    player.Stats.AddStat(StatType.RunAccelMultiplier, player.RunAccelMultiplier);
-
     if (player.Motor.IsGrounded)
       ApplyLandingLogic(player);
   }
@@ -124,13 +121,8 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
       currentVelocity.y = -1f;
     }
 
-    float speedMult = GetStatValue(player, StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
-    float accelMult = GetStatValue(player, StatType.RunAccelMultiplier, player.RunAccelMultiplier);
-
-    float speed = player.IsRunning ? player.Speed * speedMult : player.Speed;
-    float accel = player.IsRunning
-      ? (player.Motor.IsGrounded ? player.Acceleration * accelMult : player.Acceleration)
-      : (player.Motor.IsGrounded ? player.Acceleration : player.Acceleration);
+    float speed = player.Speed;
+    float accel = player.Acceleration;
     float friction = player.Motor.IsGrounded ? player.Friction : player.AirFriction;
 
     Vector3 horizontalVel = new(currentVelocity.x, 0f, currentVelocity.z);
@@ -141,15 +133,7 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     {
       float holspeed = horizontalVel.magnitude;
       float newSpeed = Mathf.MoveTowards(holspeed, 0f, friction * deltaTime);
-
-      if (newSpeed <= 0.5f)
-      {
-        horizontalVel = Vector3.zero;
-      }
-      else
-      {
-        horizontalVel = horizontalVel.normalized * newSpeed;
-      }
+      horizontalVel = newSpeed <= 0.5f ? Vector3.zero : horizontalVel.normalized * newSpeed;
     }
     else
     {
@@ -163,6 +147,11 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     }
 
     if (!player.Motor.IsGrounded && player.IsImpulsioned && player.MoveInput == Vector2.zero) { }
+
+    if (horizontalVel.sqrMagnitude < 0.25f)
+    {
+      horizontalVel = Vector3.zero;
+    }
 
     if (player.Motor.IsGrounded)
     {

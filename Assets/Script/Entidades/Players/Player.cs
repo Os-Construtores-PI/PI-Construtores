@@ -49,12 +49,6 @@ public class Player : CombatEntities
   }
 
   [HideInInspector]
-  public float RunSpeedMultiplier;
-
-  [HideInInspector]
-  public float RunAccelMultiplier;
-
-  [HideInInspector]
   public float WallSpeedMultiplier;
 
   [HideInInspector]
@@ -184,9 +178,6 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public Vector3 LastWallNormal;
-
-  [HideInInspector]
-  public bool IsRunning;
 
   [HideInInspector]
   public bool IsImpulsioned;
@@ -903,22 +894,6 @@ public class Player : CombatEntities
   {
     if (context.performed && !Motor.IsGrounded)
       ActionLayer.PushState(GroundSlam, this);
-  }
-
-  public void OnRunning(InputAction.CallbackContext context)
-  {
-    if (context.performed)
-    {
-      IsRunning = true;
-      TrailsSystem.PlayEffect(TrailType.MovementTrail);
-      RunningShake.Invoke(true);
-    }
-    else if (context.canceled)
-    {
-      IsRunning = false;
-      TrailsSystem.StopEffect(TrailType.MovementTrail);
-      RunningShake.Invoke(false);
-    }
   }
 
   public void OnJump(InputAction.CallbackContext context)
