@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
@@ -8,21 +7,18 @@ using UnityEngine.SceneManagement;
 public class FinalSequenceDialogue : MonoBehaviour
 {
   [SerializeField]
-  private DialogueTrigger finalDialogueTrigger;
+  private float _continueDuration = 5f;
+
+  [SerializeField]
+  private float _fadeDuration = 1f;
 
   [SerializeField]
   private GameObject _continueScreen;
 
   [SerializeField]
-  private float _continueDuration = 5f;
-
-  [SerializeField]
   private CanvasGroup _continueCanvasGroup;
 
-  [SerializeField]
-  private float _fadeDuration = 1f;
-
-  private bool isRunning = false;
+  private bool _isRunning;
 
   private void Awake()
   {
@@ -39,11 +35,9 @@ public class FinalSequenceDialogue : MonoBehaviour
 
   public void StartFinalSequence(DialogueTrigger trigger)
   {
-    if (isRunning)
-      return;
-    if (trigger == null)
+    if (_isRunning || trigger == null)
     {
-      Debug.LogError("trigger passado � null");
+      Debug.LogError("Trigger is null or sequence is already running.");
       return;
     }
 
@@ -52,16 +46,15 @@ public class FinalSequenceDialogue : MonoBehaviour
 
   private IEnumerator FinalFlow(DialogueTrigger trigger)
   {
-    isRunning = true;
+    _isRunning = true;
 
     GameDirector director = FindAnyObjectByType<GameDirector>();
-
-    if (director != null && director.playerDirector != null)
+    if (director?.playerDirector != null)
     {
       director.SetLockPlayer(director.playerDirector.FirstPlayerContext, true);
     }
 
-    PlayerInput playerInput = trigger._playerInput;
+    PlayerInput playerInput = trigger.PlayerInput;
     if (playerInput != null)
     {
       playerInput.actions["AdvanceDialogue"]?.Reset();
@@ -80,22 +73,23 @@ public class FinalSequenceDialogue : MonoBehaviour
     });
 
     DialogueGlobal.Instance.SetTrigger(trigger);
-    DialogueGlobal.Instance.IniciarDialogo(trigger._dialogo);
+    DialogueGlobal.Instance.StartDialogue(trigger.DialogueLines);
 
     bool dialogueFinished = false;
 
-    void handler()
+    void OnDialogueEnded()
     {
       dialogueFinished = true;
       DataDirector.Instance.SetSlotCompleted(DataDirector.Instance.GetCurrentSlot(), true);
-      DialogueGlobal.Instance.OndialogueEnd -= handler;
+      DialogueGlobal.Instance.OnDialogueEnd -= OnDialogueEnded;
     }
 
-    DialogueGlobal.Instance.OndialogueEnd += handler;
+    DialogueGlobal.Instance.OnDialogueEnd += OnDialogueEnded;
 
     yield return new WaitUntil(() => dialogueFinished);
 
-    _continueCanvasGroup.DOFade(1f, _fadeDuration).SetUpdate(true);
+    if (_continueCanvasGroup != null)
+      _continueCanvasGroup.DOFade(1f, _fadeDuration).SetUpdate(true);
 
     yield return new WaitForSecondsRealtime(_continueDuration);
 
@@ -107,8 +101,7 @@ public class FinalSequenceDialogue : MonoBehaviour
     Time.timeScale = 1f;
     GameContext.IsPaused = false;
 
-    if (DataDirector.Instance != null)
-      DataDirector.Instance.ResetRunTimeState();
+    DataDirector.Instance?.ResetRunTimeState();
     SceneManager.LoadScene("MainMenu");
   }
 }

@@ -1,21 +1,21 @@
 using System.Collections.Generic;
 
-public class PlayerActionStateInteraction : IState<PlayerContext>
+[System.Serializable]
+public class PlayerActionStateInteraction : IPlayerState<Player>
 {
-    public ActionType Type => ActionType.Interact;
+  public PlayerActionType Type => PlayerActionType.Interact;
 
-    public HashSet<ActionType> IncompatibleActions => new() { };
+  public HashSet<PlayerActionType> IncompatibleActions => new() { };
 
-    public void Enter(PlayerContext context)
-    {
-        InfoPlayerInteraction info = new(context.EntityGameObject, context);
-        context.PlayerInteractionReference.Interaction(info);
-        context.PlayerActionLayer.PopStateDeferred(context);
-    }
+  public void Enter(Player player)
+  {
+    player.InteractionObject.Interaction(player);
+    player.ActionLayer.PopStateDeferred(player);
+  }
 
-    public void Exit(PlayerContext context) { }
+  public void Exit(Player player) { }
 
-    public void FixedUpdate(PlayerContext context) { }
+  public void FixedUpdate(Player player) { }
 
-    public void Update(PlayerContext context) { }
+  public void Update(Player player) { }
 }

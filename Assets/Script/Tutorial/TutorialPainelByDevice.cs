@@ -3,71 +3,36 @@ using UnityEngine.UI;
 
 public class TutorialPainelByDevice : MonoBehaviour
 {
-    [Header("UI")]
-    [SerializeField]
-    private Image tutorialImage;
+  [Header("UI")]
+  [SerializeField]
+  private Image tutorialImage;
 
-    [Header("Painels")]
-    [SerializeField]
-    private Sprite keyboardPainel;
+  private void OnEnable()
+  {
+    if (TutorialGlobal.Instance != null)
+      TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
 
-    [SerializeField]
-    private Sprite xboxPainel;
+    DeviceInputManager.Instance.ForceRefresh();
+  }
 
-    [SerializeField]
-    private Sprite playstationPainel;
+  private void OnDisable()
+  {
+    if (TutorialGlobal.Instance != null)
+      TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
+  }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void OnEnable()
+  private void OnTutorialStateChanged(bool ativo)
+  {
+    if (!ativo)
     {
-        if (DeviceSpriteManager.Instance != null)
-            DeviceSpriteManager.Instance.OnDeviceChanged += Atualizar;
-
-        if (TutorialGlobal.Instance != null)
-            TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
-
-        Atualizar(DeviceSpriteManager.Instance.GetCurrentDevice());
+      if (tutorialImage != null)
+        tutorialImage.enabled = false;
+      return;
     }
-
-    private void OnDisable()
+    if (tutorialImage != null)
     {
-        if (DeviceSpriteManager.Instance != null)
-            DeviceSpriteManager.Instance.OnDeviceChanged -= Atualizar;
-
-        if (TutorialGlobal.Instance != null)
-            TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
+      tutorialImage.enabled = true;
+      DeviceInputManager.Instance.ForceRefresh();
     }
-
-    private void OnTutorialStateChanged(bool ativo)
-    {
-        if (!ativo)
-        {
-            if (tutorialImage != null)
-                tutorialImage.enabled = false;
-            return;
-        }
-        if (tutorialImage != null)
-        {
-            tutorialImage.enabled = true;
-            Atualizar(DeviceSpriteManager.Instance.GetCurrentDevice());
-        }
-    }
-
-    private void Atualizar(string device)
-    {
-        if (TutorialGlobal.Instance == null)
-            return;
-        if (!TutorialGlobal.Instance.IsTutorialActive)
-            return;
-        if (tutorialImage == null)
-            return;
-
-        tutorialImage.sprite = device switch
-        {
-            "Keyboard" => keyboardPainel,
-            "Xbox" => xboxPainel,
-            "Playstation" => playstationPainel,
-            _ => tutorialImage.sprite,
-        };
-    }
+  }
 }

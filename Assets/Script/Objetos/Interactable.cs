@@ -1,23 +1,25 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public abstract class InteractableObject : MonoBehaviour, ILockable
+public abstract class InteractableObject : MonoBehaviour
 {
   [Header("Sprites de Interação")]
   public Sprite _keyboardSprites; //F
   public Sprite _playstationSprites; //X
   public Sprite _xboxSprites; //A
 
+  [Header("Opções de Interação")]
   [SerializeField]
   public float Range = 10;
 
+  [Header("Opções de Cooldown")]
   [SerializeField]
-  private float _lockInRange = 20;
-  public float LockRange => _lockInRange;
+  protected float _interactionCooldown = 1f;
+  protected readonly Timer _interactionTimer = new();
 
-  public bool IsActive => this.enabled && gameObject.activeInHierarchy;
+  public bool IsActive => enabled && gameObject.activeInHierarchy;
 
-  public virtual void Interaction(InfoPlayerInteraction info) { }
+  public virtual void Interaction(Player info) { }
 
 #if UNITY_EDITOR
   private Collider _interactionCollider;
@@ -36,13 +38,13 @@ public abstract class InteractableObject : MonoBehaviour, ILockable
   {
     if (player == null)
       return _keyboardSprites;
-    Debug.Log($"[GetCorrentSprite] _ultimoDispositivo do player = {player._ultimoDispositivo}");
+    Debug.Log($"[GetCorrentSprite] _ultimoDispositivo do player = {player.LastDevice}");
 
-    return player._ultimoDispositivo switch
+    return player.LastDevice switch
     {
-      InputType.Keyboard => _keyboardSprites,
-      InputType.JoystickPlaystation => _playstationSprites,
-      InputType.JoystickXbox => _xboxSprites,
+      DeviceType.Keyboard => _keyboardSprites,
+      DeviceType.Playstation => _playstationSprites,
+      DeviceType.Xbox => _xboxSprites,
       _ => _keyboardSprites,
     };
   }

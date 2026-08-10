@@ -3,122 +3,138 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PlayerConfigData", menuName = "Configs/PlayerConfig")]
 public class ConfigPlayer : ScriptableObject
 {
-    [Header("Vida")]
-    [SerializeField]
-    private float vidaMaxima;
+  [Header("Vida")]
+  [SerializeField]
+  private float vidaMaxima;
 
-    [SerializeField]
-    private float defesa;
+  [Header("Regeneração")]
+  [SerializeField]
+  private bool habilitarRegeneracao;
 
-    [Header("Regeneração")]
-    [SerializeField]
-    private bool habilitarRegeneracao;
+  [SerializeField]
+  private float intervaloRegeneracao;
 
-    [SerializeField]
-    private float intervaloRegeneracao;
+  [Header("Combate")]
+  [SerializeField]
+  private float cooldownCombate = 2;
 
-    [Header("Combate")]
-    [SerializeField]
-    private float cooldownCombate;
+  [SerializeField]
+  private float cooldownDano = 2;
 
-    [SerializeField]
-    private float cooldownDano;
+  [Header("Movimento [ANDAR]")]
+  [SerializeField]
+  private float velocidade = 30f;
 
-    [Header("Movimento [ANDAR]")]
-    [SerializeField]
-    private float velocidade;
+  [SerializeField]
+  private float multiplicadorVelocidadeCorrida = 1.5f;
 
-    [SerializeField]
-    private float velocidadeCorrida;
+  [SerializeField]
+  private float aceleracao;
 
-    [SerializeField]
-    private float aceleracao;
+  [SerializeField]
+  private float multiplicadorAceleracaoCorrida = 1.5f;
 
-    [SerializeField]
-    private float aceleracaoCorrida;
+  [SerializeField]
+  private float friccaoTerra;
 
-    [SerializeField]
-    private float friccaoTerra;
+  [SerializeField]
+  private float friccaoAr;
 
-    [SerializeField]
-    private float friccaoAr;
+  [Header("Movimento [PULO]")]
+  [SerializeField]
+  private float forcaPulo;
 
-    [Header("Movimento [PULO]")]
-    [SerializeField]
-    private float forcaPulo;
+  [SerializeField]
+  private int maximoDePulos;
 
-    [SerializeField]
-    private int maximoDePulos;
+  [SerializeField]
+  private float gravidade;
 
-    [SerializeField]
-    private float gravidade;
+  [SerializeField]
+  private float gravidademultsubida;
 
-    [SerializeField]
-    private float gravidademultsubida;
+  [SerializeField]
+  private float gravidademultdescida;
 
-    [SerializeField]
-    private float gravidademultdescida;
+  [SerializeField]
+  private float velocidademaximaqueda;
 
-    [SerializeField]
-    private float velocidademaximaqueda;
+  [Header("Movimento [DASH]")]
+  [SerializeField]
+  private float velocidadeDash;
 
-    [Header("Movimento [DASH]")]
-    [SerializeField]
-    private float velocidadeDash;
+  [SerializeField]
+  private float duracaoDash;
 
-    [SerializeField]
-    private float duracaoDash;
+  [SerializeField]
+  private float cooldownDash;
 
-    [SerializeField]
-    private float cooldownDash;
+  [SerializeField]
+  private float distanciaDash;
 
-    [Header("MECÂNICA [TROCA DE JOGADOR]")]
-    [SerializeField]
-    private float cooldownTrocaJogador;
+  [SerializeField]
+  private int maximoDeDashes;
 
-    [Header("MECÂNICA [CORRIDA NA PAREDE]")]
-    [SerializeField]
-    private QualityTier multiplicadorVelocidadeParede;
+  [Header("MECÂNICA [TROCA DE JOGADOR]")]
+  [SerializeField]
+  private float cooldownTrocaJogador;
 
-    [SerializeField]
-    private float multiplicadorForcaPuloParede;
+  [Header("MECÂNICA [CORRIDA NA PAREDE]")]
+  [SerializeField]
+  private float multiplicadorVelocidadeParede;
 
-    [SerializeField]
-    private float duracaoSaidaParede;
+  [SerializeField]
+  private float multiplicadorForcaPuloParede;
 
-    [Header("MECÂNICA [ATAQUE]")]
-    [SerializeField]
-    private bool podeAtacar;
+  [SerializeField]
+  private float duracaoSaidaParede;
 
-    [SerializeField]
-    private float cooldownAtaque;
+  [Header("MECÂNICA [ATAQUE]")]
+  [SerializeField]
+  private bool podeAtacar;
 
-    public void SetConfig(PlayerContext playerContext)
-    {
-        playerContext.LiveEntityMaxHealth = vidaMaxima;
-        playerContext.LiveEntityDefense = defesa;
-        playerContext.CombatEntityEnableRegen = habilitarRegeneracao;
-        playerContext.CombatEntityRegenInterval = intervaloRegeneracao;
-        playerContext.PlayerSpeed = velocidade;
-        playerContext.PlayerRunningSpeed = velocidadeCorrida;
-        playerContext.PlayerAcceleration = aceleracao;
-        playerContext.PlayerRunningAcceleration = aceleracaoCorrida;
-        playerContext.PlayerFriction = friccaoTerra;
-        playerContext.PlayerAirFriction = friccaoAr;
-        playerContext.PlayerJumpForce = forcaPulo;
-        playerContext.PlayerMaxJumpCount = maximoDePulos;
-        playerContext.PlayerGravity = gravidade;
-        playerContext.PlayerGravityUpMultiplier = gravidademultsubida;
-        playerContext.PlayerGravityDownMultiplier = gravidademultdescida;
-        playerContext.PlayerMaxFallSpeed = velocidademaximaqueda;
-        playerContext.PlayerDashDuration = duracaoDash;
-        playerContext.PlayerDashSpeed = velocidadeDash;
-        playerContext.PlayerDashCooldown = cooldownDash;
-        // TODO: Adicionar Troca de Jogador na Config
-        playerContext.PlayerWallSpeedMultiplier = multiplicadorVelocidadeParede;
-        playerContext.PlayerWallJumpMultiplier = multiplicadorForcaPuloParede;
-        playerContext.PlayerWallExitDuration = duracaoSaidaParede;
-        playerContext.PlayerWillAttack = podeAtacar;
-        playerContext.PlayerAttackCooldown = cooldownAtaque;
-    }
+  [SerializeField]
+  private float cooldownAtaque;
+
+  [Header("Pontuação")]
+  [SerializeField]
+  private int _pontuacaoTempo;
+
+  [Tooltip("Eixo X = Tempo (segundos). Eixo Y = Pontos (0 a 1).")]
+  [SerializeField]
+  private AnimationCurve _pontuacaoCurva = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
+
+  public void SetConfig(Player player)
+  {
+    player.MaxHealth = vidaMaxima;
+    player.EnableRegen = habilitarRegeneracao;
+    player.RegenerationInterval = intervaloRegeneracao;
+    player.Speed = velocidade;
+    player.RunSpeedMultiplier = multiplicadorVelocidadeCorrida;
+    player.Acceleration = aceleracao;
+    player.RunAccelMultiplier = multiplicadorAceleracaoCorrida;
+    player.Friction = friccaoTerra;
+    player.AirFriction = friccaoAr;
+    player.JumpForce = forcaPulo;
+    player.MaxJumpCount = maximoDePulos;
+    player.GravityValue = gravidade;
+    player.GravityUpMultiplier = gravidademultsubida;
+    player.GravityDownMultiplier = gravidademultdescida;
+    player.MaxFallSpeed = velocidademaximaqueda;
+    player.DashDuration = duracaoDash;
+    player.DashSpeed = velocidadeDash;
+    player.DashCooldown = cooldownDash;
+    player.DashDistance = distanciaDash;
+    player.MaxDashCount = maximoDeDashes;
+    player.AttackCooldown = cooldownAtaque;
+    player.CombatCooldown = cooldownCombate;
+    player.DamagedCooldown = cooldownDano;
+    player.WallSpeedMultiplier = multiplicadorVelocidadeParede;
+    player.WallJumpMultiplier = multiplicadorForcaPuloParede;
+    player.WallExitDuration = duracaoSaidaParede;
+    player.WillAttack = podeAtacar;
+    player.AttackCooldown = cooldownAtaque;
+    player.MaxTimeScore = _pontuacaoTempo;
+    player.TimeScoreCurve = _pontuacaoCurva;
+  }
 }

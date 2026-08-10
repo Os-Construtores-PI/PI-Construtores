@@ -3,16 +3,16 @@
 
 using System;
 using System.Reflection;
+using UnityEngine;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Core.PathCore;
 using DG.Tweening.Plugins.Options;
-using UnityEngine;
 
 #pragma warning disable 1591
 namespace DG.Tweening
 {
     /// <summary>
-    /// Utility functions that deal with available Modules.
+    /// Utility functions that deal with available Modules and rewrite them.
     /// Modules defines:
     /// - DOTAUDIO
     /// - DOTPHYSICS
@@ -23,34 +23,40 @@ namespace DG.Tweening
     /// - DOTWEEN_TMP ► TextMesh Pro
     /// - DOTWEEN_TK2D ► 2D Toolkit
     /// </summary>
-    public static class DOTweenModuleUtils
+	public static class DOTweenModuleUtils
     {
+#pragma warning disable UDR0001
         static bool _initialized;
+#pragma warning restore UDR0001
 
         #region Reflection
 
         /// <summary>
         /// Called via Reflection by DOTweenComponent on Awake
         /// </summary>
+#pragma warning disable UDR0001
 #if UNITY_2018_1_OR_NEWER
         [UnityEngine.Scripting.Preserve]
 #endif
         public static void Init()
         {
-            if (_initialized)
-                return;
+            if (_initialized) return;
 
             _initialized = true;
+            DOTweenExternalCommand.SetOrientationOnPath -= Physics.SetOrientationOnPath;
             DOTweenExternalCommand.SetOrientationOnPath += Physics.SetOrientationOnPath;
 
 #if UNITY_EDITOR
 #if UNITY_4_3 || UNITY_4_4 || UNITY_4_5 || UNITY_4_6 || UNITY_5 || UNITY_2017_1
+            UnityEditor.EditorApplication.playmodeStateChanged -= PlaymodeStateChanged;
             UnityEditor.EditorApplication.playmodeStateChanged += PlaymodeStateChanged;
 #else
+            UnityEditor.EditorApplication.playModeStateChanged -= PlaymodeStateChanged;
             UnityEditor.EditorApplication.playModeStateChanged += PlaymodeStateChanged;
 #endif
 #endif
         }
+#pragma warning restore UDR0001
 
 #if UNITY_2018_1_OR_NEWER
 #pragma warning disable
@@ -70,12 +76,11 @@ namespace DG.Tweening
         // Fires OnApplicationPause in DOTweenComponent even when Editor is paused (otherwise it's only fired at runtime)
 #if UNITY_4_3 || UNITY_4_4 || UNITY_4_5 || UNITY_4_6 || UNITY_5 || UNITY_2017_1
         static void PlaymodeStateChanged()
-#else
+        #else
         static void PlaymodeStateChanged(UnityEditor.PlayModeStateChange state)
 #endif
         {
-            if (DOTween.instance == null)
-                return;
+            if (DOTween.instance == null) return;
             DOTween.instance.OnApplicationPause(UnityEditor.EditorApplication.isPaused);
         }
 #endif
@@ -87,18 +92,11 @@ namespace DG.Tweening
         public static class Physics
         {
             // Called via DOTweenExternalCommand callback
-            public static void SetOrientationOnPath(
-                PathOptions options,
-                Tween t,
-                Quaternion newRot,
-                Transform trans
-            )
+            public static void SetOrientationOnPath(PathOptions options, Tween t, Quaternion newRot, Transform trans)
             {
-#if true // PHYSICS_MARKER
-                if (options.isRigidbody)
-                    ((Rigidbody)t.target).rotation = newRot;
-                else
-                    trans.rotation = newRot;
+#if !DOTWEEN_NOPHYSICS // PHYSICS_MARKER
+                if (options.isRigidbody) ((Rigidbody)t.target).rotation = newRot;
+                else trans.rotation = newRot;
 #else
                 trans.rotation = newRot;
 #endif
@@ -107,7 +105,7 @@ namespace DG.Tweening
             // Returns FALSE if the DOTween's Physics2D Module is disabled, or if there's no Rigidbody2D attached
             public static bool HasRigidbody2D(Component target)
             {
-#if true // PHYSICS2D_MARKER
+#if !DOTWEEN_NOPHYSICS2D // PHYSICS2D_MARKER
                 return target.GetComponent<Rigidbody2D>() != null;
 #else
                 return false;
@@ -124,7 +122,7 @@ namespace DG.Tweening
 #endif
             public static bool HasRigidbody(Component target)
             {
-#if true // PHYSICS_MARKER
+#if !DOTWEEN_NOPHYSICS // PHYSICS_MARKER
                 return target.GetComponent<Rigidbody>() != null;
 #else
                 return false;
@@ -136,22 +134,14 @@ namespace DG.Tweening
             [UnityEngine.Scripting.Preserve]
 #endif
             public static TweenerCore<Vector3, Path, PathOptions> CreateDOTweenPathTween(
-                MonoBehaviour target,
-                bool tweenRigidbody,
-                bool isLocal,
-                Path path,
-                float duration,
-                PathMode pathMode
-            )
-            {
+                MonoBehaviour target, bool tweenRigidbody, bool isLocal, Path path, float duration, PathMode pathMode
+            ){
                 TweenerCore<Vector3, Path, PathOptions> t = null;
                 bool rBodyFoundAndTweened = false;
-#if true // PHYSICS_MARKER
-                if (tweenRigidbody)
-                {
+#if !DOTWEEN_NOPHYSICS // PHYSICS_MARKER
+                if (tweenRigidbody) {
                     Rigidbody rBody = target.GetComponent<Rigidbody>();
-                    if (rBody != null)
-                    {
+                    if (rBody != null) {
                         rBodyFoundAndTweened = true;
                         t = isLocal
                             ? rBody.DOLocalPath(path, duration, pathMode)
@@ -159,12 +149,10 @@ namespace DG.Tweening
                     }
                 }
 #endif
-#if true // PHYSICS2D_MARKER
-                if (!rBodyFoundAndTweened && tweenRigidbody)
-                {
+#if !DOTWEEN_NOPHYSICS2D // PHYSICS2D_MARKER
+                if (!rBodyFoundAndTweened && tweenRigidbody) {
                     Rigidbody2D rBody2D = target.GetComponent<Rigidbody2D>();
-                    if (rBody2D != null)
-                    {
+                    if (rBody2D != null) {
                         rBodyFoundAndTweened = true;
                         t = isLocal
                             ? rBody2D.DOLocalPath(path, duration, pathMode)
@@ -172,8 +160,7 @@ namespace DG.Tweening
                     }
                 }
 #endif
-                if (!rBodyFoundAndTweened)
-                {
+                if (!rBodyFoundAndTweened) {
                     t = isLocal
                         ? target.transform.DOLocalPath(path, duration, pathMode)
                         : target.transform.DOPath(path, duration, pathMode);

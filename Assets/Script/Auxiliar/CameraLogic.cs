@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CameraLogic : Entities
 {
@@ -14,7 +13,7 @@ public class CameraLogic : Entities
   private CinemachineCamera _currentCinemachineCamera;
   private CinemachineCamera _lockOnCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
-  private readonly Dictionary<string, ParticleSystem> effects = new();
+  private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
 
   public override void Awake()
   {
@@ -30,11 +29,11 @@ public class CameraLogic : Entities
     GatherEffects();
   }
 
-  private void Update()
+  public void Update()
   {
     if (Time.timeScale < 1)
     {
-      foreach (KeyValuePair<string, ParticleSystem> pair in effects)
+      foreach (KeyValuePair<EntityEffectType, ParticleSystem> pair in effects)
       {
         pair.Value.Stop();
       }
@@ -46,7 +45,7 @@ public class CameraLogic : Entities
     if (inputAxisController == null)
       _currentCinemachineCamera.TryGetComponent(out inputAxisController);
 
-    if (playerTarget.Context.CameraLocked)
+    if (playerTarget.CameraLocked)
     {
       // 🔥 trava completamente os inputs da câmera
       if (inputAxisController != null)
@@ -64,24 +63,29 @@ public class CameraLogic : Entities
   {
     foreach (ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())
     {
-      effects.Add(particle.name, particle);
+      if (Lookups.Effects.LookupTable.TryGetValue(particle.tag, out EntityEffectType effectType))
+      {
+        effects.Add(effectType, particle);
+      }
     }
   }
 
-  public void SpeedFX()
+  public void SpeedlinesFX(bool set)
   {
-    effects[Constants.EffectsNames.Interface.Speed].Play();
+    if (set)
+    {
+      effects[EntityEffectType.PlayerSpeedEffect].Play();
+    }
+    else
+    {
+      effects[EntityEffectType.PlayerSpeedEffect].Stop();
+    }
   }
 
-  public void StopSpeedFX()
-  {
-    StartCoroutine(StopEffectsRoutine(Constants.EffectsNames.Interface.Speed, 0.5f));
-  }
-
-  private IEnumerator StopEffectsRoutine(string effect, float waitTime)
+  private IEnumerator StopEffectsRoutine(EntityEffectType effectType, float waitTime)
   {
     yield return new WaitForSeconds(waitTime);
-    effects[effect].Stop();
+    effects[effectType].Stop();
   }
 
   private void SetDistanceCulling()
@@ -89,7 +93,7 @@ public class CameraLogic : Entities
     float[] layersDistance = new float[32];
     for (int i = 0; i < layersDistance.Count(); i++)
     {
-      layersDistance[i] = 200;
+      layersDistance[i] = 900;
     }
     if (TryGetComponent(out Camera cam))
     {
@@ -103,7 +107,7 @@ public class CameraLogic : Entities
   public void SetTarget(
     Player newTarget,
     CinemachineCamera freeLook = null,
-    CinemachineCamera lockOn = null
+    CinemachineCamera boostCam = null
   )
   {
     if (newTarget == null)
@@ -112,7 +116,6 @@ public class CameraLogic : Entities
     playerTarget = newTarget;
     id = newTarget.ID;
 
-    // Busca pelo filho "TargetCam" no player
     Transform targetTransform = newTarget.transform.Find("TargetCam");
     if (targetTransform == null)
     {
@@ -122,13 +125,10 @@ public class CameraLogic : Entities
       targetTransform = newTarget.transform;
     }
 
-    if (freeLook != null && lockOn != null)
+    if (freeLook != null)
     {
       freeLook.Follow = targetTransform;
       freeLook.LookAt = targetTransform;
-      lockOn.Follow = targetTransform;
-      lockOn.LookAt = targetTransform;
-      _lockOnCinemachineCamera = lockOn;
       _currentCinemachineCamera = freeLook;
     }
     else if (_currentCinemachineCamera != null)
@@ -137,6 +137,12 @@ public class CameraLogic : Entities
       _currentCinemachineCamera.LookAt = targetTransform;
       _lockOnCinemachineCamera.Follow = targetTransform;
       _lockOnCinemachineCamera.LookAt = targetTransform;
+    }
+
+    if (boostCam != null)
+    {
+      boostCam.Follow = targetTransform;
+      boostCam.LookAt = targetTransform;
     }
   }
 

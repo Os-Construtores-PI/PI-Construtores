@@ -21,7 +21,7 @@
                     "id": "218e88e8-de6a-479a-bd53-3ea64a00264e",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Hold(duration=0.5)",
+                    "interactions": "Hold(duration=0.35)",
                     "initialStateCheck": false
                 },
                 {
@@ -29,9 +29,18 @@
                     "type": "Value",
                     "id": "6b444451-8a00-4d00-a97e-f47457f736a8",
                     "expectedControlType": "Vector2",
-                    "processors": "",
+                    "processors": "InvertVector2(invertX=false,invertY=false)",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "GroundSlamAttack",
+                    "type": "Button",
+                    "id": "c6825dfe-1ee5-4188-9243-c963704298d0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Attack",
@@ -70,7 +79,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Dash",
+                    "name": "Dash / Boost",
                     "type": "Button",
                     "id": "641cd816-40e6-41b4-8c3d-04687c349290",
                     "expectedControlType": "",
@@ -136,15 +145,6 @@
                     "name": "ReturnDialogue",
                     "type": "Button",
                     "id": "b7ca1b4a-5fc3-407e-af4f-0251fa6f394e",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "LockInTarget",
-                    "type": "Button",
-                    "id": "4492dba5-39e1-4386-8a6b-25a8c05836fc",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -289,7 +289,7 @@
                     "id": "c1f7a91b-d0fd-4a62-997e-7fb9b69bf235",
                     "path": "<Gamepad>/rightStick",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "ScaleVector2(x=100,y=100)",
                     "groups": ";Gamepad",
                     "action": "Look",
                     "isComposite": false,
@@ -300,7 +300,7 @@
                     "id": "8c8e490b-c610-4785-884f-f04217b23ca4",
                     "path": "<Pointer>/delta",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "ScaleVector2(x=2,y=2)",
                     "groups": ";Keyboard&Mouse;Touch",
                     "action": "Look",
                     "isComposite": false,
@@ -412,7 +412,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Dash",
+                    "action": "Dash / Boost",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -423,7 +423,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
-                    "action": "Dash",
+                    "action": "Dash / Boost",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -434,7 +434,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "XR",
-                    "action": "Dash",
+                    "action": "Dash / Boost",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -715,23 +715,23 @@
                 },
                 {
                     "name": "",
-                    "id": "1249c0f0-6633-40a2-beb9-7853368871f5",
-                    "path": "<Keyboard>/e",
+                    "id": "cbe4d592-d60d-4212-a1ad-0e2fa2a12038",
+                    "path": "<Gamepad>/buttonEast",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "LockInTarget",
+                    "groups": ";Gamepad",
+                    "action": "GroundSlamAttack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "d71b07c5-7cd6-4c3f-98ea-bfb0c8e27f53",
-                    "path": "<Gamepad>/leftShoulder",
+                    "id": "547fed3b-9bb9-4f71-8679-2c98e71d3a0d",
+                    "path": "<Mouse>/rightButton",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "LockInTarget",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "GroundSlamAttack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

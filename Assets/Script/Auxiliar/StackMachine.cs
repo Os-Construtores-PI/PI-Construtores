@@ -1,93 +1,139 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class StackStateMachine<T> : StateMachine<T>
+public class StackStateMachine<T> : PlayerStateMachine<T>
 {
-    private readonly Stack<IState<T>> stateStack = new(3);
-    private readonly Queue<Action> pendingOps = new();
-    private readonly IState<T> baseState;
-    private const int MAX_ACTIVE_STATES = 2; // além do idle
+  // ── Constants ────────────────────────────────────────────────────────────
 
-    public StackStateMachine(IState<T> defaultState, T context)
-        : base(defaultState, context)
-    {
-        baseState = defaultState;
-        stateStack.Push(defaultState);
-    }
+  private const int MAX_ACTIVE_STATES = 2;
 
-    public override void Update(T entity)
-    {
-        // atualiza todos os ativos (idle + extras)
-        foreach (var state in stateStack)
-            state.Update(entity);
-    }
+  // ── Fields ───────────────────────────────────────────────────────────────
 
-    public override void FixedUpdate(T entity)
-    {
-        foreach (var state in stateStack)
-        {
-            state.FixedUpdate(entity);
-        }
-        while (pendingOps.Count > 0)
-        {
-            pendingOps.Dequeue().Invoke();
-        }
-    }
+  private readonly Stack<IPlayerState<T>> _stateStack = new(3);
+  private readonly Queue<Action> _pendingOps = new();
 
-    public void PushState(IState<T> newState, T entity)
-    {
-        // Impede duplicar estado
-        foreach (var s in stateStack)
-            if (s.GetType() == newState.GetType())
-                return;
+  // ── Properties ───────────────────────────────────────────────────────────
 
-        // Checa conflito
-        foreach (var s in stateStack)
-            if (
-                s.IncompatibleActions.Contains(newState.Type)
-                || newState.IncompatibleActions.Contains(s.Type)
-            )
-                return;
+  public IPlayerState<T> Current => _stateStack.Count > 0 ? _stateStack.Peek() : null;
 
-        // Limita a quantidade de estados extras (Idle não conta)
-        if (stateStack.Count - 1 >= MAX_ACTIVE_STATES)
-        {
-            // Remove o mais antigo (acima do Idle)
-            var tempList = new List<IState<T>>(stateStack);
-            var oldest = tempList[^1]; // topo = mais recente
-            var toRemove = tempList[1]; // índice 1 = mais antigo acima do idle
+  // ── Lifecycle ────────────────────────────────────────────────────────────
 
-            // Cria nova pilha mantendo idle e o mais recente
-            var newStack = new Stack<IState<T>>(4);
-            newStack.Push(baseState);
-            newStack.Push(oldest);
+  public override void Update(T entity)
+  {
+    foreach (var state in _stateStack.ToArray())
+      state.Update(entity);
+  }
 
-            // Substitui e finaliza o removido
-            stateStack.Clear();
-            foreach (var st in newStack)
-                stateStack.Push(st);
+  public override void FixedUpdate(T entity)
+  {
+    foreach (var state in _stateStack.ToArray())
+      state.FixedUpdate(entity);
 
-            toRemove.Exit(entity);
-        }
+    FlushPendingOps();
+  }
 
-        // Adiciona o novo
-        stateStack.Push(newState);
-        newState.Enter(entity);
-    }
+  // ── State Queries ────────────────────────────────────────────────────────
 
-    public void PopState(T entity)
-    {
-        if (stateStack.Count <= 1)
-            return;
+  public TState GetActive<TState>()
+    where TState : class, IPlayerState<T>
+  {
+    foreach (var state in _stateStack)
+      if (state is TState match)
+        return match;
 
-        var exiting = stateStack.Pop();
-        exiting.Exit(entity);
-    }
+    return null;
+  }
 
-    public IState<T> Current => stateStack.Peek();
+  // ── Push ─────────────────────────────────────────────────────────────────
 
-    public void PushStateDeferred(IState<T> newState, T entity) =>
-        pendingOps.Enqueue(() => PushState(newState, entity));
+  public void PushState(IPlayerState<T> newState, T entity)
+  {
+    if (IsDuplicate(newState) || HasIncompatibleState(newState) || IsOverCapacity())
+      return;
 
-    public void PopStateDeferred(T entity) => pendingOps.Enqueue(() => PopState(entity));
+    _stateStack.Push(newState);
+    newState.Enter(entity);
+  }
+
+  public void PushStateDeferred(IPlayerState<T> newState, T entity) =>
+    _pendingOps.Enqueue(() => PushState(newState, entity));
+
+  // ── Pop ──────────────────────────────────────────────────────────────────
+
+  public void PopState(T entity)
+  {
+    if (_stateStack.Count == 0)
+      return;
+
+    var exiting = _stateStack.Pop();
+    exiting.Exit(entity);
+  }
+
+  public void PopStateDeferred(T entity) => _pendingOps.Enqueue(() => PopState(entity));
+
+  public void PopEveryState(T entity)
+  {
+    foreach (var state in _stateStack.ToArray())
+      state.Exit(entity);
+
+    _stateStack.Clear();
+    _pendingOps.Clear();
+  }
+
+  // ── Exit ─────────────────────────────────────────────────────────────────
+  public void ExitState(IPlayerState<T> state, T entity)
+  {
+    var temp = new List<IPlayerState<T>>(_stateStack);
+    int index = temp.IndexOf(state);
+
+    if (index < 0)
+      return;
+
+    temp.RemoveAt(index);
+    state.Exit(entity);
+
+    RebuildStack(temp);
+  }
+
+  public void ExitStateDeferred(IPlayerState<T> state, T entity) =>
+    _pendingOps.Enqueue(() => ExitState(state, entity));
+
+  // ── Private Helpers ──────────────────────────────────────────────────────
+
+  private void FlushPendingOps()
+  {
+    while (_pendingOps.Count > 0)
+      _pendingOps.Dequeue().Invoke();
+  }
+
+  private bool IsDuplicate(IPlayerState<T> newState)
+  {
+    foreach (var s in _stateStack)
+      if (s.GetType() == newState.GetType())
+        return true;
+
+    return false;
+  }
+
+  private bool HasIncompatibleState(IPlayerState<T> newState)
+  {
+    foreach (var s in _stateStack)
+      if (
+        s.IncompatibleActions.Contains(newState.Type)
+        || newState.IncompatibleActions.Contains(s.Type)
+      )
+        return true;
+
+    return false;
+  }
+
+  private bool IsOverCapacity() => _stateStack.Count >= MAX_ACTIVE_STATES;
+
+  private void RebuildStack(List<IPlayerState<T>> orderedBottomToTop)
+  {
+    _stateStack.Clear();
+    for (int i = orderedBottomToTop.Count - 1; i >= 0; i--)
+      _stateStack.Push(orderedBottomToTop[i]);
+  }
 }

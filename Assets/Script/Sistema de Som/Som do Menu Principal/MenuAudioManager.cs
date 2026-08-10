@@ -4,16 +4,25 @@ public class MenuAudioManager : MonoBehaviour
 {
   public static MenuAudioManager Instance;
 
-  [SerializeField] private somMenu somMenu;
+  [SerializeField]
+  private BackgroundMusicConfig _backgroundMusicConfig;
+
+  [SerializeField]
+  private UIAudioConfig _uiAudioConfig;
 
   [Header("Sources")]
-  [SerializeField] private AudioSource musicSource;
-  [SerializeField] private AudioSource sfxSource;
-  // Start is called once before the first execution of Update after the MonoBehaviour is created
+  [SerializeField]
+  private AudioSource musicSource;
 
-  private void Awake()
+  [SerializeField]
+  private AudioSource sfxSource;
+
+  [SerializeField]
+  private AudioSource ambientSource;
+
+  public void Awake()
   {
-    if(Instance != null && Instance != this)
+    if (Instance != null && Instance != this)
     {
       Destroy(gameObject);
       return;
@@ -21,30 +30,31 @@ public class MenuAudioManager : MonoBehaviour
 
     Instance = this;
   }
-  private void Start()
+
+  public void Start()
   {
-    TocarMusica();
-    //PlayClick();
+    PlayMusic();
   }
 
-  public void TocarMusica()
+  public void PlayMusic()
   {
-    musicSource.clip = somMenu.musica;
+    musicSource.clip = _backgroundMusicConfig.BackgroundMusic;
     musicSource.loop = true;
     musicSource.Play();
   }
+
   public void PlayHover()
   {
-    sfxSource.PlayOneShot(somMenu.hover);
+    sfxSource.PlayOneShot(_uiAudioConfig.Hover);
   }
 
   public void PlayClick()
   {
-    sfxSource.PlayOneShot(somMenu.click);
+    sfxSource.PlayOneShot(_uiAudioConfig.Click);
   }
 
   public void PlayBack()
   {
-    sfxSource.PlayOneShot(somMenu.back);
+    sfxSource.PlayOneShot(_uiAudioConfig.Back);
   }
 }

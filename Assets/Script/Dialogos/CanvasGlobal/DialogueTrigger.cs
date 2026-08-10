@@ -5,223 +5,162 @@ using UnityEngine.UI;
 
 public class DialogueTrigger : MonoBehaviour
 {
-    [TextArea(2, 4)]
-    public string[] _dialogo = new string[] { };
+  [SerializeField]
+  private string[] _dialogueLines = { };
 
-    //private bool _primeiraVez = true;
-    public TextMeshProUGUI _TextoTutor;
-    public DialogueGlobal _dialogoGlobal;
-    public Image _iconInteracao; // icon "Press F"
-    public PlayerInput _playerInput;
-    private bool _jogadorDentro = false;
+  [SerializeField]
+  private TextMeshProUGUI _tutorialText;
 
-    private bool _canInteractAgain = true;
+  [SerializeField]
+  private Image _interactionIcon;
 
-    private bool _isPaused = false;
+  [SerializeField]
+  private bool _dialogueOnlyOnce;
 
-    [Header("Configuração do Dialogo")]
-    [SerializeField]
-    private bool _dialogoApenasUmaVez;
+  [SerializeField]
+  private ImageTriggerEvent _imageTriggerEvent;
 
-    private bool _dialogoConsumido = false;
+  [SerializeField]
+  private DialogueLayoutType _layoutType = DialogueLayoutType.Pandora;
 
-    [Header("Icone de Interação (Animado")]
-    [SerializeField]
-    private ImageTriggerEvent _imageTriggerEvent;
+  private PlayerInput _playerInput;
+  private bool _playerInside;
+  private bool _canInteractAgain = true;
+  private bool _isPaused;
+  private bool _dialogueConsumed;
 
-    [Header("Layout do Dialogo")]
-    public DialogueLayoutType _layoutType = DialogueLayoutType.Pandora;
+  public PlayerInput PlayerInput => _playerInput;
+  public string[] DialogueLines => _dialogueLines;
+  public DialogueLayoutType LayoutType => _layoutType;
 
-    private void Start()
+  private void OnEnable()
+  {
+    GlobalEventBus.Instance?.Pause.AddListener(OnPauseChanged);
+  }
+
+  private void OnDisable()
+  {
+    GlobalEventBus.Instance?.Pause.RemoveListener(OnPauseChanged);
+  }
+
+  private void OnPauseChanged(bool isPaused)
+  {
+    _isPaused = isPaused;
+
+    if (_interactionIcon == null)
+      return;
+
+    if (isPaused)
     {
-        _dialogoGlobal = DialogueGlobal.Instance;
-        _dialogoGlobal = FindAnyObjectByType<DialogueGlobal>();
+      _interactionIcon.gameObject.SetActive(false);
+      _playerInput?.actions["Interaction"]?.Disable();
+    }
+    else
+    {
+      _playerInput?.actions["Interaction"]?.Enable();
 
-        if (_iconInteracao != null)
-            _iconInteracao.gameObject.SetActive(false);
+      if (_playerInside && !_dialogueConsumed)
+        _interactionIcon.gameObject.SetActive(true);
+    }
+  }
 
-        if (DeviceSpriteManager.Instance != null)
-            DeviceSpriteManager.Instance.OnDeviceChanged += OnDeviceChanged;
+  private void OnTriggerEnter(Collider other)
+  {
+    if (!other.CompareTag("Player"))
+      return;
+
+    if (_dialogueOnlyOnce && _dialogueConsumed)
+      return;
+
+    _playerInput = other.GetComponent<PlayerInput>();
+    _playerInside = true;
+
+    if (_tutorialText != null && _dialogueLines != null && _dialogueLines.Length > 0)
+      _tutorialText.text = _dialogueLines[0];
+
+    if (_interactionIcon != null)
+      _interactionIcon.gameObject.SetActive(true);
+
+    DialogueGlobal.Instance?.SetTrigger(this);
+  }
+
+  private void OnTriggerExit(Collider other)
+  {
+    if (!other.CompareTag("Player"))
+      return;
+
+    _playerInside = false;
+
+    if (_interactionIcon != null)
+      _interactionIcon.gameObject.SetActive(false);
+
+    if (DialogueGlobal.Instance?.CurrentTrigger == this)
+      DialogueGlobal.Instance.CurrentTrigger = null;
+  }
+
+  private void Update()
+  {
+    if (_isPaused || DialogueGlobal.Instance == null || !_playerInside || _playerInput == null)
+      return;
+
+    if (_dialogueOnlyOnce && _dialogueConsumed)
+      return;
+
+    if (DialogueGlobal.Instance.IsDialogueActive)
+      return;
+
+    if (_canInteractAgain && _playerInput.actions["Interaction"].WasPerformedThisFrame())
+      OpenDialogue();
+  }
+
+  public void OpenDialogue()
+  {
+    try
+    {
+      _playerInput?.actions["Interaction"]?.Reset();
+    }
+    catch { }
+
+    if (_interactionIcon != null)
+      _interactionIcon.gameObject.SetActive(false);
+
+    _imageTriggerEvent?.Hide();
+
+    DialogueGlobal.Instance.SetTrigger(this);
+    DialogueGlobal.Instance.StartDialogue(_dialogueLines);
+  }
+
+  public void OnDialogueClosed()
+  {
+    if (_dialogueOnlyOnce)
+    {
+      _dialogueConsumed = true;
+
+      if (_interactionIcon != null)
+        _interactionIcon.gameObject.SetActive(false);
+
+      return;
     }
 
-    private void OnEnable()
+    if (_playerInside)
     {
-        if (GlobalEventBus.Instance != null)
-            GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(OnPauseChangedOn);
+      if (_interactionIcon != null)
+        _interactionIcon.gameObject.SetActive(true);
+
+      _imageTriggerEvent?.Show();
     }
 
-    private void OnDisable()
-    {
-        if (GlobalEventBus.Instance != null)
-            GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.RemoveListener(OnPauseChangedOn);
-    }
+    BlockInteraction();
+  }
 
-    private void OnDestroy()
-    {
-        if (DeviceSpriteManager.Instance != null)
-            DeviceSpriteManager.Instance.OnDeviceChanged -= OnDeviceChanged;
-    }
+  private void BlockInteraction()
+  {
+    _canInteractAgain = false;
+    Invoke(nameof(UnblockInteraction), 0.15f);
+  }
 
-    private void OnPauseChangedOn(bool isPaused)
-    {
-        _isPaused = isPaused;
-
-        if (_iconInteracao == null)
-            return;
-
-        if (isPaused)
-        {
-            _iconInteracao.gameObject.SetActive(false);
-
-            if (_playerInput != null)
-                _playerInput.actions["Interaction"]?.Disable();
-        }
-        else
-        {
-            if (_playerInput != null)
-                _playerInput.actions["Interaction"]?.Enable();
-
-            if (_jogadorDentro && !_dialogoConsumido)
-                _iconInteracao.gameObject.SetActive(true);
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Player"))
-            return;
-
-        if (_dialogoApenasUmaVez && _dialogoConsumido)
-            return;
-
-        _playerInput = other.GetComponent<PlayerInput>();
-
-        _jogadorDentro = true;
-
-        // Exibe primeira linha do diálogo no tutor
-        if (_TextoTutor != null && _dialogo != null && _dialogo.Length > 0)
-            _TextoTutor.text = _dialogo[0];
-
-        // Mostra sprite atual do painel de interação
-        if (_iconInteracao != null)
-        {
-            AtualizaSpriteDoIcone();
-            _iconInteracao.gameObject.SetActive(true);
-        }
-
-        // vincula este trigger ao DialogueGlobal
-        if (_dialogoGlobal != null)
-            _dialogoGlobal.SetTrigger(this);
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (!other.CompareTag("Player"))
-            return;
-
-        _jogadorDentro = false;
-
-        if (_iconInteracao != null)
-            _iconInteracao.gameObject.SetActive(false);
-
-        // remove vínculo do trigger
-        if (_dialogoGlobal != null && _dialogoGlobal._currentTrigger == this)
-            _dialogoGlobal._currentTrigger = null;
-    }
-
-    private void Update()
-    {
-        if (_isPaused)
-            return;
-
-        if (_dialogoGlobal == null)
-        {
-            _dialogoGlobal = DialogueGlobal.Instance;
-            return;
-        }
-
-        if (!_jogadorDentro || _playerInput == null || _dialogoGlobal == null)
-            return;
-
-        if (_dialogoApenasUmaVez && _dialogoConsumido)
-            return;
-
-        // Não deixa interagir enquanto o diálogo está ativo
-        if (_dialogoGlobal.IsDialogueActive)
-            return;
-
-        if (_canInteractAgain && _playerInput.actions["Interaction"].WasPerformedThisFrame())
-            AbrirDialogo();
-    }
-
-    public void AbrirDialogo()
-    {
-        try
-        {
-            _playerInput.actions["Interaction"]?.Reset();
-        }
-        catch { }
-
-        if (_iconInteracao != null)
-            _iconInteracao.gameObject.SetActive(false);
-
-        if (_imageTriggerEvent != null)
-            _imageTriggerEvent.Hide();
-
-        _dialogoGlobal.SetTrigger(this);
-        _dialogoGlobal.IniciarDialogo(_dialogo);
-    }
-
-    public void OnDialogoFechado()
-    {
-        if (_dialogoApenasUmaVez)
-        {
-            _dialogoConsumido = true;
-
-            if (_iconInteracao != null)
-                _iconInteracao.gameObject.SetActive(false);
-
-            return;
-        }
-
-        if (_jogadorDentro && _iconInteracao != null)
-            _iconInteracao.gameObject.SetActive(true);
-
-        if (_jogadorDentro && _imageTriggerEvent != null)
-            _imageTriggerEvent.Show();
-
-        BloquearInteracao();
-    }
-
-    public void AtualizaSpriteDoIcone()
-    {
-        if (_iconInteracao == null)
-            return;
-
-        if (DeviceSpriteManager.Instance != null)
-            _iconInteracao.sprite = DeviceSpriteManager.Instance.GetCurrentSprite();
-    }
-
-    private void OnDeviceChanged(string novoDevice)
-    {
-        if (_jogadorDentro)
-            AtualizaSpriteDoIcone();
-    }
-
-    public void BloquearInteracao()
-    {
-        _canInteractAgain = false;
-        Invoke(nameof(DesbloquearInteracao), 0.15f);
-    }
-
-    public void DesbloquearInteracao()
-    {
-        _canInteractAgain = true;
-    }
-
-    public enum DialogueLayoutType
-    {
-        Pandora,
-        Enemy,
-    }
+  private void UnblockInteraction()
+  {
+    _canInteractAgain = true;
+  }
 }

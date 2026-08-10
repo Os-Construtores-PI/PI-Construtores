@@ -1,113 +1,128 @@
+using System.Threading;
 using UnityEngine;
 
 public class EyeWolf : MonoBehaviour
 {
-    [Header("Config do Campo de Vis�o")]
-    public float _visionRange = 10f; // alcance de vis�o
-    public float _visionAngle = 120f; // angulo de vis�o
+  [Header("Config do Campo de Visão")]
+  public float _visionRange = 10f;
+  public float _visionAngle = 120f;
 
-    [Header("Camadas de Detecção")]
-    public LayerMask _targetMask; // layer do player ou entities
-    public LayerMask _obstacleMask; // layer de obstáculos
+  [Header("Performance")]
+  [SerializeField, Tooltip("Intervalo em segundos entre cada scan de visão")]
+  private float _scanInterval = 0.2f;
 
-    [Header("Debug")]
-    public bool _encontrouPlayer;
-    public Transform _playerDetectado;
+  [SerializeField, Tooltip("Tamanho do buffer usado no OverlapSphere (evita alocação de GC)")]
+  private int _maxTargets = 8;
 
-    private Transform target;
+  [Header("Camadas de Detecção")]
+  public LayerMask _targetMask;
+  public LayerMask _obstacleMask;
 
-    private void Update()
+  [Header("Debug")]
+  [HideInInspector]
+  public bool FoundPlayer;
+
+  [HideInInspector]
+  public Transform DetectedPlayer;
+
+  private string _playerTag;
+  private Collider[] _overlapBuffer;
+  private CancellationTokenSource _scanCts;
+
+  public void Awake()
+  {
+    _playerTag = Constants.Tags.Player.ToString();
+    _overlapBuffer = new Collider[_maxTargets];
+  }
+
+  public async Awaitable OnEnable()
+  {
+    _scanCts = new CancellationTokenSource();
+    var token = _scanCts.Token;
+    try
     {
-        ProcurarAlvos();
+      while (!token.IsCancellationRequested)
+      {
+        FindTargets();
+        await Awaitable.WaitForSecondsAsync(_scanInterval, token);
+      }
     }
+    catch (System.OperationCanceledException) { }
+  }
 
-    private void Start()
+  public void OnDisable()
+  {
+    _scanCts?.Cancel();
+    _scanCts?.Dispose();
+    _scanCts = null;
+  }
+
+  public void FindTargets()
+  {
+    FoundPlayer = false;
+    DetectedPlayer = null;
+
+    int count = Physics.OverlapSphereNonAlloc(
+      transform.position,
+      _visionRange,
+      _overlapBuffer,
+      _targetMask
+    );
+    for (int i = 0; i < count; i++)
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("PlayersHolder");
+      Transform t = _overlapBuffer[i].transform;
+      if (!t.CompareTag(_playerTag))
+        continue;
 
-        if (playerObj != null)
-            target = playerObj.transform;
-        else
-            Debug.LogWarning("Player não encontrado! Verifique a Tag do Player");
+      if (CanSeeTarget(t))
+      {
+        FoundPlayer = true;
+        DetectedPlayer = t;
+        return;
+      }
     }
+  }
 
-    public void ProcurarAlvos()
+  public bool CanSeeTarget(Transform target)
+  {
+    Vector3 toTarget = target.position + Vector3.up * 1.5f - transform.position;
+    float dist = toTarget.magnitude;
+    Vector3 dirToTarget = toTarget / dist;
+
+    if (Vector3.Angle(transform.forward, dirToTarget) < _visionAngle / 2f)
     {
-        _encontrouPlayer = false;
-        _playerDetectado = null;
-
-        Collider[] targetsInArea = Physics.OverlapSphere(
-            transform.position,
-            _visionRange,
-            _targetMask
-        );
-
-        foreach (var col in targetsInArea)
-        {
-            Transform t = col.transform;
-            if (
-                _playerDetectado != null
-                && Vector3.Distance(transform.position, t.position) <= _visionRange
-            )
-            {
-                _encontrouPlayer = true;
-                _playerDetectado = t;
-                return;
-            }
-            if (CanSeeTarget(t))
-            {
-                _encontrouPlayer = true;
-                _playerDetectado = t;
-                return;
-            }
-        }
+      if (!Physics.Raycast(transform.position, dirToTarget, dist, _obstacleMask))
+        return true;
     }
+    return false;
+  }
 
-    public bool CanSeeTarget(Transform target)
+  public void SetTarget(Transform t)
+  {
+    DetectedPlayer = t;
+    FoundPlayer = t != null;
+  }
+
+  public void OnDrawGizmos()
+  {
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawWireSphere(transform.position, _visionRange);
+
+    Vector3 angleA = AngleDirection(-_visionAngle / 2f);
+    Vector3 angleB = AngleDirection(_visionAngle / 2f);
+    Gizmos.DrawLine(transform.position, transform.position + angleA * _visionRange);
+    Gizmos.DrawLine(transform.position, transform.position + angleB * _visionRange);
+
+    if (FoundPlayer && DetectedPlayer != null)
     {
-        Vector3 dirToTarget = (
-            (target.position + Vector3.up * 1.5f) - transform.position
-        ).normalized;
-        float dist = Vector3.Distance(transform.position, target.position);
-
-        // Angulo
-        if (Vector3.Angle(transform.forward, dirToTarget) < _visionAngle / 2)
-        {
-            // Angulo
-            if (!Physics.Raycast(transform.position, dirToTarget, dist, _obstacleMask))
-            {
-                return true;
-            }
-        }
-
-        return false;
+      Gizmos.color = Color.red;
+      Gizmos.DrawLine(transform.position, DetectedPlayer.position);
     }
+  }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _visionRange);
-
-        Vector3 angleA = DirecaodoAngulo(-_visionAngle / 2);
-        Vector3 angleB = DirecaodoAngulo(_visionAngle / 2);
-
-        if (_encontrouPlayer && _playerDetectado != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, _playerDetectado.position);
-        }
-    }
-
-    private Vector3 DirecaodoAngulo(float anguloemGraus)
-    {
-        float rad = (anguloemGraus + transform.eulerAngles.y) * Mathf.Deg2Rad;
-        return new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad));
-    }
-
-    // Permite definir o target manualmente (opcional)
-    public void SetTarget(Transform t)
-    {
-        _playerDetectado = t;
-        _encontrouPlayer = t != null;
-    }
+  private Vector3 AngleDirection(float eulerAngle)
+  {
+    float rad = (eulerAngle + transform.eulerAngles.y) * Mathf.Deg2Rad;
+    return new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad));
+  }
 }

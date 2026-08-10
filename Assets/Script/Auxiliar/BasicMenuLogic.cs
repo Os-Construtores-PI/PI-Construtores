@@ -1,29 +1,134 @@
+﻿using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class BasicMenuLogic : MonoBehaviour
 {
+  [Header("Audio")]
+  [SerializeField]
+  private BackgroundMusicConfig _backgroundMusicConfig;
+
+  [SerializeField]
+  private UIAudioConfig _uiAudioConfig;
+
+  [SerializeField]
+  private float selectableScale = 1.08f;
+
+  [SerializeField]
+  private float scaleSpeed = 10f;
+
+  private Button _currentButton;
+  private Vector3 _currentTargetScale = Vector3.one;
+
+  [SerializeField]
+  private LoadingScreen _loadingScreen;
+
   #region  === MENU GAMEOVER ===
+
+  private void Update()
+  {
+    GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    if (selected == null)
+      return;
+
+    Button button = selected.GetComponent<Button>();
+
+    if (button != _currentButton)
+    {
+      if (_currentButton != null)
+        _currentButton.transform.localScale = Vector3.one;
+
+      _currentButton = button;
+
+      if (_currentButton != null)
+        _currentTargetScale = Vector3.one * selectableScale;
+    }
+
+    if (_currentButton != null)
+    {
+      _currentButton.transform.localScale = Vector3.Lerp(
+        _currentButton.transform.localScale,
+        _currentTargetScale,
+        Time.unscaledDeltaTime * scaleSpeed
+      );
+    }
+  }
+
   public void Respawn()
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDRESPAWN.Invoke();
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
+    GlobalEventBus.Instance.Respawn.Invoke();
+  }
+
+  public void OpenMenuGameOver()
+  {
+    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
+    {
+      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
+    }
   }
 
   public void ResetScene()
   {
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    GameContext.ShowStageIntro = true;
   }
   #endregion === MENU GAMEOVER ===
 
   #region  === MENU PAUSE ===
   public void OpenOptions()
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDOPTIONS.Invoke(true);
+    Time.timeScale = 1f;
+
+    GlobalEventBus.Instance.Pause.Invoke(false);
+
+    DOTween.KillAll();
+
+    if (DataDirector.Instance != null)
+    {
+      DataDirector.Instance.ResetRunTimeState();
+      DataDirector.Instance.RestartCurrentLevel();
+    }
+
+    GameContext.ShowStageIntro = true;
+    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
   }
 
   public void ContinueGame()
   {
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+    GlobalEventBus.Instance.Pause.Invoke(false);
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+  }
+
+  public void OnEnable()
+  {
+    if (GlobalEventBus.Instance != null)
+      GlobalEventBus.Instance.Pause.AddListener(OnPauseChanged);
+  }
+
+  public void OnDisable()
+  {
+    if (GlobalEventBus.Instance != null)
+      GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChanged);
+  }
+
+  private void OnPauseChanged(bool isPaused)
+  {
+    if (AudioManager.Instance == null || _uiAudioConfig == null)
+      return;
+
+    if (isPaused)
+    {
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
+    }
+    else
+    {
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+    }
   }
 
   #endregion === MENU PAUSE ===
@@ -32,11 +137,21 @@ public class BasicMenuLogic : MonoBehaviour
   public void ExitToMainMenu()
   {
     Time.timeScale = 1f;
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(false);
+
+    // DOTween.Kill(transform);
+
+    GlobalEventBus.Instance.Pause.Invoke(false);
+
+    DOTween.KillAll();
 
     if (DataDirector.Instance != null)
       DataDirector.Instance.ResetRunTimeState();
-    SceneManager.LoadScene(Constants.SceneNames.MainMenu);
+
+    Resources.UnloadUnusedAssets();
+
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+
+    _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
   }
   #endregion
 }

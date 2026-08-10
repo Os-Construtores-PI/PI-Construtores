@@ -1,89 +1,247 @@
 using UnityEngine;
+using UnityEngine.Events;
 
-// Classe que representa uma zona onde um item pode ser pego (drop zone)
 public class ItemDropZone : Item
 {
-    protected GameObject _visualInstance;
-    protected BoxCollider _boxCollider;
-    protected Rigidbody _rb;
+  #region Fields & Events
+  [Header("Visual")]
+  [SerializeField]
+  private float _visualScaleMultiplier = 1f;
 
-    [SerializeField]
-    protected int quantity;
+  [SerializeField]
+  protected bool _destroyOnCollect = true;
+
+  [Header("Colisão")]
+  [SerializeField]
+  private Vector3 _colliderSizeMultiplier = new(1.5f, 1.2f, 1.5f);
+
+  [SerializeField]
+  private Vector3 _colliderOffset = Vector3.zero;
+
+  [Header("Quantidade")]
+  [SerializeField]
+  protected int quantity = 1;
+
+  public UnityEvent<ItemData, int, Player> OnItemCollected;
+
+  private GameObject _visualInstance;
+  protected BoxCollider _boxCollider;
+  private bool _isCollected = false;
+  #endregion
 
 #if UNITY_EDITOR
-    public void OnDrawGizmos()
-    {
-        if (Application.isPlaying || itemData == null || itemData.item == null)
-            return;
+  public void OnDrawGizmos()
+  {
+    if (itemData == null || itemData.item == null)
+      return;
 
-        MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
-        if (mf != null && mf.sharedMesh != null)
+    Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
+
+    if (_boxCollider != null)
+    {
+      Gizmos.color = new Color(0f, 1f, 0f, 1f);
+      Gizmos.DrawWireCube(_boxCollider.center, _boxCollider.size);
+    }
+
+    Gizmos.color = new Color(1f, 0.5f, 0f, 1f);
+
+    if (_visualInstance != null)
+    {
+      MeshFilter[] meshFilters = _visualInstance.GetComponentsInChildren<MeshFilter>();
+      foreach (var mf in meshFilters)
+      {
+        if (mf?.sharedMesh != null)
         {
-            Vector3 visualScale = itemData.item.transform.localScale;
-
-            Gizmos.color = Color.white;
-            Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, visualScale);
+          Gizmos.DrawWireMesh(
+            mf.sharedMesh,
+            mf.transform.position,
+            mf.transform.rotation,
+            mf.transform.lossyScale
+          );
         }
+      }
     }
-
-    public void OnValidate()
+    else
     {
-        // Força a atualização do Scene View quando você altera variáveis no Inspetor
-        UnityEditor.SceneView.RepaintAll();
+      MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
+      if (mf?.sharedMesh != null)
+      {
+        Vector3 scale = itemData.item.transform.localScale;
+        Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, scale);
+      }
     }
+  }
+
+  public void OnValidate()
+  {
+    _colliderSizeMultiplier = Vector3.Max(_colliderSizeMultiplier, Vector3.one * 0.1f);
+  }
 #endif
 
-    public void Initialize()
+  public override void Awake()
+  {
+    base.Awake();
+    Initialize();
+  }
+
+  public override void Start()
+  {
+    base.Start();
+    if (_boxCollider == null)
+      Initialize();
+  }
+
+  #region Initialization
+  public virtual void Initialize()
+  {
+    InstantiateVisual();
+    SetupCollider();
+  }
+
+  private void SetupCollider()
+  {
+    if (_boxCollider == null)
     {
-        // Adiciona BoxCollider configurado como trigger para detectar colisões sem bloqueio físico
-        if (_boxCollider == null)
-        {
-            _boxCollider = gameObject.AddComponent<BoxCollider>();
-            _boxCollider.isTrigger = true;
-        }
-        if (_rb == null)
-        {
-            // Rigidbody kinemático para interagir com física sem ser afetado por forças
-            _rb = gameObject.AddComponent<Rigidbody>();
-
-            _rb.isKinematic = true;
-        }
-
-        // Instancia o modelo visual do item se definido no ScriptableObject
-        if (itemData != null && itemData.item != null && transform.childCount < 1)
-        {
-            _visualInstance = Instantiate(itemData.item, transform);
-            _visualInstance.transform.SetLocalPositionAndRotation(
-                Vector3.zero,
-                Quaternion.identity
-            );
-
-            // Ajusta o tamanho do colisor baseado no mesh render do modelo visual
-            if (itemData.item.TryGetComponent<MeshRenderer>(out var mesh))
-            {
-                _boxCollider.size = mesh.bounds.size * 3;
-                _boxCollider.center = Vector3.zero;
-            }
-        }
+      _boxCollider = gameObject.AddComponent<BoxCollider>();
+      _boxCollider.isTrigger = true;
     }
 
-    public override void Start()
+    // Agora usamos o _visualInstance (que já está na cena) para obter os bounds reais
+    if (_visualInstance != null)
     {
-        base.Start();
-        Initialize();
-    }
-
-    // Método chamado quando outra colisão entra no trigger
-    public void OnTriggerEnter(Collider other)
-    {
-        if (other.TryGetComponent(out Player player))
+      // CORREÇÃO 3: Pega todos os renderers para suportar itens com múltiplas partes/materiais
+      MeshRenderer[] renderers = _visualInstance.GetComponentsInChildren<MeshRenderer>();
+      if (renderers.Length > 0)
+      {
+        // Encapsula os bounds de todos os renderers
+        Bounds worldBounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
         {
-            if (itemData != null)
-            {
-                AddItem(player);
-            }
+          worldBounds.Encapsulate(renderers[i].bounds);
         }
+
+        // CORREÇÃO 2: Calcula os bounds locais exatos transformando os 8 cantos do bounds mundial.
+        // Isso lida corretamente com rotação e escala, evitando o bug do InverseTransformVector.
+        Vector3 localMin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        Vector3 localMax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+        for (int i = 0; i < 8; i++)
+        {
+          Vector3 corner = new Vector3(
+            (i & 1) == 0 ? worldBounds.min.x : worldBounds.max.x,
+            (i & 2) == 0 ? worldBounds.min.y : worldBounds.max.y,
+            (i & 4) == 0 ? worldBounds.min.z : worldBounds.max.z
+          );
+
+          Vector3 localCorner = transform.InverseTransformPoint(corner);
+          localMin = Vector3.Min(localMin, localCorner);
+          localMax = Vector3.Max(localMax, localCorner);
+        }
+
+        Bounds localBounds = new Bounds();
+        localBounds.SetMinMax(localMin, localMax);
+
+        _boxCollider.size = Vector3.Scale(localBounds.size, _colliderSizeMultiplier);
+        _boxCollider.center = localBounds.center + _colliderOffset;
+        return;
+      }
     }
 
-    protected virtual void AddItem(Player player) { }
+    // Fallback caso não haja visual instanciado
+    _boxCollider.size = Vector3.one * 2f;
+    _boxCollider.center = _colliderOffset;
+  }
+
+  private void InstantiateVisual()
+  {
+    if (itemData?.item == null || transform.childCount > 0)
+      return;
+
+    _visualInstance = Instantiate(itemData.item, transform);
+    _visualInstance.name = $"Visual_{itemData.item.name}";
+    _visualInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+    _visualInstance.transform.localScale = Vector3.one * _visualScaleMultiplier;
+
+    foreach (var rb in _visualInstance.GetComponentsInChildren<Rigidbody>())
+      rb.isKinematic = true;
+  }
+  #endregion
+
+  #region Collection Logic
+  private void OnTriggerEnter(Collider other)
+  {
+    if (_isCollected)
+      return;
+
+    if (other.TryGetComponent(out Player player))
+      TryCollect(player);
+  }
+
+  protected virtual bool TryCollect(Player player)
+  {
+    if (player == null || itemData == null)
+      return false;
+
+    if (!CanCollect(player))
+      return false;
+
+    _isCollected = true;
+    AddItem(player);
+    OnItemCollected?.Invoke(itemData, quantity, player);
+    AfterCollect();
+
+    return true;
+  }
+
+  protected virtual void AfterCollect()
+  {
+    if (_destroyOnCollect)
+      Destroy(gameObject);
+    else
+      DisableZone();
+  }
+
+  protected virtual bool CanCollect(Player player) => true;
+
+  protected virtual void AddItem(Player player)
+  {
+    if (player.Inventory != null)
+    {
+      player.Inventory.AddItem(itemData, quantity);
+    }
+    else
+    {
+      Debug.LogWarning(
+        $"[ItemDropZone] Player '{player.name}' não possui Inventory configurado.",
+        player
+      );
+    }
+  }
+
+  protected virtual void DisableZone()
+  {
+    _isCollected = true;
+    enabled = false;
+    if (_boxCollider != null)
+      _boxCollider.enabled = false;
+    if (_visualInstance != null)
+      _visualInstance.SetActive(false);
+  }
+
+  public virtual void ResetZone()
+  {
+    _isCollected = false;
+    enabled = true;
+    if (_boxCollider != null)
+      _boxCollider.enabled = true;
+    if (_visualInstance != null)
+      _visualInstance.SetActive(true);
+  }
+  #endregion
+
+  #region Public API
+  public void SetQuantity(int newQuantity) => quantity = Mathf.Max(1, newQuantity);
+
+  public bool IsCollected => _isCollected;
+  #endregion
 }

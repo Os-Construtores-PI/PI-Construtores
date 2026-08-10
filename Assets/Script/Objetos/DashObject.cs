@@ -1,10 +1,12 @@
 using UnityEngine;
 
-public class DashInteractableObject : InteractableObject
+public class LockableInteractableObject : InteractableObject, ILockable
 {
-  // Start is called once before the first execution of Update after the MonoBehaviour is created
-  void Start() { }
+  [SerializeField]
+  private float _lockRange = 10;
 
-  // Update is called once per frame
-  void Update() { }
+  [SerializeField, Range(0, 100)]
+  protected float _boostGrace = 0f;
+  public float LockRange => _lockRange;
+  public float BoostGrace => _boostGrace;
 }

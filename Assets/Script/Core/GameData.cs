@@ -19,7 +19,7 @@ public class SavedGameData
 [System.Serializable]
 public class SavedConfigData
 {
-  public GameMode GameMode = GameMode.SINGLEPLAYER;
+  public GameMode GameMode = GameMode.Singleplayer;
   public bool HasSave = false;
 }
 
@@ -39,6 +39,7 @@ public class SavedLevelData
   public int levelScore;
   public LevelPathType lastPath;
   public List<SavedPlayerData> savedPlayers = new();
+  public List<SavedLevelFinish> savedFinishes = new();
   public List<SavedDroppedItem> savedDroppedItems = new();
 
   public SavedLevelData(string levelname)
@@ -48,27 +49,54 @@ public class SavedLevelData
 }
 
 [System.Serializable]
+public class SavedLevelFinish
+{
+  public string FinishUUID;
+  public int PlayerIndex;
+  public int Score;
+  public float Time;
+  public int HighestComboIndex;
+  public DateTime When;
+
+  public SavedLevelFinish(int playerIndex, int score, float time, int comboIndex)
+  {
+    FinishUUID = Guid.NewGuid().ToString();
+    PlayerIndex = playerIndex;
+    Score = score;
+    Time = time;
+    HighestComboIndex = comboIndex;
+    When = DateTime.Now;
+  }
+}
+
+[System.Serializable]
 public class SavedPlayerData
 {
-  public int playerId;
-  public List<SavedItemEntry> inventory = new();
-  public int amethystsCount;
-  public Vector3 position;
-  public float health;
+  public int PlayerId;
+  public string PlayerUUID;
+  public DateTime Lastsave;
+  public List<SavedItemEntry> Inventory = new();
+  public int AmethystsCount;
+  public Vector3 Position;
+  public float Health;
+  public float Time;
+  public int Score;
+  public int PreviewScore;
+  public int HighestComboIndex = -1;
 
-  public List<SavedStatEntry> savedStats = new();
+  public List<SavedStatEntry> SavedStats = new();
 
   public void SaveStats(Stats stats)
   {
-    savedStats.Clear();
+    SavedStats.Clear();
 
     // Salvar floats
     foreach (var kvp in stats.GetNumericStats())
     {
-      savedStats.Add(
+      SavedStats.Add(
         new SavedStatEntry()
         {
-          name = kvp.Key,
+          statType = kvp.Key,
           type = "float",
           value = kvp.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
         }
@@ -78,10 +106,10 @@ public class SavedPlayerData
     // Salvar bools
     foreach (var kvp in stats.GetBoolStats())
     {
-      savedStats.Add(
+      SavedStats.Add(
         new SavedStatEntry()
         {
-          name = kvp.Key,
+          statType = kvp.Key,
           type = "bool",
           value = kvp.Value.ToString(),
         }
@@ -91,7 +119,7 @@ public class SavedPlayerData
 
   public void LoadStats(Stats stats)
   {
-    foreach (var stat in savedStats)
+    foreach (var stat in SavedStats)
     {
       if (stat.type == "float")
       {
@@ -104,14 +132,14 @@ public class SavedPlayerData
           )
         )
         {
-          stats.SetStat(stat.name, floatValue);
+          stats.SetStat(stat.statType, floatValue);
         }
       }
       else if (stat.type == "bool")
       {
         if (bool.TryParse(stat.value, out bool boolValue))
         {
-          stats.SetStat(stat.name, boolValue);
+          stats.SetStat(stat.statType, boolValue);
         }
       }
     }
@@ -134,7 +162,7 @@ public class SavedItemEntry
 [System.Serializable]
 public class SavedStatEntry
 {
-  public string name;
+  public StatType statType;
   public string type; // "float" ou "bool"
   public string value; // usamos string pra serializar genérico
 }

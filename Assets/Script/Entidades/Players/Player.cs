@@ -1,25 +1,46 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using DG.Tweening;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Processors;
 using UnityEngine.SceneManagement;
+using UnityEngine.Splines;
+using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
-[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(Animator), typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
-  #region === Configurações de Movimento ===
-  private float _speed = 10f;
-  private float _runningSpeed = 20;
-  internal QualityTier wallSpeedMultiplier = QualityTier.RARE;
+  #region Constantes (Substituição de Magic Values)
 
-  [HideInInspector]
-  [Stat(nameof(Speed))]
+  private const float HUD_INIT_DELAY = 0.1f;
+  private const float CAMERA_SCAN_BUFFER = 2f;
+  private const float RAIL_SCORE_WEIGHT = 0.2f;
+  private const float SQR_EPSILON = 0.01f;
+
+  // Layers
+  private const string LAYER_OBJECT = "Object";
+  private const string LAYER_ENTITY = "Entity";
+  private const string LAYER_DEFAULT = "Default";
+  private const string LAYER_RUNNING_WALL = "RunningWall";
+
+  // Tags
+  private const string TAG_PLAYER = "Player";
+  private const string TAG_DASH_HUD = "DashHUDIcon";
+  private const string TAG_GAME_CONTROLLER = "GameController";
+  #endregion
+
+  #region Movimento - Stats
+  private float _speed;
+
+  [HideInInspector, Stat(StatType.Speed)]
   public float Speed
   {
     get => _speed;
@@ -27,1183 +48,1127 @@ public class Player : CombatEntities
   }
 
   [HideInInspector]
-  [Stat(nameof(RunningSpeed))]
-  public float RunningSpeed
-  {
-    get => _runningSpeed;
-    set => _runningSpeed = value;
-  }
-  internal float _acceleration = 5f;
-  internal float _accelerationRunning = 10;
-  internal float _friction = 2f;
-  internal float _airFriction = 2f;
-
-  [Header("Pulo")]
-  private float _jumpForce = 10f;
-  internal float _wallJumpMultiplier = 5;
+  public float RunSpeedMultiplier;
 
   [HideInInspector]
-  [Stat(nameof(JumpForce))]
+  public float RunAccelMultiplier;
+
+  [HideInInspector]
+  public float WallSpeedMultiplier;
+
+  [HideInInspector]
+  public float Acceleration;
+
+  [HideInInspector]
+  public float AccelerationRunning;
+
+  [HideInInspector]
+  public float Friction;
+
+  [HideInInspector]
+  public float AirFriction;
+  #endregion
+
+  #region Movimento - Pulo
+  private float _jumpForce;
+
+  [HideInInspector, Stat(StatType.JumpForce)]
   public float JumpForce
   {
     get => _jumpForce;
     set => _jumpForce = value;
   }
 
-  internal int _maxJumpCount = 2;
-  internal float _gravityValue = -16.62f;
-  internal float _gravityUpMultiplier = 2.2f; // sobe rápido, perde força cedo
-  internal float _gravityDownMultiplier = 0.6f; // cai mais lento
-  internal float _maxFallSpeed = -26f; // limite da queda
-  internal float _initialGravityValue;
+  [HideInInspector]
+  public int MaxJumpCount;
 
-  [Header("Dash")]
-  internal float DashSpeed = 30f;
-  internal float _dashDistance = 5f;
-  internal float dashCooldown = 1f;
-  internal ShiftDashScript dashHUDScript; // adicionado para ter uma animação no Shift
+  [HideInInspector]
+  public float WallJumpMultiplier;
 
+  [HideInInspector, Stat(StatType.Gravity)]
+  public float GravityValue { get; set; }
+
+  [HideInInspector]
+  public float GravityUpMultiplier;
+
+  [HideInInspector]
+  public float GravityDownMultiplier;
+
+  [HideInInspector]
+  public float MaxFallSpeed;
+
+  [HideInInspector]
+  public float InitialGravityValue;
+  #endregion
+
+  #region Movimento - Dash
+  [HideInInspector]
+  public float DashSpeed;
+
+  [HideInInspector]
+  public float DashDistance;
+
+  [HideInInspector]
+  public float DashCooldown;
+
+  [HideInInspector]
+  public ShiftDashScript DashHudScript;
+  #endregion
+
+  #region Componentes
   [Header("Componentes")]
   [SerializeField]
   private Transform _cameraTarget;
-  protected internal CharacterController _characterController;
-  protected internal CinemachineCamera _cinemachineCamera;
-  protected internal CinemachineCamera _lockOnCamera;
-  protected internal CinemachineTargetGroup _lockOnGroup;
-  protected internal CinemachineInputAxisController _cinemachineInput;
-  protected internal CinemachineOrbitalFollow _cinemachineOrbital;
-  protected Camera _myCamera;
-
-  public void SetCamera(
-    CinemachineCamera cincam,
-    CinemachineCamera lockOn,
-    CinemachineTargetGroup group,
-    Camera camera
-  )
-  {
-    _cinemachineCamera = cincam;
-    _lockOnCamera = lockOn;
-    _lockOnGroup = group;
-    _myCamera = camera;
-  }
-
-  protected internal Animator animatorComp;
-
-  internal PlayerInput playerInput;
-  public InputType _ultimoDispositivo = InputType.Keyboard;
-
-  #endregion
-
-  #region === Overrides ===
-  // === GLOBAL ===
-  public bool OverrideGlobal { get; set; } = false;
-  public float GlobalOverride { get; set; } = 0f;
-
-  // === HORIZONTAL ===
-  public bool OverrideHorizontal { get; set; } = false;
-
-  // === VERTICAL ===
-  public bool OverrideVertical { get; set; } = false;
-  public float VerticalOverride { get; set; } = 0f;
-  #endregion
-
-  #region === Estados Internos ===
-  internal StateMachine<PlayerContext> HorizontalLayer;
-  internal StateMachine<PlayerContext> VerticalLayer;
-  internal StackStateMachine<PlayerContext> ActionLayer;
-
-  //!: Action
-  internal PlayerActionStateIdle _idleActionS = new();
-  internal PlayerActionStateDash _dashActionS = new();
-  internal PlayerActionStateInteraction _interactionActionS = new();
-  internal PlayerActionStateWallSliding _wallSlidingActionS = new();
-
-  //!:Horizontal
-  internal PlayerHorizontalStateIdle _idleHorizontalS = new();
-  internal PlayerHorizontalStateMoviment _movementHorizontalS = new();
-
-  //!:Vertical
-  internal PlayerGroundedState _groundedVerticalS = new();
-  internal PlayerFallingState _fallingVerticalS = new();
-  internal PlayerJumpingState _jumpingVerticalS = new();
-
-  public PlayerContext Context { get; internal set; }
-
-  internal Vector3 _movementVector;
-  internal Vector3 _direction;
-  internal Vector3 _dashDirection;
-  internal Vector2 _moveInput;
-  internal bool _isRunning;
-  internal Vector3 _lastWallNormal;
-  internal Transform _modelTransform;
-
-  internal int _currentJumpCount;
 
   [SerializeField]
-  internal bool _isGrounded;
-  internal bool _wallSpeedApplied;
-  internal bool _touchingWall;
+  private AudioSource _playerAudioSource;
 
-  internal bool _canDash = true;
-  internal bool _canMove = true;
+  [HideInInspector]
+  public CharacterController CharacterController;
 
-  [Stat(nameof(CanMove))]
-  public bool CanMove
+  [HideInInspector]
+  public CinemachineCamera MainCamera;
+
+  [HideInInspector]
+  public CinemachineCamera BoostCamera;
+
+  [HideInInspector]
+  public CinemachineInputAxisController _cinemachineInput;
+
+  [HideInInspector]
+  public CinemachineOrbitalFollow _cinemachineOrbital;
+
+  public HurtboxComponent HurtboxCollider;
+  public Animator AnimatorComponent;
+  public PlayerInput PlayerInput;
+  protected Camera _myCamera;
+
+  public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
   {
-    get => _canMove;
-    set => _canMove = value;
-  } // nova flag para controle de movimento
+    MainCamera = mainCam;
+    MainCamera.ForceCameraPosition(transform.position, transform.rotation);
+    BoostCamera = boostCam;
+    _myCamera = camera;
+  }
+  #endregion
 
-  [Stat(nameof(CanDash))]
+  #region State Machines & Estados
+  public PlayerStateMachine<Player> LocomotionLayer = new();
+  public StackStateMachine<Player> ActionLayer = new();
+
+  [Header("Estados")]
+  public PlayerActionStateDash Dash = new();
+  public PlayerActionStateInteraction Interaction = new();
+  public PlayerActionStateWallSliding WallSliding = new();
+  public PlayerActionStateGroundSlam GroundSlam = new();
+  public PlayerActionStateBoost Boost = new();
+  public PlayerActionStateBounce Bounce = new();
+  public PlayerActionStateJump Jump = new();
+  public PlayerActionStateRailSlide RailSlide = new();
+
+  public readonly PlayerLocomotionStateMoving Moving = new();
+  public readonly PlayerLocomotionStateLocked Locked = new();
+  public readonly PlayerLocomotionStateHLocked LockedInHorizontal = new();
+  #endregion
+
+  #region Estado Interno
+  [HideInInspector]
+  public Vector3 MovementVector;
+
+  [HideInInspector]
+  public Vector3 Direction;
+
+  [HideInInspector]
+  public Vector3 DashDirection;
+
+  [HideInInspector]
+  public Vector2 MoveInput;
+
+  [HideInInspector]
+  public Vector3 LastWallNormal;
+
+  [HideInInspector]
+  public bool IsRunning;
+
+  [HideInInspector]
+  public bool IsImpulsioned;
+
+  [HideInInspector]
+  public bool WallSpeedApplied;
+
+  [HideInInspector]
+  public bool TouchingWall;
+
+  [HideInInspector]
+  public bool IsDashBlocked;
+
+  [HideInInspector]
+  public int CurrentJumpCount = 0;
+
+  [HideInInspector]
+  public bool IsGrounded;
+
+  [HideInInspector]
+  public bool WantsToCancelRailSlide;
+
+  private bool _canDash = true;
+
+  [Stat(StatType.CanDash)]
   public bool CanDash
   {
     get => _canDash;
     set => _canDash = value;
   }
-  internal bool _isDashing = false;
-  internal float _dashCount = 1;
-  internal float _dashCurrent = 0;
-  internal float _dashDuration;
+
+  [HideInInspector]
+  public bool IsDashing = false;
+
+  [HideInInspector]
+  public float MaxDashCount = 1f;
+
+  [HideInInspector]
+  public float CurrentDashCount = 0f;
+
+  [HideInInspector]
+  public float DashDuration;
+
+  [HideInInspector]
+  public float GroundSlamImpactSpeed { get; set; } = 0f;
+  public Transform _modelTransform;
+  public DeviceType LastDevice = DeviceType.Keyboard;
   #endregion
 
-  #region === EnemyScan ===
-  [Header("SCANNER DE SPAWN DE INIMIGOS PARÂMETROS")]
+  #region Flags de Input - Pulo
+  public bool JumpInteractionPressed = false;
+
+  public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
+  #endregion
+
+  #region Trails
+  public TrailsWorker TrailsSystem = new();
+  #endregion
+
+  #region Flags de Contexto
+  public bool CameraLocked { get; set; } = false;
+  public bool IsHardLocked { get; set; } = false;
+  public bool IgnoreGameplayInputThisFrame { get; set; } = false;
+  public bool WaitForJumpRelease { get; set; } = false;
+  public bool BlockJumpByDialogue { get; set; } = false;
+  #endregion
+
+
+  #region Boost
+
+  [HideInInspector]
+  public UnityEvent<float> BoostChanged;
+
+  [Header("Boost Value Options")]
+  [SerializeField]
+  private float _maxBoostValue = 100f;
+
+  public float MaxBoostValue
+  {
+    get => _maxBoostValue;
+  }
+
+  [SerializeField]
+  private float _initialBoostValue = 100f;
+
+  [HideInInspector]
+  public float BoostValue
+  {
+    get { return _boostValue; }
+    set
+    {
+      _boostValue = Mathf.Clamp(value, 0f, _maxBoostValue);
+      BoostChanged.Invoke(_boostValue / _maxBoostValue);
+    }
+  }
+
+  private float _boostValue = 0f;
+
+  #endregion Boost
+
+  #region Score
+
+  #region Time
+  [HideInInspector]
+  public int MaxTimeScore = 10000;
+
+  [HideInInspector]
+  public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
+
+  public int CalculateTimeScoreCurve(float timeInSeconds)
+  {
+    float multiplier = TimeScoreCurve.Evaluate(timeInSeconds);
+
+    int finalScore = Mathf.RoundToInt(MaxTimeScore * multiplier);
+
+    return Mathf.Max(0, finalScore);
+  }
+
+  #endregion
+
+  private int _currentScore = 0;
+  public int CurrentScore => _currentScore;
+
+  public void AddScore(int amount)
+  {
+    _currentScore += amount;
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  public void SetScore(int amount)
+  {
+    _currentScore = amount;
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  public void RemoveScore(int amount)
+  {
+    _currentScore = Mathf.Max(_currentScore - amount, 0);
+    GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  #endregion
+
+  #region Combo
+
+  [Header("Combo")]
+  [SerializeField]
+  private List<ComboStage> _stagesOfCombo = new();
+
+  [SerializeField]
+  private List<HitboxComponent> _hitboxes = new();
+
+  private readonly Timer _comboTimer = new();
+  private readonly List<ComboPopupType> _comboPopupTypes = new()
+  {
+    ComboPopupType.Good,
+    ComboPopupType.Great,
+    ComboPopupType.Awesome,
+    ComboPopupType.Radical,
+  };
+  private int _currentComboTypeIndex = -1;
+  private int _currentComboIndex = -1;
+  private int _highestComboIndex = -1;
+  public int HighestComboIndex => _highestComboIndex++;
+
+  public void SetHighestComboIndex(int value) => _highestComboIndex = value;
+
+  private void SetupHitboxCombo()
+  {
+    foreach (HitboxComponent hb in _hitboxes)
+      hb.Hit.AddListener(ComboUp);
+  }
+
+  private void ComboTimer()
+  {
+    if (_comboTimer.Tick(Time.deltaTime))
+      ComboDown();
+  }
+
+  private void ComboUp()
+  {
+    int next = _currentComboIndex + 1;
+    _currentComboTypeIndex = Mathf.Min(next, _comboPopupTypes.Count - 1);
+
+    if (next >= _stagesOfCombo.Count)
+    {
+      ComboStage maxStage = _stagesOfCombo.Last();
+      _comboTimer.Start(maxStage.TimeToExitStage);
+
+      _highestComboIndex = Mathf.Max(_highestComboIndex, _stagesOfCombo.Count - 1);
+
+      GlobalEventBus.Instance.ComboUpdate.Invoke(
+        ID,
+        _stagesOfCombo.Count - 1,
+        _comboPopupTypes[_currentComboTypeIndex]
+      );
+      return;
+    }
+
+    _currentComboIndex = next;
+
+    _highestComboIndex = Mathf.Max(_highestComboIndex, _currentComboIndex);
+
+    ComboStage stage = _stagesOfCombo[_currentComboIndex];
+    _comboTimer.Start(stage.TimeToExitStage);
+
+    GlobalEventBus.Instance.ComboUpdate.Invoke(
+      ID,
+      _currentComboIndex,
+      _comboPopupTypes[_currentComboTypeIndex]
+    );
+
+    if (_currentComboIndex == _stagesOfCombo.Count - 1)
+    {
+      ImpactPopupType impact = IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
+      GlobalEventBus.Instance.MaxComboReached.Invoke(ID, impact);
+    }
+  }
+
+  private void ComboDown()
+  {
+    _currentComboIndex--;
+
+    if (_currentComboIndex < 0)
+    {
+      _currentComboTypeIndex = -1;
+      _comboTimer.Stop();
+      GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex, ComboPopupType.None);
+      return;
+    }
+
+    _currentComboTypeIndex = Mathf.Min(_currentComboIndex, _comboPopupTypes.Count - 1);
+
+    ComboStage stage = _stagesOfCombo[_currentComboIndex];
+    _comboTimer.Start(stage.TimeToExitStage);
+    GlobalEventBus.Instance.ComboUpdate.Invoke(
+      ID,
+      _currentComboIndex,
+      _comboPopupTypes[_currentComboTypeIndex]
+    );
+  }
+
+  public int CurrentComboMultiplier =>
+    _currentComboIndex >= 0 ? _stagesOfCombo[_currentComboIndex].Multiplier : 1;
+
+  #endregion
+
+  #region Scanners
+  [Header("Scanner - Inimigos")]
   [SerializeField, Min(10)]
-  private float enemyScanRadius = 10;
+  private float enemyScanRadius = 10f;
 
-  [SerializeField, Min(1)]
-  private float enemyScanInterval = 2.0f;
-  #endregion
+  private const float CameraScanSphereRadius = 6f;
+  private const float CameraScanMaxDistance = 100f;
+  private const float CameraScanDotThreshold = 0.5f;
+  private const float WallScanDistance = 5f;
 
-  #region === Interação ===
-  [Header("SCANNER DE OBJETOS INTERAGÍVEIS PARÂMETROS")]
-  private readonly float interactionScanCooldown = .1f;
-  private Camera selectedcamera = null;
-  #endregion
+  private Camera _selectedCamera = null;
+  private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
 
-  #region === Inventário ===
-  private readonly Inventory _inventory = new();
-  public Inventory Inventory => _inventory;
-
-  #endregion
-
-  #region  === Scanner ===
   private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
   private Scanner<Vector3, bool> _enemyScanner;
   private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
+
+  [Header("Scanner - Trilho")]
+  [SerializeField]
+  private float _railEntryRadius = 1.2f;
+
+  [SerializeField]
+  private float _railEntryForwardOffset = 0.8f;
+
+  [SerializeField]
+  private float _railEntryMinDot = 0.3f;
+
+  [SerializeField]
+  private LayerMask _railLayerMask;
+
+  private Scanner<Vector3, RailObject> _railEntryScanner;
   #endregion
 
-  #region === WallSlide ===
-  private readonly float wallScanInterval = .05f;
-
+  #region Lock-On
+  public ILockable LockedTarget;
+  private ILockable _lockCandidate;
+  private RaycastHit _lastLockHit;
+  private bool _isLockOnActive = false;
+  protected RaycastHit _playerRayHit;
   #endregion
 
-  #region === Events ===
-  public readonly UnityEvent IsRunning = new();
-  public readonly UnityEvent StoppedRunning = new();
+  #region Interação
+  [HideInInspector]
+  public InteractableObject InteractionObject;
+  protected InteractableObject _lastInteractionObject;
+  protected Type _interactionObjectType;
+  protected (bool success, RaycastHit hit) _lastValidResult;
   #endregion
-  #region Coletáveis
 
+  #region Inventário & Coletáveis
+  private readonly Inventory _inventory = new();
+  public Inventory Inventory => _inventory;
 
-  // === AMETISTAS ===
-  private int amethysts = 0;
-  public int Amethysts => amethysts;
+  [Header("Ametistas")]
+  [SerializeField]
+  private int _amethystScoreMultiplier = 1;
 
-  public void SetAmethysts(int value, Vector3? amethystPos)
+  private int _amethysts = 0;
+  public int Amethysts => _amethysts;
+
+  public void SetAmethysts(int value)
   {
-    if (amethysts == value)
-    {
+    int clamped = Mathf.Max(0, value);
+    if (_amethysts == clamped)
       return;
-    }
-    Vector3? positionInCamera = null;
-    if (amethystPos != null)
-    {
-      positionInCamera = _myCamera.WorldToScreenPoint((Vector3)amethystPos);
-    }
-    amethysts = Mathf.Max(0, value); // evita negativo
-    GlobalEventBus.Instance.AMETHYSTSAMOUNTCHANGED.Invoke(amethysts, positionInCamera);
+
+    _amethysts = clamped;
+    GlobalEventBus.Instance.AmethystsChanged.Invoke(_amethysts);
   }
 
-  public void AddAmethysts(int amount, Vector3? amethystPos)
+  public void AddAmethysts(int amount)
   {
-    SetAmethysts(amethysts + amount, amethystPos);
+    SetAmethysts(_amethysts + amount);
+    AddScore(amount * _amethystScoreMultiplier);
   }
 
   public bool SpendAmethysts(int amount)
   {
-    if (amount <= 0 || amethysts < amount)
-    {
+    if (amount <= 0 || _amethysts < amount)
       return false;
-    }
-    SetAmethysts(amethysts - amount, null);
+    SetAmethysts(_amethysts - amount);
     return true;
   }
+  #endregion
+
+  #region Eventos
+  public readonly UnityEvent<bool> SpeedLines = new();
+  public readonly UnityEvent<bool> RunningShake = new();
+  public readonly UnityEvent<int, float, float, float> CustomShake = new();
+  #endregion
+
+  #region Sons
+  [Header("Sons do Jogador")]
+  [SerializeField]
+  private List<PlayerSFX> _playerSFX = new();
+  public readonly SoundsWorker<PlayerAudioType> PlayerSoundSystem = new();
+  #endregion
+
+  #region Ataque
+  internal float AttackCooldown;
+  public bool CanAttack = true;
+  public bool WillAttack = true;
+
+  private void Attack()
+  {
+    if (CanDash && LockedTarget != null)
+    {
+      ActionLayer.PushState(Dash, this);
+      return;
+    }
+    if (CanExecuteAttack())
+      OnExecuteAttack();
+  }
+
+  protected virtual bool CanExecuteAttack() => true;
+
+  protected virtual void OnExecuteAttack() { }
+  #endregion
+
+  #region Wall Running
+  [Header("Wall Exit")]
+  internal float WallExitDuration;
+  #endregion
+
+  #region Camera
+  [Header("Inverter Y Camera")]
+  [SerializeField]
+  private bool _willInvertYAxis = false;
+
+  private void SetupCamera()
+  {
+    foreach (Camera cam in Camera.allCameras)
+    {
+      if (cam.TryGetComponent(out CameraLogic cameraLogic) && cameraLogic.ID == ID)
+      {
+        _selectedCamera = cam;
+        return;
+      }
+    }
+    Debug.LogError("[Player] Câmera com ID correspondente não encontrada.");
+  }
+
+  public void LockCamera(bool state) => CameraLocked = state;
+  #endregion
+
+  #region Ciclo de Vida Assíncrono
+  private CancellationTokenSource _lifetimeCts;
+
+  public CancellationToken GetCancellationToken() => _lifetimeCts.Token;
 
   #endregion
-  #region === Inicialização Unity ===
 
-
+  #region Unity Lifecycle
   public override void Awake()
   {
     base.Awake();
     canPulse = false;
-    _initialGravityValue = _gravityValue;
-    Context = new(this);
 
-    _characterController = GetComponent<CharacterController>();
-    animatorComp = GetComponent<Animator>();
-    playerInput = GetComponent<PlayerInput>();
-    DetectarDispositivo(playerInput);
+    _lifetimeCts = new CancellationTokenSource();
 
-    VerticalLayer = new(_fallingVerticalS, Context);
-    HorizontalLayer = new(_idleHorizontalS, Context);
-    ActionLayer = new(_idleActionS, Context);
-    SetupCamera();
+    CharacterController = GetComponent<CharacterController>();
+    AnimatorComponent = GetComponent<Animator>();
+    PlayerInput = GetComponent<PlayerInput>();
+
+    _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
+    DetectDevice(PlayerInput);
   }
 
   public override void Start()
   {
+    InitialGravityValue = GravityValue;
     base.Start();
+
     DOTween.Init();
-    StartCoroutine(DelayedSetupHUD(.1f));
-    if (dashHUDScript == null)
-    {
-      var go = GameObject.FindWithTag("DashHUDIcon");
-      if (go)
-        dashHUDScript = go.GetComponent<ShiftDashScript>();
-      Debug.LogWarning(
-        "[Player] DashHUDIcon não encontrado em cena. Arraste a instância ou coloque tag"
-      );
-    }
+    SetVisibilityLockOnOverlay(false);
 
-    _cinemachineInput = _cinemachineCamera.GetComponent<CinemachineInputAxisController>();
-    _cinemachineOrbital = _cinemachineCamera.GetComponent<CinemachineOrbitalFollow>();
+    _ = SetupHUDDelayedAsync(HUD_INIT_DELAY, _lifetimeCts.Token);
 
-    TickDirector.Instance.OnFiveTick.AddListener(_ =>
-      _enemyScanner.Scan(Time.deltaTime, transform.position)
-    );
-    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWithCamera());
+    SetupDashHUD();
+    SetupCinemachine();
+    SetupScanners();
+    SetupHitboxCombo();
 
-    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(
-      interactionScanCooldown,
-      r =>
-      {
-        // 1. Usamos um raio um pouco menor para não "atropelar" objetos laterais por erro
-        bool hit = Physics.SphereCast(
-          r,
-          2f,
-          out RaycastHit info,
-          40f,
-          LayerMask.GetMask("Object", "Enemy")
-        );
-
-        if (hit)
-        {
-          Vector3 direcaoParaAlvo = (info.collider.transform.position - r.origin).normalized;
-          float dot = Vector3.Dot(r.direction, direcaoParaAlvo);
-
-          if (dot >= 0.8f)
-          {
-            if (
-              !Physics.Linecast(
-                r.origin,
-                info.collider.transform.position,
-                LayerMask.GetMask("Default")
-              )
-            )
-            {
-              return (true, info);
-            }
-          }
-        }
-        return (false, default);
-      }
-    );
-
-    _enemyScanner = new Scanner<Vector3, bool>(enemyScanInterval, ScanEnemies);
-
-    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(
-      wallScanInterval,
-      rays =>
-      {
-        float distance = 5f;
-        int mask = LayerMask.GetMask("RunningWall");
-        var interaction = QueryTriggerInteraction.Ignore;
-
-        if (Physics.Raycast(rays.Item1, out RaycastHit hit, distance, mask, interaction))
-        {
-          return hit;
-        }
-
-        // Se o primeiro falhar, tenta o segundo (ex: Esquerda)
-        if (Physics.Raycast(rays.Item2, out hit, distance, mask, interaction))
-        {
-          return hit;
-        }
-
-        // Se nenhum bater, retorna null
-        return null;
-      }
-    );
-
+    TrailsSystem.InitTrails(transform.Find("Trails"));
+    PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
     _modelTransform = transform.Find("Model");
+    BoostValue = _initialBoostValue;
+
+    LocomotionLayer.ChangeState(Moving, this);
   }
 
   public override void Update()
   {
     base.Update();
-    KnockbackTimer();
-    //ChangeCharacterTimer();
+    if (Keyboard.current != null && Keyboard.current.f1Key.IsPressed())
+    {
+      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+      GameContext.ShowStageIntro = true;
+    }
 
-    VerticalLayer.Update(Context);
-    HorizontalLayer.Update(Context);
-    ActionLayer.Update(Context);
+    ComboTimer();
+
+    LocomotionLayer.Update(this);
+    ActionLayer.Update(this);
+    ScanWithCamera();
   }
 
   public void FixedUpdate()
   {
-    if (Input.GetKeyDown(KeyCode.F1))
-    {
-      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    if (!_characterController.enabled)
+    if (!CharacterController.enabled)
       return;
 
-    _isGrounded = _characterController.isGrounded;
-    animatorComp.SetFloat(Constants.AnimatorFloatNames.VelocityY, _characterController.velocity.y);
-    animatorComp.SetFloat(
-      Constants.AnimatorFloatNames.VelocityX,
-      Vector2.SqrMagnitude(new(_characterController.velocity.x, _characterController.velocity.z))
-    );
-    animatorComp.SetBool(Constants.AnimatorBoolNames.IsGrounded, _isGrounded);
-    KnockbackTimer();
-    HorizontalLayer.FixedUpdate(Context);
-    VerticalLayer.FixedUpdate(Context);
-    ActionLayer.FixedUpdate(Context);
+    IsGrounded = CharacterController.isGrounded;
+    UpdateAnimator();
+    LocomotionLayer.FixedUpdate(this);
+    ActionLayer.FixedUpdate(this);
+    CollisionFlags flags = CharacterController.Move(MovementVector * Time.fixedDeltaTime);
 
-    // MOVEMENT
-    _characterController.Move(_movementVector * Time.deltaTime);
+    if ((flags & CollisionFlags.Below) != 0)
+    {
+      CheckDeathGround();
+    }
   }
 
-  public void OnDestroy() => DOTween.KillAll();
+  private void CheckDeathGround()
+  {
+    Vector3 origin = transform.position + CharacterController.center;
+    float radius = CharacterController.radius;
+
+    Collider[] hits = Physics.OverlapSphere(origin, radius, LayerMask.GetMask("DeathZone"));
+
+    if (hits.Length <= 0)
+      return;
+
+    if (Health > 0)
+    {
+      Health = 0;
+    }
+  }
+
+  public override void OnDestroy()
+  {
+    base.OnDestroy();
+    DOTween.Kill(this);
+
+    _lifetimeCts?.Cancel();
+    _lifetimeCts?.Dispose();
+  }
   #endregion
 
-  #region === Input Callbacks ===
-
-  public void OnMove(InputAction.CallbackContext context)
+  #region Helpers de Inicialização
+  private void UpdateAnimator()
   {
-    // if (Context.IsHardLocked) return;
-    if (Context.IgnoreGameplayInputThisFrame)
-      return;
-
-    _moveInput = context.ReadValue<Vector2>();
-
-    Move();
+    Vector3 vel = CharacterController.velocity;
+    AnimatorComponent.SetFloat(Constants.AnimatorFloatNames.VelocityY, vel.y);
+    AnimatorComponent.SetFloat(
+      Constants.AnimatorFloatNames.VelocityX,
+      new Vector2(vel.x, vel.z).sqrMagnitude
+    );
+    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
   }
 
-  public void LockCamera(bool state)
+  private void SetupDashHUD()
   {
-    Context.CameraLocked = state;
+    if (DashHudScript != null)
+      return;
+
+    GameObject go = GameObject.FindWithTag(TAG_DASH_HUD);
+    if (go)
+      DashHudScript = go.GetComponent<ShiftDashScript>();
+    else
+      Debug.LogWarning(
+        "[Player] DashHUDIcon não encontrado. Arraste a instância ou coloque a tag."
+      );
+  }
+
+  private void SetupCinemachine()
+  {
+    InputAction lookAction = InputSystem.actions.FindAction("Look");
+    lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
+    _cinemachineInput = MainCamera.GetComponent<CinemachineInputAxisController>();
+    _cinemachineOrbital = MainCamera.GetComponent<CinemachineOrbitalFollow>();
+  }
+
+  private void SetupScanners()
+  {
+    TickDirector.Instance.OnTick.AddListener(_ => ScanRailEntry());
+    TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
+    TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
+
+    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
+    _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
+    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(ScanWallRays);
+    _railEntryScanner = new Scanner<Vector3, RailObject>(BuildRailEntryScanner());
+  }
+
+  private RaycastHit? ScanWallRays((Ray left, Ray right) rays)
+  {
+    int mask = LayerMask.GetMask(LAYER_RUNNING_WALL);
+    if (
+      Physics.Raycast(
+        rays.left,
+        out RaycastHit hit,
+        WallScanDistance,
+        mask,
+        QueryTriggerInteraction.Ignore
+      )
+    )
+      return hit;
+    if (
+      Physics.Raycast(rays.right, out hit, WallScanDistance, mask, QueryTriggerInteraction.Ignore)
+    )
+      return hit;
+    return null;
+  }
+
+  private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
+    ray =>
+    {
+      LayerMask targetsMask = LayerMask.GetMask(LAYER_OBJECT, LAYER_ENTITY);
+      LayerMask obstacleMask = LayerMask.GetMask(LAYER_DEFAULT);
+
+      int hitCount = Physics.SphereCastNonAlloc(
+        ray.origin,
+        CameraScanSphereRadius,
+        ray.direction,
+        _sphereCastResults,
+        CameraScanMaxDistance,
+        targetsMask
+      );
+
+      Collider bestTarget = null;
+      float closestDistance = float.MaxValue;
+
+      for (int i = 0; i < hitCount; i++)
+      {
+        Collider col = _sphereCastResults[i].collider;
+        if (col.CompareTag(TAG_PLAYER))
+          continue;
+
+        Vector3 targetCenter = col.bounds.center;
+        float dot = Vector3.Dot(ray.direction.normalized, (targetCenter - ray.origin).normalized);
+        if (dot < CameraScanDotThreshold)
+          continue;
+
+        float distance = Vector3.Distance(ray.origin, targetCenter);
+        if (distance > CameraScanMaxDistance)
+          continue;
+
+        if (!Physics.Linecast(ray.origin, targetCenter, obstacleMask) && distance < closestDistance)
+        {
+          closestDistance = distance;
+          bestTarget = col;
+        }
+      }
+
+      if (bestTarget != null)
+      {
+        Vector3 finalDir = (bestTarget.bounds.center - ray.origin).normalized;
+        // Adiciona buffer constante ao distance para evitar falhas de precisão
+        if (
+          Physics.Raycast(
+            ray.origin,
+            finalDir,
+            out RaycastHit finalHit,
+            CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
+            targetsMask | obstacleMask
+          )
+        )
+        {
+          if ((targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0)
+            return (true, finalHit);
+        }
+      }
+      return (false, default);
+    };
+
+  private Func<Vector3, RailObject> BuildRailEntryScanner() =>
+    playerPos =>
+    {
+      if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+        return null;
+
+      Vector3 moveDir =
+        MovementVector.sqrMagnitude > SQR_EPSILON
+          ? MovementVector.normalized
+          : CharacterController.velocity.normalized;
+      if (moveDir.sqrMagnitude < SQR_EPSILON)
+        return null;
+
+      Vector3 scanOrigin = playerPos + moveDir * _railEntryForwardOffset;
+      var hits = Physics.OverlapSphere(
+        scanOrigin,
+        _railEntryRadius,
+        _railLayerMask,
+        QueryTriggerInteraction.Ignore
+      );
+
+      RailObject bestRail = null;
+      float bestScore = -1f;
+
+      foreach (var hit in hits)
+      {
+        if (!hit.TryGetComponent(out RailObject rail))
+          continue;
+        if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
+          continue;
+
+        float distance = Vector3.Distance(playerPos, nearestPoint);
+        if (distance > _railEntryRadius)
+          continue;
+
+        float alignment = Vector3.Dot((nearestPoint - playerPos).normalized, moveDir);
+        if (alignment >= _railEntryMinDot)
+        {
+          float score = alignment - (distance / _railEntryRadius) * RAIL_SCORE_WEIGHT;
+          if (score > bestScore)
+          {
+            bestScore = score;
+            bestRail = rail;
+          }
+        }
+      }
+      return bestRail;
+    };
+
+  private void ScanRailEntry()
+  {
+    var (executed, rail) = _railEntryScanner.Scan(transform.position);
+    if (executed && rail != null)
+    {
+      RailSlide.SetRail(rail.GetComponent<SplineContainer>());
+      ActionLayer.PushState(RailSlide, this);
+    }
+  }
+  #endregion
+
+  #region Input Callbacks
+  public void OnMove(InputAction.CallbackContext context)
+  {
+    if (IgnoreGameplayInputThisFrame)
+      return;
+    MoveInput = context.ReadValue<Vector2>();
   }
 
   public void OnDash(InputAction.CallbackContext context)
   {
-    if (context.started && _canDash && _dashCurrent < _dashCount)
+    if (!context.performed)
+      return;
+
+    if (IsGrounded)
     {
-      StartDash();
+      ActionLayer.PushState(Boost, this);
+      return;
     }
+
+    if (!CanDash || CurrentDashCount >= MaxDashCount || IsDashBlocked)
+    {
+      return;
+    }
+    ActionLayer.PushState(Dash, this);
+  }
+
+  public void OnGroundSlam(InputAction.CallbackContext context)
+  {
+    if (context.performed && !IsGrounded)
+      ActionLayer.PushState(GroundSlam, this);
   }
 
   public void OnRunning(InputAction.CallbackContext context)
   {
     if (context.performed)
     {
-      _isRunning = true;
-      IsRunning.Invoke();
+      IsRunning = true;
+      TrailsSystem.PlayEffect(TrailType.MovementTrail);
+      RunningShake.Invoke(true);
     }
     else if (context.canceled)
     {
-      _isRunning = false;
-      StoppedRunning.Invoke();
+      IsRunning = false;
+      TrailsSystem.StopEffect(TrailType.MovementTrail);
+      RunningShake.Invoke(false);
     }
-  }
-
-  public void OnLockInTarget(InputAction.CallbackContext context)
-  {
-    if (context.performed)
-    {
-      ToggleLockIn();
-    }
-  }
-
-  private void OnEnable()
-  {
-    playerInput.onControlsChanged += DetectarDispositivo;
-
-    // Força atualização inicial
-    DetectarDispositivo(playerInput);
-
-    // Atualiza no primeiro frame
-  }
-
-  private void OnDisable()
-  {
-    playerInput.onControlsChanged -= DetectarDispositivo;
-  }
-
-  private void DetectarDispositivo(PlayerInput input)
-  {
-    string last = input.currentControlScheme;
-
-    switch (last)
-    {
-      case "Keyboard&Mouse":
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-
-      case "Gamepad":
-        var gp = Gamepad.current;
-
-        if (gp == null)
-        {
-          break;
-        }
-
-        if (gp.displayName.Contains("DualSense") || gp.displayName.Contains("DualShock"))
-          _ultimoDispositivo = InputType.JoystickPlaystation;
-        else
-          _ultimoDispositivo = InputType.JoystickXbox;
-
-        break;
-
-      default:
-        _ultimoDispositivo = InputType.Keyboard;
-        break;
-    }
-
-    GlobalEventBus.Instance.PLAYERINPUTCHANGED.Invoke(_ultimoDispositivo.ToString());
   }
 
   public void OnJump(InputAction.CallbackContext context)
   {
-    if (Context.IsHardLocked)
-      return;
-    if (Context.IgnoreGameplayInputThisFrame)
-      return;
-    if (Context.BlockJumpByDialogue)
+    if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
       return;
 
-    if (Context.WaitForJumpRelease) // segura o input do pulo do tutorial
+    if (WaitForJumpRelease)
     {
       if (context.canceled)
-        Context.WaitForJumpRelease = false;
+        WaitForJumpRelease = false;
       return;
     }
-    if (context.started)
-      Jump();
+
+    if (!context.started)
+      return;
+    if (!IsGrounded)
+      JumpInteractionPressed = true;
+    TryJump();
   }
 
   public void OnInteract(InputAction.CallbackContext context)
   {
-    if (_interactionObject && context.started)
-    {
-      ActionLayer.PushState(_interactionActionS, Context);
-    }
-    GlobalEventBus.Instance.PLAYERTRIGGEREDSKIPDIALOGUE.Invoke(Context);
+    if (InteractionObject && context.started)
+      ActionLayer.PushState(Interaction, this);
+    GlobalEventBus.Instance.SkipDialogue.Invoke(this);
   }
 
   public void OnAttack(InputAction.CallbackContext context)
   {
     if (context.started)
-    {
       Attack();
-    }
   }
 
   public void OnPause(InputAction.CallbackContext context)
   {
     if (context.started)
-    {
       Pause();
-    }
   }
 
-  // public void OnChangeCharacter(InputAction.CallbackContext context)
-  // {
-  //     float charAxis = context.ReadValue<float>();
-  //     print(charAxis + ":" + name);
-  //     StartChangeCooldown();
-  // }
+  public void OnEnable()
+  {
+    PlayerInput.onControlsChanged += DetectDevice;
+    DetectDevice(PlayerInput);
+  }
 
-  // [Header("TROCA DE JOGADOR PARÂMETROS")]
-  // private float changeCharacterCooldown = 5f;
-  // private Timer changeCharTimer = new();
-  // private bool canChangeCharacter = true;
+  public void OnDisable() => PlayerInput.onControlsChanged -= DetectDevice;
 
-  // private void ChangeCharacterTimer()
-  // {
-  //     if (!canChangeCharacter && changeCharTimer.Tick(Time.deltaTime))
-  //         canChangeCharacter = true;
-  // }
-
-  // private void StartChangeCooldown()
-  // {
-  //     canChangeCharacter = false;
-  //     changeCharTimer.Start(changeCharacterCooldown);
-  // }
-  // }
-
+  private void DetectDevice(PlayerInput input)
+  {
+    GlobalEventBus.Instance.InputUpdate.Invoke(input);
+  }
   #endregion
 
-  #region === Lock in ===
-
-  private void ToggleLockIn()
+  #region Pulo
+  private void TryJump()
   {
-    if (_isLockOnActive)
-    {
-      DisableLockIn();
-    }
-    else if (_lastValidResult.success && _lockedTarget != null)
-    {
-      _isLockOnActive = true;
-      SetLockOn(_lockedTarget);
-    }
+    if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
+      return;
+    if (CurrentJumpCount >= MaxJumpCount)
+      return;
+    ActionLayer.PushState(Jump, this);
   }
+  #endregion
 
+  #region Lock-On
   private void SetLockOn(ILockable target)
   {
-    _lockedTarget = target;
-
-    if (_lockedTarget != null)
-    {
-      _lockOnCamera.Priority = 20;
-      _lockOnGroup.AddMember(transform, 1, 1);
-      _lockOnGroup.AddMember(target.transform, .8f, 1);
-      if (_cinemachineInput != null)
-      {
-        foreach (var controller in _cinemachineInput.Controllers)
-        {
-          controller.Enabled = false;
-        }
-      }
-    }
-    else
-    {
-      _lockOnCamera.Priority = 0;
-      _lockOnGroup.Targets = new();
-      if (_cinemachineInput != null)
-      {
-        foreach (var controller in _cinemachineInput.Controllers)
-        {
-          controller.Enabled = true;
-        }
-      }
-    }
+    LockedTarget = target;
+    bool active = LockedTarget != null;
+    SetVisibilityLockOnOverlay(active);
+    _isLockOnActive = active;
   }
 
-  private void DisableLockIn()
+  private void SetVisibilityLockOnOverlay(bool set)
   {
-    if (_isLockOnActive)
-    {
-      _isLockOnActive = false;
-      SetLockOn(null);
-    }
+    Vector3 targetScreenPosition = set
+      ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
+      : Vector3.zero;
+    GlobalEventBus.Instance.LockOnVisibility.Invoke(ID, set, targetScreenPosition);
   }
 
-  #endregion
-
-  #region === Movimento & Pulo ===
-  private void Move()
+  public void DisableLockIn()
   {
-    if (
-      _cinemachineCamera == null
-      || OverrideGlobal
-      || OverrideHorizontal
-      || HorizontalLayer.CurrentState is PlayerActionStateDash
-    )
-    {
+    if (!_isLockOnActive)
       return;
-    }
-    HorizontalLayer.ChangeState(_movementHorizontalS, Context);
-  }
-
-  private void Jump()
-  {
-    if (DialogueGlobal.Instance != null)
-    {
-      if (DialogueGlobal.Instance.IsDialogueActive)
-        return;
-
-      if (DialogueGlobal.Instance._bloquearJumpTemporariamente)
-        return;
-    }
-
-    if (OverrideGlobal)
-      return;
-
-    if (_touchingWall)
-    {
-      // wall-jump permitido — segue pra VerticalLayer.ChangeState(...)
-      VerticalLayer.ChangeState(_jumpingVerticalS, Context);
-      return;
-    }
-
-    if (OverrideVertical)
-      return;
-    if (!(_isGrounded || _currentJumpCount < _maxJumpCount))
-      return;
-    VerticalLayer.ChangeState(_jumpingVerticalS, Context);
+    _isLockOnActive = false;
+    SetLockOn(null);
   }
   #endregion
 
-  #region  === PAUSE ===
+  #region Pause
   private void Pause()
   {
     if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
       return;
-
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
-
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.Invoke(!GameState.IsPaused);
+    GlobalEventBus.Instance.Pause.Invoke(!GameContext.IsPaused);
   }
-  #endregion
-
-  #region === Dash ===
-  private void StartDash()
-  {
-    if (_isDashBlocked)
-    {
-      return;
-    }
-    ActionLayer.PushState(_dashActionS, Context);
-  }
-  #endregion
-
-  #region === KNOCKBACK ===
-  private Vector3 _knockbackVelocity;
-  private readonly float _knockbackDuration = 0.2f;
-  private readonly Timer _knockbackTimer = new();
-  private bool isKnockbackActive;
-  internal bool _isDashBlocked;
-
-  public void ApplyKnockback(Vector3 direction, float force)
-  {
-    if (isKnockbackActive)
-      return;
-    _knockbackVelocity = direction * force;
-    _knockbackTimer.Start(_knockbackDuration);
-    isKnockbackActive = true;
-  }
-
-  private void KnockbackTimer()
-  {
-    if (!isKnockbackActive)
-      return;
-
-    transform.position += _knockbackVelocity * Time.deltaTime;
-
-    if (_knockbackTimer.Tick(Time.deltaTime))
-      isKnockbackActive = false;
-  }
-
-  private void BlockPlayerDashToRoutine(float duration)
-  {
-    if (_isDashBlocked)
-    {
-      return;
-    } // já está bloqueado, não chama de novo
-    StartCoroutine(BlockDashCoroutine(duration));
-  }
-
-  private IEnumerator BlockDashCoroutine(float duration)
-  {
-    _isDashBlocked = true;
-    // Desativa dash
-    yield return stats.ModifyStatCoroutine<bool>(
-      Constants.StatsNames.CanDash.ToString(),
-      ModifyTYPE.NEGATIVE,
-      QualityTier.COMMON,
-      duration
-    );
-
-    // Depois que o ModifyStatCoroutine terminar, libera de novo
-    _isDashBlocked = false;
-  }
-  #endregion
-
-  [Header("WALL EXIT")]
-  #region === WALLRUNNING ===
-  internal float wallExitDuration = .2f; // duração do tempo fora da parede
-  #endregion
-
-
-  private void OnControllerColliderHit(ControllerColliderHit hit)
-  {
-    if (hit.gameObject.TryGetComponent(out Enemies enemy))
-    {
-      Vector3 knockbackDirection = (transform.position - hit.transform.position).normalized;
-      ApplyKnockback(knockbackDirection, enemy.KnockBackForce);
-      BlockPlayerDashToRoutine(enemy.DashBlockDuration);
-    }
-  }
-
-  #region === HUD & Feedback ===
-
-  private IEnumerator DelayedSetupHUD(float duration)
-  {
-    yield return new WaitForSeconds(duration);
-    SetupHUD();
-  }
-
-  private void SetupHUD()
-  {
-    foreach (var hudObj in GameObject.FindGameObjectsWithTag("HealthHUD"))
-    {
-      if (
-        hudObj.TryGetComponent(out HealthHUDComponent hud)
-        && hud.IdHealth == ID
-        && hud.HUDType == HealthHUDType.PLAYER
-      )
-      {
-        _healthHUD = hud;
-        _healthHUD.BindToPlayer(this);
-        break;
-      }
-    }
-
-    if (GameObject.FindWithTag("GameController").TryGetComponent(out HudDirector hudDir) == true)
-    {
-      print("TESTE");
-      _OnDamage.AddListener(hudDir.DamageShake);
-      IsRunning.AddListener(hudDir.RunningShake);
-      IsRunning.AddListener(hudDir.GetCameraScript(ID).SpeedFX);
-      StoppedRunning.AddListener(hudDir.StopRunningShake);
-      StoppedRunning.AddListener(hudDir.GetCameraScript(ID).StopSpeedFX);
-    }
-  }
-
   #endregion
 
   #region Scan
   private void ScanWalls()
   {
     (bool executed, RaycastHit? hit) = _wallScanner.Scan(
-      Time.deltaTime,
-      (new Ray(transform.position, transform.right), new(transform.position, -transform.right))
+      (new Ray(transform.position, transform.right), new Ray(transform.position, -transform.right))
     );
+    if (!executed)
+      return;
 
-    if (executed)
+    if (hit.HasValue)
     {
-      if (hit.HasValue)
-      {
-        ActionLayer.PushState(_wallSlidingActionS, Context);
-        _lastWallNormal = hit.Value.normal;
-      }
-      else
-      {
-        _touchingWall = false;
-      }
+      ActionLayer.PushState(WallSliding, this);
+      LastWallNormal = hit.Value.normal;
+    }
+    else
+    {
+      TouchingWall = false;
     }
   }
 
   private bool ScanEnemies(Vector3 playerPos)
   {
-    int amount = EnemySpawner.enemySpawner.GetAmountPool();
+    if (EnemySpawner.Instance == null)
+      return false;
+    int amount = EnemySpawner.Instance.GetAmountPool();
 
     for (int i = 0; i < amount; i++)
     {
-      GameObject enemytmp = EnemySpawner.enemySpawner.GetDisabledObject();
-
-      if (enemytmp != null)
-      {
-        float distance = Vector3.Distance(enemytmp.transform.position, playerPos);
-
-        if (distance <= enemyScanRadius)
-        {
-          enemytmp.SetActive(true);
-        }
-      }
+      GameObject enemy = EnemySpawner.Instance.GetDisabledObject();
+      if (enemy != null && Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
+        enemy.SetActive(true);
     }
-    return true; // só para cumprir TOutput
+    return true;
   }
-
-  protected internal ILockable _lockedTarget;
-  private RaycastHit _lastLockHit;
-  private bool _isLockOnActive = false;
-  protected RaycastHit _playerRayHit;
-  protected internal InteractableObject _interactionObject;
-  protected InteractableObject _lastInteractionObject = null;
-  protected Type _interactionObjectType;
-  protected (bool success, RaycastHit hit) _lastValidResult;
 
   protected virtual (bool success, RaycastHit hit) ScanWithCamera()
   {
-    if (!selectedcamera)
+    if (!_selectedCamera)
     {
       SetupCamera();
       return (false, default);
     }
 
-    if (_isLockOnActive && _lockedTarget != null)
-    {
-      if (_lockedTarget.IsActive)
-      {
-        float dist = Vector3.Distance(transform.position, _lockedTarget.transform.position);
-        if (dist <= _lockedTarget.LockRange)
-        {
-          return (true, _lastLockHit);
-        }
-      }
-
-      DisableLockIn();
-    }
-
-    Ray ray = new(selectedcamera.transform.position, selectedcamera.transform.forward);
-    var (executed, scanResult) = _cameraScanner.Scan(Time.deltaTime, ray);
+    Ray ray = new(transform.position, transform.forward);
+    var (executed, result) = _cameraScanner.Scan(ray);
 
     if (!executed)
       return _lastValidResult;
 
-    if (!scanResult.Item1)
+    if (!result.Item1)
     {
-      // Se não bateu em nada, limpa TUDO
       ClearInteractable();
-      _lockedTarget = null; // Garante limpeza do alvo de camera
-      _lastValidResult = (false, default);
-      return _lastValidResult;
+      DisableLockIn();
+      return _lastValidResult = (false, default);
     }
 
-    RaycastHit hit = scanResult.Item2;
+    RaycastHit hit = result.Item2;
+    if (hit.collider == null)
+    {
+      DisableLockIn();
+      return (false, default);
+    }
 
-    // Tenta pegar o Lockable (obrigatório para ser detectado aqui)
+    bool foundSomething = false;
+
     if (hit.collider.TryGetComponent(out ILockable lockable))
     {
       if (lockable.IsActive && hit.distance <= lockable.LockRange)
       {
-        _lockedTarget = lockable;
+        SetLockOn(lockable);
+        _lockCandidate = lockable;
         _lastLockHit = hit;
-        if (hit.collider.TryGetComponent(out InteractableObject interactable))
-        {
-          _interactionObject = interactable;
-        }
-
-        _lastValidResult = (true, hit);
-        return _lastValidResult;
+        foundSomething = true;
       }
+      else
+        DisableLockIn();
+    }
+    else
+      DisableLockIn();
+
+    if (hit.collider.TryGetComponent(out InteractableObject interactable))
+    {
+      if (interactable is not LockableInteractableObject && interactable.IsActive)
+      {
+        InteractionObject = interactable;
+        foundSomething = true;
+      }
+      else
+        ClearInteractable();
+    }
+    else
+      ClearInteractable();
+
+    if (_isLockOnActive && LockedTarget != null)
+    {
+      float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
+      if (!LockedTarget.IsActive || dist > LockedTarget.LockRange)
+        DisableLockIn();
     }
 
-    ClearInteractable();
-    return (false, default);
+    return foundSomething ? _lastValidResult = (true, hit) : (false, default);
   }
 
-  // === Método auxiliar para limpar estado === //
   protected void ClearInteractable()
   {
-    _interactionObject = null;
-    GlobalEventBus.Instance.OBJECTWASSEEN.Invoke(false, null, ID);
+    InteractionObject = null;
+    GlobalEventBus.Instance.ObjectWasSeen.Invoke(ID, false, null);
   }
   #endregion
 
-
-  #region  === Ataque ===
-  [Header("ATAQUE PARÂMETROS")]
-  internal float attackCooldown;
-  protected internal bool canAttack = true;
-  protected internal bool willAttack = true;
-
-  protected virtual void Attack() { }
-  #endregion
-
-  #region === Camera ===
-  private void SetupCamera()
+  #region HUD & Feedback
+  // Substitui a antiga Coroutine "DelayedSetupHUD" por um método assíncrono
+  // usando o tipo nativo Awaitable do Unity (sem alocação de IEnumerator/enumerator
+  // boxing, e com suporte nativo a CancellationToken).
+  private async Awaitable SetupHUDDelayedAsync(float delay, CancellationToken token)
   {
-    Camera[] cameras = Camera.allCameras;
-    foreach (Camera camera in cameras)
+    try
     {
-      camera.TryGetComponent(out CameraLogic cameraLogic);
-      if (cameraLogic && cameraLogic.ID == ID)
-      {
-        selectedcamera = camera;
-      }
+      await Awaitable.WaitForSecondsAsync(delay, token);
+      SetupHUD();
+    }
+    catch (OperationCanceledException)
+    {
+      // Esperado quando o Player é destruído antes do delay terminar.
     }
   }
+
+  private void SetupHUD()
+  {
+    if (!GameObject.FindWithTag(TAG_GAME_CONTROLLER).TryGetComponent(out HudDirector hudDir))
+      return;
+
+    SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
+    _OnDamage.AddListener(() =>
+      hudDir.CameraShake(ID, Damage.Amplitude, Damage.Frequency, Damage.Duration)
+    );
+    CustomShake.AddListener(
+      (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
+    );
+    RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
+  }
   #endregion
-  #region === DEATH ===
+
+  #region Morte
   public override void DeathHandler()
   {
     base.DeathHandler();
-    GlobalEventBus.Instance.PLAYERTRIGGEREDDEATH.Invoke();
+    GlobalEventBus.Instance.Death.Invoke();
   }
   #endregion
-}
-
-public class PlayerContext : CombatEntityContext
-{
-  private readonly Player player;
-
-  public PlayerContext(Player player)
-    : base(player)
-  {
-    this.player = player;
-  }
-
-  public CharacterController PlayerController
-  {
-    get => player._characterController;
-  }
-  public CinemachineCamera PlayerCamera
-  {
-    get => player._cinemachineCamera;
-  }
-  public InteractableObject PlayerInteractionReference
-  {
-    get => player._interactionObject;
-  }
-  public ILockable PlayerLockedTarget
-  {
-    get => player._lockedTarget;
-  }
-  public Animator PlayerAnimator
-  {
-    get => player.animatorComp;
-  }
-  public Transform PlayerModelTransform
-  {
-    get => player._modelTransform;
-  }
-  public PlayerInput PlayerInput
-  {
-    get => player.playerInput;
-  }
-  public float PlayerSpeed
-  {
-    get => player.Speed;
-    set => player.Speed = value;
-  }
-  public float PlayerRunningSpeed
-  {
-    get => player.RunningSpeed;
-    set => player.RunningSpeed = value;
-  }
-  public float PlayerRunningAcceleration
-  {
-    get => player._accelerationRunning;
-    set => player._accelerationRunning = value;
-  }
-  public QualityTier PlayerWallSpeedMultiplier
-  {
-    get => player.wallSpeedMultiplier;
-    set => player.wallSpeedMultiplier = value;
-  }
-  public float PlayerWallJumpMultiplier
-  {
-    get => player._wallJumpMultiplier;
-    set => player._wallJumpMultiplier = value;
-  }
-  public float PlayerWallExitDuration
-  {
-    get => player.wallExitDuration;
-    set => player.wallExitDuration = value;
-  }
-  public float PlayerJumpForce
-  {
-    get => player.JumpForce;
-    set => player.JumpForce = value;
-  }
-  public bool PlayerIsRunning
-  {
-    get => player._isRunning;
-  }
-  public int PlayerMaxJumpCount
-  {
-    get => player._maxJumpCount;
-    set => player._maxJumpCount = value;
-  }
-  public float PlayerGravity
-  {
-    get => player._gravityValue;
-    set => player._gravityValue = value;
-  }
-  public float PlayerGravityUpMultiplier
-  {
-    get => player._gravityUpMultiplier;
-    set => player._gravityUpMultiplier = value;
-  }
-  public float PlayerGravityDownMultiplier
-  {
-    get => player._gravityDownMultiplier;
-    set => player._gravityDownMultiplier = value;
-  }
-  public float PlayerMaxFallSpeed
-  {
-    get => player._maxFallSpeed;
-    set => player._maxFallSpeed = value;
-  }
-  public float InitialGravityValue
-  {
-    get => player._initialGravityValue;
-  }
-  public float PlayerDashSpeed
-  {
-    get => player.DashSpeed;
-    set => player.DashSpeed = value;
-  }
-  public bool IsDashBlocked
-  {
-    get => player._isDashBlocked;
-    set => player._isDashBlocked = value;
-  }
-  public float PlayerDashCooldown
-  {
-    get => player.dashCooldown;
-    set => player.dashCooldown = value;
-  }
-  public float DashDistance
-  {
-    get => player._dashDistance;
-  }
-  public float PlayerAcceleration
-  {
-    get => player._acceleration;
-    set => player._acceleration = value;
-  }
-  public float PlayerFriction
-  {
-    get => player._friction;
-    set => player._friction = value;
-  }
-  public float PlayerAirFriction
-  {
-    get => player._airFriction;
-    set => player._airFriction = value;
-  }
-  public Vector3 PlayerMovementVector
-  {
-    get => player._movementVector;
-    set => player._movementVector = value;
-  }
-  public Vector3 PlayerDirection
-  {
-    get => player._direction;
-    set => player._direction = value;
-  }
-  public Vector3 PlayerDashDirection
-  {
-    get => player._dashDirection;
-    set => player._dashDirection = value;
-  }
-  public float PlayerDashCurrent
-  {
-    get => player._dashCurrent;
-    set => player._dashCurrent = value;
-  }
-  public float PlayerDashDuration
-  {
-    get => player._dashDuration;
-    set => player._dashDuration = value;
-  }
-  public Vector2 PlayerMoveInput
-  {
-    get => player._moveInput;
-    set => player._moveInput = value;
-  }
-  public Vector3 PlayerLastWallNormal
-  {
-    get => player._lastWallNormal;
-    set => player._lastWallNormal = value;
-  }
-  public int PlayerCurrentJumpCount
-  {
-    get => player._currentJumpCount;
-    set => player._currentJumpCount = value;
-  }
-  public bool PlayerIsGrounded
-  {
-    get => player._isGrounded;
-    set => player._isGrounded = value;
-  }
-  public bool PlayerWallSpeedApplied
-  {
-    get => player._wallSpeedApplied;
-    set => player._wallSpeedApplied = value;
-  }
-  public bool PlayerTouchingWall
-  {
-    get => player._touchingWall;
-    set => player._touchingWall = value;
-  }
-  public bool PlayerCanMove
-  {
-    get => player.CanMove;
-    set => player.CanMove = value;
-  }
-  public bool PlayerCanDash
-  {
-    get => player._canDash;
-    set => player._canDash = value;
-  }
-  public bool PlayerWillAttack
-  {
-    get => player.willAttack;
-    set => player.willAttack = value;
-  }
-  public bool PlayerCanAttack
-  {
-    get => player.canAttack;
-    set => player.canAttack = value;
-  }
-
-  public ShiftDashScript PlayerDashScript
-  {
-    get => player.dashHUDScript;
-  }
-  public bool PlayerIsDashing
-  {
-    get => player._isDashing;
-    set => player._isDashing = value;
-  }
-  public float PlayerAttackCooldown
-  {
-    get => player.attackCooldown;
-    set => player.attackCooldown = value;
-  }
-  public StateMachine<PlayerContext> PlayerHorizontalLayer
-  {
-    get => player.HorizontalLayer;
-  }
-  public StateMachine<PlayerContext> PlayerVerticalLayer
-  {
-    get => player.VerticalLayer;
-  }
-  public StackStateMachine<PlayerContext> PlayerActionLayer
-  {
-    get => player.ActionLayer;
-  }
-  public bool OverrideHorizontal
-  {
-    get => player.OverrideHorizontal;
-    set => player.OverrideHorizontal = value;
-  }
-  public bool OverrideVertical
-  {
-    get => player.OverrideVertical;
-    set => player.OverrideVertical = value;
-  }
-  public bool OverrideGlobal
-  {
-    get => player.OverrideGlobal;
-    set => player.OverrideGlobal = value;
-  }
-  public GameObject PlayerObject => player.gameObject;
-  public bool CameraLocked { get; set; } = false;
-  public bool IsHardLocked; // Trava tudo (movimento, dash, ações)
-
-  public bool IgnoreGameplayInputThisFrame { get; set; }
-
-  public bool WaitForJumpRelease;
-
-  public bool BlockJumpByDialogue = false;
 }

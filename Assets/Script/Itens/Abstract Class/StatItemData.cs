@@ -2,5 +2,6 @@ using System.Collections.Generic;
 
 public abstract class StatItemData : ItemData
 {
-    public List<StatEntry> itemStats;
+  public StatType tipoStatus;
+  public float multiplicadorStatus;
 }

@@ -1,12 +1,10 @@
-using System;
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using static TutorialGlobal;
 
 public class GameDirector : MonoBehaviour
 {
-  private bool worldStarted = false;
+  private bool _worldStarted = false;
 
   [SerializeField]
   private AudioSource backgroundMusic;
@@ -15,112 +13,91 @@ public class GameDirector : MonoBehaviour
   public PlayerDirector playerDirector;
 
   [SerializeField]
-  private DialogueTrigger introDialogue;
+  private StageIntroDirector stageIntro;
+
+  [SerializeField]
+  private StageIntroData stageData;
 
   private void Start()
   {
-    Debug.Log("GameDirector START rodou!");
-    GlobalEventBus.Instance.PLAYERTRIGGEREDPAUSE.AddListener(SetPauseWorld);
-    GlobalEventBus.Instance.PLAYERTRIGGEREDLOCKDIALOGUE.AddListener(SetLockPlayer);
+    GlobalEventBus.Instance.Pause.AddListener(SetPauseWorld);
+    GlobalEventBus.Instance.LockDialogue.AddListener(SetLockPlayer);
 
-    if (TutorialGlobal.Instance != null)
-      TutorialGlobal.Instance.OnTutorialStateChanged += OnTutorialStateChanged;
-
-    StartCoroutine(FluxoIntro());
-    // O painel de Start agora é gerenciado por outro script,
-    // então não precisamos fazer nada aqui.
+    if (Instance != null)
+      Instance.OnTutorialStateChanged += OnTutorialStateChanged;
   }
 
   private void OnDestroy()
   {
-    if (TutorialGlobal.Instance != null)
-      TutorialGlobal.Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
-  }
-
-  private void OnTutorialStateChanged(bool ativo)
-  {
-    if (!playerDirector || playerDirector.FirstPlayerContext == null)
-      return;
-
-    var ctx = playerDirector.FirstPlayerContext;
-
-    if (ativo)
+    if (GlobalEventBus.Instance != null)
     {
-      SetLockPlayer(ctx, true);
+      GlobalEventBus.Instance.Pause.RemoveListener(SetPauseWorld);
+      GlobalEventBus.Instance.LockDialogue.RemoveListener(SetLockPlayer);
     }
-    else
-    {
-      ctx.IgnoreGameplayInputThisFrame = true;
-      StartCoroutine(DestravarPlayerNextFrame(ctx));
-    }
+
+    if (Instance != null)
+      Instance.OnTutorialStateChanged -= OnTutorialStateChanged;
   }
 
-  private IEnumerator DestravarPlayerNextFrame(PlayerContext ctx)
-  {
-    yield return null;
+  // ─── Inicialização ────────────────────────────────────────────────────────
 
-    ctx.PlayerInput.actions.Disable();
-    ctx.PlayerInput.actions.Enable();
-
-    SetLockPlayer(ctx, false);
-
-    ctx.IgnoreGameplayInputThisFrame = false;
-    ctx.WaitForJumpRelease = true;
-  }
-
-  /// <summary>
-  /// Inicia o mundo após o painel de Start chamar este método.
-  /// </summary>
   public void StartWorld()
   {
-    if (worldStarted)
+    if (_worldStarted)
     {
       Debug.LogError("[GameDirector] MUNDO JÁ INICIALIZADO, LÓGICA DUPLICADA");
       return;
     }
-    worldStarted = true;
-    // 🔹 Garante que o DataSystem exista
+    _worldStarted = true;
+
     if (!DataDirector.Instance)
     {
       Debug.LogError("[GameDirector] Nenhum DataDirector encontrado na cena!");
-      return; // sem DataSystem não dá para continuar
+      return;
     }
 
-    // 🔹 Garante que o PlayerDirector exista
     if (!playerDirector)
     {
       playerDirector = FindAnyObjectByType<PlayerDirector>();
       if (!playerDirector)
-      {
         Debug.LogError(
           "[GameDirector] Nenhum PlayerDirector encontrado. Cena Debug pode continuar sem jogadores."
         );
-      }
     }
 
-    // 🔹 Garante que a música de fundo exista
     if (!backgroundMusic)
     {
       backgroundMusic = FindAnyObjectByType<AudioSource>();
       if (!backgroundMusic)
-      {
         Debug.LogError("[GameDirector] Nenhuma música de fundo encontrada.");
-      }
     }
 
-    // 🔹 Executa os sistemas que conseguir encontrar
     if (playerDirector)
-    {
       playerDirector.ActivatePlayers();
-    }
+
     if (backgroundMusic)
-    {
       backgroundMusic.Play();
-    }
+
     DataDirector.Instance.CollectScene();
 
     Debug.Log("[GameDirector] StartWorld executado com sucesso!");
+
+    if (GameContext.ShowStageIntro)
+    {
+      GameContext.ShowStageIntro = false;
+      StartCoroutine(StartStageRoutine());
+    }
+    else
+    {
+      // Apenas garante que o jogador está liberado
+      Player player = playerDirector.FirstPlayerContext;
+
+      if (player != null)
+        SetLockPlayer(player, false);
+    }
   }
+
+  // ─── Pause ────────────────────────────────────────────────────────────────
 
   public void TogglePauseWorld()
   {
@@ -129,84 +106,85 @@ public class GameDirector : MonoBehaviour
 
   public void SetPauseWorld(bool setPause)
   {
-    if (setPause && !GameState.CanPause())
+    if (setPause && !GameContext.CanPause())
       return;
 
     Time.timeScale = setPause ? 0f : 1f;
-    GameState.IsPaused = setPause;
+    GameContext.IsPaused = setPause;
 
     if (!setPause && playerDirector?.FirstPlayerContext != null)
     {
-      var ctx = playerDirector?.FirstPlayerContext;
-      ctx.IgnoreGameplayInputThisFrame = true;
-      StartCoroutine(CLearIgnoreInputNextFrame(ctx));
+      var player = playerDirector.FirstPlayerContext;
+      player.IgnoreGameplayInputThisFrame = true;
+      StartCoroutine(ClearIgnoreInputNextFrame(player));
     }
   }
 
-  public void ShutdownWorld()
+  private IEnumerator ClearIgnoreInputNextFrame(Player player)
   {
-    // Aqui você pode desativar players, limpar câmeras, salvar progresso etc.
+    yield return null;
+    player.IgnoreGameplayInputThisFrame = false;
   }
 
-  public void SetLockPlayer(PlayerContext playerContext, bool set)
+  // ─── Lock de player ───────────────────────────────────────────────────────
+
+  public void SetLockPlayer(Player player, bool set)
   {
-    if (playerContext == null)
+    if (player == null)
       return;
 
-    if (playerContext.PlayerController != null)
-      playerContext.PlayerController.enabled = !set;
+    if (player.CharacterController != null)
+      player.CharacterController.enabled = !set;
 
-    playerContext.CameraLocked = set;
-    playerContext.IsHardLocked = set;
+    player.CameraLocked = set;
+    player.IsHardLocked = set;
   }
 
-  private IEnumerator FluxoIntro()
+  // ─── Tutorial ─────────────────────────────────────────────────────────────
+
+  private void OnTutorialStateChanged(bool active)
   {
-    yield return new WaitUntil(() => DialogueGlobal.Instance != null);
-    yield return new WaitUntil(() => DialogueGlobal.Instance._painelDialogo != null);
+    if (!playerDirector || playerDirector.FirstPlayerContext == null)
+      return;
 
-    yield return null;
+    var player = playerDirector.FirstPlayerContext;
 
-    if (!playerDirector)
-      playerDirector = FindAnyObjectByType<PlayerDirector>();
-
-    if (playerDirector && playerDirector.FirstPlayerContext != null)
-      SetLockPlayer(playerDirector.FirstPlayerContext, true);
-
-    if (introDialogue != null)
+    if (active)
     {
-      DialogueGlobal.Instance.SetTrigger(introDialogue);
-
-      yield return null;
-
-      bool dialogueFinished = false;
-
-      DialogueGlobal.Instance.OndialogueEnd += () =>
-      {
-        dialogueFinished = true;
-      };
-
-      DialogueGlobal.Instance.IniciarDialogo(introDialogue._dialogo);
-
-      // 👇 ESPERA O DIÁLOGO TERMINAR
-      yield return new WaitUntil(() => dialogueFinished);
+      SetLockPlayer(player, true);
     }
-
-    // 👇 depois que o diálogo acabar o jogo continua
-    if (playerDirector && playerDirector.FirstPlayerContext != null)
+    else
     {
-      var ctx = playerDirector.FirstPlayerContext;
-
-      ctx.PlayerInput.actions.Disable();
-      ctx.PlayerInput.actions.Enable();
-
-      SetLockPlayer(ctx, false);
+      player.IgnoreGameplayInputThisFrame = true;
+      StartCoroutine(UnlockPlayerInNextFrame(player));
     }
   }
 
-  private IEnumerator CLearIgnoreInputNextFrame(PlayerContext ctx)
+  private IEnumerator UnlockPlayerInNextFrame(Player player)
   {
     yield return null;
-    ctx.IgnoreGameplayInputThisFrame = false;
+
+    player.PlayerInput.actions.Disable();
+    player.PlayerInput.actions.Enable();
+
+    SetLockPlayer(player, false);
+
+    player.IgnoreGameplayInputThisFrame = false;
+    player.WaitForJumpRelease = true;
+  }
+
+  private IEnumerator StartStageRoutine()
+  {
+    yield return null;
+
+    Player player = playerDirector.FirstPlayerContext;
+
+    if (player != null)
+      SetLockPlayer(player, true);
+
+    yield return StartCoroutine(stageIntro.Play(stageData));
+
+    if (player != null)
+      SetLockPlayer(player, false);
   }
 }

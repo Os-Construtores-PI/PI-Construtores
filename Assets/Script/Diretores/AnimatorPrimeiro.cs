@@ -5,49 +5,49 @@ using UnityEngine.UI;
 
 public class AnimatorPrimeiro : MonoBehaviour
 {
-    [SerializeField]
-    Button[] _botoes;
+  [SerializeField]
+  Button[] _botoes;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start() { }
+  // Start is called once before the first execution of Update after the MonoBehaviour is created
+  void Start() { }
 
-    // Update is called once per frame
-    void Update() { }
+  // Update is called once per frame
+  void Update() { }
 
-    private Dictionary<Button, Coroutine> animaLoops = new Dictionary<Button, Coroutine>();
+  private Dictionary<Button, Coroutine> animaLoops = new Dictionary<Button, Coroutine>();
 
-    public void AtivarAnimatorLoop()
+  public void AtivarAnimatorLoop()
+  {
+    foreach (Button botao in _botoes)
     {
-        foreach (Button botao in _botoes)
-        {
-            botao.onClick.AddListener(() => ParaAnimacao(botao));
+      botao.onClick.AddListener(() => ParaAnimacao(botao));
 
-            Coroutine loopCoroutine = StartCoroutine(AnimacaoLoop(botao));
-            animaLoops.Add(botao, loopCoroutine);
-        }
+      Coroutine loopCoroutine = StartCoroutine(AnimacaoLoop(botao));
+      animaLoops.Add(botao, loopCoroutine);
     }
+  }
 
-    private IEnumerator AnimacaoLoop(Button botao)
+  private IEnumerator AnimacaoLoop(Button botao)
+  {
+    AnimatorPrimeiro animator = botao.gameObject.GetComponent<AnimatorPrimeiro>();
+    animator.enabled = true;
+    while (true)
     {
-        AnimatorPrimeiro animator = botao.gameObject.GetComponent<AnimatorPrimeiro>();
-        animator.enabled = true;
-        while (true)
-        {
-            yield return null;
-        }
+      yield return null;
     }
+  }
 
-    public void ParaAnimacao(Button botao)
+  public void ParaAnimacao(Button botao)
+  {
+    if (animaLoops.TryGetValue(botao, out Coroutine coroutine))
     {
-        if (animaLoops.TryGetValue(botao, out Coroutine coroutine))
-        {
-            StopCoroutine(coroutine);
-            botao.gameObject.GetComponent<AnimatorPrimeiro>().enabled = false;
+      StopCoroutine(coroutine);
+      botao.gameObject.GetComponent<AnimatorPrimeiro>().enabled = false;
 
-            botao.onClick.RemoveListener(() => ParaAnimacao(botao));
-            animaLoops.Remove(botao);
+      botao.onClick.RemoveListener(() => ParaAnimacao(botao));
+      animaLoops.Remove(botao);
 
-            Debug.Log("Botao pressionada - anima��o encerrada");
-        }
+      Debug.Log("Botao pressionada - anima��o encerrada");
     }
+  }
 }

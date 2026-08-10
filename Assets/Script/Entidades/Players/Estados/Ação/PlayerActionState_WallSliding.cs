@@ -1,99 +1,157 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
-public class PlayerActionStateWallSliding : IState<PlayerContext>
+public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
 {
-    private readonly Timer wallExitTimer = new();
+  public PlayerActionType Type => PlayerActionType.Slide;
+  public HashSet<PlayerActionType> IncompatibleActions => new();
 
-    public ActionType Type => ActionType.Slide;
+  private CancellationTokenSource _wallSlideCts;
+  private CancellationTokenSource _linkedCts;
 
-    public HashSet<ActionType> IncompatibleActions => new();
+  private bool _isExiting;
+  private string _speedSourceId;
 
-    private void WallRunningTimer(PlayerContext context)
+  public void Enter(Player player)
+  {
+    _isExiting = false;
+    player.CurrentJumpCount = 1;
+    player.TouchingWall = true;
+
+    CancelWallSlideEffects(player);
+
+    _ = StartWallSlideAsync(player);
+  }
+
+  public void Exit(Player player)
+  {
+    if (_isExiting)
+      return;
+    _isExiting = true;
+
+    CancelWallSlideEffects(player);
+  }
+
+  public void Update(Player player) { }
+
+  public void FixedUpdate(Player player) { }
+
+  private async Task StartWallSlideAsync(Player player)
+  {
+    _wallSlideCts = new CancellationTokenSource();
+
+    var playerLifetime = player.GetCancellationToken();
+    _linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+      _wallSlideCts.Token,
+      playerLifetime
+    );
+
+    try
     {
-        if (!context.PlayerTouchingWall && context.PlayerWallSpeedApplied && wallExitTimer.IsDone)
-            wallExitTimer.Start(context.PlayerWallExitDuration);
+      ApplyWallEffects(player);
 
-        if (wallExitTimer.Tick(Time.deltaTime))
-        {
-            context.LiveEntityStats.RemoveActiveModifications(
-                Constants.StatsNames.Speed.ToString()
-            );
-            context.PlayerWallSpeedApplied = false;
-            context.PlayerTouchingWall = false;
-            UnBlockPlayerDash(context);
-            context.PlayerGravity = context.InitialGravityValue;
-            context.PlayerActionLayer.PopStateDeferred(context);
-        }
+      await WaitForWallExitAsync(player, _linkedCts.Token);
+
+      if (!_linkedCts.Token.IsCancellationRequested && !_isExiting)
+      {
+        await ExitWallSlideAsync(player);
+      }
+    }
+    catch (OperationCanceledException)
+    {
+      Debug.Log("[WallSlide] Efeito cancelado (provavelmente trocou de state)");
+    }
+    catch (Exception ex)
+    {
+      Debug.LogError($"[WallSlide] Erro inesperado: {ex.Message}");
+    }
+    finally
+    {
+      CleanupTokens();
+    }
+  }
+
+  private void ApplyWallEffects(Player player)
+  {
+    _speedSourceId = player.Stats.ApplyMultiplier(StatType.Speed, player.WallSpeedMultiplier);
+    player.WallSpeedApplied = true;
+
+    player.Stats.SetBool(StatType.CanDash, false);
+
+    player.GravityValue = -1.5f;
+  }
+
+  private async Task WaitForWallExitAsync(Player player, CancellationToken ct)
+  {
+    while (player.TouchingWall)
+    {
+      ct.ThrowIfCancellationRequested();
+      await Task.Yield();
     }
 
-    private void ResetWallExitTimer() => wallExitTimer.Stop();
-
-    private void BlockPlayerDash(PlayerContext context)
+    if (player.WallExitDuration > 0f)
     {
-        if (context.IsDashBlocked)
-        {
-            return;
-        }
-        context.IsDashBlocked = true;
-        context.LiveEntityStats.ModifyStatImmediate<bool>(
-            Constants.StatsNames.CanDash.ToString(),
-            ModifyTYPE.NEGATIVE,
-            QualityTier.COMMON
-        );
-    }
+      float elapsed = 0f;
+      while (elapsed < player.WallExitDuration)
+      {
+        ct.ThrowIfCancellationRequested();
 
-    private void UnBlockPlayerDash(PlayerContext context)
+        if (player.TouchingWall)
+          return;
+
+        elapsed += Time.deltaTime;
+        await Task.Yield();
+      }
+    }
+  }
+
+  private async Task ExitWallSlideAsync(Player player)
+  {
+    if (!string.IsNullOrEmpty(_speedSourceId))
     {
-        if (!context.IsDashBlocked)
-        {
-            return;
-        }
-        context.IsDashBlocked = false;
-        context.LiveEntityStats.ModifyStatImmediate<bool>(
-            Constants.StatsNames.CanDash.ToString(),
-            ModifyTYPE.POSITIVE,
-            QualityTier.COMMON
-        );
-        context.LiveEntityStats.RemoveActiveModifications(Constants.StatsNames.CanDash.ToString());
+      player.Stats.RemoveMultiplier(StatType.Speed, _speedSourceId);
+      _speedSourceId = null;
     }
+    player.WallSpeedApplied = false;
 
-    public void Enter(PlayerContext context)
+    player.Stats.SetBool(StatType.CanDash, true);
+
+    player.GravityValue = player.InitialGravityValue;
+    player.TouchingWall = false;
+
+    player.ActionLayer.ExitStateDeferred(this, player);
+  }
+
+  private void CancelWallSlideEffects(Player player)
+  {
+    _wallSlideCts?.Cancel();
+
+    if (!string.IsNullOrEmpty(_speedSourceId))
     {
-        context.OverrideHorizontal = true;
-        context.PlayerCurrentJumpCount = 1;
-        context.PlayerTouchingWall = true;
-        // só reseta se já estava fora da parede
-        if (wallExitTimer.IsActive)
-        {
-            ResetWallExitTimer();
-        }
-
-        if (!context.PlayerWallSpeedApplied)
-        {
-            context.LiveEntityStats.RemoveActiveModifications(
-                Constants.StatsNames.Speed.ToString()
-            ); // garante que não acumule
-            context.LiveEntityStats.ModifyStatImmediate<float>(
-                Constants.StatsNames.Speed.ToString(),
-                ModifyTYPE.POSITIVE,
-                context.PlayerWallSpeedMultiplier
-            );
-            context.PlayerWallSpeedApplied = true;
-            BlockPlayerDash(context);
-        }
-        context.PlayerGravity = -1.5f;
+      player.Stats.RemoveMultiplier(StatType.Speed, _speedSourceId);
+      _speedSourceId = null;
     }
+    player.Stats.SetBool(StatType.CanDash, true);
 
-    public void Exit(PlayerContext context)
-    {
-        context.OverrideHorizontal = false;
-    }
+    player.WallSpeedApplied = false;
+    player.TouchingWall = false;
+    player.GravityValue = player.InitialGravityValue;
+  }
 
-    public void FixedUpdate(PlayerContext context) { }
+  public void Dispose()
+  {
+    CleanupTokens();
+  }
 
-    public void Update(PlayerContext context)
-    {
-        WallRunningTimer(context);
-    }
+  private void CleanupTokens()
+  {
+    _wallSlideCts?.Dispose();
+    _wallSlideCts = null;
+
+    _linkedCts?.Dispose();
+    _linkedCts = null;
+  }
 }
