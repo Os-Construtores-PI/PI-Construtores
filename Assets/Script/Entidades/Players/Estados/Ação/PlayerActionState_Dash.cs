@@ -69,6 +69,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   [SerializeField]
   private float _vibrationDuration;
+
   private bool _hasHit;
   private float _currentGraceTime;
   private Player _currentPlayer;
@@ -78,8 +79,12 @@ public class PlayerActionStateDash : IPlayerState<Player>
   private float _targetVerticalVelocity;
   private Tween _verticalTween;
 
+  // KCC: guarda a direção do dash para o pipeline de velocidade
+  private Vector3 _dashVelocity;
+  private bool _isInGraceTime;
+
   public PlayerActionType Type => PlayerActionType.Dash;
-  public HashSet<PlayerActionType> IncompatibleActions => new() { { PlayerActionType.GroundSlam } };
+  public HashSet<PlayerActionType> IncompatibleActions => new() { PlayerActionType.GroundSlam };
 
   public void Enter(Player player)
   {
@@ -107,6 +112,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
     timeToExitWalker = 0f;
     _currentVerticalVelocity = 0f;
     _targetVerticalVelocity = 0f;
+    _isInGraceTime = false;
+    _dashVelocity = Vector3.zero;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
@@ -157,6 +164,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
     player.IsDashing = true;
     player.CanDash = false;
 
+    player.Motor.Engine.ForceUnground(0.1f);
+
     player.EffectsSystem.PlayEffect(EntityEffectType.PlayerDashEffect, player.DashDuration);
     player.CurrentDashCount += 1;
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.Dash);
@@ -171,16 +180,41 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   public void FixedUpdate(Player player)
   {
-    if (_hasHit && _currentGraceTime > 0f)
+    // Timer de saída
+    if (timeToExitWalker < timeToExit && player.IsDashing)
+    {
+      timeToExitWalker += Time.fixedDeltaTime;
+    }
+    else
+    {
+      player.ActionLayer.ExitStateDeferred(this, player);
+      timeToExitWalker = 0f;
+    }
+
+    // Atualiza rotação durante o dash (seguir alvo)
+    if (player.LockedTarget != null && !_isInGraceTime)
+    {
+      Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
+      if (diff.sqrMagnitude > 0.1f)
+      {
+        player.DashDirection = diff.normalized;
+        player.transform.rotation = Quaternion.Slerp(
+          player.transform.rotation,
+          Quaternion.LookRotation(player.DashDirection),
+          40f * Time.fixedDeltaTime
+        );
+      }
+    }
+
+    // Grace time: atualiza direção e rotação, mas NÃO move aqui
+    if (_isInGraceTime && _currentGraceTime > 0f)
     {
       _currentGraceTime -= Time.fixedDeltaTime;
 
       float elapsedT = 1f - Mathf.Clamp01(_currentGraceTime / _graceTimeDuration);
       _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(elapsedT) * _bounceUpwardForce;
 
-      Vector3 verticalMovement = Vector3.up * _currentVerticalVelocity * Time.fixedDeltaTime;
-      player.CharacterController.Move(verticalMovement);
-
+      // Atualiza direção durante grace time
       Vector3 newDir = Vector3.zero;
       if (player.LockedTarget != null)
       {
@@ -201,24 +235,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
         );
       }
     }
-    else
-    {
-      if (player.LockedTarget != null)
-      {
-        Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
-        if (diff.sqrMagnitude > 0.1f)
-        {
-          player.DashDirection = diff.normalized;
-          player.transform.rotation = Quaternion.Slerp(
-            player.transform.rotation,
-            Quaternion.LookRotation(player.DashDirection),
-            40f * Time.fixedDeltaTime
-          );
-        }
-      }
-    }
-
-    ExitTimer(player);
   }
 
   public void Update(Player player) { }
@@ -250,18 +266,41 @@ public class PlayerActionStateDash : IPlayerState<Player>
     {
       Vector3 postDash =
         new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
-      player.MovementVector += postDash;
+      player.Motor.Engine.BaseVelocity = postDash;
     }
     else
     {
-      player.MovementVector = new Vector3(
-        player.MovementVector.x,
-        _currentVerticalVelocity * 0.5f,
-        player.MovementVector.z
-      );
+      player.Motor.Engine.BaseVelocity = new Vector3(0, _currentVerticalVelocity * 0.5f, 0);
     }
 
     ResetDashHUD(player.DashHudScript);
+  }
+
+  public bool UpdateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
+  {
+    if (_isInGraceTime && _currentGraceTime > 0f)
+    {
+      Vector3 inputDir = Vector3.zero;
+      if (player.MoveInput != Vector2.zero)
+      {
+        inputDir = CalculateRawInputDirection(player);
+      }
+      else if (player.LockedTarget != null)
+      {
+        inputDir = (player.LockedTarget.transform.position - player.transform.position).normalized;
+        inputDir.y = 0;
+      }
+
+      float horizontalSpeed = player.Speed * 0.3f;
+      Vector3 horizontalVel = inputDir * horizontalSpeed;
+
+      currentVelocity = new Vector3(horizontalVel.x, _currentVerticalVelocity, horizontalVel.z);
+
+      return true;
+    }
+
+    currentVelocity = player.DashDirection * player.DashSpeed;
+    return true;
   }
 
   private void OnDashHitDetected()
@@ -270,12 +309,14 @@ public class PlayerActionStateDash : IPlayerState<Player>
       return;
 
     _hasHit = true;
+    _isInGraceTime = true;
     _currentGraceTime = _graceTimeDuration;
-
     timeToExit += _graceTimeDuration;
 
     _dashHitboxCollider.enabled = false;
-    _currentPlayer.MovementVector = Vector3.zero;
+
+    _currentPlayer.Motor.Engine.BaseVelocity = Vector3.zero;
+
     _currentPlayer.CurrentDashCount = 0;
     _currentPlayer.transform.up = Vector3.up;
     _currentPlayer.CustomShake.Invoke(
@@ -301,26 +342,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
     return (
       camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
     ).normalized;
-  }
-
-  private void ExitTimer(Player player)
-  {
-    if (timeToExitWalker < timeToExit && player.IsDashing)
-    {
-      timeToExitWalker += Time.fixedDeltaTime;
-
-      if (!(_hasHit && _currentGraceTime > 0f))
-      {
-        player.CharacterController.Move(
-          player.DashSpeed * Time.fixedDeltaTime * player.DashDirection
-        );
-      }
-    }
-    else
-    {
-      player.ActionLayer.ExitStateDeferred(this, player);
-      timeToExitWalker = 0f;
-    }
   }
 
   private float ComputeDashSpeed(float distance)

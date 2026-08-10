@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class StackStateMachine<T> : PlayerStateMachine<T>
@@ -15,7 +16,12 @@ public class StackStateMachine<T> : PlayerStateMachine<T>
 
   // ── Properties ───────────────────────────────────────────────────────────
 
-  public IPlayerState<T> Current => _stateStack.Count > 0 ? _stateStack.Peek() : null;
+  public IPlayerState<T> CurrentTopState => _stateStack.Count > 0 ? _stateStack.Peek() : null;
+
+  public IEnumerable<IPlayerState<T>> GetCurrentStates()
+  {
+    return _stateStack.ToArray();
+  }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -135,5 +141,17 @@ public class StackStateMachine<T> : PlayerStateMachine<T>
     _stateStack.Clear();
     for (int i = orderedBottomToTop.Count - 1; i >= 0; i--)
       _stateStack.Push(orderedBottomToTop[i]);
+  }
+
+  public void ApplyKCCVelocity(T entity, ref Vector3 currentVelocity, float deltaTime)
+  {
+    var states = _stateStack.ToArray();
+
+    foreach (var state in states)
+    {
+      bool blocked = state.UpdateKCCVelocity(entity, ref currentVelocity, deltaTime);
+      if (blocked)
+        break;
+    }
   }
 }

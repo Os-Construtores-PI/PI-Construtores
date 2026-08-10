@@ -179,7 +179,7 @@ public class PlayerDirector : MonoBehaviour
     if (!_playerCameras.ContainsKey(id))
       SetupCamera(player, viewport);
 
-    player.MovementVector = Vector3.zero;
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
 
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
 

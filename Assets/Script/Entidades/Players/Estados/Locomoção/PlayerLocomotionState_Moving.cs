@@ -11,17 +11,24 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
   private bool _coyoteStarted = false;
   private const float CoyoteInterval = 0.3f;
 
+  // ─── Estado Interno ───────────────────────────────────────────────────────
+  private bool _wasGrounded;
+  private bool _justLanded = false;
+  private bool _requestBounce = false;
+
   // ─── Enter / Exit ─────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
-    _wasGrounded = player.IsGrounded;
+    _wasGrounded = player.Motor.IsGrounded;
+    _justLanded = false;
+    _requestBounce = false;
 
     player.Stats.AddStat(StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
     player.Stats.AddStat(StatType.RunAccelMultiplier, player.RunAccelMultiplier);
 
-    if (player.IsGrounded)
-      OnLanded(player);
+    if (player.Motor.IsGrounded)
+      ApplyLandingLogic(player);
   }
 
   public void Exit(Player player)
@@ -39,29 +46,30 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
 
   public void FixedUpdate(Player player)
   {
-    if (player.IsGrounded)
-      HandleGrounded(player);
-    else
-      HandleAirborne(player);
+    if (!player.Motor.IsGrounded && _wasGrounded)
+    {
+      _wasGrounded = false;
+    }
 
-    HandleHorizontalMovement(player);
+    if (player.Motor.IsGrounded && !_wasGrounded)
+    {
+      _wasGrounded = true;
+      _justLanded = true;
+
+      ApplyLandingLogic(player);
+    }
+
+    if (!player.Motor.IsGrounded && player.ActionLayer.GetActive<PlayerActionStateJump>() == null)
+    {
+      HandleCoyoteTime(player);
+    }
+
+    HandleRotation(player);
   }
 
-  // ─── Grounded ─────────────────────────────────────────────────────────────
+  // ─── Landing Logic ────────────────────────────────────────────────────────
 
-  private bool _wasGrounded;
-
-  private void HandleGrounded(Player player)
-  {
-    if (!_wasGrounded)
-      OnLanded(player);
-
-    _wasGrounded = true;
-    _coyoteStarted = false;
-    _coyoteTimer.Stop();
-  }
-
-  private void OnLanded(Player player)
+  private void ApplyLandingLogic(Player player)
   {
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
@@ -69,27 +77,28 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     player.CanDash = true;
     player.JumpInteractionPressed = false;
 
-    var move = player.MovementVector;
-    move.y = -1f;
-    player.MovementVector = move;
-
     if (player.GroundSlamImpactSpeed > 0f)
     {
-      player.ActionLayer.PushState(player.Bounce, player);
-      player.ActionLayer.PushStateDeferred(player.Jump, player);
+      _requestBounce = true;
     }
   }
 
-  // ─── Airborne ─────────────────────────────────────────────────────────────
+  // ─── Rotação (Visual) ─────────────────────────────────────────────────────
 
-  private void HandleAirborne(Player player)
+  private void HandleRotation(Player player)
   {
-    _wasGrounded = false;
-    ILocomotionState<Player>.ApplyGravity(player);
+    if (player.MoveInput == Vector2.zero)
+      return;
 
-    if (player.ActionLayer.GetActive<PlayerActionStateJump>() == null)
-      HandleCoyoteTime(player);
+    Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
+    player.transform.rotation = Quaternion.Slerp(
+      player.transform.rotation,
+      Quaternion.LookRotation(direction),
+      10f * Time.fixedDeltaTime
+    );
   }
+
+  // ─── Coyote Time ──────────────────────────────────────────────────────────
 
   private void HandleCoyoteTime(Player player)
   {
@@ -99,52 +108,70 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
       _coyoteStarted = true;
     }
 
-    if (_coyoteTimer.Tick(Time.deltaTime))
+    if (_coyoteTimer.Tick(Time.fixedDeltaTime))
     {
       _coyoteStarted = false;
-      player.ActionLayer.ExitStateDeferred(player.Bounce, player);
     }
   }
 
-  // ─── Horizontal Movement ──────────────────────────────────────────────────
+  // ─── KCC: CalculateKCCVelocity ────────────────────────────────────────────
 
-  private void HandleHorizontalMovement(Player player)
+  public void CalculateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
   {
-    if (!player.IsGrounded && player.IsImpulsioned && player.MoveInput == Vector2.zero)
-      return;
+    if (_justLanded)
+    {
+      _justLanded = false;
+      currentVelocity.y = -1f;
+    }
 
     float speedMult = GetStatValue(player, StatType.RunSpeedMultiplier, player.RunSpeedMultiplier);
     float accelMult = GetStatValue(player, StatType.RunAccelMultiplier, player.RunAccelMultiplier);
 
     float speed = player.IsRunning ? player.Speed * speedMult : player.Speed;
     float accel = player.IsRunning
-      ? (player.IsGrounded ? player.Acceleration * accelMult : player.Acceleration)
-      : (player.IsGrounded ? player.Acceleration : player.Acceleration);
-    float friction = player.IsGrounded ? player.Friction : player.AirFriction;
+      ? (player.Motor.IsGrounded ? player.Acceleration * accelMult : player.Acceleration)
+      : (player.Motor.IsGrounded ? player.Acceleration : player.Acceleration);
+    float friction = player.Motor.IsGrounded ? player.Friction : player.AirFriction;
 
-    if (player.MoveInput == Vector2.zero)
+    Vector3 horizontalVel = new(currentVelocity.x, 0f, currentVelocity.z);
+
+    bool hasInput = player.MoveInput.sqrMagnitude > 0.1f;
+
+    if (!hasInput)
     {
-      var move = player.MovementVector;
-      move.x = QualityOfLife.PlayerFriction(move.x, friction, player.MoveInput);
-      move.z = QualityOfLife.PlayerFriction(move.z, friction, player.MoveInput);
-      player.MovementVector = move;
-      return;
+      float holspeed = horizontalVel.magnitude;
+      float newSpeed = Mathf.MoveTowards(holspeed, 0f, friction * deltaTime);
+
+      if (newSpeed <= 0.5f)
+      {
+        horizontalVel = Vector3.zero;
+      }
+      else
+      {
+        horizontalVel = horizontalVel.normalized * newSpeed;
+      }
+    }
+    else
+    {
+      Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
+
+      if (direction.sqrMagnitude > 0.01f)
+        player.Direction = direction;
+
+      horizontalVel.x = QualityOfLife.SmoothStepLerp(horizontalVel.x, direction.x * speed, accel);
+      horizontalVel.z = QualityOfLife.SmoothStepLerp(horizontalVel.z, direction.z * speed, accel);
     }
 
-    Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
+    if (!player.Motor.IsGrounded && player.IsImpulsioned && player.MoveInput == Vector2.zero) { }
 
-    player.transform.rotation = Quaternion.Slerp(
-      player.transform.rotation,
-      Quaternion.LookRotation(direction),
-      10f * Time.deltaTime
-    );
+    if (player.Motor.IsGrounded)
+    {
+      currentVelocity.y = -0.1f;
+    }
 
-    var m = player.MovementVector;
-    player.MovementVector = new Vector3(
-      QualityOfLife.SmoothStepLerp(m.x, direction.x * speed, accel),
-      m.y,
-      QualityOfLife.SmoothStepLerp(m.z, direction.z * speed, accel)
-    );
+    ILocomotionState<Player>.ApplyGravity(ref currentVelocity, player, deltaTime);
+
+    currentVelocity = new Vector3(horizontalVel.x, currentVelocity.y, horizontalVel.z);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────

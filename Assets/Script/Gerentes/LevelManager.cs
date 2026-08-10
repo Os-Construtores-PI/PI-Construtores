@@ -209,7 +209,7 @@ public class LevelManager : MonoBehaviour
 
       player.transform.SetParent(null, true);
       player.ActionLayer.PopEveryState(player);
-      player.MovementVector = Vector3.zero;
+      player.Motor.Velocity = Vector3.zero;
 
       Debug.Log($"[LevelManager] SetParent(null) aplicado em {player.name}.");
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DG.Tweening;
+using KinematicCharacterController;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,7 +14,7 @@ using UnityEngine.Splines;
 using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
-[RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
+[RequireComponent(typeof(KinematicCharacterMotor), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator), typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
@@ -124,7 +125,7 @@ public class Player : CombatEntities
   private AudioSource _playerAudioSource;
 
   [HideInInspector]
-  public CharacterController CharacterController;
+  public PlayerMotor Motor;
 
   [HideInInspector]
   public CinemachineCamera MainCamera;
@@ -162,7 +163,6 @@ public class Player : CombatEntities
   public PlayerActionStateWallSliding WallSliding = new();
   public PlayerActionStateGroundSlam GroundSlam = new();
   public PlayerActionStateBoost Boost = new();
-  public PlayerActionStateBounce Bounce = new();
   public PlayerActionStateJump Jump = new();
   public PlayerActionStateRailSlide RailSlide = new();
 
@@ -172,8 +172,6 @@ public class Player : CombatEntities
   #endregion
 
   #region Estado Interno
-  [HideInInspector]
-  public Vector3 MovementVector;
 
   [HideInInspector]
   public Vector3 Direction;
@@ -204,9 +202,6 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public int CurrentJumpCount = 0;
-
-  [HideInInspector]
-  public bool IsGrounded;
 
   [HideInInspector]
   public bool WantsToCancelRailSlide;
@@ -403,7 +398,7 @@ public class Player : CombatEntities
 
     if (_currentComboIndex == _stagesOfCombo.Count - 1)
     {
-      ImpactPopupType impact = IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
+      ImpactPopupType impact = Motor.IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
       GlobalEventBus.Instance.MaxComboReached.Invoke(ID, impact);
     }
   }
@@ -596,7 +591,7 @@ public class Player : CombatEntities
 
     _lifetimeCts = new CancellationTokenSource();
 
-    CharacterController = GetComponent<CharacterController>();
+    Motor = GetComponent<PlayerMotor>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
@@ -645,27 +640,27 @@ public class Player : CombatEntities
 
   public void FixedUpdate()
   {
-    if (!CharacterController.enabled)
+    if (!Motor.enabled)
       return;
 
-    IsGrounded = CharacterController.isGrounded;
     UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
-    CollisionFlags flags = CharacterController.Move(MovementVector * Time.fixedDeltaTime);
-
-    if ((flags & CollisionFlags.Below) != 0)
-    {
-      CheckDeathGround();
-    }
+    CheckDeathGround();
   }
 
   private void CheckDeathGround()
   {
-    Vector3 origin = transform.position + CharacterController.center;
-    float radius = CharacterController.radius;
+    CapsuleCollider capsuleCollider = Motor.Engine.Capsule;
+    Vector3 origin = transform.position + capsuleCollider.center;
+    float radius = capsuleCollider.radius;
 
-    Collider[] hits = Physics.OverlapSphere(origin, radius, LayerMask.GetMask("DeathZone"));
+    Collider[] hits = Physics.OverlapSphere(
+      origin,
+      radius,
+      LayerMask.GetMask("DeathZone"),
+      QueryTriggerInteraction.Collide
+    );
 
     if (hits.Length <= 0)
       return;
@@ -689,13 +684,16 @@ public class Player : CombatEntities
   #region Helpers de Inicialização
   private void UpdateAnimator()
   {
-    Vector3 vel = CharacterController.velocity;
+    Vector3 vel = Motor.Engine.Velocity;
     AnimatorComponent.SetFloat(Constants.AnimatorFloatNames.VelocityY, vel.y);
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityX,
-      new Vector2(vel.x, vel.z).sqrMagnitude
-    );
-    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
+    if (MoveInput.sqrMagnitude >= 0.1f)
+    {
+      AnimatorComponent.SetFloat(
+        Constants.AnimatorFloatNames.VelocityX,
+        new Vector2(vel.x, vel.z).sqrMagnitude
+      );
+    }
+    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, Motor.IsGrounded);
   }
 
   private void SetupDashHUD()
@@ -820,9 +818,9 @@ public class Player : CombatEntities
         return null;
 
       Vector3 moveDir =
-        MovementVector.sqrMagnitude > SQR_EPSILON
-          ? MovementVector.normalized
-          : CharacterController.velocity.normalized;
+        Motor.Engine.Velocity.sqrMagnitude > SQR_EPSILON
+          ? Motor.Engine.Velocity.normalized
+          : Motor.Engine.Velocity.normalized;
       if (moveDir.sqrMagnitude < SQR_EPSILON)
         return null;
 
@@ -886,7 +884,7 @@ public class Player : CombatEntities
     if (!context.performed)
       return;
 
-    if (IsGrounded)
+    if (Motor.IsGrounded)
     {
       ActionLayer.PushState(Boost, this);
       return;
@@ -901,7 +899,7 @@ public class Player : CombatEntities
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {
-    if (context.performed && !IsGrounded)
+    if (context.performed && !Motor.IsGrounded)
       ActionLayer.PushState(GroundSlam, this);
   }
 
@@ -935,7 +933,7 @@ public class Player : CombatEntities
 
     if (!context.started)
       return;
-    if (!IsGrounded)
+    if (!Motor.IsGrounded)
       JumpInteractionPressed = true;
     TryJump();
   }

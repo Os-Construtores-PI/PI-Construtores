@@ -133,8 +133,8 @@ public class GameDirector : MonoBehaviour
     if (player == null)
       return;
 
-    if (player.CharacterController != null)
-      player.CharacterController.enabled = !set;
+    if (player.Motor != null)
+      player.Motor.enabled = !set;
 
     player.CameraLocked = set;
     player.IsHardLocked = set;

@@ -22144,12 +22144,14 @@ GameObject:
   m_Component:
   - component: {fileID: 8092701047622248497}
   - component: {fileID: 4498598552815147647}
-  - component: {fileID: 5415903359890369513}
   - component: {fileID: 4848141862502818215}
   - component: {fileID: 6754862074013953145}
   - component: {fileID: -2005523811532062704}
   - component: {fileID: 151097714311735710}
   - component: {fileID: 1571673813378275627}
+  - component: {fileID: 3891039080429450042}
+  - component: {fileID: 4730961457382807506}
+  - component: {fileID: 5295768291384694974}
   m_Layer: 6
   m_Name: Pandora
   m_TagString: Player
@@ -22203,31 +22205,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!143 &5415903359890369513
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4222843589467225069}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Height: 1.75
-  m_Radius: 0.5
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.01
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4848141862502818215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22480,7 +22457,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentHealthDebug: 0
   _maxHealth: 100
-  _defense: 10
   Stats:
     OnNumModified:
       m_PersistentCalls:
@@ -22512,7 +22488,7 @@ MonoBehaviour:
   DashHudScript: {fileID: 0}
   _cameraTarget: {fileID: 6230178497730834178}
   _playerAudioSource: {fileID: 151097714311735710}
-  CharacterController: {fileID: 0}
+  Motor: {fileID: 0}
   MainCamera: {fileID: 0}
   BoostCamera: {fileID: 0}
   _cinemachineInput: {fileID: 0}
@@ -22527,6 +22503,8 @@ MonoBehaviour:
     _maxDashSpeed: 120
     _maxReferenceDistance: 20
     _speedExponent: 0.1
+    _hitRumbleLowFrequency: 0.5
+    _hitRumbleHighFrequency: 0.1
     _bounceUpwardForce: 60
     _graceTimeDuration: 0.35
     _hitStopTimeScale: 0.05
@@ -22581,7 +22559,13 @@ MonoBehaviour:
     _continuousBoostUsage: 10
     _maxVelocity: 1000
     _rotationSpeed: 100
+    _runRumbleLowFrequency: 0.1
+    _runRumbleHighFrequency: 0.2
+    _hitRumbleLowFrequency: 0.5
+    _hitRumbleHighFrequency: 0.8
+    _hitRumbleDuration: 0.2
     _boostHitboxCollider: {fileID: 1941590432395012080}
+    _boostHitboxComponent: {fileID: 0}
     _boostCollectionCollider: {fileID: 0}
   Bounce:
     BounceWindowDuration: 0.4
@@ -22610,7 +22594,6 @@ MonoBehaviour:
   TouchingWall: 0
   IsDashBlocked: 0
   CurrentJumpCount: 0
-  IsGrounded: 0
   WantsToCancelRailSlide: 0
   IsDashing: 0
   MaxDashCount: 1
@@ -22820,6 +22803,84 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 10
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!136 &3891039080429450042
+CapsuleCollider:
+  m_ObjectHideFlags: 8
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4730961457382807506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d1bc5515e3ab954e80599c538834774, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KinematicCharacterController.KinematicCharacterMotor
+  Capsule: {fileID: 3891039080429450042}
+  CapsuleRadius: 0.5
+  CapsuleHeight: 1.8
+  CapsuleYOffset: 0
+  CapsulePhysicsMaterial: {fileID: 0}
+  GroundDetectionExtraDistance: 0
+  MaxStableSlopeAngle: 60
+  StableGroundLayers:
+    serializedVersion: 2
+    m_Bits: 129
+  DiscreteCollisionEvents: 0
+  StepHandling: 1
+  MaxStepHeight: 0.5
+  AllowSteppingWithoutStableGrounding: 0
+  MinRequiredStepDepth: 0.1
+  LedgeAndDenivelationHandling: 1
+  MaxStableDistanceFromLedge: 0.5
+  MaxVelocityForLedgeSnap: 0
+  MaxStableDenivelationAngle: 180
+  InteractiveRigidbodyHandling: 1
+  RigidbodyInteractionType: 0
+  SimulatedCharacterMass: 1
+  PreserveAttachedRigidbodyMomentum: 1
+  HasPlanarConstraint: 0
+  PlanarConstraintAxis: {x: 0, y: 0, z: 1}
+  MaxMovementIterations: 5
+  MaxDecollisionIterations: 1
+  CheckMovementInitialOverlaps: 1
+  KillVelocityWhenExceedMaxMovementIterations: 1
+  KillRemainingMovementWhenExceedMaxMovementIterations: 1
+--- !u!114 &5295768291384694974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 092ea10340291dc4f8802ab7c34503ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  _player: {fileID: 6754862074013953145}
 --- !u!1 &4291314761729171403
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,8 +13,8 @@ public class DirectionalTrampoline : LockableInteractableObject
   public override void Interaction(Player player)
   {
     _canJump = false;
-    player.MovementVector = Vector3.zero;
-    player.MovementVector = transform.up * _impulseForce;
+    player.Motor.Velocity = Vector3.zero;
+    player.Motor.Velocity = transform.up * _impulseForce;
     player.IsImpulsioned = true;
     player.CurrentDashCount = 0;
     player.BoostValue += _boostGrace;

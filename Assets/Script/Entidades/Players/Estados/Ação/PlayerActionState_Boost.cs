@@ -160,9 +160,9 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     _boostSpeedRatio = 0f;
 
-    float currentYVelocity = player.MovementVector.y;
-    player.MovementVector = Vector3.zero;
-    player.MovementVector.y = currentYVelocity;
+    float currentYVelocity = player.Motor.Engine.Velocity.y;
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
+    player.Motor.Engine.BaseVelocity.y = currentYVelocity;
 
     Gamepad.current?.SetMotorSpeeds(0, 0);
 
@@ -225,9 +225,9 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     }
 
     Vector3 newMovementVector = player.transform.forward * player.Speed;
-    newMovementVector.y = player.MovementVector.y;
+    newMovementVector.y = player.Motor.Engine.Velocity.y;
 
-    player.MovementVector = newMovementVector;
+    player.Motor.Engine.BaseVelocity = newMovementVector;
 
     if (!player.PlayerInput.actions.FindAction("Dash / Boost").IsPressed())
     {
