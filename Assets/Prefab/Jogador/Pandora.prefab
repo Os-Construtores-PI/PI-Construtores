@@ -22549,6 +22549,13 @@ MonoBehaviour:
     _groundSlamHitboxCollider: {fileID: 5232564754573124142}
     SlamForce: 200
     MaxImpactCap: 30
+    BounceConversionRate: 0.85
+    BounceFrontImpulse: 50
+    BounceComboBonus:
+    - 0
+    - 0.25
+    - 0.55
+    - 0.9
   Boost:
     _defaultFOV: 90
     _boostFOV: 130
@@ -22567,11 +22574,6 @@ MonoBehaviour:
     _boostHitboxCollider: {fileID: 1941590432395012080}
     _boostHitboxComponent: {fileID: 0}
     _boostCollectionCollider: {fileID: 0}
-  Bounce:
-    BounceWindowDuration: 0.4
-    MaxBounceCombo: 3
-    BounceFrontImpulse: 60
-    BounceConversionRate: 0.85
   Jump:
     _jumpHeightMultiplierPerExtraJump: 0.35
     _wallJumpHorizontalBias: 6.5
@@ -22581,9 +22583,8 @@ MonoBehaviour:
     _exitVelocityMultiplier: 1.35
     _exitVerticalBias: 1.6
     _exitMinHorizontalSpeed: 8
-    _modelOffset: {x: 0, y: 2, z: 0}
-    _slideIncrementScore: 1
-  MovementVector: {x: 0, y: 0, z: 0}
+    _modelOffset: {x: 0, y: 1.5, z: 0}
+    _slideIncrementScore: 20
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
   MoveInput: {x: 0, y: 0}

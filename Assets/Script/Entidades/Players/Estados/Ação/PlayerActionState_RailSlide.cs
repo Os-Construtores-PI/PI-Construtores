@@ -59,6 +59,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private int _slideIncrementScore = 1;
 
+  [HideInInspector]
   public event Action<int> OnScoreAwarded;
 
   private CancellationTokenSource _exitBuffCts;
@@ -112,6 +113,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     Vector3 tangentWorld = CurrentRail.transform.TransformDirection(tangentLocal);
     float angle = Vector3.Angle(tangentWorld, player.transform.forward);
     _direction = angle > 90f ? -1f : 1f;
+    player.Motor.OverrideMotorRotation = true;
 
     SetupPlayerForSlide(player);
     _isActive = true;
@@ -218,7 +220,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
     if (tangent.sqrMagnitude > 0.0001f)
     {
-      player.transform.rotation = Quaternion.LookRotation(tangent * _direction, up);
+      player.Motor.Engine.SetRotation(Quaternion.LookRotation(tangent * _direction, up));
     }
 
     Vector3 finalPos = splinePos + ComputeOffsetFromVectors(up, tangent);
@@ -313,6 +315,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.CurrentDashCount = 0;
     player.SpeedLines?.Invoke(false);
     player.LocomotionLayer.ChangeState(player.Moving, player);
+    player.Motor.OverrideMotorRotation = false;
   }
 
   public void Dispose()

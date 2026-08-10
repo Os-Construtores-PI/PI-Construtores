@@ -17,6 +17,8 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
     set => Engine.BaseVelocity = value;
   }
 
+  public bool OverrideMotorRotation { get; set; } = false;
+
   public void SetVelocity(Vector3 velocity) => Engine.BaseVelocity = velocity;
 
   public void ResetVelocity() => Engine.BaseVelocity = Vector3.zero;
@@ -51,6 +53,9 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
 
   public void UpdateRotation(ref Quaternion currentRotation, float deltaTime)
   {
+    if (OverrideMotorRotation)
+      return;
+
     if (_player.Direction.sqrMagnitude > 0.01f)
     {
       Quaternion targetRot = Quaternion.LookRotation(_player.Direction, Engine.CharacterUp);

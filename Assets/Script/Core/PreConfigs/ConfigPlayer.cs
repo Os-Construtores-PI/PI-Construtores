@@ -75,10 +75,6 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private int maximoDeDashes;
 
-  [Header("MECÂNICA [TROCA DE JOGADOR]")]
-  [SerializeField]
-  private float cooldownTrocaJogador;
-
   [Header("MECÂNICA [CORRIDA NA PAREDE]")]
   [SerializeField]
   private float multiplicadorVelocidadeParede;

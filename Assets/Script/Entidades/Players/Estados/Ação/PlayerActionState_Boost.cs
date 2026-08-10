@@ -77,7 +77,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   private CancellationTokenSource _hitRumbleCts;
 
-  private float _playerOriginalSpeed;
   private float _boostSpeedRatio;
   private string _boostSourceId;
 
@@ -90,10 +89,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     float boostSpeed = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
     _boostSpeedRatio = boostSpeed / player.Speed;
 
-    _playerOriginalSpeed = player.Speed;
     _boostRotation = player.transform.rotation;
 
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
+    player.Motor.OverrideMotorRotation = true;
 
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
 
@@ -163,6 +162,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     float currentYVelocity = player.Motor.Engine.Velocity.y;
     player.Motor.Engine.BaseVelocity = Vector3.zero;
     player.Motor.Engine.BaseVelocity.y = currentYVelocity;
+    player.Motor.OverrideMotorRotation = false;
 
     Gamepad.current?.SetMotorSpeeds(0, 0);
 
@@ -218,10 +218,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     if (Mathf.Abs(turnInput) > 0.01f)
     {
       _boostRotation *= Quaternion.AngleAxis(
-        turnInput * _rotationSpeed * Time.deltaTime,
+        turnInput * _rotationSpeed * Time.fixedDeltaTime,
         Vector3.up
       );
-      player.transform.rotation = _boostRotation;
+      player.Motor.Engine.SetRotation(_boostRotation);
     }
 
     Vector3 newMovementVector = player.transform.forward * player.Speed;

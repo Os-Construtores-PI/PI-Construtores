@@ -44,13 +44,15 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private float _hitRumbleHighFrequency = 0.1f;
 
-  [Header("Configurações de Quicada e GraceTime")]
+  [Header("Configurações de Quicada")]
   [SerializeField]
   private float _bounceUpwardForce = 6f;
 
+  [Header("Configurações de GraceTime")]
   [SerializeField]
   private float _graceTimeDuration = 0.35f;
 
+  [Header("Configurações de Hitstop")]
   [SerializeField]
   private float _hitStopTimeScale = .05f;
 
@@ -74,13 +76,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
   private float _currentGraceTime;
   private Player _currentPlayer;
   private HitboxComponent _hitboxComponent;
-
   private float _currentVerticalVelocity;
-  private float _targetVerticalVelocity;
   private Tween _verticalTween;
-
-  // KCC: guarda a direção do dash para o pipeline de velocidade
-  private Vector3 _dashVelocity;
   private bool _isInGraceTime;
 
   public PlayerActionType Type => PlayerActionType.Dash;
@@ -111,9 +108,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _currentGraceTime = 0f;
     timeToExitWalker = 0f;
     _currentVerticalVelocity = 0f;
-    _targetVerticalVelocity = 0f;
     _isInGraceTime = false;
-    _dashVelocity = Vector3.zero;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);

@@ -230,6 +230,8 @@ public class Player : CombatEntities
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
+
+  [HideInInspector]
   public DeviceType LastDevice = DeviceType.Keyboard;
   #endregion
 
