@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -16,13 +17,100 @@ public class BasicMenuLogic : MonoBehaviour
   [SerializeField] private float selectableScale = 1.08f;
   [SerializeField] private float scaleSpeed = 10f;
 
+  [Header("Pause Animation")]
+  [SerializeField] GameObject _pausePanel;
+
+  [SerializeField] private float _pauseEntranceDistance = 1200f;
+
+  [SerializeField] private float _pauseEntranceSpeed = 10f;
+
+  [SerializeField] private Button[] _pauseButtons;
+
+  [SerializeField] private float _buttonsDelay = 0.08f;
+
+  [SerializeField] private float _buttonAnimationSpeed = 12f;
+
 
   private Button _currentButton;
   private Vector3 _currentTargetScale = Vector3.one;
 
   [SerializeField] private LoadingScreen _loadingScreen;
 
+  private Vector3 _pauseFinalPosition;
+  private Vector3 _pauseStartPosition;
+
+  private bool _pauseAnimating;
+  private bool _pauseButtonsAnimating;
+
+  private float _pauseTimer;
+
+  private CanvasGroup[] _buttonsGroup;
+
+  private Vector3[] _buttonsStartScales;
+
+  private bool _pauseInitialized;
+
   #region  === MENU GAMEOVER ===
+
+  private void Awake()
+  {
+    
+  }
+
+  private void SetupPauseAnimation()
+  {
+    if(_pausePanel == null)
+    {
+      Debug.LogWarning(
+        "[BasicMenuLogic] Pause Panel não foi definido");
+      return;
+    }
+
+    // Guarda a posição ORIGINAL do prefab
+    _pauseFinalPosition = 
+      _pausePanel.transform.localPosition;
+
+    //Posição inicial: esquerda.
+    _pauseStartPosition =
+      _pauseFinalPosition +
+      Vector3.left * _pauseEntranceDistance;
+
+    //CanvasGroups do botões
+    if(_pauseButtons != null &&
+      _pauseButtons.Length > 0)
+    {
+      _buttonsGroup =
+        new CanvasGroup[_pauseButtons.Length];
+
+      _buttonsStartScales = 
+        new Vector3[_pauseButtons.Length];
+
+      for(int i = 0; i < _pauseButtons.Length; i++)
+      {
+        if (_pauseButtons[i] == null)
+          continue;
+
+        CanvasGroup buttonObject =
+          _pauseButtons[i].GetComponent<CanvasGroup>();
+
+        CanvasGroup group = 
+          buttonObject.GetComponent<CanvasGroup>();
+
+        if(group == null)
+        {
+          group = 
+            buttonObject.AddComponent<CanvasGroup>();
+        }
+
+        _buttonsGroup[i] = group;
+
+        _buttonsStartScales[i] =
+          _pauseButtons[i].transform.localScale;
+      }
+    }
+
+    _pauseInitialized = true;
+  }
 
   private void Update()
   {
