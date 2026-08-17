@@ -183,6 +183,7 @@ public class PlayerDirector : MonoBehaviour
 
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
 
+    QualityOfLife.CursorOptions(false);
     ApplyConfig(player);
   }
 

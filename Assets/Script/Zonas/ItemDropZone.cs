@@ -20,7 +20,7 @@ public class ItemDropZone : Item
 
   [Header("Quantidade")]
   [SerializeField]
-  protected int quantity = 1;
+  protected int _quantity = 1;
 
   public UnityEvent<ItemData, int, Player> OnItemCollected;
 
@@ -187,7 +187,7 @@ public class ItemDropZone : Item
 
     _isCollected = true;
     AddItem(player);
-    OnItemCollected?.Invoke(itemData, quantity, player);
+    OnItemCollected?.Invoke(itemData, _quantity, player);
     AfterCollect();
 
     return true;
@@ -207,7 +207,7 @@ public class ItemDropZone : Item
   {
     if (player.Inventory != null)
     {
-      player.Inventory.AddItem(itemData, quantity);
+      player.Inventory.AddItem(itemData, _quantity);
     }
     else
     {
@@ -240,7 +240,7 @@ public class ItemDropZone : Item
   #endregion
 
   #region Public API
-  public void SetQuantity(int newQuantity) => quantity = Mathf.Max(1, newQuantity);
+  public void SetQuantity(int newQuantity) => _quantity = Mathf.Max(1, newQuantity);
 
   public bool IsCollected => _isCollected;
   #endregion

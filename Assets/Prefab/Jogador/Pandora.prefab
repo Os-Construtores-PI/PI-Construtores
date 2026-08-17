@@ -22545,15 +22545,15 @@ MonoBehaviour:
     _vibrationDuration: 0.25
   GroundSlam:
     _groundSlamHitboxCollider: {fileID: 5232564754573124142}
-    SlamForce: 400
+    SlamForce: 500
     MaxImpactCap: 45
     BounceConversionRate: 0.85
     BounceFrontImpulse: 50
     BounceComboBonus:
     - 0
-    - 0.25
-    - 0.55
-    - 0.9
+    - 0.5
+    - 0.75
+    - 1
   Boost:
     _defaultFOV: 90
     _boostFOV: 130
@@ -22851,7 +22851,7 @@ MonoBehaviour:
   MaxStepHeight: 0.5
   AllowSteppingWithoutStableGrounding: 0
   MinRequiredStepDepth: 0.1
-  LedgeAndDenivelationHandling: 1
+  LedgeAndDenivelationHandling: 0
   MaxStableDistanceFromLedge: 0.5
   MaxVelocityForLedgeSnap: 0
   MaxStableDenivelationAngle: 180
@@ -22860,7 +22860,7 @@ MonoBehaviour:
   SimulatedCharacterMass: 1
   PreserveAttachedRigidbodyMomentum: 1
   HasPlanarConstraint: 0
-  PlanarConstraintAxis: {x: 0, y: 0, z: 1}
+  PlanarConstraintAxis: {x: 0, y: 1, z: 0}
   MaxMovementIterations: 5
   MaxDecollisionIterations: 1
   CheckMovementInitialOverlaps: 1

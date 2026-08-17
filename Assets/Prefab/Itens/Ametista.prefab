@@ -50,7 +50,7 @@ MonoBehaviour:
   _destroyOnCollect: 1
   _colliderSizeMultiplier: {x: 8, y: 4, z: 8}
   _colliderOffset: {x: 0, y: 0, z: 0}
-  quantity: 1
+  _quantity: 1
   OnItemCollected:
     m_PersistentCalls:
       m_Calls: []
@@ -61,7 +61,14 @@ MonoBehaviour:
   _shakeVibrato: 30
   _shakeRandomness: 10
   _boostGrace: 10
-  _somMenu: {fileID: 0}
+  _respawnDuration: 5
+  _pickupAudio: {fileID: 0}
+  _pursuitSpeed: 25
+  _pursuitThresold: 1
+  _pursuitMaxDistance: 10
+  _minScaleFactor: 0.1
+  _pursuitAcceleration: 10
+  _pursuitMaxSpeedMultiplier: 10
 --- !u!114 &2448533795009699494
 MonoBehaviour:
   m_ObjectHideFlags: 0
