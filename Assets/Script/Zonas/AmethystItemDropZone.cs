@@ -36,8 +36,28 @@ public class AmethystItemDropZone : ItemDropZone
   [SerializeField]
   private AudioClip _pickupAudio;
 
-  private Vector3 _initialScale;
+  [Header("Perseguição")]
+  [SerializeField]
+  private float _pursuitSpeed = 10;
 
+  [SerializeField]
+  private float _pursuitThresold = 1;
+
+  [SerializeField]
+  private float _pursuitMaxDistance = 8f;
+
+  [SerializeField]
+  private float _minScaleFactor = 0.2f;
+
+  [SerializeField]
+  private float _pursuitAcceleration = 5f;
+
+  [SerializeField]
+  private float _pursuitMaxSpeedMultiplier = 3f;
+
+  private Vector3 _initialScale;
+  private Player _target;
+  private float _pursuitElapsedTime;
   private Tween _currentTweener;
   private Sequence _currentSequence;
   private Tween _respawnTween;
@@ -49,6 +69,36 @@ public class AmethystItemDropZone : ItemDropZone
     _initialScale = transform.localScale;
   }
 
+  public void Update()
+  {
+    if (_target != null)
+    {
+      float distance = Vector3.Distance(transform.position, _target.transform.position);
+
+      if (distance < _pursuitThresold)
+      {
+        CollectFor(_target);
+        _target = null;
+      }
+      else
+      {
+        _pursuitElapsedTime += Time.deltaTime;
+
+        float speedMultiplier = Mathf.Min(
+          1f + _pursuitElapsedTime * _pursuitAcceleration,
+          _pursuitMaxSpeedMultiplier
+        );
+
+        Vector3 playerDirection = (_target.transform.position - transform.position).normalized;
+        transform.position += _pursuitSpeed * speedMultiplier * Time.deltaTime * playerDirection;
+
+        float t = Mathf.InverseLerp(_pursuitThresold, _pursuitMaxDistance, distance);
+        float scaleFactor = Mathf.Lerp(_minScaleFactor, 1f, t);
+        transform.localScale = _initialScale * scaleFactor;
+      }
+    }
+  }
+
   protected override void AfterCollect() { }
 
   protected override void AddItem(Player player)
@@ -56,10 +106,10 @@ public class AmethystItemDropZone : ItemDropZone
     if (player == null)
       return;
 
-    PlayAudioFeedback();
-    DisableInteraction();
+    if (_boxCollider != null)
+      _boxCollider.enabled = false;
+
     ApplyGameplayEffects(player);
-    PlayVisualFeedback();
   }
 
   private void PlayAudioFeedback()
@@ -68,18 +118,27 @@ public class AmethystItemDropZone : ItemDropZone
       AudioManager.Instance.PlaySFX(_pickupAudio);
   }
 
-  private void DisableInteraction()
-  {
-    if (_boxCollider != null)
-      _boxCollider.enabled = false;
-
-    enabled = false;
-  }
-
   private void ApplyGameplayEffects(Player player)
   {
-    player.AddAmethysts(quantity);
+    bool isInBoost = player.ActionLayer.GetActive<PlayerActionStateBoost>() != null;
+    if (isInBoost)
+    {
+      _target = player;
+      _pursuitElapsedTime = 0f;
+    }
+    else
+    {
+      CollectFor(player);
+    }
+  }
+
+  private void CollectFor(Player player)
+  {
+    enabled = false;
+    player.AddAmethysts(_quantity);
     player.BoostValue += _boostGrace;
+    PlayAudioFeedback();
+    PlayVisualFeedback();
   }
 
   private void PlayVisualFeedback()

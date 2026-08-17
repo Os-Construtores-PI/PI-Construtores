@@ -81,6 +81,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private string _boostSourceId;
 
   private Quaternion _boostRotation;
+
+  private float _originalGravity = 0;
   #endregion
 
   #region IState Callbacks
@@ -93,6 +95,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
     player.Motor.OverrideMotorRotation = true;
+    _originalGravity = player.GravityValue;
+    player.GravityValue = -50;
 
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
 
@@ -163,6 +167,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.Motor.Engine.BaseVelocity = Vector3.zero;
     player.Motor.Engine.BaseVelocity.y = currentYVelocity;
     player.Motor.OverrideMotorRotation = false;
+    player.GravityValue = _originalGravity;
 
     Gamepad.current?.SetMotorSpeeds(0, 0);
 

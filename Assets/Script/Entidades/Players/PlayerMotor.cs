@@ -45,8 +45,7 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
 
   private void OnValidate()
   {
-    if (_player == null)
-      _player = GetComponent<Player>();
+    _player ??= GetComponent<Player>();
   }
 
   public void BeforeCharacterUpdate(float deltaTime) { }
@@ -122,8 +121,10 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
   {
     if (collider == null)
       return false;
+
     if (collider.transform.IsChildOf(transform))
       return false;
+
     return true;
   }
 
