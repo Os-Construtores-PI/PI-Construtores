@@ -1,5 +1,4 @@
 ﻿using DG.Tweening;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -21,6 +20,13 @@ public class BasicMenuLogic : MonoBehaviour
   [SerializeField] private float _duracaEntrada = 0.4f;
   [SerializeField] private float _distanciaEntrada = 1000f;
 
+  [SerializeField] private CanvasGroup _botoesPause;
+
+  [SerializeField] private Transform _referenciasPause;
+  [SerializeField] private float _distanciaReferencias = 200f;
+
+  private Vector3 _posicaoReferencias;
+
   private Vector3 _posicaoOriginal;
 
 
@@ -35,6 +41,9 @@ public class BasicMenuLogic : MonoBehaviour
   {
     if(_painelPause != null)
        _posicaoOriginal = _painelPause.localPosition;
+
+    if (_referenciasPause != null)
+      _posicaoReferencias = _referenciasPause.localPosition;
   }
 
 
@@ -141,16 +150,97 @@ public class BasicMenuLogic : MonoBehaviour
     {
       _painelPause.DOKill();
 
-      _painelPause.localPosition += Vector3.left * _distanciaEntrada;
+        if(_botoesPause != null)
+        {
+          _botoesPause.DOKill();
+          _botoesPause.alpha = 0f;
+          _botoesPause.interactable = false;
+          _botoesPause.blocksRaycasts = false;
+        }
+        _painelPause.localPosition =
+            _posicaoOriginal + Vector3.left * _distanciaEntrada;
 
-      _painelPause.DOLocalMove(_posicaoOriginal, _duracaEntrada)
-            .SetEase(Ease.OutCubic)
-            .SetUpdate(true);
+        if(_referenciasPause != null)
+        {
+          _referenciasPause.DOKill();
+
+          _referenciasPause.localPosition =
+            _posicaoReferencias + Vector3.down * _distanciaEntrada;
+        }
+
+
+        _painelPause.DOLocalMove(_posicaoOriginal, _duracaEntrada)
+              .SetEase(Ease.OutCubic)
+              .SetUpdate(true)
+              .OnComplete(() =>
+              {
+                if (_botoesPause != null)
+                {
+                  _botoesPause.DOFade(1f, 0.2f)
+                        .SetEase(Ease.OutQuad)
+                        .SetUpdate(true);
+  
+
+                  _botoesPause.interactable = true;
+                  _botoesPause.blocksRaycasts = true;
+                }
+
+                if(_referenciasPause != null)
+                {
+                  _referenciasPause.DOLocalMove(
+                    _posicaoReferencias,
+                    0.3f)
+                  .SetEase(Ease.OutCubic)
+                  .SetUpdate(true);
+                }
+              });
+
     }
+
     }
     else
     {
       AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+
+      if(_botoesPause != null)
+      {
+        _botoesPause.DOKill();
+        _botoesPause.interactable = false;
+        _botoesPause.blocksRaycasts = false;
+      }
+
+      if(_referenciasPause != null)
+      {
+        _referenciasPause.DOKill();
+      }
+
+      Sequence fecharPause = DOTween.Sequence()
+        .SetUpdate(true);
+
+      if(_botoesPause != null)
+      {
+        fecharPause.Join(
+          _botoesPause.DOFade(0f, 0.2f)
+          .SetEase(Ease.OutQuad)
+          );
+      }
+
+      if(_referenciasPause != null)
+      {
+        fecharPause.Join(
+          _referenciasPause.DOLocalMove(
+            _posicaoReferencias + Vector3.down * _distanciaReferencias,
+            0.3f)
+          .SetEase(Ease.InCubic)
+          );
+      }
+
+      fecharPause.Append(
+        _painelPause.DOLocalMove(
+          _posicaoOriginal + Vector3.left * _distanciaEntrada,
+          _duracaEntrada)
+        .SetEase(Ease.InCubic)
+        );
     }
   }
 
