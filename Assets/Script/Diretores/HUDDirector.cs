@@ -969,19 +969,20 @@ public class HudDirector : MonoBehaviour
   private void PausePanel(bool set)
   {
     CursorOptions(visible: set);
-    ForEachPlayer(player =>
+
+  ForEachPlayer(player =>
+  {
+    if (set)
     {
-      if (set)
-      {
-        ShowPanel(HudPanelType.Pause, player.ID, independent: true);
-        DisableHud(player.ID);
-      }
-      else
-      {
-        HidePanel(HudPanelType.Pause, player.ID, independent: true);
-        EnableHUD(player.ID);
-      }
-    });
+      ShowPanel(HudPanelType.Pause, player.ID, independent: true);
+      DisableHud(player.ID);
+    }
+    else
+    {
+      // O BasicMenuLogic será responsável pela animação de saída.
+      EnableHUD(player.ID);
+    }
+  });
   }
 
   private void OptionsPausePanel(bool set) { } // TODO: abrir painel/cena de opções

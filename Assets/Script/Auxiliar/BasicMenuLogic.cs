@@ -21,6 +21,7 @@ public class BasicMenuLogic : MonoBehaviour
   [SerializeField] private float _distanciaEntrada = 1000f;
 
   [SerializeField] private CanvasGroup _botoesPause;
+  [SerializeField] private CanvasGroup _fundoPreto;
 
   [SerializeField] private Transform _referenciasPause;
   [SerializeField] private float _distanciaReferencias = 200f;
@@ -150,6 +151,14 @@ public class BasicMenuLogic : MonoBehaviour
     {
       _painelPause.DOKill();
 
+      if(_fundoPreto != null)
+        {
+          _fundoPreto.DOKill();
+          _fundoPreto.alpha = 0;
+          _fundoPreto.interactable = false;
+          _fundoPreto.blocksRaycasts = false;
+        }
+
         if(_botoesPause != null)
         {
           _botoesPause.DOKill();
@@ -174,6 +183,15 @@ public class BasicMenuLogic : MonoBehaviour
               .SetUpdate(true)
               .OnComplete(() =>
               {
+                if(_fundoPreto != null)
+                {
+                  _fundoPreto.DOFade(1f, _duracaEntrada)
+                      .SetEase(Ease.OutQuad)
+                      .SetUpdate(true);
+                  
+                  _fundoPreto.interactable = true;
+                  _fundoPreto.blocksRaycasts = true;
+                }
                 if (_botoesPause != null)
                 {
                   _botoesPause.DOFade(1f, 0.2f)
@@ -214,6 +232,13 @@ public class BasicMenuLogic : MonoBehaviour
         _referenciasPause.DOKill();
       }
 
+      if(_fundoPreto != null)
+      {
+        _fundoPreto.DOKill();
+        _fundoPreto.interactable = false;
+        _fundoPreto.blocksRaycasts = false;
+      }
+
       Sequence fecharPause = DOTween.Sequence()
         .SetUpdate(true);
 
@@ -233,6 +258,14 @@ public class BasicMenuLogic : MonoBehaviour
             0.3f)
           .SetEase(Ease.InCubic)
           );
+      }
+
+      if(_fundoPreto != null)
+      {
+        fecharPause.Join(
+          _fundoPreto.DOFade(0f, _duracaEntrada)
+               .SetEase(Ease.OutQuad)
+        );
       }
 
       fecharPause.Append(
