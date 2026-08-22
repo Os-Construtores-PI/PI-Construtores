@@ -93,6 +93,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.EndGameProcessed.AddListener(EndPanel);
     GlobalEventBus.Instance.LockOnVisibility.AddListener(SetLockOnVisibility);
     GlobalEventBus.Instance.Pause.AddListener(PausePanel);
+    GlobalEventBus.Instance.PauseAnimationFinished.AddListener(OnPauseAnimationFinished);
     GlobalEventBus.Instance.Options.AddListener(OptionsPausePanel);
     GlobalEventBus.Instance.ComboUpdate.AddListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.AddListener(MaxComboPanel);
@@ -112,6 +113,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.EndGameProcessed.RemoveListener(EndPanel);
     GlobalEventBus.Instance.LockOnVisibility.RemoveListener(SetLockOnVisibility);
     GlobalEventBus.Instance.Pause.RemoveListener(PausePanel);
+    GlobalEventBus.Instance.PauseAnimationFinished.RemoveListener(OnPauseAnimationFinished);
     GlobalEventBus.Instance.Options.RemoveListener(OptionsPausePanel);
     GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
@@ -980,9 +982,19 @@ public class HudDirector : MonoBehaviour
     else
     {
       // O BasicMenuLogic será responsável pela animação de saída.
-      EnableHUD(player.ID);
+      // NÃO mostra o HUD ainda.
+            // O BasicMenuLogic vai avisar quando a
+            // animação de fechamento terminar
     }
   });
+  }
+
+  private void OnPauseAnimationFinished()
+  {
+    ForEachPlayer(player =>
+    {
+      EnableHUD(player.ID);
+    });
   }
 
   private void OptionsPausePanel(bool set) { } // TODO: abrir painel/cena de opções

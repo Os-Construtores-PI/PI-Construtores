@@ -36,6 +36,9 @@ public class BasicMenuLogic : MonoBehaviour
 
   [SerializeField] private LoadingScreen _loadingScreen;
 
+  private Sequence _pauseSequence;
+  private bool _pauseAberto;
+
 
   #region  === MENU GAMEOVER ===
   private void Awake()
@@ -138,143 +141,251 @@ public class BasicMenuLogic : MonoBehaviour
       GlobalEventBus.Instance.Pause.RemoveListener(OnPauseChanged);
   }
 
+  private void KillSequenceAnimation()
+  {
+    if(_pauseSequence != null && _pauseSequence.IsActive())
+    {
+      _pauseSequence.Kill();
+      _pauseSequence = null;
+    }
+
+    _painelPause?.DOKill();
+    _botoesPause?.DOKill();
+    _fundoPreto?.DOKill();
+    _referenciasPause?.DOKill();
+  }
+
   private void OnPauseChanged(bool isPaused)
   {
-    if (AudioManager.Instance == null || _uiAudioConfig == null)
-      return;
+    if(AudioManager.Instance == null || _uiAudioConfig == null)
+       return;
+    
+    KillSequenceAnimation();
+
+    _pauseAberto = isPaused;
 
     if (isPaused)
     {
       AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
 
-      if(_painelPause != null)
-    {
-      _painelPause.DOKill();
-
-      if(_fundoPreto != null)
-        {
-          _fundoPreto.DOKill();
-          _fundoPreto.alpha = 0;
-          _fundoPreto.interactable = false;
-          _fundoPreto.blocksRaycasts = false;
-        }
-
-        if(_botoesPause != null)
-        {
-          _botoesPause.DOKill();
-          _botoesPause.alpha = 0f;
-          _botoesPause.interactable = false;
-          _botoesPause.blocksRaycasts = false;
-        }
-        _painelPause.localPosition =
-            _posicaoOriginal + Vector3.left * _distanciaEntrada;
-
-        if(_referenciasPause != null)
-        {
-          _referenciasPause.DOKill();
-
-          _referenciasPause.localPosition =
-            _posicaoReferencias + Vector3.down * _distanciaEntrada;
-        }
-
-
-        _painelPause.DOLocalMove(_posicaoOriginal, _duracaEntrada)
-              .SetEase(Ease.OutCubic)
-              .SetUpdate(true)
-              .OnComplete(() =>
-              {
-                if(_fundoPreto != null)
-                {
-                  _fundoPreto.DOFade(1f, _duracaEntrada)
-                      .SetEase(Ease.OutQuad)
-                      .SetUpdate(true);
-                  
-                  _fundoPreto.interactable = true;
-                  _fundoPreto.blocksRaycasts = true;
-                }
-                if (_botoesPause != null)
-                {
-                  _botoesPause.DOFade(1f, 0.2f)
-                        .SetEase(Ease.OutQuad)
-                        .SetUpdate(true);
-  
-
-                  _botoesPause.interactable = true;
-                  _botoesPause.blocksRaycasts = true;
-                }
-
-                if(_referenciasPause != null)
-                {
-                  _referenciasPause.DOLocalMove(
-                    _posicaoReferencias,
-                    0.3f)
-                  .SetEase(Ease.OutCubic)
-                  .SetUpdate(true);
-                }
-              });
-
-    }
-
+      AbrirPause();
     }
     else
     {
-      AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+      FecharPause();
+    }
+  }
 
-      if(_botoesPause != null)
-      {
-        _botoesPause.DOKill();
+  private void AbrirPause()
+  {
+    if (_painelPause == null)
+        return;
+
+    // --------------------------------------------------
+    // ESTADO INICIAL
+    // --------------------------------------------------
+
+    _painelPause.localPosition =
+        _posicaoOriginal + Vector3.left * _distanciaEntrada;
+
+    if (_referenciasPause != null)
+    {
+        _referenciasPause.localPosition =
+            _posicaoReferencias + Vector3.down * _distanciaReferencias;
+    }
+
+    if (_botoesPause != null)
+    {
+        _botoesPause.alpha = 0f;
         _botoesPause.interactable = false;
         _botoesPause.blocksRaycasts = false;
-      }
+    }
 
-      if(_referenciasPause != null)
-      {
-        _referenciasPause.DOKill();
-      }
-
-      if(_fundoPreto != null)
-      {
-        _fundoPreto.DOKill();
+    if (_fundoPreto != null)
+    {
+        _fundoPreto.alpha = 0f;
         _fundoPreto.interactable = false;
         _fundoPreto.blocksRaycasts = false;
-      }
+    }
 
-      Sequence fecharPause = DOTween.Sequence()
+    // --------------------------------------------------
+    // SEQUENCE
+    // --------------------------------------------------
+
+    _pauseSequence = DOTween.Sequence()
         .SetUpdate(true);
 
-      if(_botoesPause != null)
-      {
-        fecharPause.Join(
-          _botoesPause.DOFade(0f, 0.2f)
-          .SetEase(Ease.OutQuad)
-          );
-      }
+    // Painel entra pela esquerda
+    _pauseSequence.Append(
+        _painelPause
+            .DOLocalMove(_posicaoOriginal, _duracaEntrada)
+            .SetEase(Ease.OutCubic)
+    );
 
-      if(_referenciasPause != null)
-      {
-        fecharPause.Join(
-          _referenciasPause.DOLocalMove(
-            _posicaoReferencias + Vector3.down * _distanciaReferencias,
-            0.3f)
-          .SetEase(Ease.InCubic)
-          );
-      }
-
-      if(_fundoPreto != null)
-      {
-        fecharPause.Join(
-          _fundoPreto.DOFade(0f, _duracaEntrada)
-               .SetEase(Ease.OutQuad)
-        );
-      }
-
-      fecharPause.Append(
-        _painelPause.DOLocalMove(
-          _posicaoOriginal + Vector3.left * _distanciaEntrada,
-          _duracaEntrada)
-        .SetEase(Ease.InCubic)
+    // Fundo escuro aparece
+    if (_fundoPreto != null)
+    {
+        _pauseSequence.Join(
+            _fundoPreto
+                .DOFade(1f, _duracaEntrada)
+                .SetEase(Ease.OutQuad)
         );
     }
+
+    // Referências sobem
+    if (_referenciasPause != null)
+    {
+        _pauseSequence.Join(
+            _referenciasPause
+                .DOLocalMove(_posicaoReferencias, 0.3f)
+                .SetEase(Ease.OutCubic)
+        );
+    }
+
+    // Botões aparecem
+    if (_botoesPause != null)
+    {
+        _pauseSequence.Append(
+            _botoesPause
+                .DOFade(1f, 0.2f)
+                .SetEase(Ease.OutQuad)
+        );
+
+        _pauseSequence.AppendCallback(() =>
+        {
+            if (!_pauseAberto)
+                return;
+
+            _botoesPause.interactable = true;
+            _botoesPause.blocksRaycasts = true;
+        });
+    }
+
+    // Fundo recebe raycast
+    if (_fundoPreto != null)
+    {
+        _pauseSequence.AppendCallback(() =>
+        {
+            if (!_pauseAberto)
+                return;
+
+            _fundoPreto.interactable = true;
+            _fundoPreto.blocksRaycasts = true;
+        });
+    }
+
+    _pauseSequence.OnComplete(() =>
+    {
+        _pauseSequence = null;
+    });
+  }
+
+  private void FecharPause()
+  {
+    if (_painelPause == null)
+        return;
+
+    // --------------------------------------------------
+    // BLOQUEIA INTERAÇÃO IMEDIATAMENTE
+    // --------------------------------------------------
+
+    if (_botoesPause != null)
+    {
+        _botoesPause.interactable = false;
+        _botoesPause.blocksRaycasts = false;
+    }
+
+    if (_fundoPreto != null)
+    {
+        _fundoPreto.interactable = false;
+        _fundoPreto.blocksRaycasts = false;
+    }
+
+    // --------------------------------------------------
+    // SEQUENCE
+    // --------------------------------------------------
+
+    _pauseSequence = DOTween.Sequence()
+        .SetUpdate(true);
+
+    // Botões desaparecem
+    if (_botoesPause != null)
+    {
+        _pauseSequence.Join(
+            _botoesPause
+                .DOFade(0f, 0.2f)
+                .SetEase(Ease.OutQuad)
+        );
+    }
+
+    // Referências descem
+    if (_referenciasPause != null)
+    {
+        _pauseSequence.Join(
+            _referenciasPause
+                .DOLocalMove(
+                    _posicaoReferencias +
+                    Vector3.down * _distanciaReferencias,
+                    0.3f
+                )
+                .SetEase(Ease.InCubic)
+        );
+    }
+
+    // Fundo desaparece
+    if (_fundoPreto != null)
+    {
+        _pauseSequence.Join(
+            _fundoPreto
+                .DOFade(0f, _duracaEntrada)
+                .SetEase(Ease.OutQuad)
+        );
+    }
+
+    // Depois de tudo, painel sai
+    _pauseSequence.Append(
+        _painelPause
+            .DOLocalMove(
+                _posicaoOriginal +
+                Vector3.left * _distanciaEntrada,
+                _duracaEntrada
+            )
+            .SetEase(Ease.InCubic)
+    );
+
+    _pauseSequence.OnComplete(() =>
+    {
+        // Estado final garantido
+        if (_botoesPause != null)
+        {
+            _botoesPause.alpha = 0f;
+            _botoesPause.interactable = false;
+            _botoesPause.blocksRaycasts = false;
+        }
+
+        if (_fundoPreto != null)
+        {
+            _fundoPreto.alpha = 0f;
+            _fundoPreto.interactable = false;
+            _fundoPreto.blocksRaycasts = false;
+        }
+
+        if (_referenciasPause != null)
+        {
+            _referenciasPause.localPosition =
+                _posicaoReferencias +
+                Vector3.down * _distanciaReferencias;
+        }
+
+        _painelPause.localPosition =
+            _posicaoOriginal +
+            Vector3.left * _distanciaEntrada;
+
+        _pauseSequence = null;
+
+    
+    GlobalEventBus.Instance.PauseAnimationFinished.Invoke();
+    });
   }
 
   #endregion === MENU PAUSE ===
