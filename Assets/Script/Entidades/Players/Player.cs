@@ -277,6 +277,19 @@ public class Player : CombatEntities
 
   #endregion Boost
 
+  #region Knockback
+  [Header("Knockback")]
+  [SerializeField]
+  private LayerMask _entitymask;
+
+  [SerializeField]
+  private float _knockbackStrength = 20;
+
+  [SerializeField]
+  private float _launchStrength = 20;
+
+  #endregion
+
   #region Score
 
   #region Time
@@ -605,6 +618,7 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    SetupDamage();
     SetupHitboxCombo();
 
     TrailsSystem.InitTrails(transform.Find("Trails"));
@@ -1107,9 +1121,6 @@ public class Player : CombatEntities
   #endregion
 
   #region HUD & Feedback
-  // Substitui a antiga Coroutine "DelayedSetupHUD" por um método assíncrono
-  // usando o tipo nativo Awaitable do Unity (sem alocação de IEnumerator/enumerator
-  // boxing, e com suporte nativo a CancellationToken).
   private async Awaitable SetupHUDDelayedAsync(float delay, CancellationToken token)
   {
     try
@@ -1117,10 +1128,7 @@ public class Player : CombatEntities
       await Awaitable.WaitForSecondsAsync(delay, token);
       SetupHUD();
     }
-    catch (OperationCanceledException)
-    {
-      // Esperado quando o Player é destruído antes do delay terminar.
-    }
+    catch (OperationCanceledException) { }
   }
 
   private void SetupHUD()
@@ -1136,6 +1144,50 @@ public class Player : CombatEntities
       (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
     );
     RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
+  }
+  #endregion
+
+  #region Dano
+
+  private void SetupDamage()
+  {
+    _OnDamage.AddListener(() =>
+    {
+      Collider[] hits = Physics.OverlapSphere(
+        transform.position,
+        10,
+        _entitymask,
+        QueryTriggerInteraction.Collide
+      );
+
+      Vector3 closestPoint = Vector3.zero;
+      float closestSqrDist = float.PositiveInfinity;
+      bool found = false;
+
+      foreach (Collider hit in hits)
+      {
+        if (hit.gameObject == gameObject)
+          continue;
+
+        float sqrDist = (hit.transform.position - transform.position).sqrMagnitude;
+        if (sqrDist < closestSqrDist)
+        {
+          closestSqrDist = sqrDist;
+          closestPoint = hit.transform.position;
+          found = true;
+        }
+      }
+
+      if (found)
+      {
+        Vector3 toSelf = transform.position - closestPoint;
+        Vector3 horizontalDir = new Vector3(toSelf.x, 0, toSelf.z).normalized;
+
+        Vector3 velocity = _knockbackStrength * horizontalDir + Vector3.up * _launchStrength;
+        Motor.Engine.ForceUnground(.5f);
+        Motor.AddVelocity(velocity);
+      }
+    });
   }
   #endregion
 
