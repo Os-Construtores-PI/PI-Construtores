@@ -20,10 +20,22 @@ public class StageIntroDirector : MonoBehaviour
     [SerializeField] private MenuSlideIn[] slideObjects;
 
     public bool IsPlaying { get; private set; }
+
+  [Header("Fundo Preto")]
+  [SerializeField] private CanvasGroup _fundoPreto;
+  [SerializeField] private float _duracaoFadeFundo = 0.5f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public IEnumerator Play(StageIntroData data)
     {
         IsPlaying = true;
+
+    if(_fundoPreto != null)
+    {
+      _fundoPreto.gameObject.SetActive(true);
+      _fundoPreto.alpha = 1f;
+      _fundoPreto.interactable = false;
+      _fundoPreto.blocksRaycasts = true;
+    }
 
     _root.SetActive(true);
 
@@ -46,6 +58,16 @@ public class StageIntroDirector : MonoBehaviour
     yield return new WaitForSeconds(0.15f);
 
     _root.SetActive(false);
+
+    if(_fundoPreto != null)
+    {
+      yield return _fundoPreto
+        .DOFade(0f, _duracaoFadeFundo)
+        .SetUpdate(true)
+        .WaitForCompletion();
+
+      _fundoPreto.gameObject.SetActive(false);
+    }
 
     IsPlaying = false;
     }

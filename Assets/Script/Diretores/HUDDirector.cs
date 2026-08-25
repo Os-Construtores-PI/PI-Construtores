@@ -53,6 +53,8 @@ public class HudDirector : MonoBehaviour
   [SerializeField]
   private PunchPanelSettings _maxComboPunchSettings = PunchPanelSettings.Default;
 
+  private bool _gameOverActive;
+
   // ─── Estado Interno ─────────────────────────────────────────────────────────
 
   private readonly Dictionary<int, Dictionary<HudPanelType, List<GameObject>>> canvasMap = new();
@@ -585,7 +587,7 @@ public class HudDirector : MonoBehaviour
 
     // Fire-and-forget: o Awaitable inicia imediatamente, como uma coroutine,
     // mas é cancelável via token em vez de StopCoroutine.
-    StopShakingAfterAsync(playerID, noise, delay, cts.Token);
+    _=StopShakingAfterAsync(playerID, noise, delay, cts.Token);
   }
 
   private void CancelPendingShakeStop(int playerID)
@@ -749,7 +751,7 @@ public class HudDirector : MonoBehaviour
   // Teleporte (agora via Awaitable, sem Coroutines)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  private void TeleportFade(int playerID) => TeleportFadeAsync(playerID, destroyCancellationToken);
+  private void TeleportFade(int playerID) => _=TeleportFadeAsync(playerID, destroyCancellationToken);
 
   private async Awaitable TeleportFadeAsync(int playerID, CancellationToken token)
   {
@@ -792,25 +794,80 @@ public class HudDirector : MonoBehaviour
   private void DeathPanel()
   {
     CursorOptions(visible: true);
+
+    _gameOverActive = true;
+
     if (AudioManager.Instance != null && _backgroundMusicConfig != null)
     {
       AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     }
 
+    if (GlobalEventBus.HasInstance)
+    {
+      GlobalEventBus.Instance.Pause.Invoke(false);
+    }
+    if(EventSystem.current != null)
+    {
+      EventSystem.current.SetSelectedGameObject(null);
+    }
+
     ForEachPlayer(player =>
     {
-      ShowPanel(HudPanelType.GameOver, player.ID, independent: true);
+      // Remove o Pause imediatamente
+      HidePanel(
+          HudPanelType.Pause,
+          player.ID,
+          independent: true,
+          fade: false,
+          instant: true
+      );
+
+      // Garante Game Over limpo
+      HidePanel(
+          HudPanelType.GameOver,
+          player.ID,
+          independent: true,
+          fade: false,
+          instant: true
+      );
+
+      // Mostra Game Over
+      ShowPanel(
+          HudPanelType.GameOver,
+          player.ID,
+          independent: true
+      );
+
+      // Esconde HUD normal
       DisableHud(player.ID);
+
+      // Remove qualquer seleção automática
+      if (EventSystem.current != null)
+      {
+        EventSystem.current.SetSelectedGameObject(null);
+      }
     });
   }
 
   private void RespawnPanel()
   {
+    _gameOverActive = false;
+
     CursorOptions(visible: false);
     ForEachPlayer(player =>
     {
-      HidePanel(HudPanelType.GameOver, player.ID, independent: true);
-      HidePanel(HudPanelType.EndGame, player.ID, independent: true);
+      HidePanel(
+          HudPanelType.GameOver,
+          player.ID,
+          independent: true
+      );
+
+      HidePanel(
+          HudPanelType.EndGame,
+          player.ID,
+          independent: true
+      );
+
       EnableHUD(player.ID);
     });
   }
@@ -991,6 +1048,11 @@ public class HudDirector : MonoBehaviour
 
   private void OnPauseAnimationFinished()
   {
+    // Se o Game Over estiver ativo, NÃO devemos
+    // restaurar o HUD normal.
+    if (_gameOverActive)
+      return;
+
     ForEachPlayer(player =>
     {
       EnableHUD(player.ID);
