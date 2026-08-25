@@ -23,13 +23,13 @@ public class EndGamePanel : MonoBehaviour
 
   [Header("Stats")]
   [SerializeField]
-  private TextMeshProUGUI _scoreOutput;
+  private AnimatedIntValue _scoreOutput;
 
   [SerializeField]
-  private TextMeshProUGUI _previewScoreOutput;
+  private AnimatedIntValue _previewScoreOutput;
 
   [SerializeField]
-  private TextMeshProUGUI _timeOutput;
+  private AnimatedTimeValue _timeOutput;
 
   [SerializeField]
   private TextMeshProUGUI _uuidOutput;
@@ -88,13 +88,13 @@ public class EndGamePanel : MonoBehaviour
   private void SetScore(int score)
   {
     if (_scoreOutput)
-      _scoreOutput.text = score.ToString("D8");
+      _scoreOutput.SetValue(score);
   }
 
   private void SetPreviewScore(int previewScore)
   {
     if (_previewScoreOutput)
-      _previewScoreOutput.text = previewScore.ToString("D8");
+      _previewScoreOutput.SetValue(previewScore);
   }
 
   private void SetTime(float seconds)
@@ -102,8 +102,7 @@ public class EndGamePanel : MonoBehaviour
     if (!_timeOutput)
       return;
 
-    TimeSpan span = TimeSpan.FromSeconds(Mathf.Max(0f, seconds));
-    _timeOutput.text = span.Hours > 0 ? span.ToString(@"hh\:mm\:ss") : span.ToString(@"mm\:ss\.ff");
+    _timeOutput.SetValue(seconds);
   }
 
   private void SetRank(RankType rank)
