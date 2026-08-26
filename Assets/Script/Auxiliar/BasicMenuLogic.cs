@@ -34,6 +34,9 @@ public class BasicMenuLogic : MonoBehaviour
   private Button _currentButton;
   private Vector3 _currentTargetScale = Vector3.one;
 
+  private bool _bloquearHover;
+  private Button _ultimoBotaoSelecionado;
+
   [SerializeField] private LoadingScreen _loadingScreen;
 
   private Sequence _pauseSequence;
@@ -54,30 +57,62 @@ public class BasicMenuLogic : MonoBehaviour
 
   private void Update()
   {
+
+    if (EventSystem.current == null)
+      return;
+
     GameObject selected = EventSystem.current.currentSelectedGameObject;
 
-    if(selected == null)
-       return;
-    
-    Button button = selected.GetComponent<Button>();
-
-    if(button != _currentButton)
+    if (selected == null)
     {
-      if(_currentButton != null)
-         _currentButton.transform.localScale = Vector3.one;
-        
-      _currentButton = button;
+      if (_currentButton != null)
+      {
+        _currentButton.transform.localScale = Vector3.one;
+        _currentButton = null;
+      }
 
-      if(_currentButton != null)
-         _currentTargetScale = Vector3.one * selectableScale;
+      _ultimoBotaoSelecionado = null;
+
+      return;
     }
 
-    if(_currentButton != null)
+    Button button = selected.GetComponent<Button>();
+
+    // Mudou de botão
+    if (button != _currentButton)
+    {
+      if (_currentButton != null)
+        _currentButton.transform.localScale = Vector3.one;
+
+      _currentButton = button;
+
+      if (_currentButton != null)
+      {
+        _currentTargetScale = Vector3.one * selectableScale;
+
+        // Só toca Hover quando estiver liberado
+        // e realmente mudou de botão
+        if (!_bloquearHover && button != _ultimoBotaoSelecionado)
+        {
+          if (AudioManager.Instance != null &&
+              _uiAudioConfig != null &&
+              _uiAudioConfig.Hover != null)
+          {
+            AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
+          }
+        }
+
+        _ultimoBotaoSelecionado = button;
+      }
+    }
+
+    // Animação de escala
+    if (_currentButton != null)
     {
       _currentButton.transform.localScale = Vector3.Lerp(
-        _currentButton.transform.localScale,
-        _currentTargetScale,
-        Time.unscaledDeltaTime * scaleSpeed
+          _currentButton.transform.localScale,
+          _currentTargetScale,
+          Time.unscaledDeltaTime * scaleSpeed
       );
     }
   }
@@ -105,6 +140,13 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === MENU PAUSE ===
   public void OpenOptions()
   {
+    if(AudioManager.Instance != null &&
+      _uiAudioConfig != null &&
+      _uiAudioConfig.Click != null)
+    {
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    }
+
     Time.timeScale = 1f;
 
     GlobalEventBus.Instance.Pause.Invoke(false);
@@ -116,7 +158,7 @@ public class BasicMenuLogic : MonoBehaviour
       DataDirector.Instance.ResetRunTimeState();
       DataDirector.Instance.RestartCurrentLevel();
 
-      DataDirector.Instance.ShowStageIntro = false;
+      DataDirector.Instance.ShowStageIntro = true;
     }
 
     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -124,8 +166,14 @@ public class BasicMenuLogic : MonoBehaviour
 
   public void ContinueGame()
   {
+    if(AudioManager.Instance != null && 
+      _uiAudioConfig != null &&
+      _uiAudioConfig.Click != null)
+    {
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    }
     GlobalEventBus.Instance.Pause.Invoke(false);
-    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    
   }
 
   public void OnEnable()
@@ -180,6 +228,8 @@ public class BasicMenuLogic : MonoBehaviour
   {
     if (_painelPause == null)
         return;
+
+    _bloquearHover = true;
 
     // --------------------------------------------------
     // ESTADO INICIAL
@@ -277,6 +327,17 @@ public class BasicMenuLogic : MonoBehaviour
     _pauseSequence.OnComplete(() =>
     {
         _pauseSequence = null;
+
+      _bloquearHover = false;
+
+      // Guarda o botão que já está selecionado.
+      // Assim ele não toca Hover sozinho ao abrir o Pause.
+      if (EventSystem.current != null)
+      {
+        _ultimoBotaoSelecionado =
+            EventSystem.current.currentSelectedGameObject?
+            .GetComponent<Button>();
+      }
     });
   }
 
@@ -383,6 +444,7 @@ public class BasicMenuLogic : MonoBehaviour
 
         _pauseSequence = null;
 
+      
     
     GlobalEventBus.Instance.PauseAnimationFinished.Invoke();
     });
@@ -393,6 +455,14 @@ public class BasicMenuLogic : MonoBehaviour
   #region  === COMUNS ===
   public void ExitToMainMenu()
   {
+
+    if(AudioManager.Instance != null &&
+      _uiAudioConfig != null &&
+      _uiAudioConfig.Click != null)
+    {
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    }
+
     Time.timeScale = 1f;
 
    // DOTween.Kill(transform);
@@ -407,7 +477,7 @@ public class BasicMenuLogic : MonoBehaviour
 
     Resources.UnloadUnusedAssets();
 
-    AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
+    //AudioManager.Instance.PlaySFX(_uiAudioConfig.Back);
     
     _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
   }
