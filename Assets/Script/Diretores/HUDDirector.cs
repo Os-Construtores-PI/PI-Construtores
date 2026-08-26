@@ -1005,4 +1005,12 @@ public class HudDirector : MonoBehaviour
     foreach (var t in root.GetComponentsInChildren<Transform>(true))
       yield return t.gameObject;
   }
+
+  public void ResetAllStopwatches()
+  {
+    foreach (var stopwatch in _playerCachedStopwatches)
+    {
+      stopwatch.Value.ResetStopwatch();
+    }
+  }
 }

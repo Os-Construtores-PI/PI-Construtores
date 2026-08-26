@@ -293,10 +293,8 @@ public class Player : CombatEntities
   #region Score
 
   #region Time
-  [HideInInspector]
-  public int MaxTimeScore = 10000;
+  public int MaxTimeScore = 1000000;
 
-  [HideInInspector]
   public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
 
   public int CalculateTimeScoreCurve(float timeInSeconds)

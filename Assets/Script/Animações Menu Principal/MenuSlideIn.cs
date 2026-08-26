@@ -41,10 +41,10 @@ public class MenuSlideIn : MonoBehaviour
 
   private void OnEnable()
   {
-    PlayAnimation();
+    PlayEnterAnimation();
   }
 
-  public void PlayAnimation()
+  public void PlayEnterAnimation()
   {
     if (rect == null)
     {
@@ -60,7 +60,7 @@ public class MenuSlideIn : MonoBehaviour
     rect.anchoredPosition = finalPosition + offset;
     rect.localScale = Vector3.one;
 
-    Sequence seq = DOTween.Sequence();
+    Sequence seq = DOTween.Sequence().SetUpdate(true);
 
     seq.Append(rect.DOAnchorPos(finalPosition, duration).SetEase(ease).SetDelay(startDelay));
 
@@ -87,7 +87,7 @@ public class MenuSlideIn : MonoBehaviour
 
     rect.localScale = Vector3.one;
 
-    Sequence seq = DOTween.Sequence();
+    Sequence seq = DOTween.Sequence().SetUpdate(true);
 
     if (bounce)
     {
