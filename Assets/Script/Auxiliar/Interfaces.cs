@@ -14,6 +14,7 @@ public interface IPlayerState<T> : IState<T>
 {
   PlayerActionType Type { get; }
   HashSet<PlayerActionType> IncompatibleActions { get; }
+  bool UpdateKCCVelocity(T entity, ref Vector3 currentVelocity, float deltaTime) => false;
 }
 
 public interface IWolfState<T> : IState<T>
@@ -24,14 +25,15 @@ public interface IWolfState<T> : IState<T>
 
 public interface ILocomotionState<T> : IPlayerState<T>
 {
-  protected static void ApplyGravity(Player player)
+  protected static void ApplyGravity(ref Vector3 currentVelocity, Player player, float deltaTime)
   {
-    Vector3 move = player.MovementVector;
-    float gravMult = move.y > 0f ? player.GravityUpMultiplier : player.GravityDownMultiplier;
-    move.y += player.GravityValue * gravMult * Time.deltaTime;
-    if (move.y < player.MaxFallSpeed)
-      move.y = player.MaxFallSpeed;
-    player.MovementVector = move;
+    float gravMult =
+      currentVelocity.y > 0f ? player.GravityUpMultiplier : player.GravityDownMultiplier;
+
+    currentVelocity.y += player.GravityValue * gravMult * deltaTime;
+
+    if (currentVelocity.y < player.MaxFallSpeed)
+      currentVelocity.y = player.MaxFallSpeed;
   }
 
   protected static Vector3 CalculateCameraDirection(Player player)
@@ -44,6 +46,20 @@ public interface ILocomotionState<T> : IPlayerState<T>
       camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
     ).normalized;
   }
+
+  public void CalculateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime);
+}
+
+public interface IGroundCollisionHandler
+{
+  void OnGroundHit(Player player, Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint);
+  void OnLanded(Player player);
+  void OnLeftGround(Player player);
+}
+
+public interface IWallCollisionHandler
+{
+  void OnWallHit(Player player, Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint);
 }
 
 public interface ILockable

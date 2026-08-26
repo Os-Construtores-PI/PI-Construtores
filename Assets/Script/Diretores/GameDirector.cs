@@ -89,7 +89,6 @@ public class GameDirector : MonoBehaviour
     }
     else
     {
-      // Apenas garante que o jogador está liberado
       Player player = playerDirector.FirstPlayerContext;
 
       if (player != null)
@@ -112,7 +111,7 @@ public class GameDirector : MonoBehaviour
     Time.timeScale = setPause ? 0f : 1f;
     GameContext.IsPaused = setPause;
 
-    if (!setPause && playerDirector?.FirstPlayerContext != null)
+    if (!setPause && playerDirector != null ? playerDirector.FirstPlayerContext : null != null)
     {
       var player = playerDirector.FirstPlayerContext;
       player.IgnoreGameplayInputThisFrame = true;
@@ -133,8 +132,11 @@ public class GameDirector : MonoBehaviour
     if (player == null)
       return;
 
-    if (player.CharacterController != null)
-      player.CharacterController.enabled = !set;
+    if (player.Motor != null)
+    {
+      player.Motor.Engine.enabled = !set;
+      player.Motor.enabled = !set;
+    }
 
     player.CameraLocked = set;
     player.IsHardLocked = set;
@@ -181,6 +183,10 @@ public class GameDirector : MonoBehaviour
 
     if (player != null)
       SetLockPlayer(player, true);
+
+    HudDirector hudDirector = FindAnyObjectByType<HudDirector>();
+    if (hudDirector != null)
+      hudDirector.ResetAllStopwatches();
 
     yield return StartCoroutine(stageIntro.Play(stageData));
 

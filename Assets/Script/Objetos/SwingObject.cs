@@ -56,7 +56,7 @@ public class SwingObject : MonoBehaviour
 
   public void OnTriggerStay(Collider other)
   {
-    if (!other.TryGetComponent(out Player player) || player.IsGrounded)
+    if (!other.TryGetComponent(out Player player) || player.Motor.IsGrounded)
       return;
 
     if (
@@ -78,7 +78,7 @@ public class SwingObject : MonoBehaviour
   private void StartSwing(Player player, Collider playerCollider)
   {
     Transform playerTrans = player.transform;
-    Vector3 entryVelocity = player.MovementVector;
+    Vector3 entryVelocity = player.Motor.Velocity;
     float entrySpeed = new Vector3(entryVelocity.x, 0, entryVelocity.z).magnitude;
     float speedRatio = entrySpeed / Mathf.Max(_referenceSpeed, 0.01f);
 
@@ -118,7 +118,7 @@ public class SwingObject : MonoBehaviour
     seq.AppendCallback(() =>
     {
       player.LocomotionLayer.ChangeState(player.Locked, player);
-      player.CharacterController.enabled = false;
+      player.Motor.enabled = false;
       _rope.SetVisible(true);
       _rope.SetPoints(transform, playerTrans);
     });
@@ -171,7 +171,7 @@ public class SwingObject : MonoBehaviour
   )
   {
     Transform pt = player.transform;
-    player.CharacterController.enabled = true;
+    player.Motor.enabled = true;
     player.LocomotionLayer.ChangeState(player.Moving, player);
     _rope.SetVisible(false);
 
@@ -195,10 +195,10 @@ public class SwingObject : MonoBehaviour
       .normalized;
 
     // Aplica o vetor final
-    player.MovementVector = finalDir * finalSpeed;
+    player.Motor.Velocity = finalDir * finalSpeed;
 
     // Pequeno bônus: se o player estiver indo muito devagar, damos um "push" mínimo
-    if (player.MovementVector.magnitude < 10f)
-      player.MovementVector = finalDir * 10f;
+    if (player.Motor.Velocity.magnitude < 10f)
+      player.Motor.Velocity = finalDir * 10f;
   }
 }

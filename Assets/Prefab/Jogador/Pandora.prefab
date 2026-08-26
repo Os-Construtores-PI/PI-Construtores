@@ -22144,12 +22144,14 @@ GameObject:
   m_Component:
   - component: {fileID: 8092701047622248497}
   - component: {fileID: 4498598552815147647}
-  - component: {fileID: 5415903359890369513}
   - component: {fileID: 4848141862502818215}
   - component: {fileID: 6754862074013953145}
   - component: {fileID: -2005523811532062704}
   - component: {fileID: 151097714311735710}
   - component: {fileID: 1571673813378275627}
+  - component: {fileID: 3891039080429450042}
+  - component: {fileID: 4730961457382807506}
+  - component: {fileID: 5295768291384694974}
   m_Layer: 6
   m_Name: Pandora
   m_TagString: Player
@@ -22203,31 +22205,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!143 &5415903359890369513
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4222843589467225069}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Height: 1.75
-  m_Radius: 0.5
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.01
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4848141862502818215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22480,7 +22457,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentHealthDebug: 0
   _maxHealth: 100
-  _defense: 10
   Stats:
     OnNumModified:
       m_PersistentCalls:
@@ -22493,8 +22469,6 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
-  RunSpeedMultiplier: 0
-  RunAccelMultiplier: 0
   WallSpeedMultiplier: 2
   Acceleration: 5
   AccelerationRunning: 10
@@ -22512,7 +22486,7 @@ MonoBehaviour:
   DashHudScript: {fileID: 0}
   _cameraTarget: {fileID: 6230178497730834178}
   _playerAudioSource: {fileID: 151097714311735710}
-  CharacterController: {fileID: 0}
+  Motor: {fileID: 0}
   MainCamera: {fileID: 0}
   BoostCamera: {fileID: 0}
   _cinemachineInput: {fileID: 0}
@@ -22527,6 +22501,8 @@ MonoBehaviour:
     _maxDashSpeed: 120
     _maxReferenceDistance: 20
     _speedExponent: 0.1
+    _hitRumbleLowFrequency: 0.5
+    _hitRumbleHighFrequency: 0.1
     _bounceUpwardForce: 60
     _graceTimeDuration: 0.35
     _hitStopTimeScale: 0.05
@@ -22569,8 +22545,15 @@ MonoBehaviour:
     _vibrationDuration: 0.25
   GroundSlam:
     _groundSlamHitboxCollider: {fileID: 5232564754573124142}
-    SlamForce: 200
-    MaxImpactCap: 30
+    SlamForce: 500
+    MaxImpactCap: 45
+    BounceConversionRate: 0.85
+    BounceFrontImpulse: 50
+    BounceComboBonus:
+    - 0
+    - 0.5
+    - 0.75
+    - 1
   Boost:
     _defaultFOV: 90
     _boostFOV: 130
@@ -22581,13 +22564,14 @@ MonoBehaviour:
     _continuousBoostUsage: 10
     _maxVelocity: 1000
     _rotationSpeed: 100
+    _runRumbleLowFrequency: 0.1
+    _runRumbleHighFrequency: 0.2
+    _hitRumbleLowFrequency: 0.5
+    _hitRumbleHighFrequency: 0.8
+    _hitRumbleDuration: 0.2
     _boostHitboxCollider: {fileID: 1941590432395012080}
+    _boostHitboxComponent: {fileID: 0}
     _boostCollectionCollider: {fileID: 0}
-  Bounce:
-    BounceWindowDuration: 0.4
-    MaxBounceCombo: 3
-    BounceFrontImpulse: 60
-    BounceConversionRate: 0.85
   Jump:
     _jumpHeightMultiplierPerExtraJump: 0.35
     _wallJumpHorizontalBias: 6.5
@@ -22597,20 +22581,17 @@ MonoBehaviour:
     _exitVelocityMultiplier: 1.35
     _exitVerticalBias: 1.6
     _exitMinHorizontalSpeed: 8
-    _modelOffset: {x: 0, y: 2, z: 0}
-    _slideIncrementScore: 1
-  MovementVector: {x: 0, y: 0, z: 0}
+    _modelOffset: {x: 0, y: 1.55, z: 0}
+    _slideIncrementScore: 20
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
   MoveInput: {x: 0, y: 0}
   LastWallNormal: {x: 0, y: 0, z: 0}
-  IsRunning: 0
   IsImpulsioned: 0
   WallSpeedApplied: 0
   TouchingWall: 0
   IsDashBlocked: 0
   CurrentJumpCount: 0
-  IsGrounded: 0
   WantsToCancelRailSlide: 0
   IsDashing: 0
   MaxDashCount: 1
@@ -22624,31 +22605,11 @@ MonoBehaviour:
       m_Calls: []
   _maxBoostValue: 100
   _initialBoostValue: 100
-  MaxTimeScore: 10000
-  TimeScoreCurve:
+  _entitymask:
     serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 60
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_Bits: 64
+  _knockbackStrength: 20
+  _launchStrength: 20
   _stagesOfCombo:
   - Multiplier: 2
     TimeToExitStage: 3
@@ -22663,14 +22624,14 @@ MonoBehaviour:
   - {fileID: 6507626406025360012}
   - {fileID: 6841662986189966198}
   enemyScanRadius: 10
-  _railEntryRadius: 3
+  _railEntryRadius: 6
   _railEntryForwardOffset: 0.6
-  _railEntryMinDot: 0.3
+  _railEntryMinDot: 0.2
   _railLayerMask:
     serializedVersion: 2
     m_Bits: 1
   InteractionObject: {fileID: 0}
-  _amethystScoreMultiplier: 1
+  _amethystScoreMultiplier: 100
   _playerSFX: []
   CanAttack: 1
   WillAttack: 1
@@ -22820,6 +22781,84 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 10
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!136 &3891039080429450042
+CapsuleCollider:
+  m_ObjectHideFlags: 8
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4730961457382807506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d1bc5515e3ab954e80599c538834774, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KinematicCharacterController.KinematicCharacterMotor
+  Capsule: {fileID: 3891039080429450042}
+  CapsuleRadius: 0.5
+  CapsuleHeight: 1.8
+  CapsuleYOffset: 0
+  CapsulePhysicsMaterial: {fileID: 0}
+  GroundDetectionExtraDistance: 0
+  MaxStableSlopeAngle: 60
+  StableGroundLayers:
+    serializedVersion: 2
+    m_Bits: 129
+  DiscreteCollisionEvents: 0
+  StepHandling: 1
+  MaxStepHeight: 0.5
+  AllowSteppingWithoutStableGrounding: 0
+  MinRequiredStepDepth: 0.1
+  LedgeAndDenivelationHandling: 0
+  MaxStableDistanceFromLedge: 0.5
+  MaxVelocityForLedgeSnap: 0
+  MaxStableDenivelationAngle: 180
+  InteractiveRigidbodyHandling: 1
+  RigidbodyInteractionType: 0
+  SimulatedCharacterMass: 1
+  PreserveAttachedRigidbodyMomentum: 1
+  HasPlanarConstraint: 0
+  PlanarConstraintAxis: {x: 0, y: 1, z: 0}
+  MaxMovementIterations: 5
+  MaxDecollisionIterations: 1
+  CheckMovementInitialOverlaps: 1
+  KillVelocityWhenExceedMaxMovementIterations: 1
+  KillRemainingMovementWhenExceedMaxMovementIterations: 1
+--- !u!114 &5295768291384694974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4222843589467225069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 092ea10340291dc4f8802ab7c34503ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  _player: {fileID: 6754862074013953145}
 --- !u!1 &4291314761729171403
 GameObject:
   m_ObjectHideFlags: 0

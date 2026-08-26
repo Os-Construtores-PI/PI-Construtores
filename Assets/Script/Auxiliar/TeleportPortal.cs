@@ -42,10 +42,10 @@ public class Teleport_Portal : BasePortal
 
     AudioManager.Instance.PlaySFX(portalSFX);
 
-    victim.CharacterController.enabled = false;
+    victim.Motor.enabled = false;
     victim.transform.position = targetExit.position;
     victim.transform.rotation = targetExit.rotation; // opcional, mantém orientação
-    victim.CharacterController.enabled = true;
+    victim.Motor.enabled = true;
 
     GlobalEventBus.Instance.Teleport.Invoke(victim.ID);
   }
@@ -67,12 +67,12 @@ public class Teleport_Portal : BasePortal
 
     yield return new WaitForSeconds(0.15f);
 
-    victim.CharacterController.enabled = false;
+    victim.Motor.enabled = false;
 
     victim.transform.position = targetExit.position;
     victim.transform.rotation = targetExit.rotation;
 
-    victim.CharacterController.enabled = true;
+    victim.Motor.enabled = true;
 
     GlobalEventBus.Instance.Teleport.Invoke(victim.ID);
 

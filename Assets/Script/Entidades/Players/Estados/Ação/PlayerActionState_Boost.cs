@@ -77,11 +77,12 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   private CancellationTokenSource _hitRumbleCts;
 
-  private float _playerOriginalSpeed;
   private float _boostSpeedRatio;
   private string _boostSourceId;
 
   private Quaternion _boostRotation;
+
+  private float _originalGravity = 0;
   #endregion
 
   #region IState Callbacks
@@ -90,10 +91,12 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     float boostSpeed = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
     _boostSpeedRatio = boostSpeed / player.Speed;
 
-    _playerOriginalSpeed = player.Speed;
     _boostRotation = player.transform.rotation;
 
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
+    player.Motor.OverrideMotorRotation = true;
+    _originalGravity = player.GravityValue;
+    player.GravityValue = -50;
 
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
 
@@ -160,9 +163,11 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     _boostSpeedRatio = 0f;
 
-    float currentYVelocity = player.MovementVector.y;
-    player.MovementVector = Vector3.zero;
-    player.MovementVector.y = currentYVelocity;
+    float currentYVelocity = player.Motor.Engine.Velocity.y;
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
+    player.Motor.Engine.BaseVelocity.y = currentYVelocity;
+    player.Motor.OverrideMotorRotation = false;
+    player.GravityValue = _originalGravity;
 
     Gamepad.current?.SetMotorSpeeds(0, 0);
 
@@ -218,16 +223,16 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     if (Mathf.Abs(turnInput) > 0.01f)
     {
       _boostRotation *= Quaternion.AngleAxis(
-        turnInput * _rotationSpeed * Time.deltaTime,
+        turnInput * _rotationSpeed * Time.fixedDeltaTime,
         Vector3.up
       );
-      player.transform.rotation = _boostRotation;
+      player.Motor.Engine.SetRotation(_boostRotation);
     }
 
     Vector3 newMovementVector = player.transform.forward * player.Speed;
-    newMovementVector.y = player.MovementVector.y;
+    newMovementVector.y = player.Motor.Engine.Velocity.y;
 
-    player.MovementVector = newMovementVector;
+    player.Motor.Engine.BaseVelocity = newMovementVector;
 
     if (!player.PlayerInput.actions.FindAction("Dash / Boost").IsPressed())
     {

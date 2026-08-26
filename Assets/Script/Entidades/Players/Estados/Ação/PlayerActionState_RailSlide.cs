@@ -30,7 +30,6 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   private bool _isSnapping;
   private bool _isExiting;
 
-  // Flag para cancelamento externo (ex: Jump chamando RequestCancel)
   private bool _cancelRequested;
 
   // Snap
@@ -60,9 +59,13 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private int _slideIncrementScore = 1;
 
+  [HideInInspector]
   public event Action<int> OnScoreAwarded;
 
   private CancellationTokenSource _exitBuffCts;
+
+  private Vector3 _targetPosition;
+  private bool _hasTargetPosition = false;
 
   public void SetRail(SplineContainer rail) => CurrentRail = rail;
 
@@ -73,6 +76,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _cancelRequested = false;
     player.WantsToCancelRailSlide = false;
     _isExiting = false;
+    _hasTargetPosition = false;
 
     if (CurrentRail == null || CurrentRail.Spline.Count == 0)
     {
@@ -97,15 +101,19 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _snapProgress = 0f;
     _isSnapping = true;
 
-    var railObject = CurrentRail.GetComponent<RailObject>();
-    float entrySpeed = new Vector3(player.MovementVector.x, 0f, player.MovementVector.z).magnitude;
-    float minRailSpeed = railObject != null ? railObject.SlideSpeed * 0.4f : 4f;
+    Vector3 currentVel = player.Motor.Engine.BaseVelocity;
+    float entrySpeed = new Vector3(currentVel.x, 0f, currentVel.z).magnitude;
+
+    float minRailSpeed = CurrentRail.TryGetComponent(out RailObject railObj)
+      ? railObj.SlideSpeed * 0.4f
+      : 4f;
     _currentSpeed = Mathf.Max(entrySpeed, minRailSpeed);
 
     float3 tangentLocal = CurrentRail.Spline.EvaluateTangent(_railProgress);
     Vector3 tangentWorld = CurrentRail.transform.TransformDirection(tangentLocal);
     float angle = Vector3.Angle(tangentWorld, player.transform.forward);
     _direction = angle > 90f ? -1f : 1f;
+    player.Motor.OverrideMotorRotation = true;
 
     SetupPlayerForSlide(player);
     _isActive = true;
@@ -119,6 +127,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _isActive = false;
     _isSnapping = false;
     _cancelRequested = false;
+    _hasTargetPosition = false;
 
     _exitBuffCts?.Cancel();
 
@@ -165,15 +174,31 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       return;
     }
 
-    UpdatePlayerTransform(player);
+    CalculateTargetPosition(player);
     OnScoreAwarded?.Invoke(_slideIncrementScore);
   }
 
   public void FixedUpdate(Player player) { }
 
+  public bool UpdateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
+  {
+    currentVelocity = Vector3.zero;
+    return true;
+  }
+
+  public void ApplyTargetPosition(Player player)
+  {
+    if (!_hasTargetPosition)
+      return;
+
+    player.Motor.Engine.SetPosition(_targetPosition);
+    _hasTargetPosition = false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+
   private void SetupPlayerForSlide(Player player)
   {
-    player.CharacterController.enabled = false;
     player.AnimatorComponent.SetBool(IsSlidingHash, true);
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
@@ -181,7 +206,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.LocomotionLayer.ChangeState(player.Locked, player);
   }
 
-  private void UpdatePlayerTransform(Player player)
+  private void CalculateTargetPosition(Player player)
   {
     Vector3 splinePos = CurrentRail.transform.TransformPoint(
       CurrentRail.Spline.EvaluatePosition(_railProgress)
@@ -195,7 +220,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
     if (tangent.sqrMagnitude > 0.0001f)
     {
-      player.transform.rotation = Quaternion.LookRotation(tangent * _direction, up);
+      player.Motor.Engine.SetRotation(Quaternion.LookRotation(tangent * _direction, up));
     }
 
     Vector3 finalPos = splinePos + ComputeOffsetFromVectors(up, tangent);
@@ -204,15 +229,17 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     {
       _snapProgress += Time.deltaTime / _snapDuration;
       float ease = 1f - Mathf.Pow(1f - Mathf.Clamp01(_snapProgress), 3f);
-      player.transform.position = Vector3.Lerp(_snapStartPosition, finalPos, ease);
+      _targetPosition = Vector3.Lerp(_snapStartPosition, finalPos, ease);
 
       if (_snapProgress >= 1f)
         _isSnapping = false;
     }
     else
     {
-      player.transform.position = finalPos;
+      _targetPosition = finalPos;
     }
+
+    _hasTargetPosition = true;
   }
 
   private void ExitWithMomentum(Player player)
@@ -239,11 +266,13 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
     float verticalComponent = exitDir.y * exitSpeed * _exitVerticalBias;
 
-    player.MovementVector = new Vector3(
+    Vector3 exitVelocity = new Vector3(
       horizontal.x,
-      Mathf.Max(verticalComponent, player.MovementVector.y),
+      Mathf.Max(verticalComponent, player.Motor.Engine.BaseVelocity.y),
       horizontal.z
     );
+
+    player.Motor.Engine.BaseVelocity = exitVelocity;
 
     ApplyExitBuffAsync(player);
 
@@ -280,13 +309,13 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     if (player == null)
       return;
 
-    player.CharacterController.enabled = true;
     player.AnimatorComponent.SetBool(IsSlidingHash, false);
-    player.transform.up = Vector3.up;
+    player.Motor.Engine.SetRotation(Quaternion.Euler(Vector3.up));
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
     player.SpeedLines?.Invoke(false);
     player.LocomotionLayer.ChangeState(player.Moving, player);
+    player.Motor.OverrideMotorRotation = false;
   }
 
   public void Dispose()
@@ -294,6 +323,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _isActive = false;
     _isSnapping = false;
     _cancelRequested = false;
+    _hasTargetPosition = false;
     _exitBuffCts?.Cancel();
     _exitBuffCts?.Dispose();
     CurrentRail = null;

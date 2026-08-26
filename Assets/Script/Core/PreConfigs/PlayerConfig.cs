@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "PlayerConfigData", menuName = "Configs/PlayerConfig")]
-public class ConfigPlayer : ScriptableObject
+public class PlayerConfig : ScriptableObject
 {
   [Header("Vida")]
   [SerializeField]
@@ -26,13 +26,7 @@ public class ConfigPlayer : ScriptableObject
   private float velocidade = 30f;
 
   [SerializeField]
-  private float multiplicadorVelocidadeCorrida = 1.5f;
-
-  [SerializeField]
   private float aceleracao;
-
-  [SerializeField]
-  private float multiplicadorAceleracaoCorrida = 1.5f;
 
   [SerializeField]
   private float friccaoTerra;
@@ -75,10 +69,6 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private int maximoDeDashes;
 
-  [Header("MECÂNICA [TROCA DE JOGADOR]")]
-  [SerializeField]
-  private float cooldownTrocaJogador;
-
   [Header("MECÂNICA [CORRIDA NA PAREDE]")]
   [SerializeField]
   private float multiplicadorVelocidadeParede;
@@ -96,23 +86,13 @@ public class ConfigPlayer : ScriptableObject
   [SerializeField]
   private float cooldownAtaque;
 
-  [Header("Pontuação")]
-  [SerializeField]
-  private int _pontuacaoTempo;
-
-  [Tooltip("Eixo X = Tempo (segundos). Eixo Y = Pontos (0 a 1).")]
-  [SerializeField]
-  private AnimationCurve _pontuacaoCurva = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
-
   public void SetConfig(Player player)
   {
     player.MaxHealth = vidaMaxima;
     player.EnableRegen = habilitarRegeneracao;
     player.RegenerationInterval = intervaloRegeneracao;
     player.Speed = velocidade;
-    player.RunSpeedMultiplier = multiplicadorVelocidadeCorrida;
     player.Acceleration = aceleracao;
-    player.RunAccelMultiplier = multiplicadorAceleracaoCorrida;
     player.Friction = friccaoTerra;
     player.AirFriction = friccaoAr;
     player.JumpForce = forcaPulo;
@@ -134,7 +114,5 @@ public class ConfigPlayer : ScriptableObject
     player.WallExitDuration = duracaoSaidaParede;
     player.WillAttack = podeAtacar;
     player.AttackCooldown = cooldownAtaque;
-    player.MaxTimeScore = _pontuacaoTempo;
-    player.TimeScoreCurve = _pontuacaoCurva;
   }
 }

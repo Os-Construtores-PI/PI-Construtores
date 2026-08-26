@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DG.Tweening;
+using KinematicCharacterController;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,7 +14,7 @@ using UnityEngine.Splines;
 using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
-[RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
+[RequireComponent(typeof(KinematicCharacterMotor), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator), typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
@@ -46,12 +47,6 @@ public class Player : CombatEntities
     get => _speed;
     set => _speed = value;
   }
-
-  [HideInInspector]
-  public float RunSpeedMultiplier;
-
-  [HideInInspector]
-  public float RunAccelMultiplier;
 
   [HideInInspector]
   public float WallSpeedMultiplier;
@@ -124,7 +119,7 @@ public class Player : CombatEntities
   private AudioSource _playerAudioSource;
 
   [HideInInspector]
-  public CharacterController CharacterController;
+  public PlayerMotor Motor;
 
   [HideInInspector]
   public CinemachineCamera MainCamera;
@@ -162,7 +157,6 @@ public class Player : CombatEntities
   public PlayerActionStateWallSliding WallSliding = new();
   public PlayerActionStateGroundSlam GroundSlam = new();
   public PlayerActionStateBoost Boost = new();
-  public PlayerActionStateBounce Bounce = new();
   public PlayerActionStateJump Jump = new();
   public PlayerActionStateRailSlide RailSlide = new();
 
@@ -172,8 +166,6 @@ public class Player : CombatEntities
   #endregion
 
   #region Estado Interno
-  [HideInInspector]
-  public Vector3 MovementVector;
 
   [HideInInspector]
   public Vector3 Direction;
@@ -186,9 +178,6 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public Vector3 LastWallNormal;
-
-  [HideInInspector]
-  public bool IsRunning;
 
   [HideInInspector]
   public bool IsImpulsioned;
@@ -204,9 +193,6 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public int CurrentJumpCount = 0;
-
-  [HideInInspector]
-  public bool IsGrounded;
 
   [HideInInspector]
   public bool WantsToCancelRailSlide;
@@ -235,6 +221,8 @@ public class Player : CombatEntities
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
+
+  [HideInInspector]
   public DeviceType LastDevice = DeviceType.Keyboard;
   #endregion
 
@@ -289,25 +277,21 @@ public class Player : CombatEntities
 
   #endregion Boost
 
-  #region Score
+  #region Knockback
+  [Header("Knockback")]
+  [SerializeField]
+  private LayerMask _entitymask;
 
-  #region Time
-  [HideInInspector]
-  public int MaxTimeScore = 10000;
+  [SerializeField]
+  private float _knockbackStrength = 20;
 
-  [HideInInspector]
-  public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
-
-  public int CalculateTimeScoreCurve(float timeInSeconds)
-  {
-    float multiplier = TimeScoreCurve.Evaluate(timeInSeconds);
-
-    int finalScore = Mathf.RoundToInt(MaxTimeScore * multiplier);
-
-    return Mathf.Max(0, finalScore);
-  }
+  [SerializeField]
+  private float _launchStrength = 20;
 
   #endregion
+
+  #region Score
+
 
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
@@ -403,7 +387,7 @@ public class Player : CombatEntities
 
     if (_currentComboIndex == _stagesOfCombo.Count - 1)
     {
-      ImpactPopupType impact = IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
+      ImpactPopupType impact = Motor.IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
       GlobalEventBus.Instance.MaxComboReached.Invoke(ID, impact);
     }
   }
@@ -491,7 +475,7 @@ public class Player : CombatEntities
 
   [Header("Ametistas")]
   [SerializeField]
-  private int _amethystScoreMultiplier = 1;
+  private int _amethystScoreMultiplier = 100;
 
   private int _amethysts = 0;
   public int Amethysts => _amethysts;
@@ -596,7 +580,7 @@ public class Player : CombatEntities
 
     _lifetimeCts = new CancellationTokenSource();
 
-    CharacterController = GetComponent<CharacterController>();
+    Motor = GetComponent<PlayerMotor>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
@@ -617,6 +601,7 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    SetupDamage();
     SetupHitboxCombo();
 
     TrailsSystem.InitTrails(transform.Find("Trails"));
@@ -645,27 +630,27 @@ public class Player : CombatEntities
 
   public void FixedUpdate()
   {
-    if (!CharacterController.enabled)
+    if (!Motor.enabled)
       return;
 
-    IsGrounded = CharacterController.isGrounded;
     UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
-    CollisionFlags flags = CharacterController.Move(MovementVector * Time.fixedDeltaTime);
-
-    if ((flags & CollisionFlags.Below) != 0)
-    {
-      CheckDeathGround();
-    }
+    CheckDeathGround();
   }
 
   private void CheckDeathGround()
   {
-    Vector3 origin = transform.position + CharacterController.center;
-    float radius = CharacterController.radius;
+    CapsuleCollider capsuleCollider = Motor.Engine.Capsule;
+    Vector3 origin = transform.position + capsuleCollider.center;
+    float radius = capsuleCollider.radius;
 
-    Collider[] hits = Physics.OverlapSphere(origin, radius, LayerMask.GetMask("DeathZone"));
+    Collider[] hits = Physics.OverlapSphere(
+      origin,
+      radius,
+      LayerMask.GetMask("DeathZone"),
+      QueryTriggerInteraction.Collide
+    );
 
     if (hits.Length <= 0)
       return;
@@ -689,13 +674,16 @@ public class Player : CombatEntities
   #region Helpers de Inicialização
   private void UpdateAnimator()
   {
-    Vector3 vel = CharacterController.velocity;
+    Vector3 vel = Motor.Engine.Velocity;
     AnimatorComponent.SetFloat(Constants.AnimatorFloatNames.VelocityY, vel.y);
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityX,
-      new Vector2(vel.x, vel.z).sqrMagnitude
-    );
-    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
+    if (MoveInput.sqrMagnitude >= 0.1f)
+    {
+      AnimatorComponent.SetFloat(
+        Constants.AnimatorFloatNames.VelocityX,
+        new Vector2(vel.x, vel.z).sqrMagnitude
+      );
+    }
+    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, Motor.IsGrounded);
   }
 
   private void SetupDashHUD()
@@ -820,9 +808,9 @@ public class Player : CombatEntities
         return null;
 
       Vector3 moveDir =
-        MovementVector.sqrMagnitude > SQR_EPSILON
-          ? MovementVector.normalized
-          : CharacterController.velocity.normalized;
+        Motor.Engine.Velocity.sqrMagnitude > SQR_EPSILON
+          ? Motor.Engine.Velocity.normalized
+          : Motor.Engine.Velocity.normalized;
       if (moveDir.sqrMagnitude < SQR_EPSILON)
         return null;
 
@@ -886,7 +874,7 @@ public class Player : CombatEntities
     if (!context.performed)
       return;
 
-    if (IsGrounded)
+    if (Motor.IsGrounded)
     {
       ActionLayer.PushState(Boost, this);
       return;
@@ -901,24 +889,8 @@ public class Player : CombatEntities
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {
-    if (context.performed && !IsGrounded)
+    if (context.performed && !Motor.IsGrounded)
       ActionLayer.PushState(GroundSlam, this);
-  }
-
-  public void OnRunning(InputAction.CallbackContext context)
-  {
-    if (context.performed)
-    {
-      IsRunning = true;
-      TrailsSystem.PlayEffect(TrailType.MovementTrail);
-      RunningShake.Invoke(true);
-    }
-    else if (context.canceled)
-    {
-      IsRunning = false;
-      TrailsSystem.StopEffect(TrailType.MovementTrail);
-      RunningShake.Invoke(false);
-    }
   }
 
   public void OnJump(InputAction.CallbackContext context)
@@ -935,7 +907,7 @@ public class Player : CombatEntities
 
     if (!context.started)
       return;
-    if (!IsGrounded)
+    if (!Motor.IsGrounded)
       JumpInteractionPressed = true;
     TryJump();
   }
@@ -1132,9 +1104,6 @@ public class Player : CombatEntities
   #endregion
 
   #region HUD & Feedback
-  // Substitui a antiga Coroutine "DelayedSetupHUD" por um método assíncrono
-  // usando o tipo nativo Awaitable do Unity (sem alocação de IEnumerator/enumerator
-  // boxing, e com suporte nativo a CancellationToken).
   private async Awaitable SetupHUDDelayedAsync(float delay, CancellationToken token)
   {
     try
@@ -1142,10 +1111,7 @@ public class Player : CombatEntities
       await Awaitable.WaitForSecondsAsync(delay, token);
       SetupHUD();
     }
-    catch (OperationCanceledException)
-    {
-      // Esperado quando o Player é destruído antes do delay terminar.
-    }
+    catch (OperationCanceledException) { }
   }
 
   private void SetupHUD()
@@ -1161,6 +1127,50 @@ public class Player : CombatEntities
       (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
     );
     RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
+  }
+  #endregion
+
+  #region Dano
+
+  private void SetupDamage()
+  {
+    _OnDamage.AddListener(() =>
+    {
+      Collider[] hits = Physics.OverlapSphere(
+        transform.position,
+        10,
+        _entitymask,
+        QueryTriggerInteraction.Collide
+      );
+
+      Vector3 closestPoint = Vector3.zero;
+      float closestSqrDist = float.PositiveInfinity;
+      bool found = false;
+
+      foreach (Collider hit in hits)
+      {
+        if (hit.gameObject == gameObject)
+          continue;
+
+        float sqrDist = (hit.transform.position - transform.position).sqrMagnitude;
+        if (sqrDist < closestSqrDist)
+        {
+          closestSqrDist = sqrDist;
+          closestPoint = hit.transform.position;
+          found = true;
+        }
+      }
+
+      if (found)
+      {
+        Vector3 toSelf = transform.position - closestPoint;
+        Vector3 horizontalDir = new Vector3(toSelf.x, 0, toSelf.z).normalized;
+
+        Vector3 velocity = _knockbackStrength * horizontalDir + Vector3.up * _launchStrength;
+        Motor.Engine.ForceUnground(.5f);
+        Motor.AddVelocity(velocity);
+      }
+    });
   }
   #endregion
 

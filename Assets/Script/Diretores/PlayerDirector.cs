@@ -49,7 +49,7 @@ public class PlayerDirector : MonoBehaviour
   private HudDirector _hudDirector;
 
   [SerializeField]
-  private ConfigPlayer configPlayer;
+  private PlayerConfig configPlayer;
 
   // =========================================================
   // ESTADO INTERNO
@@ -179,10 +179,11 @@ public class PlayerDirector : MonoBehaviour
     if (!_playerCameras.ContainsKey(id))
       SetupCamera(player, viewport);
 
-    player.MovementVector = Vector3.zero;
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
 
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
 
+    QualityOfLife.CursorOptions(false);
     ApplyConfig(player);
   }
 

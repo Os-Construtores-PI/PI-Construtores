@@ -17,9 +17,9 @@ public class RankingEntry : MonoBehaviour
 
   public void SetData(int rankingPosition, string finishUUID, int score, float time)
   {
-    _rankingOutput.text = rankingPosition.ToString();
+    _rankingOutput.text = rankingPosition.ToString("D2");
     _idOutput.text = finishUUID;
-    _scoreOutput.text = score.ToString();
+    _scoreOutput.text = score.ToString("D8");
     _timeOutput.text = FormatTime(time);
   }
 

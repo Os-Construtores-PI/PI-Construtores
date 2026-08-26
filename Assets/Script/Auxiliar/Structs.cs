@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -165,4 +166,19 @@ public struct RankTime
 {
   public RankType Rank;
   public int Seconds;
+}
+
+[Serializable]
+public struct Panel
+{
+  public List<GameObject> Panels;
+  public Tween PanelTween;
+  public HudPanelType PanelType;
+
+  public Panel(List<GameObject> panels, Tween panelTween, HudPanelType panelType)
+  {
+    Panels = panels;
+    PanelTween = panelTween;
+    PanelType = panelType;
+  }
 }

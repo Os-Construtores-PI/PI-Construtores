@@ -26,7 +26,7 @@ public class GraplingHookTarget : InteractableObject
     GlobalEventBus.Instance.Cinematic.Invoke(player.ID, duration);
 
     // Desativa o controle do player
-    player.CharacterController.enabled = false;
+    player.Motor.enabled = false;
     SetActionState(playerGameObject, false);
 
     // Movimento com duração calculada
@@ -36,7 +36,7 @@ public class GraplingHookTarget : InteractableObject
 
     // Restaura o controle
     SetActionState(playerGameObject, true);
-    player.CharacterController.enabled = true;
+    player.Motor.enabled = true;
   }
 
   private void SetActionState(GameObject player, bool set)

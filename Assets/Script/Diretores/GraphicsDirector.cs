@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FPSDirector : MonoBehaviour
+public class GraphicsDirector : MonoBehaviour
 {
   [Header("Configurações")]
   [SerializeField, Tooltip("FPS alvo. Use -1 para ilimitado, 0 para padrão da plataforma.")]
