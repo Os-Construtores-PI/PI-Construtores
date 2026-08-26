@@ -370,42 +370,7 @@ public class HudDirector : MonoBehaviour
     return new Panel(roots, panelSequence, panel);
   }
 
-  private void ShowPanelTemporary(HudPanelType panel, int playerID, float duration)
-  {
-    KillTempSequence(panel, playerID);
-    ShowPanel(panel, playerID, independent: true);
-    ScheduleTempHide(panel, playerID, duration);
-  }
-
-  public void PunchPanelTemporary(HudPanelType panel, int playerID, PunchPanelSettings settings)
-  {
-    KillTempSequence(panel, playerID);
-    PunchPanel(panel, playerID, independent: true, settings);
-    ScheduleTempHide(panel, playerID, settings.Duration);
-  }
-
-  private void KillTempSequence(HudPanelType panel, int playerID)
-  {
-    var key = (playerID, panel);
-    if (_tempPanelSequences.TryGetValue(key, out var existing))
-      existing?.Kill();
-  }
-
-  private void ScheduleTempHide(HudPanelType panel, int playerID, float duration)
-  {
-    var key = (playerID, panel);
-    _tempPanelSequences[key] = DOTween
-      .Sequence()
-      .AppendInterval(duration)
-      .AppendCallback(() =>
-      {
-        HidePanel(panel, playerID, independent: true);
-        _tempPanelSequences.Remove(key);
-      })
-      .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
-  }
-
-  public void PunchPanel(
+  public Panel PunchPanel(
     HudPanelType panel,
     int playerID,
     bool independent,
@@ -413,9 +378,13 @@ public class HudDirector : MonoBehaviour
   )
   {
     var roots = GetPanel(playerID, panel);
+    Sequence punchSequence = DOTween.Sequence().SetUpdate(UpdateType.Normal, independent);
 
     foreach (var rootGo in roots)
     {
+      if (rootGo == null)
+        continue;
+
       EnableButton(rootGo);
       rootGo.transform.DOKill();
       rootGo.SetActive(true);
@@ -427,7 +396,7 @@ public class HudDirector : MonoBehaviour
         UnityEngine.Random.Range(-settings.MaxRotationZ, settings.MaxRotationZ)
       );
 
-      rootGo
+      var tween = rootGo
         .transform.DOPunchScale(
           Vector3.one * settings.Strength,
           settings.TweenDuration,
@@ -435,9 +404,55 @@ public class HudDirector : MonoBehaviour
           elasticity: settings.Elasticity
         )
         .SetUpdate(UpdateType.Normal, independent);
+
+      punchSequence.Join(tween);
     }
 
     EventSystem.current.SetSelectedGameObject(null);
+    return new Panel(roots, punchSequence, panel);
+  }
+
+  private Sequence ShowPanelTemporary(HudPanelType panel, int playerID, float duration)
+  {
+    KillTempSequence(panel, playerID);
+    ShowPanel(panel, playerID, independent: true);
+    return ScheduleTempHide(panel, playerID, duration);
+  }
+
+  public Sequence PunchPanelTemporary(HudPanelType panel, int playerID, PunchPanelSettings settings)
+  {
+    KillTempSequence(panel, playerID);
+    PunchPanel(panel, playerID, independent: true, settings);
+    return ScheduleTempHide(panel, playerID, settings.Duration);
+  }
+
+  private Sequence KillTempSequence(HudPanelType panel, int playerID)
+  {
+    var key = (playerID, panel);
+    if (!_tempPanelSequences.TryGetValue(key, out var existing))
+      return null;
+
+    existing?.Kill();
+    _tempPanelSequences.Remove(key);
+    return existing;
+  }
+
+  private Sequence ScheduleTempHide(HudPanelType panel, int playerID, float duration)
+  {
+    var key = (playerID, panel);
+
+    var sequence = DOTween
+      .Sequence()
+      .AppendInterval(duration)
+      .AppendCallback(() =>
+      {
+        HidePanel(panel, playerID, independent: true);
+        _tempPanelSequences.Remove(key);
+      })
+      .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
+
+    _tempPanelSequences[key] = sequence;
+    return sequence;
   }
 
   // ─── Helpers de painel ──────────────────────────────────────────────────────
