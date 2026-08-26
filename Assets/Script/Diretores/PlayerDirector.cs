@@ -49,7 +49,7 @@ public class PlayerDirector : MonoBehaviour
   private HudDirector _hudDirector;
 
   [SerializeField]
-  private ConfigPlayer configPlayer;
+  private PlayerConfig configPlayer;
 
   // =========================================================
   // ESTADO INTERNO

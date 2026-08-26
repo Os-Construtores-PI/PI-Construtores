@@ -18,6 +18,19 @@ public class LevelManager : MonoBehaviour
   private List<RankTime> _rankTimes = new();
   public List<RankTime> RankTimes => _rankTimes;
 
+  [SerializeField]
+  private int _maxTimeBonusScore = 1000000;
+  private AnimationCurve _timeScoreCurve;
+
+  public int CalculateTimeScoreCurve(float timeInSeconds)
+  {
+    float multiplier = _timeScoreCurve.Evaluate(timeInSeconds);
+
+    int finalScore = Mathf.RoundToInt(_maxTimeBonusScore * multiplier);
+
+    return Mathf.Max(0, finalScore);
+  }
+
   public RankType GetRank(float seconds)
   {
     var sorted = _rankTimes.OrderBy(rt => rt.Seconds).ToList();
@@ -36,6 +49,7 @@ public class LevelManager : MonoBehaviour
     _dataSystem = DataDirector.Instance;
     _gameDirector = FindAnyObjectByType<GameDirector>();
     _hudDirector = FindAnyObjectByType<HudDirector>();
+    _timeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, _rankTimes.Last().Seconds, 0f);
 
     if (_dataSystem == null)
       Debug.LogError("[LevelManager] DataDirector.Instance é null! Verifique se existe na cena.");
@@ -145,7 +159,7 @@ public class LevelManager : MonoBehaviour
       if (stopwatchObj != null && stopwatchObj.TryGetComponent(out StopwatchHUD stopwatchHUD))
       {
         float elapsedSeconds = (float)stopwatchHUD.Elapsed;
-        int timeBonus = player.CalculateTimeScoreCurve(elapsedSeconds);
+        int timeBonus = CalculateTimeScoreCurve(elapsedSeconds);
         player.AddScore(timeBonus);
 
         _dataSystem.SavePreviewScore(

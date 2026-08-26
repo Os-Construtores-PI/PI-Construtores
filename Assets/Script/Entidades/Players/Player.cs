@@ -292,21 +292,6 @@ public class Player : CombatEntities
 
   #region Score
 
-  #region Time
-  public int MaxTimeScore = 1000000;
-
-  public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
-
-  public int CalculateTimeScoreCurve(float timeInSeconds)
-  {
-    float multiplier = TimeScoreCurve.Evaluate(timeInSeconds);
-
-    int finalScore = Mathf.RoundToInt(MaxTimeScore * multiplier);
-
-    return Mathf.Max(0, finalScore);
-  }
-
-  #endregion
 
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
@@ -490,7 +475,7 @@ public class Player : CombatEntities
 
   [Header("Ametistas")]
   [SerializeField]
-  private int _amethystScoreMultiplier = 1;
+  private int _amethystScoreMultiplier = 100;
 
   private int _amethysts = 0;
   public int Amethysts => _amethysts;

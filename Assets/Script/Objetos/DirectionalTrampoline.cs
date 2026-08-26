@@ -15,6 +15,7 @@ public class DirectionalTrampoline : LockableInteractableObject
     _canJump = false;
     player.Motor.Velocity = Vector3.zero;
     player.Motor.Velocity = transform.up * _impulseForce;
+    player.Motor.Engine.ForceUnground(.1f);
     player.IsImpulsioned = true;
     player.CurrentDashCount = 0;
     player.BoostValue += _boostGrace;
