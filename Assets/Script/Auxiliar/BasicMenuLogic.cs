@@ -35,6 +35,7 @@ public class BasicMenuLogic : MonoBehaviour
   private Vector3 _currentTargetScale = Vector3.one;
 
   private bool _bloquearHover;
+  private bool _menuPauseAtivo;
   private Button _ultimoBotaoSelecionado;
 
   [SerializeField] private LoadingScreen _loadingScreen;
@@ -59,6 +60,9 @@ public class BasicMenuLogic : MonoBehaviour
   {
 
     if (EventSystem.current == null)
+      return;
+
+    if (!_menuPauseAtivo)
       return;
 
     GameObject selected = EventSystem.current.currentSelectedGameObject;
@@ -118,16 +122,16 @@ public class BasicMenuLogic : MonoBehaviour
   }
   public void Respawn()
   {
-    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
-      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
+    if (AudioManager.Instance != null && _uiAudioConfig != null)
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
     GlobalEventBus.Instance.Respawn.Invoke();
   }
 
   public void OpenMenuGameOver()
   {
-    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
+    if (AudioManager.Instance != null && _uiAudioConfig != null)
     {
-      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
     }
   }
 
@@ -230,6 +234,7 @@ public class BasicMenuLogic : MonoBehaviour
         return;
 
     _bloquearHover = true;
+    _menuPauseAtivo = true;
 
     // --------------------------------------------------
     // ESTADO INICIAL
@@ -346,6 +351,9 @@ public class BasicMenuLogic : MonoBehaviour
     if (_painelPause == null)
         return;
 
+
+    _menuPauseAtivo = false;
+    _bloquearHover = true;
     // --------------------------------------------------
     // BLOQUEIA INTERAÇÃO IMEDIATAMENTE
     // --------------------------------------------------
@@ -458,9 +466,9 @@ public class BasicMenuLogic : MonoBehaviour
 
     if(AudioManager.Instance != null &&
       _uiAudioConfig != null &&
-      _uiAudioConfig.Click != null)
+      _uiAudioConfig.Hover != null)
     {
-      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
     }
 
     Time.timeScale = 1f;

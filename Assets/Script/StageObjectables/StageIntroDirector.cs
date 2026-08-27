@@ -27,20 +27,7 @@ public class StageIntroDirector : MonoBehaviour
   // Start is called once before the first execution of Update after the MonoBehaviour is created
 
 
-  private void Awake()
-  {
-    if(_root != null)
-      _root.SetActive(false);
-
-    if(_fundoPreto != null)
-    {
-      _fundoPreto.alpha = 0f;
-      _fundoPreto.interactable = false;
-      _fundoPreto.blocksRaycasts = false;
-      _fundoPreto.gameObject.SetActive(false);
-    }
-
-  }
+  
 
   public IEnumerator Play(StageIntroData data)
   {
