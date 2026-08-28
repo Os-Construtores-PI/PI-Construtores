@@ -69,3 +69,9 @@ public interface ILockable
   public float BoostGrace { get; }
   public bool IsActive { get; }
 }
+
+public interface IRespawnable
+{
+  public bool IsAlive { get; }
+  public void Respawn();
+}

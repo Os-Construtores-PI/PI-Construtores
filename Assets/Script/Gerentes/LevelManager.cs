@@ -58,7 +58,7 @@ public class LevelManager : MonoBehaviour
       Debug.LogError("[LevelManager] GameDirector não encontrado!");
 
     GlobalEventBus.Instance.Death.AddListener(PlayerDeathHandler);
-    GlobalEventBus.Instance.Respawn.AddListener(RespawnPlayers);
+    GlobalEventBus.Instance.Respawn.AddListener(ResetLevel);
     GlobalEventBus.Instance.EndGame.AddListener(PlayerEndGameHandler);
 
     StartCoroutine(StartLevelRoutine());
@@ -70,7 +70,7 @@ public class LevelManager : MonoBehaviour
       return;
 
     GlobalEventBus.Instance.Death.RemoveListener(PlayerDeathHandler);
-    GlobalEventBus.Instance.Respawn.RemoveListener(RespawnPlayers);
+    GlobalEventBus.Instance.Respawn.RemoveListener(ResetLevel);
     GlobalEventBus.Instance.EndGame.RemoveListener(PlayerEndGameHandler);
 
     Debug.Log("[LevelManager] Listeners removidos do GlobalEventBus.");
@@ -188,13 +188,15 @@ public class LevelManager : MonoBehaviour
     SetPlayersInput(false);
   }
 
-  private void RespawnPlayers()
+  private void ResetLevel()
   {
     if (!_dataSystem || !_gameDirector)
     {
       Debug.LogError("[LevelManager] RespawnPlayers: dataSystem ou gameDirector null!");
       return;
     }
+
+    GameDirector.RespawnManager.ResetAll();
 
     Debug.Log("[LevelManager] RespawnPlayers chamado, iniciando coroutine.");
     StartCoroutine(RespawnRoutine());
