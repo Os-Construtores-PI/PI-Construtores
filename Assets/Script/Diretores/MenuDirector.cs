@@ -283,6 +283,8 @@ public class MenuDirector : MonoBehaviour
   {
     Debug.Log("SHOW PANEL -> " + panel);
 
+    ResetarSomInteracao();
+
     bool isMainMenu = panel == MenuPanelTypes.Menu;
 
     if (isMainMenu)
@@ -576,6 +578,22 @@ public class MenuDirector : MonoBehaviour
   public void EnableNavigation()
   {
     _eventSystem.sendNavigationEvents = true;
+  }
+
+  private void ResetarSomInteracao()
+  {
+    if(GlobalEventBus.Instance != null)
+    {
+      GlobalEventBus.Instance.MenuInteraction.Invoke(false);
+    }
+  }
+
+  private void LiberarSomInteracao()
+  {
+    if(GlobalEventBus.Instance != null)
+    {
+      GlobalEventBus.Instance.MenuInteraction.Invoke(true);
+    }
   }
 
   #endregion

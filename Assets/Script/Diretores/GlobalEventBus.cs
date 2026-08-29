@@ -29,6 +29,7 @@ public class GlobalEventBus : MonoBehaviour
   public readonly UnityEvent EndGameProcessed = new();
   public readonly UnityEvent<bool> Pause = new();
   public readonly UnityEvent<bool> Options = new();
+  public readonly UnityEvent<bool> MenuInteraction = new();
 
   public UnityEvent PauseAnimationFinished = new();
   public readonly UnityEvent<PlayerInput> InputUpdate = new();

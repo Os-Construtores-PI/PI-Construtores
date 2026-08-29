@@ -10,28 +10,52 @@ public class UIButtonSound
     ISubmitHandler
 {
   [SerializeField]
-  private UIAudioConfig _uiAudioConfig;
+    private UIAudioConfig _uiAudioConfig;
 
-  private bool _podeTocarHover;
-  private bool _selecaoInicial;
+    private bool _podeTocarHover;
 
-  private void Awake()
-  {
-    _podeTocarHover = false;
-    _selecaoInicial = true;
-  }
-
-  private void Update()
+    private void Awake()
     {
-        // Depois que o jogador já começou a interagir,
-        // não precisamos mais verificar a primeira interação.
+        _podeTocarHover = false;
+    }
+
+    private void OnEnable()
+    {
+        if (GlobalEventBus.Instance != null)
+        {
+            GlobalEventBus.Instance.MenuInteraction.AddListener(OnMenuInteractionChanged);
+        }
+
+        _podeTocarHover = false;
+    }
+
+    private void OnDisable()
+    {
+        if (GlobalEventBus.Instance != null)
+        {
+            GlobalEventBus.Instance.MenuInteraction.RemoveListener(OnMenuInteractionChanged);
+        }
+    }
+
+    private void OnMenuInteractionChanged(bool podeInteragir)
+    {
+        _podeTocarHover = podeInteragir;
+    }
+
+    private void Update()
+    {
+        // Já liberado.
         if (_podeTocarHover)
             return;
 
+        // Detecta a primeira interação.
         if (TeveInputDeNavegacao())
         {
             _podeTocarHover = true;
-            _selecaoInicial = false;
+
+            // A partir daqui, qualquer mudança de botão
+            // pode emitir o som normalmente.
+            TocarHover();
         }
     }
 
@@ -100,29 +124,6 @@ public class UIButtonSound
 
     public void OnSelect(BaseEventData eventData)
     {
-        // ==========================================
-        // PRIMEIRA SELEÇÃO AUTOMÁTICA
-        // ==========================================
-
-        if (_selecaoInicial)
-        {
-            // Se chegou aqui porque o jogador acabou
-            // de apertar uma direção, já libera o som.
-            if (TeveInputDeNavegacao())
-            {
-                _podeTocarHover = true;
-                _selecaoInicial = false;
-
-                TocarHover();
-            }
-
-            return;
-        }
-
-        // ==========================================
-        // SELEÇÃO NORMAL
-        // ==========================================
-
         if (!_podeTocarHover)
             return;
 
