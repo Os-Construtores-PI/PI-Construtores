@@ -24,7 +24,6 @@ public class MenuDirector : MonoBehaviour
   [SerializeField]
   private float panelTransitionDelay = 0.35f;
 
-  private bool _bloquearHoverInicial;
   [SerializeField] private GameObject _ultimoBotaoSelecionado;
 
   [System.Serializable]
@@ -132,7 +131,6 @@ public class MenuDirector : MonoBehaviour
   {
     SelectDefaultOrFirstButton(_currentPanel);
 
-    ProcessarHover();
   }
 
   /// <summary>
@@ -185,40 +183,7 @@ public class MenuDirector : MonoBehaviour
     }
   }
 
-  private void ProcessarHover()
-  {
-    if (_eventSystem == null)
-      return;
-
-    GameObject selecionado = _eventSystem.currentSelectedGameObject;
-
-    if (selecionado == null)
-      return;
-
-    // Durante a seleção inicial do painel,
-    // não toca o som.
-    if (_bloquearHoverInicial)
-    {
-      _ultimoBotaoSelecionado = selecionado;
-      return;
-    }
-
-    // Só toca quando realmente mudou de seleção.
-    if (selecionado != _ultimoBotaoSelecionado)
-    {
-      if (AudioManager.Instance != null)
-      {
-        // Usa o mesmo Hover configurado no UIAudioConfig.
-        // Se Hover for nulo, simplesmente não toca.
-        UIAudioConfig audioConfig = FindFirstObjectByType<BasicMenuLogic>()?
-            .GetComponent<BasicMenuLogic>() != null
-            ? null
-            : null;
-      }
-
-      _ultimoBotaoSelecionado = selecionado;
-    }
-  }
+  
 
   private bool BackPressed()
   {
