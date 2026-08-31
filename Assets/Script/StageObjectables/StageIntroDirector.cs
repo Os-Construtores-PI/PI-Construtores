@@ -1,31 +1,45 @@
+
+using UnityEngine;
 using System.Collections;
 using DG.Tweening;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class StageIntroDirector : MonoBehaviour
 {
-  [Header("Canvas")]
-  [SerializeField]
-  private GameObject _root;
+    [Header("Canvas")]
 
-  [Header("Text")]
-  [SerializeField]
-  Image _stageNumber;
+    [SerializeField] private GameObject _root;
 
-  [SerializeField]
-  Image _stageTitle;
+    [Header("Text")]
 
-  [SerializeField]
-  private MenuSlideIn[] slideObjects;
+    [SerializeField] Image _stageNumber;
 
-  public bool IsPlaying { get; private set; }
+    [SerializeField] Image _stageTitle;
+
+    [SerializeField] private MenuSlideIn[] slideObjects;
+
+    public bool IsPlaying { get; private set; }
+
+  [Header("Fundo Preto")]
+  [SerializeField] private CanvasGroup _fundoPreto;
+  [SerializeField] private float _duracaoFadeFundo = 0.5f;
+  // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+
+  
 
   public IEnumerator Play(StageIntroData data)
   {
     IsPlaying = true;
-    Time.timeScale = 0;
+
+    if(_fundoPreto != null)
+    {
+      _fundoPreto.gameObject.SetActive(true);
+      _fundoPreto.alpha = 1;
+      _fundoPreto.interactable = false;
+      _fundoPreto.blocksRaycasts = true;
+    }
 
     _root.SetActive(true);
 
@@ -33,22 +47,41 @@ public class StageIntroDirector : MonoBehaviour
     _stageTitle.sprite = data.StageNumberSprite;
 
     foreach (var slide in slideObjects)
-      slide.PlayEnterAnimation();
+      slide.PlayAnimation();
 
-    yield return new WaitForSecondsRealtime(data.WaitTime);
+    yield return new WaitForSeconds(data.WaitTime);
+
 
     Tween lastTween = null;
 
     foreach (var slide in slideObjects)
       lastTween = slide.PlayExitAnimation();
 
-    if (lastTween != null)
+    if(_fundoPreto != null)
+    {
+      _fundoPreto
+        .DOFade(0f, _duracaoFadeFundo)
+        .SetEase(Ease.OutQuad)
+        .SetUpdate(true)
+        .OnComplete(() =>
+        {
+          if (_fundoPreto != null)
+          {
+            _fundoPreto.interactable = false;
+            _fundoPreto.blocksRaycasts = false;
+            _fundoPreto.gameObject.SetActive(false);
+          }
+        });
+    }
+
+    if(lastTween != null)
       yield return lastTween.WaitForCompletion();
 
-    yield return new WaitForSecondsRealtime(0.15f);
+    yield return new WaitForSeconds(0.15f);
 
     _root.SetActive(false);
-    Time.timeScale = 1;
+
     IsPlaying = false;
   }
+
 }
