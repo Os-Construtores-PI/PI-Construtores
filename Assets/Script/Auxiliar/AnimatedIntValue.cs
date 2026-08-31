@@ -26,7 +26,7 @@ public class AnimatedIntValue : MonoBehaviour
 
   private Tween _currentTween;
 
-  public void SetValue(int newValue)
+  public Tween SetValue(int newValue)
   {
     _currentTween?.Kill();
 
@@ -42,6 +42,8 @@ public class AnimatedIntValue : MonoBehaviour
       .Int(startValue, newValue, _duration, value => _textOutput.text = value.ToString(format))
       .SetEase(_ease)
       .SetUpdate(true);
+
+    return _currentTween;
   }
 
   public void SetValueImmediate(int newValue)

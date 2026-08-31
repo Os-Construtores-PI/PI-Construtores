@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -78,31 +79,29 @@ public class EndGamePanel : MonoBehaviour
 
   public void Populate(int score, int previewScore, float time, string uuid, RankType rank)
   {
-    SetScore(score);
+    HideRank();
+
+    SetScore(score, () => SetRank(rank));
     SetPreviewScore(previewScore);
     SetTime(time);
-    SetRank(rank);
     SetUUID(uuid);
   }
 
-  private void SetScore(int score)
+  private void SetScore(int score, Action onComplete = null)
   {
-    if (_scoreOutput)
-      _scoreOutput.SetValue(score);
-  }
-
-  private void SetPreviewScore(int previewScore)
-  {
-    if (_previewScoreOutput)
-      _previewScoreOutput.SetValue(previewScore);
-  }
-
-  private void SetTime(float seconds)
-  {
-    if (!_timeOutput)
+    if (!_scoreOutput)
+    {
+      onComplete?.Invoke();
       return;
+    }
 
-    _timeOutput.SetValue(seconds);
+    _scoreOutput.SetValue(score).OnComplete(() => onComplete?.Invoke());
+  }
+
+  private void HideRank()
+  {
+    if (_rankOutput)
+      _rankOutput.gameObject.SetActive(false);
   }
 
   private void SetRank(RankType rank)
@@ -117,6 +116,22 @@ public class EndGamePanel : MonoBehaviour
       _rankOutput.sprite = sprite;
     else
       Debug.LogWarning($"[EndGamePanel] Nenhum sprite mapeado para o rank {rank}.");
+
+    _rankOutput.gameObject.SetActive(true);
+  }
+
+  private void SetPreviewScore(int previewScore)
+  {
+    if (_previewScoreOutput)
+      _previewScoreOutput.SetValue(previewScore);
+  }
+
+  private void SetTime(float seconds)
+  {
+    if (!_timeOutput)
+      return;
+
+    _timeOutput.SetValue(seconds);
   }
 
   private void SetUUID(string uuid)
