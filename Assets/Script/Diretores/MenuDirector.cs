@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -22,9 +23,10 @@ public class MenuDirector : MonoBehaviour
   private Scrollbar _rankingScrollbar;
 
   [SerializeField]
-  private float panelTransitionDelay = 0.35f;
+  private float selectedPressedDuration = 0.12f;
 
-  [SerializeField] private GameObject _ultimoBotaoSelecionado;
+  [SerializeField]
+  private float panelTransitionDelay = 0.35f;
 
   [System.Serializable]
   private struct PanelSelectable
@@ -130,7 +132,6 @@ public class MenuDirector : MonoBehaviour
   private void SelectFirstButton()
   {
     SelectDefaultOrFirstButton(_currentPanel);
-
   }
 
   /// <summary>
@@ -182,8 +183,6 @@ public class MenuDirector : MonoBehaviour
       }
     }
   }
-
-  
 
   private bool BackPressed()
   {
@@ -282,8 +281,6 @@ public class MenuDirector : MonoBehaviour
   private void ShowPanel(MenuPanelTypes panel)
   {
     Debug.Log("SHOW PANEL -> " + panel);
-
-    ResetarSomInteracao();
 
     bool isMainMenu = panel == MenuPanelTypes.Menu;
 
@@ -388,7 +385,7 @@ public class MenuDirector : MonoBehaviour
     if (_loadingGame)
       return;
 
-    HidePanel(from, () => ShowPanel(to));
+    StartCoroutine(PlaySelectionFeedback(from, to));
   }
 
   public void OpenPanel(MenuPanelTypes next)
@@ -430,7 +427,7 @@ public class MenuDirector : MonoBehaviour
     }
 
     DataDirector.Instance.SaveHasSave(true);
-    DataDirector.Instance.ShowStageIntro = true;
+    GameContext.ShowStageIntro = true;
 
     LockCurrentPanel();
 
@@ -463,7 +460,7 @@ public class MenuDirector : MonoBehaviour
   public void StartNewGamePlus(int slot)
   {
     DataDirector.Instance.SaveHasSave(false);
-    DataDirector.Instance.ShowStageIntro = true;
+    GameContext.ShowStageIntro = true;
 
     if (TryGetPanelRoots(MenuPanelTypes.SaveMenu, out var roots))
     {
@@ -580,20 +577,31 @@ public class MenuDirector : MonoBehaviour
     _eventSystem.sendNavigationEvents = true;
   }
 
-  private void ResetarSomInteracao()
+  private IEnumerator PlaySelectionFeedback(MenuPanelTypes from, MenuPanelTypes to)
   {
-    if(GlobalEventBus.Instance != null)
+    if (
+      MenuSelectionCursor.Instance != null
+      && MenuSelectionCursor.Instance.gameObject.activeInHierarchy
+    )
     {
-      GlobalEventBus.Instance.MenuInteraction.Invoke(false);
+      MenuSelectionCursor.Instance.SetPressed(selectedPressedDuration);
     }
-  }
 
-  private void LiberarSomInteracao()
-  {
-    if(GlobalEventBus.Instance != null)
-    {
-      GlobalEventBus.Instance.MenuInteraction.Invoke(true);
-    }
+    yield return new WaitForSecondsRealtime(selectedPressedDuration);
+
+    bool finished = false;
+
+    HidePanel(
+      from,
+      () =>
+      {
+        finished = true;
+      }
+    );
+
+    yield return new WaitUntil(() => finished);
+
+    ShowPanel(to);
   }
 
   #endregion
