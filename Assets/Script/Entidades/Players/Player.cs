@@ -5,6 +5,7 @@ using System.Threading;
 using DG.Tweening;
 using KinematicCharacterController;
 using Unity.Cinemachine;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -636,7 +637,6 @@ public class Player : CombatEntities
     UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
-    print(LocomotionLayer.CurrentState);
     CheckDeathGround();
   }
 
@@ -741,6 +741,33 @@ public class Player : CombatEntities
     return null;
   }
 
+  private bool TryGetTargetPoint(Collider col, Vector3 referencePoint, out Vector3 targetPoint)
+  {
+    if (col.TryGetComponent<RailObject>(out RailObject rail))
+    {
+      if (!rail.IsActive)
+      {
+        targetPoint = default;
+        return false;
+      }
+
+      if (rail.GetNearestPointOnSpline(referencePoint, out Vector3 nearestPoint, out _))
+      {
+        if (Vector3.Distance(referencePoint, nearestPoint) > rail.LockRange)
+        {
+          targetPoint = default;
+          return false;
+        }
+
+        targetPoint = nearestPoint;
+        return true;
+      }
+    }
+
+    targetPoint = col.bounds.center;
+    return true;
+  }
+
   private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
     ray =>
     {
@@ -757,6 +784,7 @@ public class Player : CombatEntities
       );
 
       Collider bestTarget = null;
+      Vector3 bestTargetPoint = default;
       float closestDistance = float.MaxValue;
 
       for (int i = 0; i < hitCount; i++)
@@ -765,7 +793,9 @@ public class Player : CombatEntities
         if (col.CompareTag(TAG_PLAYER))
           continue;
 
-        Vector3 targetCenter = col.bounds.center;
+        if (!TryGetTargetPoint(col, ray.origin, out Vector3 targetCenter))
+          continue;
+
         float dot = Vector3.Dot(ray.direction.normalized, (targetCenter - ray.origin).normalized);
         if (dot < CameraScanDotThreshold)
           continue;
@@ -778,12 +808,13 @@ public class Player : CombatEntities
         {
           closestDistance = distance;
           bestTarget = col;
+          bestTargetPoint = targetCenter;
         }
       }
 
       if (bestTarget != null)
       {
-        Vector3 finalDir = (bestTarget.bounds.center - ray.origin).normalized;
+        Vector3 finalDir = (bestTargetPoint - ray.origin).normalized;
         // Adiciona buffer constante ao distance para evitar falhas de precisão
         if (
           Physics.Raycast(
@@ -811,7 +842,7 @@ public class Player : CombatEntities
       Vector3 moveDir =
         Motor.Engine.Velocity.sqrMagnitude > SQR_EPSILON
           ? Motor.Engine.Velocity.normalized
-          : Motor.Engine.Velocity.normalized;
+          : transform.forward;
       if (moveDir.sqrMagnitude < SQR_EPSILON)
         return null;
 
@@ -899,15 +930,12 @@ public class Player : CombatEntities
     if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
       return;
 
-    if (WaitForJumpRelease)
-    {
-      if (context.canceled)
-        WaitForJumpRelease = false;
-      return;
-    }
-
     if (!context.started)
       return;
+
+    if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+      RailSlide.RequestCancel();
+
     if (!Motor.IsGrounded)
       JumpInteractionPressed = true;
     TryJump();

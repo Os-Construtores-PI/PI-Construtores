@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Splines;
 
 [RequireComponent(typeof(SplineContainer))]
-public class RailObject : MonoBehaviour
+public class RailObject : MonoBehaviour, ILockable
 {
   [Header("Configurações do Rail")]
   [SerializeField]
@@ -14,6 +14,18 @@ public class RailObject : MonoBehaviour
 
   public float SlideSpeed => slideSpeed;
   public RailDirection DefaultDirection => defaultDirection;
+
+  [SerializeField]
+  private float _lockRange = 50;
+  public float LockRange => _lockRange;
+
+  [SerializeField, Range(0, 100)]
+  private float _boostGrace = 0;
+  public float BoostGrace => _boostGrace;
+
+  [SerializeField]
+  private bool _isActive = true;
+  public bool IsActive => _isActive;
 
   private SplineContainer _spline;
 
