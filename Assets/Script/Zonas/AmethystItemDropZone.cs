@@ -27,10 +27,6 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
   [SerializeField]
   private float _boostGrace = 10f;
 
-  [Header("Respawn")]
-  [SerializeField]
-  private float _respawnDuration = 5f;
-
   [Header("Áudio")]
   [SerializeField]
   private AudioClip _pickupAudio;
@@ -188,7 +184,6 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
   private void HandlePostAnimation()
   {
     base.DisableZone();
-    _respawnTween = DOVirtual.DelayedCall(_respawnDuration, Respawn);
   }
 
   public void Respawn()

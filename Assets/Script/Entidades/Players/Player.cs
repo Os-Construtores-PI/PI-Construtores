@@ -636,6 +636,7 @@ public class Player : CombatEntities
     UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
+    print(LocomotionLayer.CurrentState);
     CheckDeathGround();
   }
 

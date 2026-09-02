@@ -96,7 +96,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
     player.Motor.OverrideMotorRotation = true;
     _originalGravity = player.GravityValue;
-    player.GravityValue = -50;
+    player.GravityValue = -100;
 
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
 

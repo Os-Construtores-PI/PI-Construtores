@@ -117,7 +117,8 @@ public class LevelManager : MonoBehaviour
 
     yield return new WaitUntil(() => dialogueFinished);
 
-    player = _gameDirector.playerDirector?.FirstPlayerContext;
+    player =
+      _gameDirector.playerDirector != null ? _gameDirector.playerDirector.FirstPlayerContext : null;
     if (player != null)
     {
       player.PlayerInput.actions.Disable();
@@ -225,6 +226,8 @@ public class LevelManager : MonoBehaviour
 
       player.transform.SetParent(null, true);
       player.ActionLayer.PopEveryState(player);
+      player.LocomotionLayer.ChangeState(player.Moving, player);
+      player.GravityValue = player.InitialGravityValue;
       player.Motor.Velocity = Vector3.zero;
       player.BoostValue = player.MaxBoostValue;
 
