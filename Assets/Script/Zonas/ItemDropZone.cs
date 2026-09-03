@@ -3,13 +3,9 @@ using UnityEngine.Events;
 
 public class ItemDropZone : Item
 {
-  #region Fields & Events
   [Header("Visual")]
   [SerializeField]
   private float _visualScaleMultiplier = 1f;
-
-  [SerializeField]
-  protected bool _destroyOnCollect = true;
 
   [Header("Colisão")]
   [SerializeField]
@@ -20,14 +16,13 @@ public class ItemDropZone : Item
 
   [Header("Quantidade")]
   [SerializeField]
-  protected int quantity = 1;
+  protected int _quantity = 1;
 
   public UnityEvent<ItemData, int, Player> OnItemCollected;
 
   private GameObject _visualInstance;
   protected BoxCollider _boxCollider;
   private bool _isCollected = false;
-  #endregion
 
 #if UNITY_EDITOR
   public void OnDrawGizmos()
@@ -64,7 +59,7 @@ public class ItemDropZone : Item
     else
     {
       MeshFilter mf = itemData.item.GetComponentInChildren<MeshFilter>();
-      if (mf?.sharedMesh != null)
+      if (mf != null ? mf.sharedMesh : null != null)
       {
         Vector3 scale = itemData.item.transform.localScale;
         Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, scale);
@@ -91,7 +86,6 @@ public class ItemDropZone : Item
       Initialize();
   }
 
-  #region Initialization
   public virtual void Initialize()
   {
     InstantiateVisual();
@@ -106,22 +100,17 @@ public class ItemDropZone : Item
       _boxCollider.isTrigger = true;
     }
 
-    // Agora usamos o _visualInstance (que já está na cena) para obter os bounds reais
     if (_visualInstance != null)
     {
-      // CORREÇÃO 3: Pega todos os renderers para suportar itens com múltiplas partes/materiais
       MeshRenderer[] renderers = _visualInstance.GetComponentsInChildren<MeshRenderer>();
       if (renderers.Length > 0)
       {
-        // Encapsula os bounds de todos os renderers
         Bounds worldBounds = renderers[0].bounds;
         for (int i = 1; i < renderers.Length; i++)
         {
           worldBounds.Encapsulate(renderers[i].bounds);
         }
 
-        // CORREÇÃO 2: Calcula os bounds locais exatos transformando os 8 cantos do bounds mundial.
-        // Isso lida corretamente com rotação e escala, evitando o bug do InverseTransformVector.
         Vector3 localMin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
         Vector3 localMax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
@@ -147,7 +136,6 @@ public class ItemDropZone : Item
       }
     }
 
-    // Fallback caso não haja visual instanciado
     _boxCollider.size = Vector3.one * 2f;
     _boxCollider.center = _colliderOffset;
   }
@@ -165,16 +153,19 @@ public class ItemDropZone : Item
     foreach (var rb in _visualInstance.GetComponentsInChildren<Rigidbody>())
       rb.isKinematic = true;
   }
-  #endregion
 
-  #region Collection Logic
-  private void OnTriggerEnter(Collider other)
+  protected virtual void OnTriggerEnter(Collider other)
   {
     if (_isCollected)
       return;
 
     if (other.TryGetComponent(out Player player))
-      TryCollect(player);
+      OnCollectTriggered(player);
+  }
+
+  protected virtual void OnCollectTriggered(Player player)
+  {
+    TryCollect(player);
   }
 
   protected virtual bool TryCollect(Player player)
@@ -185,20 +176,21 @@ public class ItemDropZone : Item
     if (!CanCollect(player))
       return false;
 
+    CommitCollect(player);
+    return true;
+  }
+
+  protected virtual void CommitCollect(Player player)
+  {
     _isCollected = true;
     AddItem(player);
-    OnItemCollected?.Invoke(itemData, quantity, player);
+    OnItemCollected?.Invoke(itemData, _quantity, player);
     AfterCollect();
-
-    return true;
   }
 
   protected virtual void AfterCollect()
   {
-    if (_destroyOnCollect)
-      Destroy(gameObject);
-    else
-      DisableZone();
+    DisableZone();
   }
 
   protected virtual bool CanCollect(Player player) => true;
@@ -207,7 +199,7 @@ public class ItemDropZone : Item
   {
     if (player.Inventory != null)
     {
-      player.Inventory.AddItem(itemData, quantity);
+      player.Inventory.AddItem(itemData, _quantity);
     }
     else
     {
@@ -220,7 +212,6 @@ public class ItemDropZone : Item
 
   protected virtual void DisableZone()
   {
-    _isCollected = true;
     enabled = false;
     if (_boxCollider != null)
       _boxCollider.enabled = false;
@@ -237,11 +228,8 @@ public class ItemDropZone : Item
     if (_visualInstance != null)
       _visualInstance.SetActive(true);
   }
-  #endregion
 
-  #region Public API
-  public void SetQuantity(int newQuantity) => quantity = Mathf.Max(1, newQuantity);
+  public void SetQuantity(int newQuantity) => _quantity = Mathf.Max(1, newQuantity);
 
   public bool IsCollected => _isCollected;
-  #endregion
 }

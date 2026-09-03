@@ -19,7 +19,7 @@ public class SavedGameData
 [System.Serializable]
 public class SavedConfigData
 {
-  public GameMode GameMode = GameMode.SINGLEPLAYER;
+  public GameMode GameMode = GameMode.Singleplayer;
   public bool HasSave = false;
 }
 

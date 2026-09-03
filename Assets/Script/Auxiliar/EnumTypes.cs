@@ -9,16 +9,6 @@ public enum ErrorType
   ID_ERROR,
 }
 
-public enum QualityTier
-{
-  NONE,
-  COMMON,
-  UNCOMMON,
-  RARE,
-  EPIC,
-  LEGENDARY,
-}
-
 public enum StatType
 {
   Speed,
@@ -75,22 +65,21 @@ public enum ComboPopupType
 
 public enum HealthHUDType
 {
-  PLAYER,
-  ENEMY,
-  ENTITY,
+  Player,
+  Enemy,
+  Entity,
 }
 
-public enum ModifyTYPE
+public enum ModifyType
 {
-  CUSTOM,
-  POSITIVE,
-  NEGATIVE,
+  Delta,
+  Multiplier,
 }
 
-public enum TimeTYPE
+public enum TimeType
 {
-  PERMANENT,
-  TEMPORARY,
+  Permanent,
+  Temporary,
 }
 
 public enum ImpactPopupType
@@ -109,8 +98,8 @@ public enum ColorCode
 
 public enum GameMode
 {
-  SINGLEPLAYER,
-  MULTIPLAYER,
+  Singleplayer,
+  Multiplayer,
 }
 
 public enum PlayerActionType

@@ -6,23 +6,6 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-public static class Tiers
-{
-  public static readonly Dictionary<QualityTier, float> EvaluationMap = new()
-  {
-    { QualityTier.COMMON, 1.0f },
-    { QualityTier.UNCOMMON, 1.20f },
-    { QualityTier.RARE, 1.35f },
-    { QualityTier.EPIC, 1.65f },
-    { QualityTier.LEGENDARY, 1.80f },
-  };
-
-  public static float GetMultiplier(QualityTier tier)
-  {
-    return EvaluationMap.TryGetValue(tier, out var value) ? value : 1.0f;
-  }
-}
-
 public static class Lookups
 {
   public static class Effects
@@ -258,6 +241,15 @@ public static class QualityOfLife
     return Mathf.Lerp(from, to, cubicT);
   }
 
+  public static float FixedSmoothCubicOut(float from, float to, float smoothing)
+  {
+    float t = 1f - Mathf.Exp(-smoothing * Time.fixedDeltaTime);
+    float invT = t - 1f;
+    // Formula Cubic Out: (t-1)^3 + 1
+    float cubicT = invT * invT * invT + 1f;
+    return Mathf.Lerp(from, to, cubicT);
+  }
+
   public static float SmoothQuadIn(float from, float to, float smoothing)
   {
     float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
@@ -271,12 +263,6 @@ public static class QualityOfLife
     // Aplica a curvatura Quad Out: t * (2 - t)
     float quadT = t * (2f - t);
     return Mathf.Lerp(from, to, quadT);
-  }
-
-  public static float PlayerFriction(float value, float frictionAmount, Vector2 intention)
-  {
-    // Se não há intenção, aplica fricção cúbica para uma parada mais natural
-    return (intention == Vector2.zero) ? SmoothCubicOut(value, 0f, frictionAmount) : value;
   }
 
   public static bool IsValidIndex<T>(List<T> list, int index)

@@ -25,8 +25,6 @@ public sealed class DataDirector : MonoBehaviour
   private string ConfigPath => Constants.PersistentNames.ConfigPath;
   private static string ActiveSceneName => SceneManager.GetActiveScene().name;
 
-  public bool ShowStageIntro = true;
-
   #region UNITY
   private void Awake()
   {
@@ -254,6 +252,15 @@ public sealed class DataDirector : MonoBehaviour
     Commit();
   }
 
+  public void SavePreviewScore(int slot, string scene, int playerIndex, int score)
+  {
+    SavedLevelData lvl = GetSafeLevel(slot, scene);
+    SavedPlayerData pd = EnsurePlayerSlot(lvl, playerIndex);
+    pd.PreviewScore = score;
+    pd.Score = Mathf.Max(pd.Score, score);
+    Commit();
+  }
+
   public string SaveLevelRecord(
     int slot,
     string scene,
@@ -324,7 +331,8 @@ public sealed class DataDirector : MonoBehaviour
     foreach (var b in behaviours)
       b.enabled = false;
 
-    player.transform.position = data.Position;
+    player.Motor.Engine.SetPosition(data.Position);
+    player.Motor.Velocity = Vector3.zero;
     player.Health = data.Health;
     player.SetAmethysts(data.AmethystsCount);
     player.SetScore(data.Score);

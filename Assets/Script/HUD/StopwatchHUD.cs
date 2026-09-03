@@ -9,7 +9,6 @@ public class StopwatchHUD : MonoBehaviour
   private float _elapsed = 0f;
   public float Elapsed => _elapsed;
 
-  // Convenience para salvar em int segundos, se precisar
   public int TotalSeconds => (int)_elapsed;
 
   private void Update()
@@ -31,5 +30,6 @@ public class StopwatchHUD : MonoBehaviour
   public void ResetStopwatch()
   {
     _elapsed = 0f;
+    UpdateDisplay();
   }
 }

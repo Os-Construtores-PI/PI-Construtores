@@ -12,20 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 874b4f38daff2d342b48f141090baf84, type: 3}
   m_Name: Player Config - FASE 0
   m_EditorClassIdentifier: 
-  vidaMaxima: 200
+  vidaMaxima: 100
   habilitarRegeneracao: 0
   intervaloRegeneracao: 5
   cooldownCombate: 5
   cooldownDano: 2
-  velocidade: 15
-  multiplicadorVelocidadeCorrida: 4
-  aceleracao: 10
-  multiplicadorAceleracaoCorrida: 3
-  friccaoTerra: 2
+  velocidade: 50
+  aceleracao: 25
+  friccaoTerra: 200
   friccaoAr: 1
-  forcaPulo: 15
+  forcaPulo: 30
   maximoDePulos: 2
-  gravidade: -18.75
+  gravidade: -30
   gravidademultsubida: 2
   gravidademultdescida: 6
   velocidademaximaqueda: -60
@@ -34,9 +32,33 @@ MonoBehaviour:
   cooldownDash: 1
   distanciaDash: 5
   maximoDeDashes: 1
-  cooldownTrocaJogador: 0
   multiplicadorVelocidadeParede: 1
   multiplicadorForcaPuloParede: 2
   duracaoSaidaParede: 0
   podeAtacar: 0
   cooldownAtaque: 3
+  _pontuacaoTempo: 100000
+  _pontuacaoCurva:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: -0.0036236285
+      outSlope: -0.0036236285
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.1463205
+    - serializedVersion: 3
+      time: 200
+      value: 0
+      inSlope: 0.00019913158
+      outSlope: 0.00019913158
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.026032511
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

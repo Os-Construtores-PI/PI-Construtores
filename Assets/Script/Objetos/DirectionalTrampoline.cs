@@ -13,8 +13,9 @@ public class DirectionalTrampoline : LockableInteractableObject
   public override void Interaction(Player player)
   {
     _canJump = false;
-    player.MovementVector = Vector3.zero;
-    player.MovementVector = transform.up * _impulseForce;
+    player.Motor.Velocity = Vector3.zero;
+    player.Motor.Velocity = transform.up * _impulseForce;
+    player.Motor.Engine.ForceUnground(.1f);
     player.IsImpulsioned = true;
     player.CurrentDashCount = 0;
     player.BoostValue += _boostGrace;
@@ -31,12 +32,14 @@ public class DirectionalTrampoline : LockableInteractableObject
     }
   }
 
+#if UNITY_EDITOR
   public override void OnDrawGizmos()
   {
     base.OnDrawGizmos();
     Gizmos.color = _gizmoColor;
     Gizmos.DrawRay(transform.position, transform.up * 10);
   }
+#endif
 
   public void OnTriggerEnter(Collider collision)
   {

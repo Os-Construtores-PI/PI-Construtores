@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [System.Serializable]
 public class PlayerActionStateBoost : IPlayerState<Player>
@@ -46,28 +48,58 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _rotationSpeed = 180f;
 
+  [Header("Vibração do Gamepad na Corrida")]
+  [SerializeField]
+  private float _runRumbleLowFrequency = 0.1f;
+
+  [SerializeField]
+  private float _runRumbleHighFrequency = 0.2f;
+
+  [Header("Vibração do Gamepad no Acerto")]
+  [SerializeField]
+  private float _hitRumbleLowFrequency = 0.5f;
+
+  [SerializeField]
+  private float _hitRumbleHighFrequency = 0.8f;
+
+  [SerializeField]
+  private float _hitRumbleDuration = 0.2f;
+
   [Header("Boost Componentes")]
   [SerializeField]
   private Collider _boostHitboxCollider;
 
   [SerializeField]
+  private HitboxComponent _boostHitboxComponent;
+
+  [SerializeField]
   private SphereCollider _boostCollectionCollider;
 
-  private float _playerOriginalSpeed;
-  private float _velocity;
+  private CancellationTokenSource _hitRumbleCts;
+
+  private float _boostSpeedRatio;
+  private string _boostSourceId;
 
   private Quaternion _boostRotation;
+
+  private float _originalGravity = 0;
   #endregion
 
   #region IState Callbacks
   public void Enter(Player player)
   {
-    _velocity = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
-    _playerOriginalSpeed = player.Speed;
+    float boostSpeed = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
+    _boostSpeedRatio = boostSpeed / player.Speed;
+
     _boostRotation = player.transform.rotation;
-    float velocityFraction = _velocity / _maxVelocity;
+
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
-    player.Stats.ModifyStatToTarget(StatType.Speed, _velocity);
+    player.Motor.OverrideMotorRotation = true;
+    _originalGravity = player.GravityValue;
+    player.GravityValue = -50;
+
+    _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
+
     player.SpeedLines.Invoke(true);
 
     if (_boostCollectionCollider != null)
@@ -77,7 +109,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     if (player.HurtboxCollider != null)
     {
-      player.HurtboxCollider.TriggerInvulnerability(1000f);
+      player.HurtboxCollider.OverrideDamageLayers(LayerMask.GetMask("WorldHit"));
     }
 
     if (_boostHitboxCollider != null)
@@ -85,6 +117,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       _boostHitboxCollider.enabled = true;
     }
 
+    var hitbox = _boostHitboxCollider.GetComponent<HitboxComponent>();
+    hitbox?.Hit.AddListener(OnBoostHitDetected);
+
+    float velocityFraction = boostSpeed / _maxVelocity;
     player.CustomShake.Invoke(
       player.ID,
       _enterShakeAmplitude * velocityFraction,
@@ -96,6 +132,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
+
+    Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
 
     _fovTween?.Kill();
     _fovTween = DOTween.To(
@@ -113,13 +151,26 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   public void Exit(Player player)
   {
-    _velocity = 0f;
+    _hitRumbleCts?.Cancel();
+    _hitRumbleCts?.Dispose();
+    _hitRumbleCts = null;
 
-    float currentYVelocity = player.MovementVector.y;
-    player.MovementVector = Vector3.zero;
-    player.MovementVector.y = currentYVelocity;
+    if (!string.IsNullOrEmpty(_boostSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+      _boostSourceId = null;
+    }
 
-    player.Stats.ModifyStatToTarget(StatType.Speed, _playerOriginalSpeed);
+    _boostSpeedRatio = 0f;
+
+    float currentYVelocity = player.Motor.Engine.Velocity.y;
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
+    player.Motor.Engine.BaseVelocity.y = currentYVelocity;
+    player.Motor.OverrideMotorRotation = false;
+    player.GravityValue = _originalGravity;
+
+    Gamepad.current?.SetMotorSpeeds(0, 0);
+
     player.LocomotionLayer.ChangeState(player.Moving, player);
 
     player.SpeedLines.Invoke(false);
@@ -131,7 +182,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     if (player.HurtboxCollider != null)
     {
-      player.HurtboxCollider.ResetInvulnerability();
+      player.HurtboxCollider.ResetDamageLayers();
     }
 
     if (_boostHitboxCollider != null)
@@ -172,16 +223,16 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     if (Mathf.Abs(turnInput) > 0.01f)
     {
       _boostRotation *= Quaternion.AngleAxis(
-        turnInput * _rotationSpeed * Time.deltaTime,
+        turnInput * _rotationSpeed * Time.fixedDeltaTime,
         Vector3.up
       );
-      player.transform.rotation = _boostRotation;
+      player.Motor.Engine.SetRotation(_boostRotation);
     }
 
-    Vector3 newMovementVector = player.transform.forward * _velocity;
-    newMovementVector.y = player.MovementVector.y;
+    Vector3 newMovementVector = player.transform.forward * player.Speed;
+    newMovementVector.y = player.Motor.Engine.Velocity.y;
 
-    player.MovementVector = newMovementVector;
+    player.Motor.Engine.BaseVelocity = newMovementVector;
 
     if (!player.PlayerInput.actions.FindAction("Dash / Boost").IsPressed())
     {
@@ -191,6 +242,33 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   }
 
   public void FixedUpdate(Player player) { }
+
+  private void OnBoostHitDetected()
+  {
+    TriggerHitRumbleAsync();
+  }
+
+  private async void TriggerHitRumbleAsync()
+  {
+    _hitRumbleCts?.Cancel();
+    _hitRumbleCts?.Dispose();
+    _hitRumbleCts = new CancellationTokenSource();
+
+    var token = _hitRumbleCts.Token;
+
+    try
+    {
+      Gamepad.current?.SetMotorSpeeds(_hitRumbleLowFrequency, _hitRumbleHighFrequency);
+
+      await System.Threading.Tasks.Task.Delay(
+        System.TimeSpan.FromSeconds(_hitRumbleDuration),
+        token
+      );
+
+      Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
+    }
+    catch (System.OperationCanceledException) { }
+  }
 
   #endregion
 }

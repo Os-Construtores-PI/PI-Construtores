@@ -13,10 +13,17 @@ public class HurtboxComponent : MonoBehaviour
   [SerializeField]
   private float _damageCooldown = 1f;
 
+  [Header("Layers que podem causar dano")]
+  [SerializeField]
+  private LayerMask _defaultDamageLayers;
+  private LayerMask _currentDamageLayers;
+
   private void Start()
   {
     SetEntity();
     _initialCooldown = _damageCooldown;
+    _currentDamageLayers = _defaultDamageLayers;
+
     if (entity == null || !TryGetComponent(out Collider collider) || !collider.isTrigger)
     {
       print(
@@ -51,21 +58,34 @@ public class HurtboxComponent : MonoBehaviour
     _damageCooldown = _initialCooldown;
   }
 
+  public void OverrideDamageLayers(LayerMask mask)
+  {
+    _currentDamageLayers = mask;
+  }
+
+  public void ResetDamageLayers()
+  {
+    _currentDamageLayers = _defaultDamageLayers;
+  }
+
   public void OnTriggerEnter(Collider other) => DamageLogic(other);
 
   public void OnTriggerStay(Collider other) => DamageLogic(other);
 
   private void DamageLogic(Collider collider)
   {
-    if (!collider.TryGetComponent(out HitboxComponent hitbox) || !CanTakeDamage)
+    if (!CanTakeDamage)
       return;
 
-    // Aplica o dano
+    if (((1 << collider.gameObject.layer) & _currentDamageLayers) == 0)
+      return;
+
+    if (!collider.TryGetComponent(out HitboxComponent hitbox))
+      return;
+
     entity.Health -= hitbox.Damage;
     entity.Damaged = true;
-
     hitbox.Hit.Invoke();
-
     TriggerInvulnerability(_initialCooldown);
   }
 
