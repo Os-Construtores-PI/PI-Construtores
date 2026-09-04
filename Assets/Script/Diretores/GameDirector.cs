@@ -99,8 +99,6 @@ public class GameDirector : MonoBehaviour
 
   // ─── Reset ────────────────────────────────────────────────────────────────
 
-  // ─── Reset ────────────────────────────────────────────────────────────────
-
   public void ResetWorld()
   {
     foreach (
@@ -213,25 +211,5 @@ public class GameDirector : MonoBehaviour
 
     if (player != null)
       SetLockPlayer(player, false);
-  }
-
-  public static class RespawnManager
-  {
-    private static readonly HashSet<IRespawnable> _respawnables = new();
-
-    public static void Register(IRespawnable respawnable) => _respawnables.Add(respawnable);
-
-    public static void Unregister(IRespawnable respawnable) => _respawnables.Remove(respawnable);
-
-    public static void ResetAll()
-    {
-      foreach (var respawnable in _respawnables)
-      {
-        if (!respawnable.IsAlive)
-        {
-          respawnable.Respawn();
-        }
-      }
-    }
   }
 }

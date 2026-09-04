@@ -25,15 +25,15 @@ public class BreakableObject : MonoBehaviour, IRespawnable
 
   public bool IsAlive { get; private set; } = true;
 
-  private void Awake()
+  private void Start()
   {
     _animator = GetComponent<Animator>();
-    GameDirector.RespawnManager.Register(this);
+    RespawnManager.Register(this);
   }
 
   private void OnDestroy()
   {
-    GameDirector.RespawnManager.Unregister(this);
+    RespawnManager.Unregister(this);
   }
 
   private void OnTriggerEnter(Collider collider)

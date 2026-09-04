@@ -64,10 +64,10 @@ public interface IWallCollisionHandler
 
 public interface ILockable
 {
-  Transform transform { get; }
+  public Transform transform { get; }
   public float LockRange { get; }
   public float BoostGrace { get; }
-  public bool IsActive { get; }
+  public Vector3 GetLockOnPoint(Vector3 referencePoint) => transform.position;
 }
 
 public interface IRespawnable

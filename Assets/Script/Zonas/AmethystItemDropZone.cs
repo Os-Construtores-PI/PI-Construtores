@@ -51,6 +51,7 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
   private float _pursuitMaxSpeedMultiplier = 3f;
 
   private Vector3 _initialScale;
+  private Vector3 _initialPosition;
   private Player _target;
   private float _pursuitElapsedTime;
   private Tween _currentTweener;
@@ -59,16 +60,17 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
 
   public bool IsAlive { get; private set; } = true;
 
-  public override void Awake()
+  public override void Start()
   {
-    base.Awake();
-    GameDirector.RespawnManager.Register(this);
+    base.Start();
+    RespawnManager.Register(this);
+    _initialPosition = transform.position;
   }
 
   public override void OnDestroy()
   {
     base.OnDestroy();
-    GameDirector.RespawnManager.Unregister(this);
+    RespawnManager.Unregister(this);
     KillExistingAnimations();
   }
 
@@ -198,6 +200,7 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
   {
     KillExistingAnimations();
     transform.localScale = _initialScale;
+    transform.position = _initialPosition;
     base.ResetZone();
   }
 

@@ -44,6 +44,12 @@ public class LevelManager : MonoBehaviour
     return sorted.Count > 0 ? sorted[^1].Rank : default;
   }
 
+  public void Awake()
+  {
+    RespawnManager.ResetSession();
+    RailManager.ResetSession();
+  }
+
   public void Start()
   {
     _dataSystem = DataDirector.Instance;
@@ -197,7 +203,7 @@ public class LevelManager : MonoBehaviour
       return;
     }
 
-    GameDirector.RespawnManager.ResetAll();
+    RespawnManager.ResetAll();
 
     Debug.Log("[LevelManager] RespawnPlayers chamado, iniciando coroutine.");
     StartCoroutine(RespawnRoutine());

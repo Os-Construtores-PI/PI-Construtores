@@ -7261,6 +7261,9 @@ MonoBehaviour:
   _lockRange: 50
   _boostGrace: 0
   _isActive: 1
+  _reEntryCooldown: 0.35
+  _segmentLength: 3
+  _segmentRadius: 1.5
 --- !u!64 &161775559
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -38489,13 +38492,12 @@ GameObject:
   m_Component:
   - component: {fileID: 860158985}
   - component: {fileID: 860158984}
-  - component: {fileID: 860158983}
   - component: {fileID: 860158982}
   - component: {fileID: 860158981}
   - component: {fileID: 860158980}
   - component: {fileID: 860158979}
   m_Layer: 9
-  m_Name: Spline.1
+  m_Name: Rail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38606,28 +38608,9 @@ MonoBehaviour:
   _lockRange: 50
   _boostGrace: 0
   _isActive: 1
---- !u!64 &860158983
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 860158978}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  _reEntryCooldown: 0.35
+  _segmentLength: 3
+  _segmentRadius: 1.5
 --- !u!114 &860158984
 MonoBehaviour:
   m_ObjectHideFlags: 0
