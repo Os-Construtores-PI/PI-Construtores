@@ -3,7 +3,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(Collider))]
-public class BreakableObject : MonoBehaviour, IRespawnable
+public class BreakableObject : Object, IRespawnable
 {
   private static readonly int ResetHash = Animator.StringToHash("Reset");
 
