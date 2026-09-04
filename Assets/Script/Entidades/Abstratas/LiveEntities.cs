@@ -4,7 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 
-public abstract class LiveEntities : Entities
+public abstract class LiveEntities : Entity
 {
   [Header("Debug - Vida Atual")]
   [SerializeField]

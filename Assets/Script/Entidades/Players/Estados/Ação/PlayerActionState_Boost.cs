@@ -44,10 +44,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _maxVelocity = 100f;
 
-  [Tooltip("Velocidade de rotação em graus por segundo durante o boost.")]
-  [SerializeField]
-  private float _rotationSpeed = 180f;
-
   [Header("Vibração do Gamepad na Corrida")]
   [SerializeField]
   private float _runRumbleLowFrequency = 0.1f;
@@ -80,25 +76,17 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private float _boostSpeedRatio;
   private string _boostSourceId;
 
-  private Quaternion _boostRotation;
-
   private float _originalGravity = 0;
   #endregion
 
   #region IState Callbacks
   public void Enter(Player player)
   {
-    float boostSpeed = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
-    _boostSpeedRatio = boostSpeed / player.Speed;
-
-    _boostRotation = player.transform.rotation;
-
-    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
-    player.Motor.OverrideMotorRotation = true;
-    _originalGravity = player.GravityValue;
-    player.GravityValue = -50;
-
+    _boostSpeedRatio = _maxVelocity / player.Speed;
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
+
+    _originalGravity = player.GravityValue;
+    player.GravityValue = -100;
 
     player.SpeedLines.Invoke(true);
 
@@ -120,11 +108,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     var hitbox = _boostHitboxCollider.GetComponent<HitboxComponent>();
     hitbox?.Hit.AddListener(OnBoostHitDetected);
 
-    float velocityFraction = boostSpeed / _maxVelocity;
     player.CustomShake.Invoke(
       player.ID,
-      _enterShakeAmplitude * velocityFraction,
-      _enterShakeFrequency * velocityFraction,
+      _enterShakeAmplitude,
+      _enterShakeFrequency,
       _enterShakeDuration
     );
 
@@ -163,15 +150,9 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     _boostSpeedRatio = 0f;
 
-    float currentYVelocity = player.Motor.Engine.Velocity.y;
-    player.Motor.Engine.BaseVelocity = Vector3.zero;
-    player.Motor.Engine.BaseVelocity.y = currentYVelocity;
-    player.Motor.OverrideMotorRotation = false;
     player.GravityValue = _originalGravity;
 
     Gamepad.current?.SetMotorSpeeds(0, 0);
-
-    player.LocomotionLayer.ChangeState(player.Moving, player);
 
     player.SpeedLines.Invoke(false);
 
@@ -218,21 +199,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       player.ActionLayer.ExitState(this, player);
       return;
     }
-
-    float turnInput = player.MoveInput.x;
-    if (Mathf.Abs(turnInput) > 0.01f)
-    {
-      _boostRotation *= Quaternion.AngleAxis(
-        turnInput * _rotationSpeed * Time.fixedDeltaTime,
-        Vector3.up
-      );
-      player.Motor.Engine.SetRotation(_boostRotation);
-    }
-
-    Vector3 newMovementVector = player.transform.forward * player.Speed;
-    newMovementVector.y = player.Motor.Engine.Velocity.y;
-
-    player.Motor.Engine.BaseVelocity = newMovementVector;
 
     if (!player.PlayerInput.actions.FindAction("Dash / Boost").IsPressed())
     {

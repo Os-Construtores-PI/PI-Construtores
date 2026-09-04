@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DirectionalTrampoline : LockableInteractableObject
+public class DirectionalTrampoline : LockableObject
 {
   [SerializeField]
   private float _impulseForce = 10f;
@@ -8,33 +8,38 @@ public class DirectionalTrampoline : LockableInteractableObject
   [SerializeField]
   private Color _gizmoColor = Color.white;
 
-  private bool _canJump = true;
+  [SerializeField]
+  private float _jumpCooldown = 1f;
 
-  public override void Interaction(Player player)
+  private bool _canJump = true;
+  private Timer _jumpTimer = new();
+
+  public void Jump(Player player)
   {
     _canJump = false;
+    player.ActionLayer.PopEveryState(player);
     player.Motor.Velocity = Vector3.zero;
     player.Motor.Velocity = transform.up * _impulseForce;
+    player.Motor.Engine.ForceUnground(.1f);
     player.IsImpulsioned = true;
     player.CurrentDashCount = 0;
     player.BoostValue += _boostGrace;
     player.DisableLockIn();
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.WasVerticalBoosted);
-    _interactionTimer.Start(_interactionCooldown);
+    _jumpTimer.Start(_jumpCooldown);
   }
 
   public void Update()
   {
-    if (_interactionTimer.Tick(Time.deltaTime))
+    if (_jumpTimer.Tick(Time.deltaTime))
     {
       _canJump = true;
     }
   }
 
 #if UNITY_EDITOR
-  public override void OnDrawGizmos()
+  public void OnDrawGizmos()
   {
-    base.OnDrawGizmos();
     Gizmos.color = _gizmoColor;
     Gizmos.DrawRay(transform.position, transform.up * 10);
   }
@@ -44,7 +49,7 @@ public class DirectionalTrampoline : LockableInteractableObject
   {
     if (collision.TryGetComponent(out Player player) && _canJump)
     {
-      Interaction(player);
+      Jump(player);
     }
   }
 }

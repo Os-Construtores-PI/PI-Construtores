@@ -39,6 +39,7 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
     _momentum = new(player.Motor.Engine.BaseVelocity.x, player.Motor.Engine.BaseVelocity.z);
     _deactivated = false;
     player.GroundSlamImpactSpeed = 0f;
+    player.HurtboxCollider.TriggerInvulnerability(1000);
     _currentVerticalSpeed = 0f;
     _bounceCombo = 0;
 
@@ -88,8 +89,6 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
 
   private void OnImpact(Player player)
   {
-    player.LocomotionLayer.ChangeState(player.Moving, player);
-
     player.CustomShake.Invoke(player.ID, 0.8f, 15f, 0.4f);
 
     _bounceCombo = Mathf.Min(_bounceCombo + 1, BounceComboBonus.Length - 1);
@@ -103,14 +102,15 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
     bounceVelocity.y = jumpY;
     player.Motor.Engine.BaseVelocity = bounceVelocity;
 
-    player.GroundSlamImpactSpeed = 0f;
-    _currentVerticalSpeed = 0f;
-
     player.ActionLayer.ExitState(this, player);
   }
 
   public void Exit(Player player)
   {
+    player.LocomotionLayer.ChangeState(player.Moving, player);
+    player.HurtboxCollider.ResetInvulnerability();
+    player.GroundSlamImpactSpeed = 0f;
+
     _groundSlamHitboxCollider.enabled = false;
     _currentVerticalSpeed = 0f;
   }

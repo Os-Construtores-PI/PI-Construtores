@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using static TutorialGlobal;
 
@@ -93,6 +94,24 @@ public class GameDirector : MonoBehaviour
 
       if (player != null)
         SetLockPlayer(player, false);
+    }
+  }
+
+  // ─── Reset ────────────────────────────────────────────────────────────────
+
+  public void ResetWorld()
+  {
+    foreach (
+      var component in FindObjectsByType<Component>(
+        FindObjectsInactive.Include,
+        FindObjectsSortMode.None
+      )
+    )
+    {
+      if (component is IRespawnable respawnable && !respawnable.IsAlive)
+      {
+        respawnable.Respawn();
+      }
     }
   }
 

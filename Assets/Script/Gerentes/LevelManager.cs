@@ -18,6 +18,19 @@ public class LevelManager : MonoBehaviour
   private List<RankTime> _rankTimes = new();
   public List<RankTime> RankTimes => _rankTimes;
 
+  [SerializeField]
+  private int _maxTimeBonusScore = 1000000;
+  private AnimationCurve _timeScoreCurve;
+
+  public int CalculateTimeScoreCurve(float timeInSeconds)
+  {
+    float multiplier = _timeScoreCurve.Evaluate(timeInSeconds);
+
+    int finalScore = Mathf.RoundToInt(_maxTimeBonusScore * multiplier);
+
+    return Mathf.Max(0, finalScore);
+  }
+
   public RankType GetRank(float seconds)
   {
     var sorted = _rankTimes.OrderBy(rt => rt.Seconds).ToList();
@@ -31,11 +44,18 @@ public class LevelManager : MonoBehaviour
     return sorted.Count > 0 ? sorted[^1].Rank : default;
   }
 
+  public void Awake()
+  {
+    RespawnManager.ResetSession();
+    RailManager.ResetSession();
+  }
+
   public void Start()
   {
     _dataSystem = DataDirector.Instance;
     _gameDirector = FindAnyObjectByType<GameDirector>();
     _hudDirector = FindAnyObjectByType<HudDirector>();
+    _timeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, _rankTimes.Last().Seconds, 0f);
 
     if (_dataSystem == null)
       Debug.LogError("[LevelManager] DataDirector.Instance é null! Verifique se existe na cena.");
@@ -44,7 +64,7 @@ public class LevelManager : MonoBehaviour
       Debug.LogError("[LevelManager] GameDirector não encontrado!");
 
     GlobalEventBus.Instance.Death.AddListener(PlayerDeathHandler);
-    GlobalEventBus.Instance.Respawn.AddListener(RespawnPlayers);
+    GlobalEventBus.Instance.Respawn.AddListener(ResetLevel);
     GlobalEventBus.Instance.EndGame.AddListener(PlayerEndGameHandler);
 
     StartCoroutine(StartLevelRoutine());
@@ -56,7 +76,7 @@ public class LevelManager : MonoBehaviour
       return;
 
     GlobalEventBus.Instance.Death.RemoveListener(PlayerDeathHandler);
-    GlobalEventBus.Instance.Respawn.RemoveListener(RespawnPlayers);
+    GlobalEventBus.Instance.Respawn.RemoveListener(ResetLevel);
     GlobalEventBus.Instance.EndGame.RemoveListener(PlayerEndGameHandler);
 
     Debug.Log("[LevelManager] Listeners removidos do GlobalEventBus.");
@@ -103,7 +123,8 @@ public class LevelManager : MonoBehaviour
 
     yield return new WaitUntil(() => dialogueFinished);
 
-    player = _gameDirector.playerDirector?.FirstPlayerContext;
+    player =
+      _gameDirector.playerDirector != null ? _gameDirector.playerDirector.FirstPlayerContext : null;
     if (player != null)
     {
       player.PlayerInput.actions.Disable();
@@ -145,7 +166,7 @@ public class LevelManager : MonoBehaviour
       if (stopwatchObj != null && stopwatchObj.TryGetComponent(out StopwatchHUD stopwatchHUD))
       {
         float elapsedSeconds = (float)stopwatchHUD.Elapsed;
-        int timeBonus = player.CalculateTimeScoreCurve(elapsedSeconds);
+        int timeBonus = CalculateTimeScoreCurve(elapsedSeconds);
         player.AddScore(timeBonus);
 
         _dataSystem.SavePreviewScore(
@@ -174,13 +195,15 @@ public class LevelManager : MonoBehaviour
     SetPlayersInput(false);
   }
 
-  private void RespawnPlayers()
+  private void ResetLevel()
   {
     if (!_dataSystem || !_gameDirector)
     {
       Debug.LogError("[LevelManager] RespawnPlayers: dataSystem ou gameDirector null!");
       return;
     }
+
+    RespawnManager.ResetAll();
 
     Debug.Log("[LevelManager] RespawnPlayers chamado, iniciando coroutine.");
     StartCoroutine(RespawnRoutine());
@@ -209,6 +232,8 @@ public class LevelManager : MonoBehaviour
 
       player.transform.SetParent(null, true);
       player.ActionLayer.PopEveryState(player);
+      player.LocomotionLayer.ChangeState(player.Moving, player);
+      player.GravityValue = player.InitialGravityValue;
       player.Motor.Velocity = Vector3.zero;
       player.BoostValue = player.MaxBoostValue;
 

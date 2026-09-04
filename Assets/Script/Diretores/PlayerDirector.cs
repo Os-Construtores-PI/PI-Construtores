@@ -49,7 +49,10 @@ public class PlayerDirector : MonoBehaviour
   private HudDirector _hudDirector;
 
   [SerializeField]
-  private ConfigPlayer configPlayer;
+  private Transform _spawnTransform;
+
+  [SerializeField]
+  private PlayerConfig configPlayer;
 
   // =========================================================
   // ESTADO INTERNO
@@ -180,7 +183,7 @@ public class PlayerDirector : MonoBehaviour
       SetupCamera(player, viewport);
 
     player.Motor.Engine.BaseVelocity = Vector3.zero;
-
+    player.Motor.Engine.SetPosition(_spawnTransform.position);
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
 
     QualityOfLife.CursorOptions(false);

@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class CameraLogic : Entities
+public class CameraLogic : Entity
 {
   [Header("Referência atual do jogador")]
   [SerializeField]

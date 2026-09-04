@@ -22562,8 +22562,7 @@ MonoBehaviour:
     _enterShakeFrequency: 0.4
     _enterShakeDuration: 0.25
     _continuousBoostUsage: 10
-    _maxVelocity: 1000
-    _rotationSpeed: 100
+    _maxVelocity: 100
     _runRumbleLowFrequency: 0.1
     _runRumbleHighFrequency: 0.2
     _hitRumbleLowFrequency: 0.5
@@ -22610,31 +22609,6 @@ MonoBehaviour:
     m_Bits: 64
   _knockbackStrength: 20
   _launchStrength: 20
-  MaxTimeScore: 10000
-  TimeScoreCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 60
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   _stagesOfCombo:
   - Multiplier: 2
     TimeToExitStage: 3
@@ -22649,14 +22623,13 @@ MonoBehaviour:
   - {fileID: 6507626406025360012}
   - {fileID: 6841662986189966198}
   enemyScanRadius: 10
-  _railEntryRadius: 6
-  _railEntryForwardOffset: 0.6
-  _railEntryMinDot: 0.2
+  _railEntryRadius: 12
+  _railEntryMinDot: -0.5
   _railLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 513
   InteractionObject: {fileID: 0}
-  _amethystScoreMultiplier: 1
+  _amethystScoreMultiplier: 100
   _playerSFX: []
   CanAttack: 1
   WillAttack: 1
@@ -22847,7 +22820,7 @@ MonoBehaviour:
   CapsuleYOffset: 0
   CapsulePhysicsMaterial: {fileID: 0}
   GroundDetectionExtraDistance: 0
-  MaxStableSlopeAngle: 60
+  MaxStableSlopeAngle: 45
   StableGroundLayers:
     serializedVersion: 2
     m_Bits: 129

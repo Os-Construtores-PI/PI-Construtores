@@ -5,6 +5,7 @@ using System.Threading;
 using DG.Tweening;
 using KinematicCharacterController;
 using Unity.Cinemachine;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -292,21 +293,6 @@ public class Player : CombatEntities
 
   #region Score
 
-  #region Time
-  public int MaxTimeScore = 1000000;
-
-  public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
-
-  public int CalculateTimeScoreCurve(float timeInSeconds)
-  {
-    float multiplier = TimeScoreCurve.Evaluate(timeInSeconds);
-
-    int finalScore = Mathf.RoundToInt(MaxTimeScore * multiplier);
-
-    return Mathf.Max(0, finalScore);
-  }
-
-  #endregion
 
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
@@ -440,7 +426,7 @@ public class Player : CombatEntities
   [SerializeField, Min(10)]
   private float enemyScanRadius = 10f;
 
-  private const float CameraScanSphereRadius = 6f;
+  private const float CameraScanSphereRadius = 8f;
   private const float CameraScanMaxDistance = 100f;
   private const float CameraScanDotThreshold = 0.5f;
   private const float WallScanDistance = 5f;
@@ -457,9 +443,6 @@ public class Player : CombatEntities
   private float _railEntryRadius = 1.2f;
 
   [SerializeField]
-  private float _railEntryForwardOffset = 0.8f;
-
-  [SerializeField]
   private float _railEntryMinDot = 0.3f;
 
   [SerializeField]
@@ -473,6 +456,17 @@ public class Player : CombatEntities
   private ILockable _lockCandidate;
   private RaycastHit _lastLockHit;
   private bool _isLockOnActive = false;
+  private bool _willLock = true;
+  public bool WillLock
+  {
+    get => _willLock;
+    set
+    {
+      _willLock = value;
+      if (!_willLock)
+        DisableLockIn();
+    }
+  }
   protected RaycastHit _playerRayHit;
   #endregion
 
@@ -490,7 +484,7 @@ public class Player : CombatEntities
 
   [Header("Ametistas")]
   [SerializeField]
-  private int _amethystScoreMultiplier = 1;
+  private int _amethystScoreMultiplier = 100;
 
   private int _amethysts = 0;
   public int Amethysts => _amethysts;
@@ -755,6 +749,21 @@ public class Player : CombatEntities
     return null;
   }
 
+  private bool TryGetTargetPoint(Collider col, Vector3 referencePoint, out Vector3 targetPoint)
+  {
+    targetPoint = default;
+
+    if (!col.TryGetComponent<ILockable>(out var lockable))
+      return false;
+
+    Vector3 lockPoint = lockable.GetLockOnPoint(referencePoint);
+    if (Vector3.Distance(referencePoint, lockPoint) > lockable.LockRange)
+      return false;
+
+    targetPoint = lockPoint;
+    return true;
+  }
+
   private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
     ray =>
     {
@@ -767,52 +776,83 @@ public class Player : CombatEntities
         ray.direction,
         _sphereCastResults,
         CameraScanMaxDistance,
-        targetsMask
+        targetsMask,
+        QueryTriggerInteraction.Collide
       );
 
       Collider bestTarget = null;
+      Vector3 bestTargetPoint = default;
       float closestDistance = float.MaxValue;
 
       for (int i = 0; i < hitCount; i++)
       {
         Collider col = _sphereCastResults[i].collider;
-        if (col.CompareTag(TAG_PLAYER))
-          continue;
 
-        Vector3 targetCenter = col.bounds.center;
+        if (col.CompareTag(TAG_PLAYER))
+        {
+          continue;
+        }
+
+        if (!TryGetTargetPoint(col, ray.origin, out Vector3 targetCenter))
+        {
+          continue;
+        }
+
         float dot = Vector3.Dot(ray.direction.normalized, (targetCenter - ray.origin).normalized);
         if (dot < CameraScanDotThreshold)
+        {
           continue;
+        }
 
         float distance = Vector3.Distance(ray.origin, targetCenter);
         if (distance > CameraScanMaxDistance)
+        {
           continue;
+        }
 
-        if (!Physics.Linecast(ray.origin, targetCenter, obstacleMask) && distance < closestDistance)
+        bool blocked = Physics.Linecast(
+          ray.origin,
+          targetCenter,
+          obstacleMask,
+          QueryTriggerInteraction.Ignore
+        );
+        if (blocked)
+        {
+          continue;
+        }
+
+        if (distance < closestDistance)
         {
           closestDistance = distance;
           bestTarget = col;
+          bestTargetPoint = targetCenter;
         }
       }
 
       if (bestTarget != null)
       {
-        Vector3 finalDir = (bestTarget.bounds.center - ray.origin).normalized;
-        // Adiciona buffer constante ao distance para evitar falhas de precisão
-        if (
-          Physics.Raycast(
-            ray.origin,
-            finalDir,
-            out RaycastHit finalHit,
-            CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
-            targetsMask | obstacleMask
-          )
-        )
+        Vector3 finalDir = (bestTargetPoint - ray.origin).normalized;
+
+        bool raycastHit = Physics.Raycast(
+          ray.origin,
+          finalDir,
+          out RaycastHit finalHit,
+          CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
+          targetsMask | obstacleMask,
+          QueryTriggerInteraction.Collide
+        );
+
+        if (raycastHit)
         {
-          if ((targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0)
+          bool isTargetLayer = (targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0;
+
+          if (isTargetLayer)
+          {
             return (true, finalHit);
+          }
         }
       }
+
       return (false, default);
     };
 
@@ -825,43 +865,49 @@ public class Player : CombatEntities
       Vector3 moveDir =
         Motor.Engine.Velocity.sqrMagnitude > SQR_EPSILON
           ? Motor.Engine.Velocity.normalized
-          : Motor.Engine.Velocity.normalized;
-      if (moveDir.sqrMagnitude < SQR_EPSILON)
-        return null;
+          : (
+            MoveInput.sqrMagnitude > 0.01f
+              ? GetCameraRelativeDirection(MoveInput)
+              : transform.forward
+          );
 
-      Vector3 scanOrigin = playerPos + moveDir * _railEntryForwardOffset;
-      var hits = Physics.OverlapSphere(
-        scanOrigin,
-        _railEntryRadius,
-        _railLayerMask,
-        QueryTriggerInteraction.Ignore
-      );
+      var allRails = RailManager.Rails;
 
       RailObject bestRail = null;
       float bestScore = -1f;
 
-      foreach (var hit in hits)
+      foreach (var rail in allRails)
       {
-        if (!hit.TryGetComponent(out RailObject rail))
+        if (rail.IsOnCooldown)
           continue;
+
         if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
           continue;
 
         float distance = Vector3.Distance(playerPos, nearestPoint);
-        if (distance > _railEntryRadius)
+
+        float effectiveRadius = Mathf.Max(_railEntryRadius, 3f);
+
+        if (distance > effectiveRadius)
           continue;
 
-        float alignment = Vector3.Dot((nearestPoint - playerPos).normalized, moveDir);
-        if (alignment >= _railEntryMinDot)
+        Vector3 toRail = (nearestPoint - playerPos).normalized;
+        float alignment = Vector3.Dot(toRail, moveDir);
+
+        float proximityScore = 1f - (distance / effectiveRadius);
+        float alignmentScore = (alignment + 1f) * 0.5f;
+        float score = proximityScore * 0.7f + alignmentScore * 0.3f;
+
+        if (distance < 1f)
+          score += 10f;
+
+        if (score > bestScore)
         {
-          float score = alignment - (distance / _railEntryRadius) * RAIL_SCORE_WEIGHT;
-          if (score > bestScore)
-          {
-            bestScore = score;
-            bestRail = rail;
-          }
+          bestScore = score;
+          bestRail = rail;
         }
       }
+
       return bestRail;
     };
 
@@ -870,7 +916,7 @@ public class Player : CombatEntities
     var (executed, rail) = _railEntryScanner.Scan(transform.position);
     if (executed && rail != null)
     {
-      RailSlide.SetRail(rail.GetComponent<SplineContainer>());
+      RailSlide.SetRail(rail.GetComponent<SplineContainer>(), rail);
       ActionLayer.PushState(RailSlide, this);
     }
   }
@@ -913,15 +959,12 @@ public class Player : CombatEntities
     if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
       return;
 
-    if (WaitForJumpRelease)
-    {
-      if (context.canceled)
-        WaitForJumpRelease = false;
-      return;
-    }
-
     if (!context.started)
       return;
+
+    if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+      RailSlide.RequestCancel();
+
     if (!Motor.IsGrounded)
       JumpInteractionPressed = true;
     TryJump();
@@ -983,7 +1026,7 @@ public class Player : CombatEntities
   private void SetVisibilityLockOnOverlay(bool set)
   {
     Vector3 targetScreenPosition = set
-      ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
+      ? _myCamera.WorldToScreenPoint(LockedTarget.GetLockOnPoint(transform.position))
       : Vector3.zero;
     GlobalEventBus.Instance.LockOnVisibility.Invoke(ID, set, targetScreenPosition);
   }
@@ -1051,7 +1094,11 @@ public class Player : CombatEntities
       return (false, default);
     }
 
-    Ray ray = new(transform.position, transform.forward);
+    Vector3 camForward = Vector3
+      .ProjectOnPlane(_selectedCamera.transform.forward, Vector3.up)
+      .normalized;
+    Ray ray = new(transform.position + Vector3.up * 1.5f, camForward);
+
     var (executed, result) = _cameraScanner.Scan(ray);
 
     if (!executed)
@@ -1073,9 +1120,9 @@ public class Player : CombatEntities
 
     bool foundSomething = false;
 
-    if (hit.collider.TryGetComponent(out ILockable lockable))
+    if (WillLock && hit.collider.TryGetComponent(out ILockable lockable))
     {
-      if (lockable.IsActive && hit.distance <= lockable.LockRange)
+      if (hit.distance <= lockable.LockRange)
       {
         SetLockOn(lockable);
         _lockCandidate = lockable;
@@ -1090,7 +1137,7 @@ public class Player : CombatEntities
 
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
-      if (interactable is not LockableInteractableObject && interactable.IsActive)
+      if (interactable.IsActive)
       {
         InteractionObject = interactable;
         foundSomething = true;
@@ -1103,12 +1150,26 @@ public class Player : CombatEntities
 
     if (_isLockOnActive && LockedTarget != null)
     {
-      float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
-      if (!LockedTarget.IsActive || dist > LockedTarget.LockRange)
+      float dist = Vector3.Distance(
+        transform.position,
+        LockedTarget.GetLockOnPoint(transform.position)
+      );
+      if (dist > LockedTarget.LockRange)
         DisableLockIn();
     }
 
     return foundSomething ? _lastValidResult = (true, hit) : (false, default);
+  }
+
+  private Vector3 GetCameraRelativeDirection(Vector2 input)
+  {
+    if (_myCamera == null)
+      return transform.forward;
+
+    Vector3 camForward = Vector3.ProjectOnPlane(_myCamera.transform.forward, Vector3.up).normalized;
+    Vector3 camRight = Vector3.ProjectOnPlane(_myCamera.transform.right, Vector3.up).normalized;
+
+    return (camForward * input.y + camRight * input.x).normalized;
   }
 
   protected void ClearInteractable()

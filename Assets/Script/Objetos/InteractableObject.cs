@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public abstract class InteractableObject : MonoBehaviour
+public abstract class InteractableObject : Object
 {
   [Header("Sprites de Interação")]
   public Sprite _keyboardSprites; //F
@@ -17,7 +17,7 @@ public abstract class InteractableObject : MonoBehaviour
   protected float _interactionCooldown = 1f;
   protected readonly Timer _interactionTimer = new();
 
-  public bool IsActive => enabled && gameObject.activeInHierarchy;
+  public virtual bool IsActive => true;
 
   public virtual void Interaction(Player info) { }
 
