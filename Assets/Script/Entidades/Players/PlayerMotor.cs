@@ -1,3 +1,4 @@
+using System;
 using KinematicCharacterController;
 using UnityEngine;
 
@@ -36,6 +37,8 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
   public CapsuleCollider CharacterCapsule => Engine.Capsule;
 
   public Vector3 CharacterUp => Engine.CharacterUp;
+
+  private Action _pendingGroundedCallback;
 
   private void Awake()
   {
@@ -78,6 +81,16 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
     }
   }
 
+  public void WaitForGrounded(Action onGrounded)
+  {
+    _pendingGroundedCallback = onGrounded;
+  }
+
+  public void CancelWaitForGrounded()
+  {
+    _pendingGroundedCallback = null;
+  }
+
   public void PostGroundingUpdate(float deltaTime)
   {
     if (IsGrounded && !WasGrounded)
@@ -90,6 +103,13 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
       {
         if (state is IGroundCollisionHandler handler)
           handler.OnLanded(_player);
+      }
+
+      if (_pendingGroundedCallback != null)
+      {
+        var callback = _pendingGroundedCallback;
+        _pendingGroundedCallback = null;
+        callback.Invoke();
       }
     }
 
