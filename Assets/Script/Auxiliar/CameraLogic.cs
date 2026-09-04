@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class CameraLogic : Entity
 {
+  [SerializeField]
+  private float _distance = 900f;
+
   [Header("Referência atual do jogador")]
   [SerializeField]
   private Player playerTarget;
@@ -93,7 +96,7 @@ public class CameraLogic : Entity
     float[] layersDistance = new float[32];
     for (int i = 0; i < layersDistance.Count(); i++)
     {
-      layersDistance[i] = 900;
+      layersDistance[i] = _distance;
     }
     if (TryGetComponent(out Camera cam))
     {

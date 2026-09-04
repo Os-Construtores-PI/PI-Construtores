@@ -1212,40 +1212,11 @@ public class Player : CombatEntities
   {
     _OnDamage.AddListener(() =>
     {
-      Collider[] hits = Physics.OverlapSphere(
-        transform.position,
-        10,
-        _entitymask,
-        QueryTriggerInteraction.Collide
-      );
+      LocomotionLayer.ChangeState(Locked, this);
+      Motor.Velocity = Vector3.zero;
 
-      Vector3 closestPoint = Vector3.zero;
-      float closestSqrDist = float.PositiveInfinity;
-      bool found = false;
-
-      foreach (Collider hit in hits)
-      {
-        if (hit.gameObject == gameObject)
-          continue;
-
-        float sqrDist = (hit.transform.position - transform.position).sqrMagnitude;
-        if (sqrDist < closestSqrDist)
-        {
-          closestSqrDist = sqrDist;
-          closestPoint = hit.transform.position;
-          found = true;
-        }
-      }
-
-      if (found)
-      {
-        Vector3 toSelf = transform.position - closestPoint;
-        Vector3 horizontalDir = new Vector3(toSelf.x, 0, toSelf.z).normalized;
-
-        Vector3 velocity = _knockbackStrength * horizontalDir + Vector3.up * _launchStrength;
-        Motor.Engine.ForceUnground(.5f);
-        Motor.AddVelocity(velocity);
-      }
+      ActionLayer.PopEveryState(this);
+      DOVirtual.DelayedCall(3f, () => LocomotionLayer.ChangeState(Moving, this));
     });
   }
   #endregion
