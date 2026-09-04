@@ -749,45 +749,18 @@ public class Player : CombatEntities
     return null;
   }
 
-  private bool TryGetTargetPoint(
-    Collider col,
-    Vector3 referencePoint,
-    out Vector3 targetPoint,
-    out Vector3 scanPoint
-  )
+  private bool TryGetTargetPoint(Collider col, Vector3 referencePoint, out Vector3 targetPoint)
   {
-    scanPoint = default;
     targetPoint = default;
 
-    if (col.CompareTag(TAG_PLAYER))
-    {
+    if (!col.TryGetComponent<ILockable>(out var lockable))
       return false;
-    }
 
-    ILockable lockable = null;
-    if (col.TryGetComponent<ILockable>(out var directLockable))
-    {
-      lockable = directLockable;
-    }
+    Vector3 lockPoint = lockable.GetLockOnPoint(referencePoint);
+    if (Vector3.Distance(referencePoint, lockPoint) > lockable.LockRange)
+      return false;
 
-    if (lockable != null)
-    {
-      Vector3 lockPoint = lockable.GetLockOnPoint(referencePoint);
-      float dist = Vector3.Distance(referencePoint, lockPoint);
-
-      if (dist > lockable.LockRange)
-      {
-        return false;
-      }
-
-      targetPoint = lockPoint;
-
-      return true;
-    }
-
-    targetPoint = col.bounds.center;
-    scanPoint = col.bounds.center;
-
+    targetPoint = lockPoint;
     return true;
   }
 
@@ -820,7 +793,7 @@ public class Player : CombatEntities
           continue;
         }
 
-        if (!TryGetTargetPoint(col, ray.origin, out Vector3 targetCenter, out Vector3 scanPoint))
+        if (!TryGetTargetPoint(col, ray.origin, out Vector3 targetCenter))
         {
           continue;
         }
