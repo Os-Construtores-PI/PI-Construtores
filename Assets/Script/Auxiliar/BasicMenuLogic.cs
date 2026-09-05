@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System;
 
 public class BasicMenuLogic : MonoBehaviour
 {
@@ -33,6 +34,8 @@ public class BasicMenuLogic : MonoBehaviour
   [SerializeField] private float _pauseBackgroundDuration = 0.45f;
 
   private Vector2 _pauseBackgroundOriginalPosition;
+
+  private bool _pauseVisualsInitialized;
 
   [Header("Botoes do Pause")]
   [SerializeField] private RectTransform[] _pauseButtons;
@@ -90,42 +93,30 @@ public class BasicMenuLogic : MonoBehaviour
 
   private void InitializedPauseBackGround()
   {
+     if (_pauseVisualsInitialized)
+        return;
+
+    // =========================
+    // FUNDO
+    // =========================
+
     if (_pauseButtonsBackground != null)
     {
-      _pauseBackgroundOriginalPosition =
-        _pauseButtonsBackground.anchoredPosition;
-
-      _pauseButtonsBackground.anchoredPosition =
-        _pauseBackgroundOriginalPosition +
-        Vector2.left * _pauseBackGroundDistance;
+        _pauseBackgroundOriginalPosition =
+            _pauseButtonsBackground.anchoredPosition;
     }
+
+    // =========================
+    // HINT
+    // =========================
 
     if (_pauseBottomHint != null)
     {
-      _pauseHintOriginalPosition =
-        _pauseBottomHint.anchoredPosition;
-
-      _pauseBottomHint.anchoredPosition =
-        _pauseHintOriginalPosition +
-        Vector2.down * _pauseHintDistance;
+        _pauseHintOriginalPosition =
+            _pauseBottomHint.anchoredPosition;
     }
 
-    if (_pauseButtons != null)
-    {
-      foreach (RectTransform button in _pauseButtons)
-      {
-        if (button == null)
-          continue;
-
-        button.DOKill();
-        button.localScale = Vector3.zero;
-
-        Button uiButton = button.GetComponent<Button>();
-
-        if (uiButton != null)
-          uiButton.interactable = false;
-      }
-    }
+    _pauseVisualsInitialized = true;
 
   }
 
@@ -245,18 +236,19 @@ public class BasicMenuLogic : MonoBehaviour
   {
     Time.timeScale = 1f;
 
-    GlobalEventBus.Instance.Pause.Invoke(false);
-
-    DOTween.KillAll();
-
-    if (DataDirector.Instance != null)
+    AnimatedPauseButtonsOut(() =>
     {
-      DataDirector.Instance.ResetRunTimeState();
-      DataDirector.Instance.RestartCurrentLevel();
-    }
+        GlobalEventBus.Instance.Pause.Invoke(false);
 
-    GameContext.ShowStageIntro = true;
-    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        if (DataDirector.Instance != null)
+        {
+            DataDirector.Instance.ResetRunTimeState();
+            DataDirector.Instance.RestartCurrentLevel();
+        }
+
+        GameContext.ShowStageIntro = true;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    });
   }
 
   private void HidePauseButtons()
@@ -283,8 +275,10 @@ public class BasicMenuLogic : MonoBehaviour
 
   public void ContinueGame()
   {
-    GlobalEventBus.Instance.Pause.Invoke(false);
-    //AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
+    AnimatedPauseButtonsOut(() =>
+    {
+      GlobalEventBus.Instance.Pause.Invoke(false);
+    });
   }
 
   public void OnEnable()
@@ -294,7 +288,7 @@ public class BasicMenuLogic : MonoBehaviour
     ResetPauseVisuals();
 
     if (GlobalEventBus.Instance != null)
-      GlobalEventBus.Instance.Pause.AddListener(OnPauseChanged);
+        GlobalEventBus.Instance.Pause.AddListener(OnPauseChanged);
   }
 
   public void OnDisable()
@@ -309,27 +303,17 @@ public class BasicMenuLogic : MonoBehaviour
 
     if (isPaused)
     {
+        PlayPauseSound();
 
-      PlayPauseSound();
-      // Esconde os botões imediatamente
-      HidePauseButtons();
+        HidePauseButtons();
 
-      ResetPauseVisuals();
+        ResetPauseVisuals();
 
-      // Depois inicia o fundo
-      AnimatedPauseBackgroundIn();
-
+        AnimatedPauseBackgroundIn();
     }
     else
     {
-
-      PlayPauseSound();
-
-      AnimatedPauseBackGroundOut();
-      _pauseButtonsAnimating = false;
-
-      AnimatedPauseBackGroundOut();
-
+        PlayPauseSound();
     }
   }
 
@@ -342,20 +326,30 @@ public class BasicMenuLogic : MonoBehaviour
   {
     Time.timeScale = 1f;
 
-    // DOTween.Kill(transform);
+    AnimatedPauseButtonsOut(() =>
+    {
+        GlobalEventBus.Instance.Pause.Invoke(false);
 
-    GlobalEventBus.Instance.Pause.Invoke(false);
+        if (DataDirector.Instance != null)
+            DataDirector.Instance.ResetRunTimeState();
 
-    DOTween.KillAll();
+        Resources.UnloadUnusedAssets();
 
-    if (DataDirector.Instance != null)
-      DataDirector.Instance.ResetRunTimeState();
+        AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
 
-    Resources.UnloadUnusedAssets();
+        _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
+    });
+  }
 
-    AudioManager.Instance.PlaySFX(_uiAudioConfig.Pause);
+  public void ClosePauseWithAnimation()
+  {
+    if (_pauseButtonsAnimating)
+        return;
 
-    _loadingScreen.LoadScene(Constants.SceneNames.MainMenu);
+    AnimatedPauseButtonsOut(() =>
+    {
+        GlobalEventBus.Instance.Pause.Invoke(false);
+    });
   }
 
   private void AnimatedPauseBackgroundIn()
@@ -490,21 +484,108 @@ public class BasicMenuLogic : MonoBehaviour
     _pauseButtonsAnimating = false;
   }
 
-  private void AnimatedPauseBackGroundOut()
+  public void AnimatedPauseBackgroundOut(Action onComplete = null)
+{
+  if (_pauseButtonsBackground == null)
   {
-    if (_pauseButtonsBackground == null)
+    onComplete?.Invoke();
+    return;
+  }
+
+  _pauseButtonsBackground.DOKill();
+
+  _pauseButtonsBackground
+    .DOAnchorPos(
+      _pauseBackgroundOriginalPosition +
+      Vector2.left * _pauseBackGroundDistance,
+      _pauseBackgroundDuration
+    )
+    .SetEase(Ease.InCubic)
+    .SetUpdate(true)
+    .OnComplete(() =>
+    {
+      onComplete?.Invoke();
+    });
+}
+
+private void AnimatedPauseButtonsOut(Action onComplete = null)
+  {
+    if(_pauseButtons == null || _pauseButtons.Length == 0)
+    {
+      onComplete?.Invoke();
       return;
+    }
 
-    _pauseButtonsBackground.DOKill();
+    _pauseButtonsAnimating = true;
 
-    _pauseButtonsBackground
-   .DOAnchorPos(
-     _pauseBackgroundOriginalPosition +
-     Vector2.left * _pauseBackGroundDistance,
-     _pauseBackgroundDuration
-   )
-   .SetEase(Ease.InCubic)
-   .SetUpdate(true);
+    float totalDuration = 0;
+
+    for (int i = 0; i < _pauseButtons.Length; i++)
+    {
+      RectTransform button = _pauseButtons[i];
+
+      if(button == null)
+         continue;
+      
+      button.DOKill();
+
+      Button uiButton = button.GetComponent<Button>();
+
+      if(uiButton != null)
+         uiButton.interactable = false;
+        
+      float delay = i * _pauseButtonsDelay;
+
+      button
+         .DOScale(Vector3.zero, _pauseButtonDuration)
+         .SetEase(Ease.InBack)
+         .SetDelay(delay)
+         .SetUpdate(true);
+      
+      totalDuration = Mathf.Max(
+        totalDuration, 
+        delay + _pauseButtonDuration
+      );
+    }
+
+    DOVirtual
+         .DelayedCall(
+          totalDuration,
+          () =>
+          {
+            _pauseButtonsAnimating = false;
+
+            AnimatedPauseBackgroundOut(() =>
+            {
+              AnimatedPauseBottomHintOut(onComplete);
+            });
+          }
+         )
+         .SetUpdate(true);
+  }
+
+  private void AnimatedPauseBottomHintOut(Action onComplete = null)
+  {
+    if(_pauseBottomHint == null)
+    {
+      onComplete?.Invoke();
+      return;
+    }
+
+    _pauseBottomHint.DOKill();
+
+     _pauseBottomHint
+        .DOAnchorPos(
+            _pauseHintOriginalPosition +
+            Vector2.down * _pauseHintDistance,
+            _pauseHintDuration
+        )
+        .SetEase(Ease.InCubic)
+        .SetUpdate(true)
+        .OnComplete(() =>
+        {
+            onComplete?.Invoke();
+        });
   }
   #endregion
 }

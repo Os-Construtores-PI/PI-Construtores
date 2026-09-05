@@ -927,7 +927,9 @@ public class Player : CombatEntities
 
   public void OnPause(InputAction.CallbackContext context)
   {
-    if (context.started)
+    if (!context.started)
+        return;
+
       Pause();
   }
 
@@ -989,7 +991,25 @@ public class Player : CombatEntities
       return;
     if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.Pause.Invoke(!GameContext.IsPaused);
+    // Abrindo o Pause
+    if (!GameContext.IsPaused)
+    {
+        GlobalEventBus.Instance.Pause.Invoke(true);
+        return;
+    }
+
+    // Fechando o Pause
+    BasicMenuLogic menuLogic = FindFirstObjectByType<BasicMenuLogic>();
+
+    if (menuLogic != null)
+    {
+        menuLogic.ClosePauseWithAnimation();
+    }
+    else
+    {
+        // Fallback caso o BasicMenuLogic não exista
+        GlobalEventBus.Instance.Pause.Invoke(false);
+    }
   }
   #endregion
 
