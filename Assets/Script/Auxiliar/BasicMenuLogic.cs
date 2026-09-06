@@ -235,6 +235,7 @@ public class BasicMenuLogic : MonoBehaviour
   public void OpenOptions()
   {
     Time.timeScale = 1f;
+    PlayPauseSound();
 
     AnimatedPauseButtonsOut(() =>
     {
@@ -275,6 +276,8 @@ public class BasicMenuLogic : MonoBehaviour
 
   public void ContinueGame()
   {
+    PlayPauseSound();
+
     AnimatedPauseButtonsOut(() =>
     {
       GlobalEventBus.Instance.Pause.Invoke(false);
@@ -311,10 +314,6 @@ public class BasicMenuLogic : MonoBehaviour
 
         AnimatedPauseBackgroundIn();
     }
-    else
-    {
-        PlayPauseSound();
-    }
   }
 
 
@@ -325,6 +324,7 @@ public class BasicMenuLogic : MonoBehaviour
   public void ExitToMainMenu()
   {
     Time.timeScale = 1f;
+    PlayPauseSound();
 
     AnimatedPauseButtonsOut(() =>
     {
@@ -345,6 +345,8 @@ public class BasicMenuLogic : MonoBehaviour
   {
     if (_pauseButtonsAnimating)
         return;
+
+    PlayPauseSound();
 
     AnimatedPauseButtonsOut(() =>
     {

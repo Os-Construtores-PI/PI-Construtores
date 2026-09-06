@@ -13,20 +13,34 @@ public class UIButtonSound
 
   [SerializeField] private bool _usePauseSound = false;
 
+  public static bool IgnoreSelectSound = false;
+
   public void OnPointerEnter(PointerEventData eventData)
   {
-    if (AudioManager.Instance != null)
+    if (AudioManager.Instance != null &&
+        _uiAudioConfig != null)
+    {
       AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
+    }
   }
 
   public void OnPointerClick(PointerEventData eventData)
   {
-    if (AudioManager.Instance != null)
+     if (AudioManager.Instance != null &&
+        _uiAudioConfig != null)
+    {
       AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    }
   }
 
   public void OnSelect(BaseEventData eventData)
   {
+    if (IgnoreSelectSound)
+    {
+        IgnoreSelectSound = false;
+        return;
+    }
+
     PlayHover();
   }
 
