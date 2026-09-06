@@ -978,18 +978,31 @@ public class HudDirector : MonoBehaviour
   private void PausePanel(bool set)
   {
     CursorOptions(visible: set);
+
     ForEachPlayer(player =>
     {
-      if (set)
-      {
-        ShowPanel(HudPanelType.Pause, player.ID, independent: true);
-        DisableHud(player.ID);
-      }
-      else
-      {
-        HidePanel(HudPanelType.Pause, player.ID, independent: true);
-        EnableHUD(player.ID);
-      }
+        if (set)
+        {
+            ShowPanel(
+                HudPanelType.Pause,
+                player.ID,
+                independent: true
+            );
+
+            DisableHud(player.ID);
+        }
+        else
+        {
+            HidePanel(
+                HudPanelType.Pause,
+                player.ID,
+                independent: true,
+                fade: false,
+                instant: true
+            );
+
+            EnableHUD(player.ID);
+        }
     });
   }
 

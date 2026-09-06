@@ -67,6 +67,8 @@ public class MenuDirector : MonoBehaviour
   private int animationsRemaining;
   private bool _loadingGame;
 
+  [SerializeField] private GameObject _lastSelectedObject;
+
   private void Awake()
   {
     _eventSystem = EventSystem.current;
@@ -79,6 +81,7 @@ public class MenuDirector : MonoBehaviour
     BuildDefaultSelectableMap();
   }
 
+
   #region Start / Update
 
   private void Start()
@@ -90,41 +93,59 @@ public class MenuDirector : MonoBehaviour
   private void Update()
   {
     if (_loadingGame)
-      return;
+        return;
 
     if (BackPressed())
     {
-      HandleBack();
-      return;
+        HandleBack();
+        return;
     }
 
-    if (EventSystem.current.currentSelectedGameObject != null)
-      return;
-
-    // Enquanto um painel está aguardando o fim de suas animações,
-    // não force nenhuma seleção via input — isso é feito só quando
-    // NotifyAnimationsFinished confirmar que a transição acabou.
     if (_pendingAnimationPanel != MenuPanelTypes.None)
-      return;
+        return;
+
+    GameObject selected = EventSystem.current.currentSelectedGameObject;
+
+    // ============================================================
+    // O jogador começou a navegar pelo menu
+    // ============================================================
 
     Gamepad gamepad = Gamepad.current;
-    if (
-      gamepad != null
-      && (gamepad.dpad.ReadValue() != Vector2.zero || gamepad.leftStick.ReadValue() != Vector2.zero)
-    )
-    {
-      SelectFirstButton();
-    }
 
-    if (Keyboard.current.anyKey.wasPressedThisFrame)
+    bool gamepadNavigating =
+        gamepad != null &&
+        (
+            gamepad.dpad.ReadValue() != Vector2.zero ||
+            gamepad.leftStick.ReadValue() != Vector2.zero
+        );
+
+    bool keyboardNavigating =
+        Keyboard.current != null &&
+        (
+            Keyboard.current.upArrowKey.wasPressedThisFrame ||
+            Keyboard.current.downArrowKey.wasPressedThisFrame ||
+            Keyboard.current.leftArrowKey.wasPressedThisFrame ||
+            Keyboard.current.rightArrowKey.wasPressedThisFrame
+        );
+
+
+    // ============================================================
+    // Se não existe seleção, só cria uma seleção automática
+    // quando o jogador apertar alguma tecla/botão.
+    // ============================================================
+
+    if (selected == null)
     {
-      SelectFirstButton();
+        if (gamepadNavigating || Keyboard.current.anyKey.wasPressedThisFrame)
+        {
+            SelectFirstButton();
+        }
     }
 
 #if UNITY_EDITOR
-    if (Keyboard.current.f12Key.wasPressedThisFrame)
+    if (Keyboard.current != null && Keyboard.current.f12Key.wasPressedThisFrame)
     {
-      DataDirector.Instance.ClearGameData();
+        DataDirector.Instance.ClearGameData();
     }
 #endif
   }
@@ -142,6 +163,9 @@ public class MenuDirector : MonoBehaviour
   /// </summary>
   private void SelectDefaultOrFirstButton(MenuPanelTypes panel)
   {
+
+     UIButtonSound.IgnoreSelectSound = true;
+
     if (
       defaultSelectableMap.TryGetValue(panel, out var defaultObj)
       && defaultObj != null
@@ -487,29 +511,38 @@ public class MenuDirector : MonoBehaviour
   {
     Debug.Log("FORCE SELECTION");
 
-    EventSystem.current.SetSelectedGameObject(_newGame);
+    // Essa seleção é automática.
+    // O jogador ainda não navegou.
+
+    //UIButtonSound.IgnoreSelectSound = true;
 
     SelectFirstButton();
+
+    //UIButtonSound.IgnoreSelectSound = false;
 
     GameObject selected = EventSystem.current.currentSelectedGameObject;
 
     Debug.Log("Selected = " + (selected == null ? "NULL" : selected.name));
 
     if (selected == null)
-      return;
+        return;
+
+    // Registra a seleção atual para que ela não seja
+    // tratada como uma nova navegação do jogador.
+    _lastSelectedObject = selected;
 
     Button btn = selected.GetComponent<Button>();
 
     if (btn != null)
     {
-      Debug.Log("SHOW CURSOR");
-      MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+        Debug.Log("SHOW CURSOR");
+        MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
     }
 
     MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
 
     if (selectable != null)
-      selectable.ForcePreview();
+        selectable.ForcePreview();
   }
 
   /// <summary>
@@ -520,7 +553,12 @@ public class MenuDirector : MonoBehaviour
   /// </summary>
   private void FinishGenericPanelSelection(MenuPanelTypes panel)
   {
+    // A seleção que será feita agora é automática.
+    // Não queremos tocar o Hover ao entrar no painel.
+
     SelectDefaultOrFirstButton(panel);
+
+    // Libera novamente os sons depois que a seleção automática terminou
 
     GameObject selected = EventSystem.current.currentSelectedGameObject;
 
@@ -529,7 +567,7 @@ public class MenuDirector : MonoBehaviour
 
     Button btn = selected.GetComponent<Button>();
 
-    if (btn != null)
+    if (btn != null && MenuSelectionCursor.Instance != null)
       MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
 
     MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
