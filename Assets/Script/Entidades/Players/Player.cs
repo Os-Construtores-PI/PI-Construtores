@@ -119,6 +119,9 @@ public class Player : CombatEntities
   [SerializeField]
   private AudioSource _playerAudioSource;
 
+  [SerializeField]
+  private GameObject _modelPartsContainer;
+
   [HideInInspector]
   public PlayerMotor Motor;
 
@@ -137,7 +140,11 @@ public class Player : CombatEntities
   public HurtboxComponent HurtboxCollider;
   public Animator AnimatorComponent;
   public PlayerInput PlayerInput;
+
   protected Camera _myCamera;
+
+  private readonly List<Material> _modelMaterials = new();
+  private Tween _damageBlinkTween;
 
   public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
   {
@@ -610,6 +617,7 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    SetupModelMaterials();
     SetupDamage();
     SetupHitboxCombo();
 
@@ -707,6 +715,14 @@ public class Player : CombatEntities
       Debug.LogWarning(
         "[Player] DashHUDIcon não encontrado. Arraste a instância ou coloque a tag."
       );
+  }
+
+  private void SetupModelMaterials()
+  {
+    foreach (Renderer renderer in _modelPartsContainer.GetComponentsInChildren<Renderer>())
+    {
+      _modelMaterials.Add(renderer.material);
+    }
   }
 
   private void SetupCinemachine()
@@ -1212,41 +1228,80 @@ public class Player : CombatEntities
   {
     _OnDamage.AddListener(() =>
     {
-      Collider[] hits = Physics.OverlapSphere(
-        transform.position,
-        10,
-        _entitymask,
-        QueryTriggerInteraction.Collide
-      );
-
-      Vector3 closestPoint = Vector3.zero;
-      float closestSqrDist = float.PositiveInfinity;
-      bool found = false;
-
-      foreach (Collider hit in hits)
+      Sequence damageSequence = DOTween.Sequence();
+      damageSequence.AppendCallback(() =>
       {
-        if (hit.gameObject == gameObject)
-          continue;
+        Collider[] hits = Physics.OverlapSphere(
+          transform.position,
+          10,
+          _entitymask,
+          QueryTriggerInteraction.Collide
+        );
 
-        float sqrDist = (hit.transform.position - transform.position).sqrMagnitude;
-        if (sqrDist < closestSqrDist)
+        Vector3 closestPoint = Vector3.zero;
+        float closestSqrDist = float.PositiveInfinity;
+        bool found = false;
+
+        foreach (Collider hit in hits)
         {
-          closestSqrDist = sqrDist;
-          closestPoint = hit.transform.position;
-          found = true;
+          if (hit.gameObject == gameObject)
+            continue;
+
+          float sqrDist = (hit.transform.position - transform.position).sqrMagnitude;
+          if (sqrDist < closestSqrDist)
+          {
+            closestSqrDist = sqrDist;
+            closestPoint = hit.transform.position;
+            found = true;
+          }
         }
-      }
 
-      if (found)
-      {
-        Vector3 toSelf = transform.position - closestPoint;
-        Vector3 horizontalDir = new Vector3(toSelf.x, 0, toSelf.z).normalized;
-
-        Vector3 velocity = _knockbackStrength * horizontalDir + Vector3.up * _launchStrength;
         Motor.Engine.ForceUnground(.5f);
-        Motor.AddVelocity(velocity);
-      }
+
+        if (found)
+        {
+          Vector3 toSelf = transform.position - closestPoint;
+          Vector3 horizontalDir = new Vector3(toSelf.x, 0, toSelf.z).normalized;
+
+          Vector3 velocity = _knockbackStrength * horizontalDir + Vector3.up * _launchStrength;
+          Motor.AddVelocity(velocity);
+        }
+      });
+      damageSequence.AppendCallback(() =>
+      {
+        LocomotionLayer.ChangeState(LockedInHorizontal, this);
+        ActionLayer.PopEveryState(this);
+        HurtboxCollider.TriggerInvulnerability(1000f);
+
+        _damageBlinkTween?.Kill();
+        _damageBlinkTween = DOVirtual
+          .Float(
+            0f,
+            -1f,
+            0.12f,
+            value => _modelMaterials.ForEach(model => model.SetFloat("_Tweak_transparency", value))
+          )
+          .SetEase(Ease.InOutSine)
+          .SetLoops(-1, LoopType.Yoyo);
+
+        Motor.WaitForGrounded(EndDamageBlink);
+      });
     });
+  }
+
+  private void EndDamageBlink()
+  {
+    HurtboxCollider.TriggerInvulnerability(2);
+    LocomotionLayer.ChangeState(Moving, this);
+    DOVirtual.DelayedCall(
+      2,
+      () =>
+      {
+        _damageBlinkTween.Kill();
+        _damageBlinkTween = null;
+        _modelMaterials.ForEach(model => model.SetFloat("_Tweak_transparency", 0f));
+      }
+    );
   }
   #endregion
 
