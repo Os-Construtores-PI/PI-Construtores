@@ -14,8 +14,6 @@ public class MenuSelectable : MonoBehaviour, ISelectHandler, IPointerEnterHandle
 
   public static bool CanSelect;
 
-
-
   void Awake()
   {
     button = GetComponent<Button>();
@@ -39,7 +37,6 @@ public class MenuSelectable : MonoBehaviour, ISelectHandler, IPointerEnterHandle
       MenuSelectionCursor.Instance.MoveTo(button);
 
     MenuPreview.Instance.Show(preview);
-
   }
 
   public void OnPointerEnter(PointerEventData eventData)
