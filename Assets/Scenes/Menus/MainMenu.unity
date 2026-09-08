@@ -548,12 +548,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0c04186d4e7b8d42a218a67940538a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  targetFPS: 60
-  useVSync: 0
-  vSyncCount: 0
-  limitFPSOnBackground: 1
-  backgroundFPS: 10
-  showFPSInConsole: 0
 --- !u!1 &215297850
 GameObject:
   m_ObjectHideFlags: 0
@@ -1368,6 +1362,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &393437021
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1663,6 +1658,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!1 &645437869
 GameObject:
   m_ObjectHideFlags: 0
@@ -3350,6 +3346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &1222559390
 Animator:
   serializedVersion: 7
@@ -3519,6 +3516,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &1227975245
 Animator:
   serializedVersion: 7
@@ -3797,6 +3795,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageIntroDirector
   _root: {fileID: 7993210930988611499}
   _stageNumber: {fileID: 0}
+  _backGroundBlack: {fileID: 0}
+  _backGroundHoldTime: 0.35
   _stageTitle: {fileID: 0}
   slideObjects:
   - {fileID: 1418141246173034906}
@@ -4338,6 +4338,7 @@ MonoBehaviour:
   _defaultSelectables:
   - panel: 5
     selectable: {fileID: 753168938}
+  _lastSelectedObject: {fileID: 2947832628701258644}
 --- !u!1 &1365194224
 GameObject:
   m_ObjectHideFlags: 0
@@ -5076,6 +5077,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &1456803986
 Animator:
   serializedVersion: 7
@@ -10513,6 +10515,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &6776885429826352447
 Animator:
   serializedVersion: 7
@@ -10783,6 +10786,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &7148239973768107363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11008,6 +11012,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &7378369007625973194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11074,6 +11079,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!222 &7419350323763651613
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -11267,6 +11273,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &7891052590761513872
 Animator:
   serializedVersion: 7
@@ -11332,6 +11339,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &7958701580824068948
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11656,6 +11664,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &8277581366376539894
 Animator:
   serializedVersion: 7
@@ -12099,6 +12108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &9150841293204438860
 MonoBehaviour:
   m_ObjectHideFlags: 0
