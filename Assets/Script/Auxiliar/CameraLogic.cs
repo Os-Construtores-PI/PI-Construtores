@@ -18,6 +18,13 @@ public class CameraLogic : Entity
   private CinemachineInputAxisController inputAxisController;
   private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
 
+  [Header("Draw Distance")]
+  [SerializeField] private float drawDistance = 150f;
+
+  [SerializeField] private float shadowDistance = 40f;
+
+  [SerializeField] private LayerMask drawDistanceLayers;
+
   public override void Awake()
   {
     base.Awake();
@@ -93,15 +100,38 @@ public class CameraLogic : Entity
 
   private void SetDistanceCulling()
   {
+    Camera cam = GetComponent<Camera>();
+
+    if (cam == null)
+      return;
+
     float[] layersDistance = new float[32];
-    for (int i = 0; i < layersDistance.Count(); i++)
+
+    // Distância padrão para todas as layers
+    for (int i = 0; i < layersDistance.Length; i++)
     {
-      layersDistance[i] = _distance;
+      layersDistance[i] = drawDistance;
     }
-    if (TryGetComponent(out Camera cam))
+
+    // Layers que queremos controlar
+    for (int i = 0; i < 32; i++)
     {
-      cam.layerCullDistances = layersDistance;
+      if ((drawDistanceLayers.value & (1 << i)) != 0)
+      {
+        layersDistance[i] = drawDistance;
+      }
     }
+
+    cam.layerCullDistances = layersDistance;
+    cam.layerCullSpherical = true;
+
+
+    //Garante que a câmera consiga enxergar até essa distância
+
+    cam.farClipPlane = drawDistance;
+
+    // Distância máxima das sombras
+    QualitySettings.shadowDistance = shadowDistance;
   }
 
   /// <summary>
