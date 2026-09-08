@@ -4,8 +4,11 @@ using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class CameraLogic : Entities
+public class CameraLogic : Entity
 {
+  [SerializeField]
+  private float _distance = 900f;
+
   [Header("Referência atual do jogador")]
   [SerializeField]
   private Player playerTarget;
@@ -14,12 +17,6 @@ public class CameraLogic : Entities
   private CinemachineCamera _lockOnCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
   private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
-
-  [Header("Draw Distance")]
-  [SerializeField] private float drawDistance = 80f;
-
-  [SerializeField] private float shadowDistance = 40f;
-  [SerializeField] private LayerMask drawDistanceLayers;
 
   public override void Awake()
   {
@@ -96,32 +93,15 @@ public class CameraLogic : Entities
 
   private void SetDistanceCulling()
   {
-    Camera cam = GetComponent<Camera>();
-
-    if (cam == null)
-      return;
-
-    float[] layerDistance = new float[32];
-
-    //Distancia padrao para todas as layers
-    for (int i = 0; i < layerDistance.Length; i++)
+    float[] layersDistance = new float[32];
+    for (int i = 0; i < layersDistance.Count(); i++)
     {
-      layerDistance[i] = drawDistance;
+      layersDistance[i] = _distance;
     }
-
-    for (int i = 0; i < 32; i++)
+    if (TryGetComponent(out Camera cam))
     {
-      if((drawDistanceLayers.value &(1 << i))!= 0)
-      {
-        layerDistance[i] = drawDistance;
-      }
+      cam.layerCullDistances = layersDistance;
     }
-
-    cam.layerCullDistances = layerDistance;
-    cam.layerCullSpherical = true;
-
-    //Distância máximas das sombras
-    QualitySettings.shadowDistance = shadowDistance;
   }
 
   /// <summary>
