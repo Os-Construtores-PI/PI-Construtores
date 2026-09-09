@@ -7,7 +7,7 @@ using UnityEngine;
 public class CameraLogic : Entity
 {
   [SerializeField]
-  private float _distance = 900f;
+  private float _distance = 200f;
 
   [Header("Referência atual do jogador")]
   [SerializeField]
@@ -19,11 +19,21 @@ public class CameraLogic : Entity
   private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
 
   [Header("Draw Distance")]
-  [SerializeField] private float drawDistance = 150f;
+  [SerializeField] private float drawDistance = 80f;
 
   [SerializeField] private float shadowDistance = 40f;
 
   [SerializeField] private LayerMask drawDistanceLayers;
+
+  [Header("Objetos com Draw Distance")]
+  [SerializeField] private bool useObjectDrawDistance = true;
+
+  [SerializeField]
+  [Min(0.05f)]
+  private float drawDistanceUpdateInterval = 0.15f;
+
+  private DrawDistance[] drawDistanceObjects;
+  private float drawDistanceTimer;
 
   public override void Awake()
   {
@@ -31,6 +41,8 @@ public class CameraLogic : Entity
     if (playerTarget != null)
       SetTarget(playerTarget);
     SetDistanceCulling();
+
+    GatherDrawDistanceObjects();
   }
 
   public override void Start()
@@ -41,6 +53,30 @@ public class CameraLogic : Entity
 
   public void Update()
   {
+
+    if (useObjectDrawDistance)
+    {
+      drawDistanceTimer += Time.deltaTime;
+
+      if (drawDistanceTimer >= drawDistanceUpdateInterval)
+      {
+        drawDistanceTimer = 0f;
+        UpdateDrawDistanceObjects();
+      }
+    }
+
+    if (Time.timeScale < 1)
+    {
+      foreach (KeyValuePair<EntityEffectType, ParticleSystem> pair in effects)
+      {
+        pair.Value.Stop();
+      }
+    }
+
+    if (playerTarget == null || _currentCinemachineCamera == null)
+      return;
+
+
     if (Time.timeScale < 1)
     {
       foreach (KeyValuePair<EntityEffectType, ParticleSystem> pair in effects)
@@ -102,36 +138,97 @@ public class CameraLogic : Entity
   {
     Camera cam = GetComponent<Camera>();
 
-    if (cam == null)
-      return;
-
-    float[] layersDistance = new float[32];
-
-    // Distância padrão para todas as layers
-    for (int i = 0; i < layersDistance.Length; i++)
+    if(cam == null)
     {
-      layersDistance[i] = drawDistance;
+      Debug.LogWarning("[CameraLogic] Câmera não encontrada.");
+      return;
     }
 
-    // Layers que queremos controlar
-    for (int i = 0; i < 32; i++)
+    float[] layersDistance = new float[32];
+    
+    // Todas as Layers podem ser renderizadas até o Far Clip.
+    for (int i = 0; i < layersDistance.Length; i++)
+    {
+      layersDistance[i] = _distance;
+    }
+
+    // Apenas as Layers selecionadas recebem o culling reduzido
+    for (int i = 0; i <= 32; i++)
     {
       if ((drawDistanceLayers.value & (1 << i)) != 0)
       {
-        layersDistance[i] = drawDistance;
+        layersDistance[i] = Mathf.Min(drawDistance, _distance);
       }
     }
 
     cam.layerCullDistances = layersDistance;
     cam.layerCullSpherical = true;
 
+    // Distância máxima geral da câmera
+    QualitySettings.shadowDistance = Mathf.Min(shadowDistance, _distance);
 
-    //Garante que a câmera consiga enxergar até essa distância
+    Debug.Log(
+        $"[CameraLogic] Far Clip: {_distance}m | " +
+        $"Mobile Culling: {drawDistance}m | " +
+        $"Shadows: {shadowDistance}m"
+    );
+  }
 
-    cam.farClipPlane = drawDistance;
+  private void GatherDrawDistanceObjects()
+  {
+    if (!useObjectDrawDistance)
+      return;
 
-    // Distância máxima das sombras
-    QualitySettings.shadowDistance = shadowDistance;
+    drawDistanceObjects = FindObjectsByType<DrawDistance>(
+      FindObjectsInactive.Include,
+      FindObjectsSortMode.None);
+
+    Debug.Log(
+        $"[CameraLogic] {drawDistanceObjects.Length} objetos com DrawDistance encontrados."
+    );
+  }
+
+  private void UpdateDrawDistanceObjects()
+  {
+    if (!useObjectDrawDistance)
+      return;
+
+    if (drawDistanceObjects == null || drawDistanceObjects.Length == 0)
+      return;
+
+    Camera cam = GetComponent<Camera>();
+
+    if (cam == null)
+      return;
+
+    Vector3 cameraPosition = cam.transform.position;
+
+    foreach (DrawDistance drawObject in drawDistanceObjects)
+    {
+      if (drawObject == null)
+        continue;
+
+      float distance = Vector3.Distance(
+          cameraPosition,
+          drawObject.transform.position
+      );
+
+      bool shouldRender =
+          distance <= drawObject.GetDrawDistance();
+
+      Renderer[] renderers = drawObject.GetRenderers();
+
+      if (renderers == null)
+        continue;
+
+      foreach (Renderer renderer in renderers)
+      {
+        if (renderer == null)
+          continue;
+
+        renderer.enabled = shouldRender;
+      }
+    }
   }
 
   /// <summary>

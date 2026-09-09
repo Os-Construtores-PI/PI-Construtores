@@ -178,6 +178,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99924d4554c59ff4f9e67bd7b405c7e2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 339359}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99924d4554c59ff4f9e67bd7b405c7e2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 339360}
   m_SourcePrefab: {fileID: 100100000, guid: 99924d4554c59ff4f9e67bd7b405c7e2, type: 3}
 --- !u!1 &339358 stripped
 GameObject:
@@ -206,6 +209,20 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &339360
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa5abf32215d8f4492a7591c1d54fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawDistance
+  drawDistance: 80
+  incluideChildren: 1
 --- !u!1 &5851861
 GameObject:
   m_ObjectHideFlags: 0
@@ -2597,7 +2614,7 @@ GameObject:
   - component: {fileID: 96994564}
   - component: {fileID: 96994567}
   - component: {fileID: 96994566}
-  m_Layer: 1
+  m_Layer: 0
   m_Name: Oclusion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8348,6 +8365,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1965224796}
     m_Modifications:
+    - target: {fileID: -8700617353114198275, guid: fa462b7e8f5c9cd46863b3dd583858e9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fa462b7e8f5c9cd46863b3dd583858e9, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.5016
@@ -8456,9 +8477,21 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -2552075148252405597, guid: fa462b7e8f5c9cd46863b3dd583858e9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 65702495048144492, guid: fa462b7e8f5c9cd46863b3dd583858e9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: fa462b7e8f5c9cd46863b3dd583858e9, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Tunel
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: fa462b7e8f5c9cd46863b3dd583858e9, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -15376,9 +15409,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1965224796}
     m_Modifications:
+    - target: {fileID: 721111330927943137, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1568971466445804240, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
       propertyPath: m_Name
       value: CristalLight1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1568971466445804240, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3474273972941485986, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7769744013142117164, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -16243,7 +16288,7 @@ GameObject:
   - component: {fileID: 373276498}
   - component: {fileID: 373276500}
   - component: {fileID: 373276499}
-  m_Layer: 1
+  m_Layer: 0
   m_Name: Fog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27250,9 +27295,33 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -5568371526223589888, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       propertyPath: m_Name
       value: ArvoresText05
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4817194348643097627, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6457708582454128763, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7202271454713460447, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -27261,6 +27330,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1895119917}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1895119919}
   m_SourcePrefab: {fileID: 100100000, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
 --- !u!1 &566796008
 GameObject:
@@ -31411,9 +31483,21 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5568371526223589888, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       propertyPath: m_Name
       value: ArvoresText05.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6457708582454128763, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -33113,9 +33197,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5568371526223589888, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
       propertyPath: m_Name
       value: ArvoresText05.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6457708582454128763, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -33124,6 +33220,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
       insertIndex: -1
       addedObject: {fileID: 928999282}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 928999283}
   m_SourcePrefab: {fileID: 100100000, guid: dd855f2ac8401324ea371ea4c7fbe933, type: 3}
 --- !u!1 &746627448
 GameObject:
@@ -36256,6 +36355,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: CristalLight2
       objectReference: {fileID: 0}
+    - target: {fileID: 430360272982056265, guid: 457ed12c5d7ace49aad9654ba437f2b3, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5917408249822837626, guid: 457ed12c5d7ace49aad9654ba437f2b3, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5969365084801878307, guid: 457ed12c5d7ace49aad9654ba437f2b3, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6850288156897549876, guid: 457ed12c5d7ace49aad9654ba437f2b3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 105.1
@@ -36551,6 +36662,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 30c8934b591effd4f9f57bfdda79dfe0, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Pilar Gigante (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 30c8934b591effd4f9f57bfdda79dfe0, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -38273,9 +38388,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1965224796}
     m_Modifications:
+    - target: {fileID: 721111330927943137, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1568971466445804240, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
       propertyPath: m_Name
       value: CristalLight1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1568971466445804240, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3474273972941485986, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7769744013142117164, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -39927,7 +40054,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8388608
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -39939,6 +40066,20 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &928999283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 928999280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa5abf32215d8f4492a7591c1d54fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawDistance
+  drawDistance: 80
+  incluideChildren: 1
 --- !u!43 &933087768
 Mesh:
   m_ObjectHideFlags: 0
@@ -41361,6 +41502,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cc3e4722441960f4b91dd21e4dc05e3d, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Cristal do Tunel
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cc3e4722441960f4b91dd21e4dc05e3d, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -45561,6 +45706,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: CristalLight3
       objectReference: {fileID: 0}
+    - target: {fileID: 1539265784116933112, guid: a5d40f99d9ade784cb8f4c25e220334a, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3935163556065151689, guid: a5d40f99d9ade784cb8f4c25e220334a, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4775595357121357957, guid: a5d40f99d9ade784cb8f4c25e220334a, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7213356789082228668, guid: a5d40f99d9ade784cb8f4c25e220334a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 91
@@ -45851,6 +46008,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Cristal do Tunel 2.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -66327,6 +66488,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PI_Nekora_Pilar Gigante (1).2
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 30c8934b591effd4f9f57bfdda79dfe0, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -66727,9 +66892,21 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -5568371526223589888, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       propertyPath: m_Name
       value: ArvoresText05.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6457708582454128763, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -66738,6 +66915,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1541055111}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1541055112}
   m_SourcePrefab: {fileID: 100100000, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
 --- !u!4 &1541055109 stripped
 Transform:
@@ -66771,6 +66951,20 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &1541055112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541055110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa5abf32215d8f4492a7591c1d54fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawDistance
+  drawDistance: 80
+  incluideChildren: 1
 --- !u!43 &1543058958
 Mesh:
   m_ObjectHideFlags: 0
@@ -67016,6 +67210,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Cristal do Tunel 2.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -68297,6 +68495,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 30c8934b591effd4f9f57bfdda79dfe0, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Pilar Gigante (1).1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 30c8934b591effd4f9f57bfdda79dfe0, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -70009,6 +70211,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PI_Nekora_Pilar Gigante (1).3
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 30c8934b591effd4f9f57bfdda79dfe0, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -71288,6 +71494,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PI_Nekora_Cristal do Tunel 2.2
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -71865,6 +72075,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -5568371526223589888, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -2577548232221058511, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       propertyPath: m_LocalPosition.x
       value: -64.9
@@ -71881,6 +72095,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: ArvoresText05.3
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6457708582454128763, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -71888,6 +72110,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1770387392}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1770387393}
     - targetCorrespondingSourceObject: {fileID: -5568371526223589888, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1770387391}
@@ -71951,6 +72176,20 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &1770387393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770387390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa5abf32215d8f4492a7591c1d54fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawDistance
+  drawDistance: 80
+  incluideChildren: 1
 --- !u!4 &1771345571 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 309107292042115001, guid: b0fafea390e5c894082ea7548fe6f231, type: 3}
@@ -73331,6 +73570,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
       propertyPath: m_Name
       value: PI_Nekora_Cristal do Tunel 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -74762,6 +75005,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PI_Nekora_Cristal do Tunel 2
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9cc8fc1fc2eaca9479b9f95bebc259ba, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -74799,6 +75046,20 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6c10de8c94293a445a8dab2e45fd09ca, type: 3}
   m_PrefabInstance: {fileID: 563754047}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1895119919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895119915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa5abf32215d8f4492a7591c1d54fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawDistance
+  drawDistance: 80
+  incluideChildren: 1
 --- !u!1 &1897123751 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -6755632302942197516, guid: 99924d4554c59ff4f9e67bd7b405c7e2, type: 3}
@@ -81534,9 +81795,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1965224796}
     m_Modifications:
+    - target: {fileID: 721111330927943137, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1568971466445804240, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
       propertyPath: m_Name
       value: CristalLight1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1568971466445804240, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3474273972941485986, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7769744013142117164, guid: f3288d76cd7fab25897b5b2a57f6c9c9, type: 3}
       propertyPath: m_LocalPosition.x
