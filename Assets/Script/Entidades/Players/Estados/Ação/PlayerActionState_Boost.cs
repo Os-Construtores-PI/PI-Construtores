@@ -46,16 +46,16 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   [Header("Boost Ramp (início e fim gradual)")]
   [SerializeField]
-  private float _rampInDuration = 3f;
+  private float _rampInDuration = 1.5f;
 
   [SerializeField]
   private float _rampOutDuration = 3f;
 
   [SerializeField]
-  private Ease _rampInEase = Ease.OutQuad;
+  private Ease _rampInEase = Ease.InQuad;
 
   [SerializeField]
-  private Ease _rampOutEase = Ease.InQuad;
+  private Ease _rampOutEase = Ease.OutQuad;
 
   private Tween _speedRampTween;
   private Tween _gravityRampTween;
@@ -93,14 +93,19 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private float _boostSpeedRatio;
   private string _boostSourceId;
 
-  private float _originalGravity = 0;
   #endregion
 
   #region IState Callbacks
   public void Enter(Player player)
   {
-    _boostSpeedRatio = _maxVelocity / player.Speed;
-    _originalGravity = player.GravityValue;
+    if (player.Stats.TryGetBaseNum(StatType.Speed, out float baseSpeed))
+    {
+      _boostSpeedRatio = _maxVelocity / baseSpeed;
+    }
+    else
+    {
+      _boostSpeedRatio = _maxVelocity / player.Speed;
+    }
 
     player.SpeedLines.Invoke(true);
 
@@ -136,8 +141,14 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
 
-    // --- Ramp gradual de velocidade (1 -> _boostSpeedRatio) ---
     _speedRampTween?.Kill();
+
+    if (!string.IsNullOrEmpty(_boostSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+      _boostSourceId = null;
+    }
+
     _currentBoostSpeedRatio = 1f;
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _currentBoostSpeedRatio);
 
@@ -160,13 +171,11 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       )
       .SetEase(_rampInEase);
 
-    // --- Ramp gradual de gravidade ---
     _gravityRampTween?.Kill();
     _gravityRampTween = DOTween
       .To(() => player.GravityValue, g => player.GravityValue = g, -100f, _rampInDuration)
       .SetEase(_rampInEase);
 
-    // --- FOV (já gradual) ---
     _fovTween?.Kill();
     _fovTween = DOTween.To(
       () => player.MainCamera.Lens.FieldOfView,
@@ -210,7 +219,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
 
-    // --- Ramp gradual de saída da velocidade (ratio atual -> 1) ---
     _speedRampTween?.Kill();
     _speedRampTween = DOTween
       .To(
@@ -235,13 +243,12 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       )
       .SetEase(_rampOutEase);
 
-    // --- Ramp gradual de saída da gravidade ---
     _gravityRampTween?.Kill();
     _gravityRampTween = DOTween
       .To(
         () => player.GravityValue,
         g => player.GravityValue = g,
-        _originalGravity,
+        player.InitialGravityValue,
         _rampOutDuration
       )
       .SetEase(_rampOutEase);
