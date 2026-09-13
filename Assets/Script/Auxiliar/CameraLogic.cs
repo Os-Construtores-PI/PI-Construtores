@@ -14,7 +14,6 @@ public class CameraLogic : Entity
   [SerializeField]
   private Player playerTarget;
 
-  private Camera renderCamera;
 
   private CinemachineCamera _currentCinemachineCamera;
   private CinemachineCamera _lockOnCinemachineCamera;
@@ -42,27 +41,10 @@ public class CameraLogic : Entity
   {
     base.Awake();
 
-    // Procura a câmera física
-    renderCamera = GetComponent<Camera>();
-
-    if (renderCamera == null)
-    {
-      renderCamera = GetComponentInChildren<Camera>(true);
-    }
-
-    if (renderCamera == null)
-    {
-      Debug.LogWarning(
-          "[CameraLogic] Nenhuma câmera física encontrada."
-      );
-    }
-
-    if (playerTarget != null)
+    if(playerTarget != null)
     {
       SetTarget(playerTarget);
     }
-
-    SetCameraDistance();
 
     GatherDrawDistanceObjects();
   }
@@ -208,36 +190,6 @@ public class CameraLogic : Entity
   // DISTÂNCIA GERAL DA CÂMERA
   // ============================================================
 
-  private void SetCameraDistance()
-  {
-    if (renderCamera == null)
-    {
-      Debug.LogWarning(
-          "[CameraLogic] Câmera física não encontrada."
-      );
-
-      return;
-    }
-
-    /*
-     * Esta é apenas a distância máxima geral
-     * que a câmera consegue enxergar.
-     *
-     * NÃO existe mais Layer Culling aqui.
-     */
-
-    renderCamera.farClipPlane = _distance;
-
-    // Distância das sombras
-    QualitySettings.shadowDistance =
-        Mathf.Min(shadowDistance, _distance);
-
-    Debug.Log(
-        $"[CameraLogic] Far Clip: {_distance}m | " +
-        $"Shadow Distance: {shadowDistance}m"
-    );
-  }
-
 
   // ============================================================
   // ENCONTRA OBJETOS COM DRAW DISTANCE
@@ -285,14 +237,14 @@ public class CameraLogic : Entity
     }
 
 
-    if (renderCamera == null)
+    if (playerTarget == null)
     {
       return;
     }
 
 
-    Vector3 cameraPosition =
-        renderCamera.transform.position;
+    Vector3 playerPosition =
+        playerTarget.transform.position;
 
 
     foreach (DrawDistance drawObject in drawDistanceObjects)
@@ -303,7 +255,7 @@ public class CameraLogic : Entity
       }
 
 
-      drawObject.UpdateObjects(cameraPosition);
+      drawObject.UpdateObjects(playerPosition);
     }
   }
 

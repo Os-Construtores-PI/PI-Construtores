@@ -5,18 +5,18 @@ public class DrawDistance : MonoBehaviour
 {
   [Header("Draw Distance")]
 
-  [Tooltip("Distância em que o objeto aparece.")]
+  [Tooltip("Distï¿½ncia em que o objeto aparece.")]
   [SerializeField]
   [Min(1f)]
   private float renderDistance = 275f;
 
-  [Tooltip("Distância em que o objeto desaparece.")]
+  [Tooltip("Distï¿½ncia em que o objeto desaparece.")]
   [SerializeField]
   [Min(1f)]
   private float hideDistance = 300f;
 
 
-  [Header("Opções")]
+  [Header("Opï¿½ï¿½es")]
   [Tooltip("Inclui todos os objetos filhos deste GameObject.")]
   [SerializeField]
   private bool includeChildren = true;
@@ -69,7 +69,7 @@ public class DrawDistance : MonoBehaviour
             transform = child,
             renderers = childRenders,
 
-            isVisible = true
+            isVisible = false
           };
 
         objects.Add(renderObject);
@@ -87,7 +87,7 @@ public class DrawDistance : MonoBehaviour
           {
             transform = transform,
             renderers = ownRenders,
-            isVisible = true
+            isVisible = false
           });
       }
     }
@@ -108,7 +108,7 @@ public class DrawDistance : MonoBehaviour
 
 
 
-  public void UpdateObjects(Vector3 cameraPosition)
+  public void UpdateObjects(Vector3 playerPosition)
   {
     float renderDistanceSqr =
       renderDistance * renderDistance;
@@ -128,13 +128,13 @@ public class DrawDistance : MonoBehaviour
         renderObject.transform.position;
 
       float sqrDistance =
-        (cameraPosition - objectPostion).sqrMagnitude;
+        (playerPosition - objectPostion).sqrMagnitude;
 
 
       if (renderObject.isVisible)
       {
-        // Só desaparece depois de passar
-        // da distância de esconder.
+        // Sï¿½ desaparece depois de passar
+        // da distï¿½ncia de esconder.
         if (sqrDistance >= hideDistanceSqr)
         {
           SetObjectVisible(
@@ -142,17 +142,18 @@ public class DrawDistance : MonoBehaviour
               false
           );
         }
+
       }
 
 
       // ====================================================
-      // OBJETO ESTÁ ESCONDIDO
+      // OBJETO ESTï¿½ ESCONDIDO
       // ====================================================
 
       else
       {
-        // Só volta a aparecer quando estiver
-        // dentro da distância de renderização.
+        // Sï¿½ volta a aparecer quando estiver
+        // dentro da distï¿½ncia de renderizaï¿½ï¿½o.
         if (sqrDistance <= renderDistanceSqr)
         {
           SetObjectVisible(
