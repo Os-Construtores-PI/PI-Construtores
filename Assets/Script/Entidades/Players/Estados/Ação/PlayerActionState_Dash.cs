@@ -85,6 +85,16 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private float _noHitSafetyBuffer = 0.35f;
 
+  [Header("Segurança - Buffer Mínimo com LockedTarget")]
+  [Tooltip(
+    "Mesmo com LockedTarget, a checagem de saída roda no FixedUpdate antes da física "
+      + "resolver a colisão daquele step, então a saída exata (buffer 0) pode disparar "
+      + "antes do trigger do hitbox registrar o hit. Esta margem mínima garante pelo menos "
+      + "um step extra de chance de detecção antes de forçar a saída."
+  )]
+  [SerializeField]
+  private float _minCollisionCheckBuffer = 0.1f;
+
   private bool _isWindingUp;
   private float _currentWindupTime;
 
@@ -181,7 +191,11 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
     // timeToExit agora funciona apenas como timeout de segurança (sem hit).
     // Com hit, a saída é controlada pelo grace time em FixedUpdate.
-    timeToExit = player.DashDuration + _dashWindupDuration + _noHitSafetyBuffer;
+    // Com LockedTarget a colisão é praticamente garantida (dash mirado no alvo),
+    // então o buffer extra só é aplicado quando não há alvo travado.
+    float safetyBuffer =
+      player.LockedTarget != null ? _minCollisionCheckBuffer : _noHitSafetyBuffer;
+    timeToExit = player.DashDuration + _dashWindupDuration + safetyBuffer;
 
     player.IsDashing = true;
     player.CanDash = false;
