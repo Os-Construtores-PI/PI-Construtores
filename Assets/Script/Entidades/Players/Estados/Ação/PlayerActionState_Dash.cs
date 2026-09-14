@@ -76,6 +76,15 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private float _dashWindupDuration = 0.08f;
 
+  [Header("Segurança - Saída sem Colisão")]
+  [Tooltip(
+    "A colisão é quase certa, então a saída do dash agora é guiada por ela. "
+      + "Este buffer é aplicado apenas como rede de segurança, caso nenhum hit ocorra "
+      + "dentro da duração esperada do dash (evita travar o estado)."
+  )]
+  [SerializeField]
+  private float _noHitSafetyBuffer = 0.35f;
+
   private bool _isWindingUp;
   private float _currentWindupTime;
 
@@ -122,6 +131,9 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _currentWindupTime = _dashWindupDuration;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
+    // NOTA: confirmar na implementação de HurtboxCollider se TriggerInvulnerability
+    // de fato desativa o collider (enabled = false) ou apenas seta uma flag de
+    // invencibilidade. A partir deste arquivo não é possível garantir qual dos dois.
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
     _dashHitboxCollider.enabled = true;
 
@@ -166,7 +178,11 @@ public class PlayerActionStateDash : IPlayerState<Player>
       player.transform.rotation = Quaternion.LookRotation(player.DashDirection);
 
     player.DashDuration = player.DashDistance / player.DashSpeed;
-    timeToExit = player.DashDuration + _dashWindupDuration;
+
+    // timeToExit agora funciona apenas como timeout de segurança (sem hit).
+    // Com hit, a saída é controlada pelo grace time em FixedUpdate.
+    timeToExit = player.DashDuration + _dashWindupDuration + _noHitSafetyBuffer;
+
     player.IsDashing = true;
     player.CanDash = false;
 
@@ -193,14 +209,19 @@ public class PlayerActionStateDash : IPlayerState<Player>
         _isWindingUp = false;
     }
 
-    if (timeToExitWalker < timeToExit && player.IsDashing)
+    // Saída sem colisão: apenas timeout de segurança.
+    // Saída com colisão: tratada abaixo, quando o grace time zera.
+    if (!_hasHit && player.IsDashing)
     {
-      timeToExitWalker += Time.fixedDeltaTime;
-    }
-    else
-    {
-      player.ActionLayer.ExitStateDeferred(this, player);
-      timeToExitWalker = 0f;
+      if (timeToExitWalker < timeToExit)
+      {
+        timeToExitWalker += Time.fixedDeltaTime;
+      }
+      else
+      {
+        player.ActionLayer.ExitStateDeferred(this, player);
+        timeToExitWalker = 0f;
+      }
     }
 
     if (player.LockedTarget != null && !_isInGraceTime)
@@ -242,6 +263,14 @@ public class PlayerActionStateDash : IPlayerState<Player>
           Quaternion.LookRotation(player.DashDirection),
           15f * Time.fixedDeltaTime
         );
+      }
+
+      if (_currentGraceTime <= 0f)
+      {
+        // Grace time do hit terminou: agora sim saímos do estado.
+        _isInGraceTime = false;
+        player.ActionLayer.ExitStateDeferred(this, player);
+        timeToExitWalker = 0f;
       }
     }
   }
@@ -327,7 +356,9 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _hasHit = true;
     _isInGraceTime = true;
     _currentGraceTime = _graceTimeDuration;
-    timeToExit += _graceTimeDuration;
+
+    // A saída do estado agora é controlada inteiramente pelo grace time
+    // (ver FixedUpdate), então não precisamos mais somar ao timeToExit aqui.
 
     _dashHitboxCollider.enabled = false;
 

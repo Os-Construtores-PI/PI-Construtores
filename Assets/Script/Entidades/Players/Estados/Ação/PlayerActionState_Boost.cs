@@ -44,6 +44,9 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _maxVelocity = 100f;
 
+  [SerializeField]
+  private float _gravityInState = -50f;
+
   [Header("Boost Ramp (início e fim gradual)")]
   [SerializeField]
   private float _rampInDuration = 1.5f;
@@ -173,7 +176,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     _gravityRampTween?.Kill();
     _gravityRampTween = DOTween
-      .To(() => player.GravityValue, g => player.GravityValue = g, -100f, _rampInDuration)
+      .To(() => player.GravityValue, g => player.GravityValue = g, _gravityInState, _rampInDuration)
       .SetEase(_rampInEase);
 
     _fovTween?.Kill();
