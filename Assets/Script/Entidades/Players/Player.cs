@@ -49,6 +49,8 @@ public class Player : CombatEntities
     set => _speed = value;
   }
 
+  public float InitialSpeed { get; private set; }
+
   [HideInInspector]
   public float WallSpeedMultiplier;
 
@@ -606,8 +608,9 @@ public class Player : CombatEntities
 
   public override void Start()
   {
-    InitialGravityValue = GravityValue;
     base.Start();
+    InitialSpeed = Speed;
+    InitialGravityValue = GravityValue;
 
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
@@ -642,6 +645,7 @@ public class Player : CombatEntities
 
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+    Debug.Log(Speed);
     ScanWithCamera();
   }
 

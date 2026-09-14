@@ -72,6 +72,13 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private float _vibrationDuration;
 
+  [Header("Antecipação do Dash (Startup)")]
+  [SerializeField]
+  private float _dashWindupDuration = 0.08f;
+
+  private bool _isWindingUp;
+  private float _currentWindupTime;
+
   private bool _hasHit;
   private float _currentGraceTime;
   private Player _currentPlayer;
@@ -89,6 +96,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
       return;
 
     _currentPlayer = player;
+
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
 
     if (!_firstTime)
     {
@@ -109,6 +118,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
     timeToExitWalker = 0f;
     _currentVerticalVelocity = 0f;
     _isInGraceTime = false;
+    _isWindingUp = true;
+    _currentWindupTime = _dashWindupDuration;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
@@ -155,7 +166,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
       player.transform.rotation = Quaternion.LookRotation(player.DashDirection);
 
     player.DashDuration = player.DashDistance / player.DashSpeed;
-    timeToExit = player.DashDuration;
+    timeToExit = player.DashDuration + _dashWindupDuration;
     player.IsDashing = true;
     player.CanDash = false;
 
@@ -175,7 +186,13 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   public void FixedUpdate(Player player)
   {
-    // Timer de saída
+    if (_isWindingUp)
+    {
+      _currentWindupTime -= Time.fixedDeltaTime;
+      if (_currentWindupTime <= 0f)
+        _isWindingUp = false;
+    }
+
     if (timeToExitWalker < timeToExit && player.IsDashing)
     {
       timeToExitWalker += Time.fixedDeltaTime;
@@ -186,7 +203,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
       timeToExitWalker = 0f;
     }
 
-    // Atualiza rotação durante o dash (seguir alvo)
     if (player.LockedTarget != null && !_isInGraceTime)
     {
       Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
@@ -201,7 +217,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
       }
     }
 
-    // Grace time: atualiza direção e rotação, mas NÃO move aqui
     if (_isInGraceTime && _currentGraceTime > 0f)
     {
       _currentGraceTime -= Time.fixedDeltaTime;
@@ -209,7 +224,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
       float elapsedT = 1f - Mathf.Clamp01(_currentGraceTime / _graceTimeDuration);
       _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(elapsedT) * _bounceUpwardForce;
 
-      // Atualiza direção durante grace time
       Vector3 newDir = Vector3.zero;
       if (player.LockedTarget != null)
       {
@@ -238,6 +252,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
   {
     _verticalTween?.Kill();
     _verticalTween = null;
+    _isWindingUp = false;
 
     if (_hitboxComponent != null)
     {
@@ -273,6 +288,12 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   public bool UpdateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
   {
+    if (_isWindingUp)
+    {
+      currentVelocity = Vector3.zero;
+      return true;
+    }
+
     if (_isInGraceTime && _currentGraceTime > 0f)
     {
       Vector3 inputDir = Vector3.zero;

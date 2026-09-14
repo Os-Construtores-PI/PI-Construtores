@@ -44,6 +44,23 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _maxVelocity = 100f;
 
+  [Header("Boost Ramp (início e fim gradual)")]
+  [SerializeField]
+  private float _rampInDuration = 1.5f;
+
+  [SerializeField]
+  private float _rampOutDuration = 3f;
+
+  [SerializeField]
+  private Ease _rampInEase = Ease.InQuad;
+
+  [SerializeField]
+  private Ease _rampOutEase = Ease.OutQuad;
+
+  private Tween _speedRampTween;
+  private Tween _gravityRampTween;
+  private float _currentBoostSpeedRatio = 1f;
+
   [Header("Vibração do Gamepad na Corrida")]
   [SerializeField]
   private float _runRumbleLowFrequency = 0.1f;
@@ -76,17 +93,19 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private float _boostSpeedRatio;
   private string _boostSourceId;
 
-  private float _originalGravity = 0;
   #endregion
 
   #region IState Callbacks
   public void Enter(Player player)
   {
-    _boostSpeedRatio = _maxVelocity / player.Speed;
-    _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
-
-    _originalGravity = player.GravityValue;
-    player.GravityValue = -100;
+    if (player.Stats.TryGetBaseNum(StatType.Speed, out float baseSpeed))
+    {
+      _boostSpeedRatio = _maxVelocity / baseSpeed;
+    }
+    else
+    {
+      _boostSpeedRatio = _maxVelocity / player.Speed;
+    }
 
     player.SpeedLines.Invoke(true);
 
@@ -122,6 +141,41 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
     Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
 
+    _speedRampTween?.Kill();
+
+    if (!string.IsNullOrEmpty(_boostSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+      _boostSourceId = null;
+    }
+
+    _currentBoostSpeedRatio = 1f;
+    _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _currentBoostSpeedRatio);
+
+    _speedRampTween = DOTween
+      .To(
+        () => _currentBoostSpeedRatio,
+        ratio =>
+        {
+          _currentBoostSpeedRatio = ratio;
+
+          if (!string.IsNullOrEmpty(_boostSourceId))
+          {
+            player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+          }
+
+          _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
+        },
+        _boostSpeedRatio,
+        _rampInDuration
+      )
+      .SetEase(_rampInEase);
+
+    _gravityRampTween?.Kill();
+    _gravityRampTween = DOTween
+      .To(() => player.GravityValue, g => player.GravityValue = g, -100f, _rampInDuration)
+      .SetEase(_rampInEase);
+
     _fovTween?.Kill();
     _fovTween = DOTween.To(
       () => player.MainCamera.Lens.FieldOfView,
@@ -141,16 +195,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     _hitRumbleCts?.Cancel();
     _hitRumbleCts?.Dispose();
     _hitRumbleCts = null;
-
-    if (!string.IsNullOrEmpty(_boostSourceId))
-    {
-      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
-      _boostSourceId = null;
-    }
-
-    _boostSpeedRatio = 0f;
-
-    player.GravityValue = _originalGravity;
 
     Gamepad.current?.SetMotorSpeeds(0, 0);
 
@@ -175,6 +219,41 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
 
+    _speedRampTween?.Kill();
+    _speedRampTween = DOTween
+      .To(
+        () => _currentBoostSpeedRatio,
+        ratio =>
+        {
+          _currentBoostSpeedRatio = ratio;
+
+          if (!string.IsNullOrEmpty(_boostSourceId))
+          {
+            player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+            _boostSourceId = null;
+          }
+
+          if (ratio > 1f + 0.001f)
+          {
+            _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
+          }
+        },
+        1f,
+        _rampOutDuration
+      )
+      .SetEase(_rampOutEase);
+
+    _gravityRampTween?.Kill();
+    _gravityRampTween = DOTween
+      .To(
+        () => player.GravityValue,
+        g => player.GravityValue = g,
+        player.InitialGravityValue,
+        _rampOutDuration
+      )
+      .SetEase(_rampOutEase);
+
+    // --- FOV de volta ao padrão ---
     _fovTween?.Kill();
     _fovTween = DOTween.To(
       () => player.MainCamera.Lens.FieldOfView,
