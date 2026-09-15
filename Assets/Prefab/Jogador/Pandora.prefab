@@ -22544,7 +22544,8 @@ MonoBehaviour:
     _vibrationAmplitude: 2
     _vibrationFrequency: 1
     _vibrationDuration: 0.25
-    _dashWindupDuration: 0.08
+    _dashWindupDuration: 0.1
+    _noHitSafetyBuffer: 0.1
   GroundSlam:
     _groundSlamHitboxCollider: {fileID: 5232564754573124142}
     SlamForce: 500
@@ -22565,6 +22566,7 @@ MonoBehaviour:
     _enterShakeDuration: 0.25
     _continuousBoostUsage: 10
     _maxVelocity: 100
+    _gravityInState: -50
     _rampInDuration: 1.5
     _rampOutDuration: 3
     _rampInEase: 5
