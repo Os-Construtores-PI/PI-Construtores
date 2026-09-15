@@ -25,16 +25,6 @@ public class CameraLogic : Entity
   [SerializeField]
   private float shadowDistance = 40f;
 
-  [Header("Objetos com Draw Distance")]
-  [SerializeField]
-  private bool useObjectDrawDistance = true;
-
-  [SerializeField]
-  [Min(0.05f)]
-  private float drawDistanceUpdateInterval = 0.15f;
-
-  private DrawDistance[] drawDistanceObjects;
-  private float drawDistanceTimer;
 
 
   public override void Awake()
@@ -45,8 +35,6 @@ public class CameraLogic : Entity
     {
       SetTarget(playerTarget);
     }
-
-    GatherDrawDistanceObjects();
   }
 
 
@@ -60,22 +48,6 @@ public class CameraLogic : Entity
 
   public void Update()
   {
-    // ============================================
-    // DRAW DISTANCE
-    // ============================================
-
-    if (useObjectDrawDistance)
-    {
-      drawDistanceTimer += Time.deltaTime;
-
-      if (drawDistanceTimer >= drawDistanceUpdateInterval)
-      {
-        drawDistanceTimer = 0f;
-
-        UpdateDrawDistanceObjects();
-      }
-    }
-
 
     // ============================================
     // EFEITOS
@@ -195,69 +167,12 @@ public class CameraLogic : Entity
   // ENCONTRA OBJETOS COM DRAW DISTANCE
   // ============================================================
 
-  private void GatherDrawDistanceObjects()
-  {
-    if (!useObjectDrawDistance)
-    {
-      return;
-    }
-
-    drawDistanceObjects =
-        FindObjectsByType<DrawDistance>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None
-        );
-
-    Debug.Log(
-        $"[CameraLogic] " +
-        $"{drawDistanceObjects.Length} " +
-        $"objetos com DrawDistance encontrados."
-    );
-  }
 
 
   // ============================================================
   // ATUALIZA DRAW DISTANCE
   // ============================================================
 
-  private void UpdateDrawDistanceObjects()
-  {
-    if (!useObjectDrawDistance)
-    {
-      return;
-    }
-
-
-    if (
-        drawDistanceObjects == null ||
-        drawDistanceObjects.Length == 0
-    )
-    {
-      return;
-    }
-
-
-    if (playerTarget == null)
-    {
-      return;
-    }
-
-
-    Vector3 playerPosition =
-        playerTarget.transform.position;
-
-
-    foreach (DrawDistance drawObject in drawDistanceObjects)
-    {
-      if (drawObject == null)
-      {
-        continue;
-      }
-
-
-      drawObject.UpdateObjects(playerPosition);
-    }
-  }
 
 
   // ============================================================
