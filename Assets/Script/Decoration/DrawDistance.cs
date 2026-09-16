@@ -7,48 +7,28 @@ public class DrawDistance : MonoBehaviour
   [Header("Draw Distance")]
 
   [Tooltip(
-      "Distância a partir da qual o Renderer será escondido."
+    "Distância a partir da qual o GameObject será desativado."
   )]
   [SerializeField]
   [Min(1f)]
   private float hideDistance = 160f;
 
 
-  [Header("Layer")]
-
   [Tooltip(
-      "Somente Renderers pertencentes às Layers selecionadas " +
-      "serão controlados."
+    "Distância na qual o GameObject será ativado novamente."
   )]
   [SerializeField]
-  private LayerMask targetLayers = ~0;
+  [Min(1f)]
+  private float renderDistance = 80f;
 
 
-  [Header("Opções")]
-
-  [Tooltip(
-      "Procura Renderers em todos os filhos."
-  )]
-  [SerializeField]
-  private bool includeChildren = true;
-
+  [Header("GameObject")]
 
   [Tooltip(
-      "Intervalo entre as verificações de distância."
+    "GameObject que será ativado ou desativado."
   )]
   [SerializeField]
-  [Min(0.05f)]
-  private float updateInterval = 0.15f;
-
-
-  [Header("Player")]
-
-  [Tooltip(
-      "Player usado como referência. " +
-      "Se vazio, será encontrado automaticamente."
-  )]
-  [SerializeField]
-  private Player playerTarget;
+  private GameObject targetObject;
 
 
   [Header("Debug")]
@@ -57,305 +37,76 @@ public class DrawDistance : MonoBehaviour
   private bool debugMode = false;
 
 
-  // ============================================================
-  // DADOS
-  // ============================================================
-
-  private Renderer[] targetRenderers;
-
-  private float updateTimer;
+  private bool wasHiddenByDrawDistance = false;
 
 
   // ============================================================
-  // AWAKE
+  // UPDATE DRAW DISTANCE
   // ============================================================
 
-  private void Awake()
+  public void UpdateDrawDistance(Vector3 playerPosition)
   {
-    FindRenderers();
-  }
-
-
-  // ============================================================
-  // START
-  // ============================================================
-
-  private void Start()
-  {
-    FindPlayer();
-
-    /*
-     * Faz uma verificação imediatamente.
-     */
-    if (playerTarget != null)
-    {
-      UpdateDrawDistance();
-    }
-  }
-
-
-  // ============================================================
-  // UPDATE
-  // ============================================================
-
-  private void Update()
-  {
-    updateTimer += Time.deltaTime;
-
-
-    if (updateTimer < updateInterval)
-    {
+    if (targetObject == null)
       return;
-    }
 
-
-    updateTimer = 0f;
-
-
-    // ----------------------------------------------------------
-    // PLAYER
-    // ----------------------------------------------------------
-
-    if (playerTarget == null)
-    {
-      FindPlayer();
-
-
-      if (playerTarget == null)
-      {
-        return;
-      }
-    }
-
-
-    // ----------------------------------------------------------
-    // DRAW DISTANCE
-    // ----------------------------------------------------------
-
-    UpdateDrawDistance();
-  }
-
-
-  // ============================================================
-  // ENCONTRA PLAYER
-  // ============================================================
-
-  private void FindPlayer()
-  {
-    if (playerTarget != null)
-    {
-      return;
-    }
-
-
-    playerTarget =
-        FindFirstObjectByType<Player>();
-
-
-    if (
-        playerTarget != null &&
-        debugMode
-    )
-    {
-      Debug.Log(
-          $"[DrawDistance] {name} encontrou Player: " +
-          $"{playerTarget.name}"
-      );
-    }
-  }
-
-
-  // ============================================================
-  // ENCONTRA RENDERERS
-  // ============================================================
-
-  private void FindRenderers()
-  {
-    if (includeChildren)
-    {
-      targetRenderers =
-          GetComponentsInChildren<Renderer>(true);
-    }
-    else
-    {
-      targetRenderers =
-          GetComponents<Renderer>();
-    }
-
-
-    if (
-        targetRenderers == null ||
-        targetRenderers.Length == 0
-    )
-    {
-      Debug.LogWarning(
-          $"[DrawDistance] {name} não encontrou " +
-          $"nenhum Renderer."
-      );
-
-      return;
-    }
-
-
-    int validRenderers = 0;
-
-
-    foreach (Renderer renderer in targetRenderers)
-    {
-      if (renderer == null)
-      {
-        continue;
-      }
-
-
-      /*
-       * A Layer é verificada no GameObject
-       * que realmente possui o Renderer.
-       *
-       * Isso é importante para:
-       *
-       * Tentaculo
-       *   └── Circle
-       *        └── SkinnedMeshRenderer
-       *
-       * Se Circle estiver em Mobile_Culling,
-       * ele será controlado.
-       */
-
-      if (!IsLayerAllowed(
-          renderer.gameObject.layer))
-      {
-        continue;
-      }
-
-
-      validRenderers++;
-
-
-      if (debugMode)
-      {
-        Debug.Log(
-            $"[DrawDistance] Renderer encontrado: " +
-            $"{renderer.name} | " +
-            $"Layer: {LayerMask.LayerToName(renderer.gameObject.layer)}"
-        );
-      }
-
-    }
-
-
-    if (debugMode)
-    {
-      Debug.Log(
-          $"[DrawDistance] {name} encontrou " +
-          $"{validRenderers} Renderer(s) " +
-          $"controláveis."
-      );
-    }
-  }
-
-
-  // ============================================================
-  // VERIFICA LAYER
-  // ============================================================
-
-  private bool IsLayerAllowed(int layer)
-  {
-    return
-        (targetLayers.value & (1 << layer)) != 0;
-  }
-
-
-  // ============================================================
-  // DRAW DISTANCE
-  // ============================================================
-
-  private void UpdateDrawDistance()
-  {
-    if (
-        targetRenderers == null ||
-        targetRenderers.Length == 0
-    )
-    {
-      return;
-    }
-
-
-    Vector3 playerPosition =
-        playerTarget.transform.position;
-
+    float distanceSqr =
+      (playerPosition - targetObject.transform.position).sqrMagnitude;
 
     float hideDistanceSqr =
-        hideDistance * hideDistance;
+      hideDistance * hideDistance;
+
+    float renderDistanceSqr =
+      renderDistance * renderDistance;
 
 
-    foreach (Renderer renderer in targetRenderers)
+    if(distanceSqr <= hideDistanceSqr)
     {
-      if (renderer == null)
+      if (!wasHiddenByDrawDistance)
       {
-        continue;
-      }
+        targetObject.SetActive(false);
 
+        wasHiddenByDrawDistance = true;
 
-      // --------------------------------------------------------
-      // VERIFICA LAYER DO RENDERER
-      // --------------------------------------------------------
-
-      if (!IsLayerAllowed(
-          renderer.gameObject.layer))
-      {
-        continue;
-      }
-
-
-      // --------------------------------------------------------
-      // POSIÇÃO DO RENDERER
-      // --------------------------------------------------------
-
-      Vector3 rendererPosition =
-          renderer.transform.position;
-
-
-      float sqrDistance =
-          (
-              playerPosition -
-              rendererPosition
-          ).sqrMagnitude;
-
-
-      // --------------------------------------------------------
-      // ESCONDER
-      // --------------------------------------------------------
-
-      if (sqrDistance >= hideDistanceSqr)
-      {
-        if (!renderer.forceRenderingOff)
+        if (debugMode)
         {
-          renderer.forceRenderingOff = true;
-
-
-          if (debugMode)
-          {
-            Debug.Log(
-                $"[DrawDistance] " +
-                $"{renderer.name} ESCONDIDO | " +
-                $"Distância: " +
-                $"{Mathf.Sqrt(sqrDistance):F1}m"
-            );
-          }
+          Debug.Log(
+            $"[DrawDistance] {targetObject.name} -> DESATIVADO");
         }
       }
+       return;
     }
+
+
+    if(distanceSqr >= renderDistanceSqr)
+    {
+      if (wasHiddenByDrawDistance)
+      {
+        targetObject.SetActive(true);
+
+        wasHiddenByDrawDistance = false;
+
+        if (debugMode)
+        {
+          Debug.Log(
+            $"[DrawDistance] {targetObject.name} -> ATIVADO");
+        }
+      }
+
+      return;
+    }
+
+
+
   }
 
 
   // ============================================================
-  // ALTERAR PLAYER
+  // TARGET
   // ============================================================
 
-  public void SetPlayer(Player newPlayer)
+  public void SetTarget(GameObject newTarget)
   {
-    playerTarget = newPlayer;
+    targetObject = newTarget;
   }
 
 
@@ -363,20 +114,10 @@ public class DrawDistance : MonoBehaviour
   // REFRESH
   // ============================================================
 
-  public void Refresh()
+  public void Refresh(Vector3 playerPosition)
   {
-    FindRenderers();
-
-
-    if (playerTarget == null)
-    {
-      FindPlayer();
-    }
-
-
-    if (playerTarget != null)
-    {
-      UpdateDrawDistance();
-    }
+    UpdateDrawDistance(playerPosition);
   }
+
+
 }

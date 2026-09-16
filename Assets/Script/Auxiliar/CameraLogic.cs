@@ -6,10 +6,6 @@ using UnityEngine;
 
 public class CameraLogic : Entity
 {
-  [Header("Câmera")]
-  [SerializeField]
-  private float _distance = 200f;
-
   [Header("Referência atual do jogador")]
   [SerializeField]
   private Player playerTarget;
@@ -24,6 +20,8 @@ public class CameraLogic : Entity
   [Header("Sombras")]
   [SerializeField]
   private float shadowDistance = 40f;
+
+  private DrawDistance[] drawDistance;
 
 
 
@@ -43,6 +41,7 @@ public class CameraLogic : Entity
     base.Start();
 
     GatherEffects();
+    GatherDrawDistances();
   }
 
 
@@ -64,6 +63,7 @@ public class CameraLogic : Entity
       }
     }
 
+    UpdateDrawDistance();
 
     // ============================================
     // CÂMERA
@@ -76,6 +76,7 @@ public class CameraLogic : Entity
     {
       return;
     }
+
 
 
     // Garante referência ao controlador de input
@@ -155,6 +156,55 @@ public class CameraLogic : Entity
     yield return new WaitForSeconds(waitTime);
 
     effects[effectType].Stop();
+  }
+
+  private void GatherDrawDistances()
+  {
+    drawDistance =
+      FindObjectsByType<DrawDistance>(
+        FindObjectsInactive.Include,
+        FindObjectsSortMode.None);
+
+    if (drawDistance == null)
+    {
+      drawDistance = System.Array.Empty<DrawDistance>();
+    }
+
+
+    Debug.Log(
+        $"[CameraLogic] " +
+        $"{drawDistance.Length} DrawDistance encontrados."
+    );
+  }
+
+  public void UpdateDrawDistance()
+  {
+    if (
+        playerTarget == null ||
+        drawDistance == null ||
+        drawDistance.Length == 0
+    )
+    {
+      return;
+    }
+
+
+    Vector3 playerPosition =
+        playerTarget.transform.position;
+
+
+    foreach (DrawDistance drawDistance in drawDistance)
+    {
+      if (drawDistance == null)
+      {
+        continue;
+      }
+
+
+      drawDistance.UpdateDrawDistance(
+          playerPosition
+      );
+    }
   }
 
 
