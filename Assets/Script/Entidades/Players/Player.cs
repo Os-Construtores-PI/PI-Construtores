@@ -565,6 +565,8 @@ public class Player : CombatEntities
   [SerializeField]
   private bool _willInvertYAxis = false;
 
+  private bool _testInvertY = false;
+
   private void SetupCamera()
   {
     foreach (Camera cam in Camera.allCameras)
@@ -577,6 +579,70 @@ public class Player : CombatEntities
     }
     Debug.LogError("[Player] Câmera com ID correspondente não encontrada.");
   }
+
+  private void SetupCameraInversion()
+  {
+    ApplyCameraInversion();
+  }
+
+  public void ApplyCameraInversion()
+  {
+    if (PlayerInput == null)
+    {
+      Debug.LogError("[Player] PlayerInput não encontrado.");
+      return;
+    }
+
+    InputAction lookAction = PlayerInput.actions.FindAction("Look");
+
+    if (lookAction == null)
+    {
+      Debug.LogError("[Player] Action 'Look' não encontrada.");
+      return;
+    }
+
+    bool invertY = CameraSettings.InvertY;
+
+    Debug.Log(
+        $"[CAMERA] Look encontrado: {lookAction.name}"
+    );
+
+    Debug.Log(
+        $"[CAMERA] Invert Y solicitado: {invertY}"
+    );
+
+    lookAction.ApplyParameterOverride(
+        (InvertVector2Processor processor) => processor.invertY,
+        invertY
+    );
+
+    _willInvertYAxis = invertY;
+
+    Debug.Log(
+        $"[CAMERA] Inversão Y: " +
+        $"{(invertY ? "ATIVADA" : "DESATIVADA")}"
+    );
+  }
+
+  public void SetCameraInvertY(bool invert)
+  {
+    CameraSettings.SetInvertY(invert);
+
+    ApplyCameraInversion();
+  }
+
+  public void ToggleCameraInvertY()
+  {
+    CameraSettings.ToggleInvertY();
+
+    ApplyCameraInversion();
+  }
+
+  public bool IsCameraInvertY()
+  {
+    return CameraSettings.InvertY;
+  }
+
 
   public void LockCamera(bool state) => CameraLocked = state;
   #endregion
@@ -632,6 +698,9 @@ public class Player : CombatEntities
   public override void Update()
   {
     base.Update();
+
+    TestCameraInvertY();
+
     if (Keyboard.current != null && Keyboard.current.f1Key.IsPressed())
     {
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -727,10 +796,13 @@ public class Player : CombatEntities
 
   private void SetupCinemachine()
   {
-    InputAction lookAction = InputSystem.actions.FindAction("Look");
-    lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
-    _cinemachineInput = MainCamera.GetComponent<CinemachineInputAxisController>();
-    _cinemachineOrbital = MainCamera.GetComponent<CinemachineOrbitalFollow>();
+    SetupCameraInversion();
+
+    _cinemachineInput =
+      MainCamera.GetComponent<CinemachineInputAxisController>();
+
+    _cinemachineOrbital =
+      MainCamera.GetComponent<CinemachineOrbitalFollow>();
   }
 
   private void SetupScanners()
@@ -1328,6 +1400,65 @@ public class Player : CombatEntities
   {
     base.DeathHandler();
     GlobalEventBus.Instance.Death.Invoke();
+  }
+
+  private void TestCameraInvertY()
+  {
+    if (Keyboard.current == null)
+      return;
+
+    if (!Keyboard.current.f2Key.wasPressedThisFrame)
+      return;
+
+    _testInvertY = !_testInvertY;
+
+    ApplyTestCameraInversion(_testInvertY);
+  }
+
+  private void ApplyTestCameraInversion(bool invert)
+  {
+    if (PlayerInput == null)
+    {
+      Debug.LogError("[CAMERA TEST] PlayerInput não encontrado.");
+      return;
+    }
+
+    InputAction lookAction = PlayerInput.actions.FindAction("Look");
+
+    if (lookAction == null)
+    {
+      Debug.LogError("[CAMERA TEST] Action 'Look' não encontrada.");
+      return;
+    }
+
+    lookAction.ApplyParameterOverride(
+        (InvertVector2Processor processor) => processor.invertY,
+        invert
+    );
+
+    Debug.Log(
+        $"[CAMERA TEST] ============================="
+    );
+
+    Debug.Log(
+        $"[CAMERA TEST] Invert Y = {(invert ? "TRUE" : "FALSE")}"
+    );
+
+    Debug.Log(
+        $"[CAMERA TEST] Action = {lookAction.name}"
+    );
+
+    Debug.Log(
+        $"[CAMERA TEST] Enabled = {lookAction.enabled}"
+    );
+
+    Debug.Log(
+        $"[CAMERA TEST] Value atual = {lookAction.ReadValue<Vector2>()}"
+    );
+
+    Debug.Log(
+        $"[CAMERA TEST] ============================="
+    );
   }
   #endregion
 }
