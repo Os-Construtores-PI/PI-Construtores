@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,17 +8,26 @@ using UnityEngine.UI;
 public class LoadingScreen : MonoBehaviour
 {
   [Header("UI")]
-  [SerializeField] private GameObject _loadingRoot;
-  [SerializeField] private Image _progressBar;
-  [SerializeField] private TextMeshProUGUI _loadingText;
-  [SerializeField] private RectTransform _spinner;
+  [SerializeField]
+  private GameObject _loadingRoot;
+
+  [SerializeField]
+  private List<Material> _materials;
+
+  [SerializeField]
+  private Image _progressBar;
+
+  [SerializeField]
+  private TextMeshProUGUI _loadingText;
+
+  [SerializeField]
+  private RectTransform _spinner;
 
   private Coroutine _dotsRoutine;
 
-  public bool IsShowing {get; private set;}
+  public bool IsShowing { get; private set; }
 
   public bool IsLoading { get; private set; }
-
 
   public void ShowLoading(float duration)
   {
@@ -26,23 +36,21 @@ public class LoadingScreen : MonoBehaviour
     _progressBar.fillAmount = 0;
 
     StartCoroutine(ShowLoadingRoutine(duration));
-
   }
 
   private IEnumerator ShowLoadingRoutine(float duration)
   {
     IsShowing = true;
 
-
     _dotsRoutine = StartCoroutine(AnimateDots());
 
     float timer = 0f;
 
-    while(timer < duration)
+    while (timer < duration)
     {
       timer += Time.deltaTime;
 
-      _spinner.Rotate(0,0,-90 * Time.deltaTime);
+      _spinner.Rotate(0, 0, -90 * Time.deltaTime);
 
       _progressBar.fillAmount = Mathf.Lerp(
         _progressBar.fillAmount,
@@ -57,7 +65,7 @@ public class LoadingScreen : MonoBehaviour
 
     yield return new WaitForSeconds(.4f);
 
-    if(_dotsRoutine != null)
+    if (_dotsRoutine != null)
     {
       StopCoroutine(_dotsRoutine);
       _dotsRoutine = null;
@@ -67,26 +75,24 @@ public class LoadingScreen : MonoBehaviour
       IsShowing = false;
     }
   }
-    
 
   public void LoadScene(string sceneName)
   {
-    if(IsLoading)
-       return;
+    if (IsLoading)
+      return;
     IsLoading = true;
-    
+
     _loadingRoot.SetActive(true);
 
-    StartCoroutine(LoadSceneAsync(sceneName));  
+    StartCoroutine(LoadSceneAsync(sceneName));
   }
 
   private IEnumerator LoadSceneAsync(string sceneName)
   {
     _dotsRoutine = StartCoroutine(AnimateDots());
 
-    AsyncOperation operation =
-      SceneManager.LoadSceneAsync(sceneName);
-
+    AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+    PreRenderMaterials();
     operation.allowSceneActivation = false;
 
     float loadingTime = 0f;
@@ -96,16 +102,11 @@ public class LoadingScreen : MonoBehaviour
     {
       loadingTime += Time.deltaTime;
 
-      float progress =
-        Mathf.Clamp01(loadingTime / minMinute);
+      float progress = Mathf.Clamp01(loadingTime / minMinute);
 
-      _progressBar.fillAmount =
-        Mathf.Lerp(
-          _progressBar.fillAmount,
-          progress,
-          4f * Time.deltaTime);
+      _progressBar.fillAmount = Mathf.Lerp(_progressBar.fillAmount, progress, 4f * Time.deltaTime);
 
-      _spinner.Rotate(0,0, -90 * Time.deltaTime);
+      _spinner.Rotate(0, 0, -90 * Time.deltaTime);
 
       yield return null;
     }
@@ -114,7 +115,7 @@ public class LoadingScreen : MonoBehaviour
 
     yield return new WaitForSeconds(0.5f);
 
-    if(_dotsRoutine != null)
+    if (_dotsRoutine != null)
     {
       StopCoroutine(_dotsRoutine);
       _dotsRoutine = null;
@@ -136,5 +137,29 @@ public class LoadingScreen : MonoBehaviour
       _loadingText.text = "CARREGANDO...";
       yield return new WaitForSeconds(1f);
     }
+  }
+
+  public void PreRenderMaterials()
+  {
+    var cam = new GameObject("warmer").AddComponent<Camera>();
+    cam.clearFlags = CameraClearFlags.Nothing;
+    cam.cullingMask = 0;
+
+    var mesh = new Mesh
+    {
+      vertices = new[] { Vector3.zero, Vector3.right, Vector3.up },
+      triangles = new[] { 0, 1, 2 },
+    };
+
+    foreach (var mat in _materials)
+    {
+      if (mat == null)
+        continue;
+      print(mat.name);
+      Graphics.DrawMeshNow(mesh, Vector3.forward * 10, Quaternion.identity);
+    }
+
+    Destroy(cam.gameObject);
+    Destroy(mesh);
   }
 }
