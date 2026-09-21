@@ -3,45 +3,49 @@ using UnityEngine;
 
 public class PoolingSpawner : MonoBehaviour
 {
-  [Header("Objetos Spawner")]
   [SerializeField]
-  private GameObject[] _wolves;
+  private GameObject[] _objects;
 
-  [Header("Distancia")]
   [SerializeField]
   private float _spawnDistance = 30f;
 
   [SerializeField]
   private float _despawnDistance = 50f;
 
-  [Header("Player")]
   [SerializeField]
   private Transform _player;
 
-  [Header("Automatic Spawn")]
   [SerializeField]
   private bool _spawnAutomatically = true;
 
-  [Header("Performance")]
   [SerializeField]
   private float _distanceCheckInterval = 0.25f;
+
+  [SerializeField]
+  private LayerMask _groundMask = ~0;
+
+  [SerializeField]
+  private float _raycastHeight = 50f;
+
+  [SerializeField]
+  private float _raycastDistance = 200f;
 
   private float _nextDistanceCheck;
 
   private float _spawnDistanceSqr;
   private float _despawnDistanceSqr;
 
-  private bool _wolvesActive;
+  private bool _objectsActive;
+
+  private Vector3 _referencePoint;
 
   private void Awake()
   {
     _spawnDistanceSqr = _spawnDistance * _spawnDistance;
-
     _despawnDistanceSqr = _despawnDistance * _despawnDistance;
 
-    // IMPORTANTE:
-    // Começa com todos os lobos desligados.
-    SetWolvesActive(false);
+    SetObjectsActive(false);
+    ChooseReferencePoint();
   }
 
   private void Start()
@@ -57,7 +61,6 @@ public class PoolingSpawner : MonoBehaviour
       return;
     }
 
-    // Verifica distância apenas algumas vezes por segundo.
     if (Time.time < _nextDistanceCheck)
       return;
 
@@ -68,74 +71,103 @@ public class PoolingSpawner : MonoBehaviour
 
   private void CheckDistance()
   {
-    Vector3 offset = _player.position - transform.position;
-
-    // Ignora diferença de altura.
+    Vector3 offset = _player.position - _referencePoint;
     offset.y = 0f;
 
     float distanceSqr = offset.sqrMagnitude;
 
-    // ==========================================
-    // LOBOS DESATIVADOS
-    // ==========================================
-
-    if (!_wolvesActive)
+    if (!_objectsActive)
     {
       if (_spawnAutomatically && distanceSqr <= _spawnDistanceSqr)
       {
-        ActivateWolves();
+        ActivateObjects();
       }
 
       return;
     }
 
-    // ==========================================
-    // LOBOS ATIVOS
-    // ==========================================
-
     if (distanceSqr >= _despawnDistanceSqr)
     {
-      DeactivateWolves();
+      DeactivateObjects();
+      ChooseReferencePoint();
     }
   }
 
-  private void ActivateWolves()
+  private void ChooseReferencePoint()
   {
-    if (_wolvesActive)
-      return;
+    Vector3 center = GetObjectsCenter();
 
-    SetWolvesActive(true);
+    Vector3 origin = center + Vector3.up * _raycastHeight;
 
-    _wolvesActive = true;
-
-    Debug.Log($"[EyeWolfSpawner] Lobos ativados: {name}");
-  }
-
-  private void DeactivateWolves()
-  {
-    if (!_wolvesActive)
-      return;
-
-    SetWolvesActive(false);
-
-    _wolvesActive = false;
-
-    Debug.Log($"[EyeWolfSpawner] Lobos desativados: {name}");
-  }
-
-  private void SetWolvesActive(bool active)
-  {
-    if (_wolves == null)
-      return;
-
-    for (int i = 0; i < _wolves.Length; i++)
+    if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, _raycastDistance, _groundMask))
     {
-      GameObject wolf = _wolves[i];
+      _referencePoint = hit.point;
+    }
+    else
+    {
+      _referencePoint = center;
+    }
+  }
 
-      if (wolf == null)
+  private Vector3 GetObjectsCenter()
+  {
+    if (_objects == null || _objects.Length == 0)
+      return transform.position;
+
+    Vector3 sum = Vector3.zero;
+    int count = 0;
+
+    for (int i = 0; i < _objects.Length; i++)
+    {
+      if (_objects[i] == null)
         continue;
 
-      wolf.SetActive(active);
+      sum += _objects[i].transform.position;
+      count++;
+    }
+
+    if (count == 0)
+      return transform.position;
+
+    return sum / count;
+  }
+
+  private void ActivateObjects()
+  {
+    if (_objectsActive)
+      return;
+
+    ChooseReferencePoint();
+    SetObjectsActive(true);
+
+    _objectsActive = true;
+
+    Debug.Log($"[Pooling Spawer] Objetos ativados: {name}");
+  }
+
+  private void DeactivateObjects()
+  {
+    if (!_objectsActive)
+      return;
+
+    SetObjectsActive(false);
+
+    _objectsActive = false;
+
+    Debug.Log($"[Pooling Spawer] Objetos desativados: {name}");
+  }
+
+  private void SetObjectsActive(bool active)
+  {
+    if (_objects == null)
+      return;
+
+    for (int i = 0; i < _objects.Length; i++)
+    {
+      if (_objects[i] == null)
+        continue;
+
+      _objects[i].SetActive(active);
     }
   }
 
@@ -154,24 +186,23 @@ public class PoolingSpawner : MonoBehaviour
 
   public void SpawnPack()
   {
-    ActivateWolves();
+    ActivateObjects();
   }
 
   public void DespawnPack()
   {
-    DeactivateWolves();
+    DeactivateObjects();
   }
 
   private void OnDrawGizmosSelected()
   {
-    // Spawn
     Gizmos.color = Color.green;
-
     Gizmos.DrawWireSphere(transform.position, _spawnDistance);
 
-    // Despawn
     Gizmos.color = Color.red;
-
     Gizmos.DrawWireSphere(transform.position, _despawnDistance);
+
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawSphere(_referencePoint, 0.5f);
   }
 }

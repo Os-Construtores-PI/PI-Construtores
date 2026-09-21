@@ -637,8 +637,20 @@ public class Player : CombatEntities
     base.Update();
     if (Keyboard.current != null && Keyboard.current.f1Key.IsPressed())
     {
-      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-      GameContext.ShowStageIntro = true;
+      if (Keyboard.current.f1Key.IsPressed())
+      {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        GameContext.ShowStageIntro = true;
+      }
+      if (Keyboard.current.f2Key.IsPressed())
+      {
+        _willInvertYAxis = !_willInvertYAxis;
+        InputAction lookAction = InputSystem.actions.FindAction("Look");
+        lookAction.ApplyParameterOverride(
+          (InvertVector2Processor p) => p.invertY,
+          _willInvertYAxis
+        );
+      }
     }
 
     ComboTimer();
