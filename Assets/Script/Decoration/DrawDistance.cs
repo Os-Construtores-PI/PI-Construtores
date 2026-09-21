@@ -59,7 +59,7 @@ public class DrawDistance : MonoBehaviour
       renderDistance * renderDistance;
 
 
-    if(distanceSqr <= hideDistanceSqr)
+    if(distanceSqr >= hideDistanceSqr)
     {
       if (!wasHiddenByDrawDistance)
       {
@@ -77,7 +77,7 @@ public class DrawDistance : MonoBehaviour
     }
 
 
-    if(distanceSqr >= renderDistanceSqr)
+    if(distanceSqr <= renderDistanceSqr)
     {
       if (wasHiddenByDrawDistance)
       {
