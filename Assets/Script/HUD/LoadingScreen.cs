@@ -155,7 +155,6 @@ public class LoadingScreen : MonoBehaviour
     {
       if (mat == null)
         continue;
-      print(mat.name);
       Graphics.DrawMeshNow(mesh, Vector3.forward * 10, Quaternion.identity);
     }
 

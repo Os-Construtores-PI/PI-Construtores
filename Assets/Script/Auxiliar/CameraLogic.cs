@@ -44,20 +44,17 @@ public class CameraLogic : Entity
     if (playerTarget == null || _currentCinemachineCamera == null)
       return;
 
-    // Garante referência ao controlador de input
     if (inputAxisController == null)
       _currentCinemachineCamera.TryGetComponent(out inputAxisController);
 
     if (playerTarget.CameraLocked)
     {
-      // 🔥 trava completamente os inputs da câmera
       if (inputAxisController != null)
         inputAxisController.enabled = false;
 
       return;
     }
 
-    // se destravou → garante que voltou ao normal
     if (inputAxisController != null && !inputAxisController.enabled)
       inputAxisController.enabled = true;
   }
@@ -104,9 +101,6 @@ public class CameraLogic : Entity
     }
   }
 
-  /// <summary>
-  /// Configura a CinemachineCamera para seguir o alvo.
-  /// </summary>
   public void SetTarget(
     Player newTarget,
     CinemachineCamera freeLook = null,
@@ -149,9 +143,6 @@ public class CameraLogic : Entity
     }
   }
 
-  /// <summary>
-  /// Troca para outra câmera virtual em runtime.
-  /// </summary>
   public void SwitchCamera(CinemachineCamera newCam, Player newTarget)
   {
     if (newCam == null || newTarget == null)
