@@ -17394,6 +17394,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 487492036122464948}
+  - component: {fileID: -2661131793783902382}
   m_Layer: 0
   m_Name: Lycans Grupo.1
   m_TagString: Untagged
@@ -17423,6 +17424,36 @@ Transform:
   - {fileID: 6750562335314122865}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -182.542, z: 0}
+--- !u!114 &-2661131793783902382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4853614254571233547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94b9e599766229440a854e3b6f35438c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolingSpawner
+  _objects:
+  - {fileID: 1869561895126418813}
+  - {fileID: 8494042245996127881}
+  - {fileID: 348245552886067710}
+  - {fileID: 2164553934922419387}
+  - {fileID: 2248273291208739380}
+  - {fileID: 1774825063969650509}
+  - {fileID: 6261410861562708683}
+  _spawnDistance: 30
+  _despawnDistance: 50
+  _player: {fileID: 0}
+  _spawnAutomatically: 1
+  _distanceCheckInterval: 0.25
+  _groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _raycastHeight: 50
+  _raycastDistance: 200
 --- !u!1 &4880745758330848675
 GameObject:
   m_ObjectHideFlags: 0
