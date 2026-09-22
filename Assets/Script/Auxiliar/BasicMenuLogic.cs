@@ -213,6 +213,9 @@ public class BasicMenuLogic : MonoBehaviour
   {
     if (AudioManager.Instance != null && _backgroundMusicConfig != null)
       AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
+
+    ResetTerrainSectors();
+
     GlobalEventBus.Instance.Respawn.Invoke();
   }
 
@@ -228,6 +231,9 @@ public class BasicMenuLogic : MonoBehaviour
   {
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     GameContext.ShowStageIntro = true;
+
+    SceneManager.LoadScene(
+      SceneManager.GetActiveScene().name);
   }
   #endregion === MENU GAMEOVER ===
 
@@ -588,6 +594,22 @@ public class BasicMenuLogic : MonoBehaviour
        {
          onComplete?.Invoke();
        });
+  }
+
+  private void ResetTerrainSectors()
+  {
+    TerrainSector[] sectors =
+      FindObjectsByType<TerrainSector>(
+        FindObjectsInactive.Include,
+        FindObjectsSortMode.None);
+
+    foreach (TerrainSector sector in sectors)
+    {
+      if (sector == null)
+          continue;
+
+      sector.ForceActive();
+    }
   }
   #endregion
 }

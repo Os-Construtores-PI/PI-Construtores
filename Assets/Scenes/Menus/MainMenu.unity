@@ -548,12 +548,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0c04186d4e7b8d42a218a67940538a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  targetFPS: 60
-  useVSync: 0
-  vSyncCount: 0
-  limitFPSOnBackground: 1
-  backgroundFPS: 10
-  showFPSInConsole: 0
 --- !u!1 &215297850
 GameObject:
   m_ObjectHideFlags: 0
@@ -805,7 +799,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -130.7, y: 167.1}
+  m_AnchoredPosition: {x: -130.7002, y: 167.09998}
   m_SizeDelta: {x: 248, y: 248}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &227800943
@@ -1368,6 +1362,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &393437021
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1663,6 +1658,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!1 &645437869
 GameObject:
   m_ObjectHideFlags: 0
@@ -2616,7 +2612,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 105.7, y: -13.800049}
+  m_AnchoredPosition: {x: 165, y: -13.800049}
   m_SizeDelta: {x: 296, y: 288}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &916482239
@@ -3142,7 +3138,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.42, y: 0}
+  m_AnchoredPosition: {x: -206.55, y: 0}
   m_SizeDelta: {x: 1980, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1192705547
@@ -3350,6 +3346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &1222559390
 Animator:
   serializedVersion: 7
@@ -3519,6 +3516,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &1227975245
 Animator:
   serializedVersion: 7
@@ -3594,7 +3592,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -3797,6 +3795,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageIntroDirector
   _root: {fileID: 7993210930988611499}
   _stageNumber: {fileID: 0}
+  _backGroundBlack: {fileID: 0}
+  _backGroundHoldTime: 0.35
   _stageTitle: {fileID: 0}
   slideObjects:
   - {fileID: 1418141246173034906}
@@ -4338,6 +4338,7 @@ MonoBehaviour:
   _defaultSelectables:
   - panel: 5
     selectable: {fileID: 753168938}
+  _lastSelectedObject: {fileID: 0}
 --- !u!1 &1365194224
 GameObject:
   m_ObjectHideFlags: 0
@@ -5076,6 +5077,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &1456803986
 Animator:
   serializedVersion: 7
@@ -6875,7 +6877,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 1.22, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 258.6, y: 368}
+  m_AnchoredPosition: {x: 1037.8, y: 390.7}
   m_SizeDelta: {x: 144, y: 172}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1666677152563012537
@@ -8173,9 +8175,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2739128694119173923}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1589.8, y: -791.3}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -325.7, y: 304.76}
   m_SizeDelta: {x: 700, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &3303715737917227697
@@ -8610,9 +8612,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2739128694119173923}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1607, y: -955.3}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -320.9, y: 141.8}
   m_SizeDelta: {x: 700, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &4347158614392129883
@@ -10513,6 +10515,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &6776885429826352447
 Animator:
   serializedVersion: 7
@@ -10783,6 +10786,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &7148239973768107363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11008,6 +11012,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &7378369007625973194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11074,6 +11079,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!222 &7419350323763651613
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -11267,6 +11273,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &7891052590761513872
 Animator:
   serializedVersion: 7
@@ -11332,6 +11339,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &7958701580824068948
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11656,6 +11664,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!95 &8277581366376539894
 Animator:
   serializedVersion: 7
@@ -12099,6 +12108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonSound
   _uiAudioConfig: {fileID: 11400000, guid: 096345299c7f6d040a8c2830ebf4879c, type: 2}
+  _usePauseSound: 0
 --- !u!114 &9150841293204438860
 MonoBehaviour:
   m_ObjectHideFlags: 0
