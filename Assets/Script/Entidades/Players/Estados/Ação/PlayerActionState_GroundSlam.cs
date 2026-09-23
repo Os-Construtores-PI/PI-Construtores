@@ -108,8 +108,8 @@ public class PlayerActionStateGroundSlam : IPlayerState<Player>
   public void Exit(Player player)
   {
     player.LocomotionLayer.ChangeState(player.Moving, player);
-    player.HurtboxCollider.ResetInvulnerability();
     player.GroundSlamImpactSpeed = 0f;
+    player.HurtboxCollider.TriggerInvulnerability(1.5f);
 
     _groundSlamHitboxCollider.enabled = false;
     _currentVerticalSpeed = 0f;

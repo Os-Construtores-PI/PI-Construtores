@@ -22498,9 +22498,9 @@ MonoBehaviour:
   Dash:
     _dashHitboxCollider: {fileID: 8688263318238171917}
     _disableDamageCooldown: 4
-    _minDashSpeed: 80
-    _maxDashSpeed: 120
-    _maxReferenceDistance: 20
+    _minDashSpeed: 120
+    _maxDashSpeed: 160
+    _maxReferenceDistance: 40
     _speedExponent: 0.1
     _hitRumbleLowFrequency: 0.5
     _hitRumbleHighFrequency: 0.1
@@ -22545,7 +22545,8 @@ MonoBehaviour:
     _vibrationFrequency: 1
     _vibrationDuration: 0.25
     _dashWindupDuration: 0.1
-    _noHitSafetyBuffer: 0.1
+    _noHitSafetyBuffer: 0.15
+    _minCollisionCheckBuffer: 0.1
   GroundSlam:
     _groundSlamHitboxCollider: {fileID: 5232564754573124142}
     SlamForce: 500

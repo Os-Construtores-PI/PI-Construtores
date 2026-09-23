@@ -27,13 +27,11 @@ public class Player : CombatEntities
   private const float RAIL_SCORE_WEIGHT = 0.2f;
   private const float SQR_EPSILON = 0.01f;
 
-  // Layers
   private const string LAYER_OBJECT = "Object";
   private const string LAYER_ENTITY = "Entity";
   private const string LAYER_DEFAULT = "Default";
   private const string LAYER_RUNNING_WALL = "RunningWall";
 
-  // Tags
   private const string TAG_PLAYER = "Player";
   private const string TAG_DASH_HUD = "DashHUDIcon";
   private const string TAG_GAME_CONTROLLER = "GameController";
@@ -346,7 +344,8 @@ public class Player : CombatEntities
   private int _currentComboTypeIndex = -1;
   private int _currentComboIndex = -1;
   private int _highestComboIndex = -1;
-  public int HighestComboIndex => _highestComboIndex++;
+
+  public int HighestComboIndex => _highestComboIndex;
 
   public void SetHighestComboIndex(int value) => _highestComboIndex = value;
 
@@ -436,7 +435,7 @@ public class Player : CombatEntities
   private float enemyScanRadius = 10f;
 
   private const float CameraScanSphereRadius = 8f;
-  private const float CameraScanMaxDistance = 100f;
+  private const float CameraScanMaxDistance = 150f;
   private const float CameraScanDotThreshold = 0.5f;
   private const float WallScanDistance = 5f;
 
@@ -590,6 +589,38 @@ public class Player : CombatEntities
 
   #endregion
 
+  #region Dev Mode (Debug)
+  private bool _devInvulnerable = false;
+
+  private void HandleDevModeInput()
+  {
+    if (Keyboard.current == null)
+      return;
+
+    if (Keyboard.current.f1Key.wasPressedThisFrame)
+    {
+      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+      GameContext.ShowStageIntro = true;
+    }
+
+    if (Keyboard.current.f2Key.wasPressedThisFrame)
+    {
+      _willInvertYAxis = !_willInvertYAxis;
+      InputAction lookAction = InputSystem.actions.FindAction("Look");
+      lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
+      Debug.Log($"[DevMode] Inverter eixo Y: {_willInvertYAxis}");
+    }
+
+    if (Keyboard.current.f3Key.wasPressedThisFrame)
+    {
+      _devInvulnerable = !_devInvulnerable;
+      HurtboxCollider.TriggerInvulnerability(_devInvulnerable ? float.MaxValue : 0f);
+      Debug.Log($"[DevMode] Invulnerabilidade: {_devInvulnerable}");
+    }
+  }
+
+  #endregion
+
   #region Unity Lifecycle
   public override void Awake()
   {
@@ -635,29 +666,15 @@ public class Player : CombatEntities
   public override void Update()
   {
     base.Update();
-    if (Keyboard.current != null && Keyboard.current.f1Key.IsPressed())
-    {
-      if (Keyboard.current.f1Key.IsPressed())
-      {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        GameContext.ShowStageIntro = true;
-      }
-      if (Keyboard.current.f2Key.IsPressed())
-      {
-        _willInvertYAxis = !_willInvertYAxis;
-        InputAction lookAction = InputSystem.actions.FindAction("Look");
-        lookAction.ApplyParameterOverride(
-          (InvertVector2Processor p) => p.invertY,
-          _willInvertYAxis
-        );
-      }
-    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    HandleDevModeInput();
+#endif
 
     ComboTimer();
 
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
-    Debug.Log(Speed);
     ScanWithCamera();
   }
 
