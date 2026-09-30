@@ -699,11 +699,11 @@ public class HudDirector : MonoBehaviour
     var holders = GetPanel(playerID, HudPanelType.Cutscene);
 
     foreach (var holder in holders)
-    foreach (var rect in holder.GetComponentsInChildren<RectTransform>(true))
-    {
-      if (rect.name == "Top" || rect.name == "Bottom")
-        result.Add(rect.gameObject);
-    }
+      foreach (var rect in holder.GetComponentsInChildren<RectTransform>(true))
+      {
+        if (rect.name == "Top" || rect.name == "Bottom")
+          result.Add(rect.gameObject);
+      }
 
     return result;
   }
@@ -896,17 +896,17 @@ public class HudDirector : MonoBehaviour
   private void UpdateComboText(List<GameObject> panels, int comboIndex)
   {
     foreach (var go in panels)
-    foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
-    {
-      if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
-        continue;
+      foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
+      {
+        if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
+          continue;
 
-      text.text = $"x{comboIndex + 1}";
-      text.transform.DOKill();
-      text.transform.localScale = Vector3.one;
-      text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
-        .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
-    }
+        text.text = $"x{comboIndex + 1}";
+        text.transform.DOKill();
+        text.transform.localScale = Vector3.one;
+        text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
+          .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
+      }
   }
 
   private void TryShowComboPopup(int playerID, ComboPopupType comboPopupType)
@@ -978,16 +978,29 @@ public class HudDirector : MonoBehaviour
   private void PausePanel(bool set)
   {
     CursorOptions(visible: set);
+
     ForEachPlayer(player =>
     {
       if (set)
       {
-        ShowPanel(HudPanelType.Pause, player.ID, independent: true);
+        ShowPanel(
+            HudPanelType.Pause,
+            player.ID,
+            independent: true
+        );
+
         DisableHud(player.ID);
       }
       else
       {
-        HidePanel(HudPanelType.Pause, player.ID, independent: true);
+        HidePanel(
+            HudPanelType.Pause,
+            player.ID,
+            independent: true,
+            fade: false,
+            instant: true
+        );
+
         EnableHUD(player.ID);
       }
     });
@@ -1014,8 +1027,8 @@ public class HudDirector : MonoBehaviour
   public IEnumerable<GameObject> GetPanelObjects(int playerID, HudPanelType panel)
   {
     foreach (var root in GetPanel(playerID, panel))
-    foreach (var t in root.GetComponentsInChildren<Transform>(true))
-      yield return t.gameObject;
+      foreach (var t in root.GetComponentsInChildren<Transform>(true))
+        yield return t.gameObject;
   }
 
   public void ResetAllStopwatches()
