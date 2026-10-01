@@ -228,11 +228,70 @@ public class TutorialGlobal : MonoBehaviour
       );
     }
 
+    if(interfaceLeft != null)
+    {
+      sequence.Append(
+        interfaceRight
+             .DOAnchorPosX(
+              interfaceStartX,
+              exitDuration
+             )
+            .SetEase(Ease.InCubic)
+      );
+    }
+
+    sequence.SetUpdate(true);
+
+    _currentTween = sequence;
+  }
+
+  private void FinishTutorial()
+  {
+    _currentTween?.Kill();
+
+    if(videoPanel != null)
+       videoPanel.SetActive(false);
+
+    if(tutorialHUD != null)
+       tutorialHUD.SetActive(false);
     
+    PrepareTutorial();
+
+    IsTutorialActive = false;
+
+    GameContext.IsTutorialActive = false;
+
+    Time.timeScale = 1f;
+
+    OnTutorialStateChanged?.Invoke(false);
   }
 
   private void StopVideo()
   {
-    
+    if(videoPlayer == null)
+      return;
+
+    videoPlayer.loopPointReached -= OnVideoFinished;
+
+    videoPlayer.Stop();
+  }
+
+  public void SkipTutorial()
+  {
+    if(!IsTutorialActive)
+       return;
+
+    CloseTutorial();
+  }
+
+  private void OnDestroy()
+  {
+    _currentTween?.Kill();
+
+    if(videoPlayer != null)
+       videoPlayer.loopPointReached -= OnVideoFinished;
+
+    if(Instance == this)
+       Instance = null;
   }
 }
