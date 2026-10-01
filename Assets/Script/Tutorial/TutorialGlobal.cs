@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -32,5 +33,206 @@ public class TutorialGlobal : MonoBehaviour
   private float interfaceStartX = -1200f;
 
   [SerializeField]
-  private float interfaceDuration = 0.5f; 
+  private float interfaceDuration = 0.5f;
+
+  [SerializeField]
+  private float interfaceDelay = 0.15f;
+
+  [SerializeField]
+  private float videoDelay = 0.15f;
+
+  [SerializeField]
+  private float exitDuration = 0.4f;
+
+
+  public bool IsTutorialActive {get; private set;}
+
+  private Tween _currentTween;
+  
+  private Vector2 _leftFinalPosition;
+  private Vector2 _rightFinalPosition;
+
+
+
+  public event Action<bool> OnTutorialStateChanged;
+
+  private void Awake()
+  {
+    if (Instance != null && Instance != this)
+    {
+      Destroy(gameObject);
+      return;
+    }
+
+    Instance = this;
+
+    // Guarda as posições originais
+    if(interfaceLeft != null)
+       _leftFinalPosition = interfaceLeft.anchoredPosition;
+    
+    if(interfaceRight != null)
+       _rightFinalPosition = interfaceRight.anchoredPosition;
+
+    PrepareTutorial();
+       
+  }
+
+  private void Start()
+  {
+    if (tutorialHUD != null)
+        tutorialHUD.SetActive(false);
+
+    if(videoPanel != null)
+       videoPanel.SetActive(false);
+    
+    StopVideo();
+  }
+
+  private void PrepareTutorial()
+  {
+    if(interfaceLeft != null)
+    {
+      interfaceLeft.anchoredPosition =
+           new Vector2(
+            interfaceStartX,
+            _leftFinalPosition.y
+           );
+    }
+
+    if(interfaceRight != null)
+    {
+      interfaceRight.anchoredPosition =
+           new Vector2(
+            interfaceStartX,
+            _rightFinalPosition.y
+           );
+    }
+
+    if (videoPanel != null)
+        videoPanel.SetActive(false);
+  }
+
+  public void OpenTutorial(VideoClip video)
+  {
+    if(IsTutorialActive)
+       return;
+
+    if(video == null)
+    {
+      Debug.LogWarning(
+        "[TutorialGlobal] nenhum VideoClip foi fornecido"
+      );
+
+      return;
+    }
+
+    IsTutorialActive = true;
+
+    GameContext.IsTutorialActive = true;
+
+    PrepareTutorial();
+
+    if(tutorialHUD != null)
+       tutorialHUD.SetActive(true);
+
+    if(videoPanel != null)
+       videoPanel.SetActive(false);
+
+    PlayEntranceAnimation(video);
+  }
+
+  private void PlayEntranceAnimation(VideoClip video)
+  {
+    _currentTween?.Kill();
+
+    Sequence sequence = DOTween.Sequence();
+
+    if(interfaceLeft != null)
+    {
+      sequence.Append(
+        interfaceLeft
+            .DOAnchorPos(
+              _leftFinalPosition,
+              interfaceDuration
+            )
+
+          .SetEase(Ease.OutCubic)
+      );
+    }
+
+    sequence.AppendInterval(videoDelay);
+
+    sequence.AppendCallback(() =>
+    {
+      PlayVideo(video);
+    });
+
+    sequence.SetUpdate(true);
+
+    _currentTween = sequence;
+  }
+
+  private void PlayVideo(VideoClip video)
+  {
+    if(videoPlayer == null)
+    {
+      Debug.LogError(
+        "[TutorialGlobal] VideoPlayer não configurado"
+      );
+
+      CloseTutorial();
+
+      return;
+    }
+
+    videoPlayer.Stop();
+
+    videoPlayer.clip = video;
+
+    videoPlayer.isLooping = false;
+
+    videoPlayer.loopPointReached -= OnVideoFinished;
+    videoPlayer.loopPointReached += OnVideoFinished;
+
+    if(videoPanel != null)
+       videoPanel.SetActive(true);
+
+    videoPlayer.Play();
+  }
+
+  private void OnVideoFinished(VideoPlayer source)
+  {
+    CloseTutorial();
+  }
+
+  public void CloseTutorial()
+  {
+    if(!IsTutorialActive)
+       return;
+
+    _currentTween?.Kill();
+
+    StopVideo();
+
+    Sequence sequence = DOTween.Sequence();
+
+    if(interfaceRight != null)
+    {
+      sequence.Append(
+        interfaceRight
+             .DOAnchorPosX(
+              interfaceStartX,
+              exitDuration
+             )
+             .SetEase(Ease.InCubic)
+      );
+    }
+
+    
+  }
+
+  private void StopVideo()
+  {
+    
+  }
 }
