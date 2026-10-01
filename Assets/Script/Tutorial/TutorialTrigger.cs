@@ -42,7 +42,7 @@ public class TutorialTrigger : MonoBehaviour
             return;
 
         _playerInput =
-            other.GetComponent<PlayerInput>();
+            other.GetComponentInParent<PlayerInput>();
 
         _playerInside = true;
 
@@ -111,7 +111,7 @@ public class TutorialTrigger : MonoBehaviour
     }
 
 
-    private void OpenTutorial()
+    public void OpenTutorial()
     {
         if (_tutorialVideo == null)
         {

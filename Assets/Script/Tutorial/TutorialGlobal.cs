@@ -130,6 +130,8 @@ public class TutorialGlobal : MonoBehaviour
 
     GameContext.IsTutorialActive = true;
 
+    OnTutorialStateChanged?.Invoke(true);
+
     PrepareTutorial();
 
     if(tutorialHUD != null)
@@ -231,14 +233,19 @@ public class TutorialGlobal : MonoBehaviour
     if(interfaceLeft != null)
     {
       sequence.Append(
-        interfaceRight
-             .DOAnchorPosX(
-              interfaceStartX,
-              exitDuration
-             )
+        interfaceLeft
+            .DOAnchorPosX(
+                interfaceStartX,
+                exitDuration
+            )
             .SetEase(Ease.InCubic)
-      );
+    );
     }
+
+    sequence.AppendCallback(() =>
+    {
+      FinishTutorial();
+    });
 
     sequence.SetUpdate(true);
 
