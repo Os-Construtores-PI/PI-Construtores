@@ -18,7 +18,7 @@ public class InventoryItem
 }
 
 // Componente que pode ser anexado a um GameObject para representá-lo como um item no jogo
-public class Item : Entities
+public class Item : Entity
 {
   // Dados do item representado por esse componente
   public ItemData itemData;

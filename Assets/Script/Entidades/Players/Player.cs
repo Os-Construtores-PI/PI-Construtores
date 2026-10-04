@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DG.Tweening;
+using KinematicCharacterController;
 using Unity.Cinemachine;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -13,7 +15,7 @@ using UnityEngine.Splines;
 using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
-[RequireComponent(typeof(CharacterController), typeof(PlayerInput), typeof(Collider))]
+[RequireComponent(typeof(KinematicCharacterMotor), typeof(PlayerInput), typeof(Collider))]
 [RequireComponent(typeof(Animator), typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
@@ -25,13 +27,11 @@ public class Player : CombatEntities
   private const float RAIL_SCORE_WEIGHT = 0.2f;
   private const float SQR_EPSILON = 0.01f;
 
-  // Layers
   private const string LAYER_OBJECT = "Object";
   private const string LAYER_ENTITY = "Entity";
   private const string LAYER_DEFAULT = "Default";
   private const string LAYER_RUNNING_WALL = "RunningWall";
 
-  // Tags
   private const string TAG_PLAYER = "Player";
   private const string TAG_DASH_HUD = "DashHUDIcon";
   private const string TAG_GAME_CONTROLLER = "GameController";
@@ -47,11 +47,7 @@ public class Player : CombatEntities
     set => _speed = value;
   }
 
-  [HideInInspector]
-  public float RunSpeedMultiplier;
-
-  [HideInInspector]
-  public float RunAccelMultiplier;
+  public float InitialSpeed { get; private set; }
 
   [HideInInspector]
   public float WallSpeedMultiplier;
@@ -123,8 +119,11 @@ public class Player : CombatEntities
   [SerializeField]
   private AudioSource _playerAudioSource;
 
+  [SerializeField]
+  private GameObject _modelPartsContainer;
+
   [HideInInspector]
-  public CharacterController CharacterController;
+  public PlayerMotor Motor;
 
   [HideInInspector]
   public CinemachineCamera MainCamera;
@@ -141,7 +140,11 @@ public class Player : CombatEntities
   public HurtboxComponent HurtboxCollider;
   public Animator AnimatorComponent;
   public PlayerInput PlayerInput;
+
   protected Camera _myCamera;
+
+  private readonly List<Material> _modelMaterials = new();
+  private Tween _damageBlinkTween;
 
   public void SetCamera(CinemachineCamera mainCam, CinemachineCamera boostCam, Camera camera)
   {
@@ -162,7 +165,6 @@ public class Player : CombatEntities
   public PlayerActionStateWallSliding WallSliding = new();
   public PlayerActionStateGroundSlam GroundSlam = new();
   public PlayerActionStateBoost Boost = new();
-  public PlayerActionStateBounce Bounce = new();
   public PlayerActionStateJump Jump = new();
   public PlayerActionStateRailSlide RailSlide = new();
 
@@ -172,8 +174,6 @@ public class Player : CombatEntities
   #endregion
 
   #region Estado Interno
-  [HideInInspector]
-  public Vector3 MovementVector;
 
   [HideInInspector]
   public Vector3 Direction;
@@ -186,9 +186,6 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public Vector3 LastWallNormal;
-
-  [HideInInspector]
-  public bool IsRunning;
 
   [HideInInspector]
   public bool IsImpulsioned;
@@ -204,9 +201,6 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public int CurrentJumpCount = 0;
-
-  [HideInInspector]
-  public bool IsGrounded;
 
   [HideInInspector]
   public bool WantsToCancelRailSlide;
@@ -235,6 +229,8 @@ public class Player : CombatEntities
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
   public Transform _modelTransform;
+
+  [HideInInspector]
   public DeviceType LastDevice = DeviceType.Keyboard;
   #endregion
 
@@ -289,25 +285,21 @@ public class Player : CombatEntities
 
   #endregion Boost
 
-  #region Score
+  #region Knockback
+  [Header("Knockback")]
+  [SerializeField]
+  private LayerMask _entitymask;
 
-  #region Time
-  [HideInInspector]
-  public int MaxTimeScore = 10000;
+  [SerializeField]
+  private float _knockbackStrength = 20;
 
-  [HideInInspector]
-  public AnimationCurve TimeScoreCurve = AnimationCurve.EaseInOut(0f, 1f, 60f, 0f);
-
-  public int CalculateTimeScoreCurve(float timeInSeconds)
-  {
-    float multiplier = TimeScoreCurve.Evaluate(timeInSeconds);
-
-    int finalScore = Mathf.RoundToInt(MaxTimeScore * multiplier);
-
-    return Mathf.Max(0, finalScore);
-  }
+  [SerializeField]
+  private float _launchStrength = 20;
 
   #endregion
+
+  #region Score
+
 
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
@@ -352,7 +344,8 @@ public class Player : CombatEntities
   private int _currentComboTypeIndex = -1;
   private int _currentComboIndex = -1;
   private int _highestComboIndex = -1;
-  public int HighestComboIndex => _highestComboIndex++;
+
+  public int HighestComboIndex => _highestComboIndex;
 
   public void SetHighestComboIndex(int value) => _highestComboIndex = value;
 
@@ -403,7 +396,7 @@ public class Player : CombatEntities
 
     if (_currentComboIndex == _stagesOfCombo.Count - 1)
     {
-      ImpactPopupType impact = IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
+      ImpactPopupType impact = Motor.IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
       GlobalEventBus.Instance.MaxComboReached.Invoke(ID, impact);
     }
   }
@@ -441,8 +434,8 @@ public class Player : CombatEntities
   [SerializeField, Min(10)]
   private float enemyScanRadius = 10f;
 
-  private const float CameraScanSphereRadius = 6f;
-  private const float CameraScanMaxDistance = 100f;
+  private const float CameraScanSphereRadius = 8f;
+  private const float CameraScanMaxDistance = 150f;
   private const float CameraScanDotThreshold = 0.5f;
   private const float WallScanDistance = 5f;
 
@@ -458,9 +451,6 @@ public class Player : CombatEntities
   private float _railEntryRadius = 1.2f;
 
   [SerializeField]
-  private float _railEntryForwardOffset = 0.8f;
-
-  [SerializeField]
   private float _railEntryMinDot = 0.3f;
 
   [SerializeField]
@@ -474,6 +464,17 @@ public class Player : CombatEntities
   private ILockable _lockCandidate;
   private RaycastHit _lastLockHit;
   private bool _isLockOnActive = false;
+  private bool _willLock = true;
+  public bool WillLock
+  {
+    get => _willLock;
+    set
+    {
+      _willLock = value;
+      if (!_willLock)
+        DisableLockIn();
+    }
+  }
   protected RaycastHit _playerRayHit;
   #endregion
 
@@ -491,7 +492,7 @@ public class Player : CombatEntities
 
   [Header("Ametistas")]
   [SerializeField]
-  private int _amethystScoreMultiplier = 1;
+  private int _amethystScoreMultiplier = 100;
 
   private int _amethysts = 0;
   public int Amethysts => _amethysts;
@@ -588,6 +589,38 @@ public class Player : CombatEntities
 
   #endregion
 
+  #region Dev Mode (Debug)
+  private bool _devInvulnerable = false;
+
+  private void HandleDevModeInput()
+  {
+    if (Keyboard.current == null)
+      return;
+
+    if (Keyboard.current.f1Key.wasPressedThisFrame)
+    {
+      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+      GameContext.ShowStageIntro = true;
+    }
+
+    if (Keyboard.current.f2Key.wasPressedThisFrame)
+    {
+      _willInvertYAxis = !_willInvertYAxis;
+      InputAction lookAction = InputSystem.actions.FindAction("Look");
+      lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
+      Debug.Log($"[DevMode] Inverter eixo Y: {_willInvertYAxis}");
+    }
+
+    if (Keyboard.current.f3Key.wasPressedThisFrame)
+    {
+      _devInvulnerable = !_devInvulnerable;
+      HurtboxCollider.TriggerInvulnerability(_devInvulnerable ? float.MaxValue : 0f);
+      Debug.Log($"[DevMode] Invulnerabilidade: {_devInvulnerable}");
+    }
+  }
+
+  #endregion
+
   #region Unity Lifecycle
   public override void Awake()
   {
@@ -596,7 +629,7 @@ public class Player : CombatEntities
 
     _lifetimeCts = new CancellationTokenSource();
 
-    CharacterController = GetComponent<CharacterController>();
+    Motor = GetComponent<PlayerMotor>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
@@ -606,8 +639,9 @@ public class Player : CombatEntities
 
   public override void Start()
   {
-    InitialGravityValue = GravityValue;
     base.Start();
+    InitialSpeed = Speed;
+    InitialGravityValue = GravityValue;
 
     DOTween.Init();
     SetVisibilityLockOnOverlay(false);
@@ -617,6 +651,8 @@ public class Player : CombatEntities
     SetupDashHUD();
     SetupCinemachine();
     SetupScanners();
+    SetupModelMaterials();
+    SetupDamage();
     SetupHitboxCombo();
 
     TrailsSystem.InitTrails(transform.Find("Trails"));
@@ -630,11 +666,10 @@ public class Player : CombatEntities
   public override void Update()
   {
     base.Update();
-    if (Keyboard.current != null && Keyboard.current.f1Key.IsPressed())
-    {
-      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-      GameContext.ShowStageIntro = true;
-    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    HandleDevModeInput();
+#endif
 
     ComboTimer();
 
@@ -645,27 +680,27 @@ public class Player : CombatEntities
 
   public void FixedUpdate()
   {
-    if (!CharacterController.enabled)
+    if (!Motor.enabled)
       return;
 
-    IsGrounded = CharacterController.isGrounded;
     UpdateAnimator();
     LocomotionLayer.FixedUpdate(this);
     ActionLayer.FixedUpdate(this);
-    CollisionFlags flags = CharacterController.Move(MovementVector * Time.fixedDeltaTime);
-
-    if ((flags & CollisionFlags.Below) != 0)
-    {
-      CheckDeathGround();
-    }
+    CheckDeathGround();
   }
 
   private void CheckDeathGround()
   {
-    Vector3 origin = transform.position + CharacterController.center;
-    float radius = CharacterController.radius;
+    CapsuleCollider capsuleCollider = Motor.Engine.Capsule;
+    Vector3 origin = transform.position + capsuleCollider.center;
+    float radius = capsuleCollider.radius;
 
-    Collider[] hits = Physics.OverlapSphere(origin, radius, LayerMask.GetMask("DeathZone"));
+    Collider[] hits = Physics.OverlapSphere(
+      origin,
+      radius,
+      LayerMask.GetMask("DeathZone"),
+      QueryTriggerInteraction.Collide
+    );
 
     if (hits.Length <= 0)
       return;
@@ -689,13 +724,16 @@ public class Player : CombatEntities
   #region Helpers de Inicialização
   private void UpdateAnimator()
   {
-    Vector3 vel = CharacterController.velocity;
+    Vector3 vel = Motor.Engine.Velocity;
     AnimatorComponent.SetFloat(Constants.AnimatorFloatNames.VelocityY, vel.y);
-    AnimatorComponent.SetFloat(
-      Constants.AnimatorFloatNames.VelocityX,
-      new Vector2(vel.x, vel.z).sqrMagnitude
-    );
-    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, IsGrounded);
+    if (MoveInput.sqrMagnitude >= 0.1f)
+    {
+      AnimatorComponent.SetFloat(
+        Constants.AnimatorFloatNames.VelocityX,
+        new Vector2(vel.x, vel.z).sqrMagnitude
+      );
+    }
+    AnimatorComponent.SetBool(Constants.AnimatorBoolNames.IsGrounded, Motor.IsGrounded);
   }
 
   private void SetupDashHUD()
@@ -710,6 +748,14 @@ public class Player : CombatEntities
       Debug.LogWarning(
         "[Player] DashHUDIcon não encontrado. Arraste a instância ou coloque a tag."
       );
+  }
+
+  private void SetupModelMaterials()
+  {
+    foreach (Renderer renderer in _modelPartsContainer.GetComponentsInChildren<Renderer>())
+    {
+      _modelMaterials.Add(renderer.material);
+    }
   }
 
   private void SetupCinemachine()
@@ -752,6 +798,21 @@ public class Player : CombatEntities
     return null;
   }
 
+  private bool TryGetTargetPoint(Collider col, Vector3 referencePoint, out Vector3 targetPoint)
+  {
+    targetPoint = default;
+
+    if (!col.TryGetComponent<ILockable>(out var lockable))
+      return false;
+
+    Vector3 lockPoint = lockable.GetLockOnPoint(referencePoint);
+    if (Vector3.Distance(referencePoint, lockPoint) > lockable.LockRange)
+      return false;
+
+    targetPoint = lockPoint;
+    return true;
+  }
+
   private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
     ray =>
     {
@@ -764,52 +825,83 @@ public class Player : CombatEntities
         ray.direction,
         _sphereCastResults,
         CameraScanMaxDistance,
-        targetsMask
+        targetsMask,
+        QueryTriggerInteraction.Collide
       );
 
       Collider bestTarget = null;
+      Vector3 bestTargetPoint = default;
       float closestDistance = float.MaxValue;
 
       for (int i = 0; i < hitCount; i++)
       {
         Collider col = _sphereCastResults[i].collider;
-        if (col.CompareTag(TAG_PLAYER))
-          continue;
 
-        Vector3 targetCenter = col.bounds.center;
+        if (col.CompareTag(TAG_PLAYER))
+        {
+          continue;
+        }
+
+        if (!TryGetTargetPoint(col, ray.origin, out Vector3 targetCenter))
+        {
+          continue;
+        }
+
         float dot = Vector3.Dot(ray.direction.normalized, (targetCenter - ray.origin).normalized);
         if (dot < CameraScanDotThreshold)
+        {
           continue;
+        }
 
         float distance = Vector3.Distance(ray.origin, targetCenter);
         if (distance > CameraScanMaxDistance)
+        {
           continue;
+        }
 
-        if (!Physics.Linecast(ray.origin, targetCenter, obstacleMask) && distance < closestDistance)
+        bool blocked = Physics.Linecast(
+          ray.origin,
+          targetCenter,
+          obstacleMask,
+          QueryTriggerInteraction.Ignore
+        );
+        if (blocked)
+        {
+          continue;
+        }
+
+        if (distance < closestDistance)
         {
           closestDistance = distance;
           bestTarget = col;
+          bestTargetPoint = targetCenter;
         }
       }
 
       if (bestTarget != null)
       {
-        Vector3 finalDir = (bestTarget.bounds.center - ray.origin).normalized;
-        // Adiciona buffer constante ao distance para evitar falhas de precisão
-        if (
-          Physics.Raycast(
-            ray.origin,
-            finalDir,
-            out RaycastHit finalHit,
-            CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
-            targetsMask | obstacleMask
-          )
-        )
+        Vector3 finalDir = (bestTargetPoint - ray.origin).normalized;
+
+        bool raycastHit = Physics.Raycast(
+          ray.origin,
+          finalDir,
+          out RaycastHit finalHit,
+          CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
+          targetsMask | obstacleMask,
+          QueryTriggerInteraction.Collide
+        );
+
+        if (raycastHit)
         {
-          if ((targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0)
+          bool isTargetLayer = (targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0;
+
+          if (isTargetLayer)
+          {
             return (true, finalHit);
+          }
         }
       }
+
       return (false, default);
     };
 
@@ -820,45 +912,51 @@ public class Player : CombatEntities
         return null;
 
       Vector3 moveDir =
-        MovementVector.sqrMagnitude > SQR_EPSILON
-          ? MovementVector.normalized
-          : CharacterController.velocity.normalized;
-      if (moveDir.sqrMagnitude < SQR_EPSILON)
-        return null;
+        Motor.Engine.Velocity.sqrMagnitude > SQR_EPSILON
+          ? Motor.Engine.Velocity.normalized
+          : (
+            MoveInput.sqrMagnitude > 0.01f
+              ? GetCameraRelativeDirection(MoveInput)
+              : transform.forward
+          );
 
-      Vector3 scanOrigin = playerPos + moveDir * _railEntryForwardOffset;
-      var hits = Physics.OverlapSphere(
-        scanOrigin,
-        _railEntryRadius,
-        _railLayerMask,
-        QueryTriggerInteraction.Ignore
-      );
+      var allRails = RailManager.Rails;
 
       RailObject bestRail = null;
       float bestScore = -1f;
 
-      foreach (var hit in hits)
+      foreach (var rail in allRails)
       {
-        if (!hit.TryGetComponent(out RailObject rail))
+        if (rail.IsOnCooldown)
           continue;
+
         if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
           continue;
 
         float distance = Vector3.Distance(playerPos, nearestPoint);
-        if (distance > _railEntryRadius)
+
+        float effectiveRadius = Mathf.Max(_railEntryRadius, 3f);
+
+        if (distance > effectiveRadius)
           continue;
 
-        float alignment = Vector3.Dot((nearestPoint - playerPos).normalized, moveDir);
-        if (alignment >= _railEntryMinDot)
+        Vector3 toRail = (nearestPoint - playerPos).normalized;
+        float alignment = Vector3.Dot(toRail, moveDir);
+
+        float proximityScore = 1f - (distance / effectiveRadius);
+        float alignmentScore = (alignment + 1f) * 0.5f;
+        float score = proximityScore * 0.7f + alignmentScore * 0.3f;
+
+        if (distance < 1f)
+          score += 10f;
+
+        if (score > bestScore)
         {
-          float score = alignment - (distance / _railEntryRadius) * RAIL_SCORE_WEIGHT;
-          if (score > bestScore)
-          {
-            bestScore = score;
-            bestRail = rail;
-          }
+          bestScore = score;
+          bestRail = rail;
         }
       }
+
       return bestRail;
     };
 
@@ -867,7 +965,7 @@ public class Player : CombatEntities
     var (executed, rail) = _railEntryScanner.Scan(transform.position);
     if (executed && rail != null)
     {
-      RailSlide.SetRail(rail.GetComponent<SplineContainer>());
+      RailSlide.SetRail(rail.GetComponent<SplineContainer>(), rail);
       ActionLayer.PushState(RailSlide, this);
     }
   }
@@ -886,7 +984,7 @@ public class Player : CombatEntities
     if (!context.performed)
       return;
 
-    if (IsGrounded)
+    if (Motor.IsGrounded)
     {
       ActionLayer.PushState(Boost, this);
       return;
@@ -901,24 +999,8 @@ public class Player : CombatEntities
 
   public void OnGroundSlam(InputAction.CallbackContext context)
   {
-    if (context.performed && !IsGrounded)
+    if (context.performed && !Motor.IsGrounded)
       ActionLayer.PushState(GroundSlam, this);
-  }
-
-  public void OnRunning(InputAction.CallbackContext context)
-  {
-    if (context.performed)
-    {
-      IsRunning = true;
-      TrailsSystem.PlayEffect(TrailType.MovementTrail);
-      RunningShake.Invoke(true);
-    }
-    else if (context.canceled)
-    {
-      IsRunning = false;
-      TrailsSystem.StopEffect(TrailType.MovementTrail);
-      RunningShake.Invoke(false);
-    }
   }
 
   public void OnJump(InputAction.CallbackContext context)
@@ -926,16 +1008,13 @@ public class Player : CombatEntities
     if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
       return;
 
-    if (WaitForJumpRelease)
-    {
-      if (context.canceled)
-        WaitForJumpRelease = false;
-      return;
-    }
-
     if (!context.started)
       return;
-    if (!IsGrounded)
+
+    if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+      RailSlide.RequestCancel();
+
+    if (!Motor.IsGrounded)
       JumpInteractionPressed = true;
     TryJump();
   }
@@ -996,7 +1075,7 @@ public class Player : CombatEntities
   private void SetVisibilityLockOnOverlay(bool set)
   {
     Vector3 targetScreenPosition = set
-      ? _myCamera.WorldToScreenPoint(LockedTarget.transform.position)
+      ? _myCamera.WorldToScreenPoint(LockedTarget.GetLockOnPoint(transform.position))
       : Vector3.zero;
     GlobalEventBus.Instance.LockOnVisibility.Invoke(ID, set, targetScreenPosition);
   }
@@ -1064,7 +1143,11 @@ public class Player : CombatEntities
       return (false, default);
     }
 
-    Ray ray = new(transform.position, transform.forward);
+    Vector3 camForward = Vector3
+      .ProjectOnPlane(_selectedCamera.transform.forward, Vector3.up)
+      .normalized;
+    Ray ray = new(transform.position + Vector3.up * 1.5f, camForward);
+
     var (executed, result) = _cameraScanner.Scan(ray);
 
     if (!executed)
@@ -1086,9 +1169,9 @@ public class Player : CombatEntities
 
     bool foundSomething = false;
 
-    if (hit.collider.TryGetComponent(out ILockable lockable))
+    if (WillLock && hit.collider.TryGetComponent(out ILockable lockable))
     {
-      if (lockable.IsActive && hit.distance <= lockable.LockRange)
+      if (hit.distance <= lockable.LockRange)
       {
         SetLockOn(lockable);
         _lockCandidate = lockable;
@@ -1103,7 +1186,7 @@ public class Player : CombatEntities
 
     if (hit.collider.TryGetComponent(out InteractableObject interactable))
     {
-      if (interactable is not LockableInteractableObject && interactable.IsActive)
+      if (interactable.IsActive)
       {
         InteractionObject = interactable;
         foundSomething = true;
@@ -1116,12 +1199,26 @@ public class Player : CombatEntities
 
     if (_isLockOnActive && LockedTarget != null)
     {
-      float dist = Vector3.Distance(transform.position, LockedTarget.transform.position);
-      if (!LockedTarget.IsActive || dist > LockedTarget.LockRange)
+      float dist = Vector3.Distance(
+        transform.position,
+        LockedTarget.GetLockOnPoint(transform.position)
+      );
+      if (dist > LockedTarget.LockRange)
         DisableLockIn();
     }
 
     return foundSomething ? _lastValidResult = (true, hit) : (false, default);
+  }
+
+  private Vector3 GetCameraRelativeDirection(Vector2 input)
+  {
+    if (_myCamera == null)
+      return transform.forward;
+
+    Vector3 camForward = Vector3.ProjectOnPlane(_myCamera.transform.forward, Vector3.up).normalized;
+    Vector3 camRight = Vector3.ProjectOnPlane(_myCamera.transform.right, Vector3.up).normalized;
+
+    return (camForward * input.y + camRight * input.x).normalized;
   }
 
   protected void ClearInteractable()
@@ -1132,9 +1229,6 @@ public class Player : CombatEntities
   #endregion
 
   #region HUD & Feedback
-  // Substitui a antiga Coroutine "DelayedSetupHUD" por um método assíncrono
-  // usando o tipo nativo Awaitable do Unity (sem alocação de IEnumerator/enumerator
-  // boxing, e com suporte nativo a CancellationToken).
   private async Awaitable SetupHUDDelayedAsync(float delay, CancellationToken token)
   {
     try
@@ -1142,10 +1236,7 @@ public class Player : CombatEntities
       await Awaitable.WaitForSecondsAsync(delay, token);
       SetupHUD();
     }
-    catch (OperationCanceledException)
-    {
-      // Esperado quando o Player é destruído antes do delay terminar.
-    }
+    catch (OperationCanceledException) { }
   }
 
   private void SetupHUD()
@@ -1161,6 +1252,89 @@ public class Player : CombatEntities
       (id, amplitude, frequency, duration) => hudDir.CameraShake(id, amplitude, frequency, duration)
     );
     RunningShake.AddListener(active => hudDir.RunningShake(ID, active));
+  }
+  #endregion
+
+  #region Dano
+
+  private void SetupDamage()
+  {
+    _OnDamage.AddListener(() =>
+    {
+      Sequence damageSequence = DOTween.Sequence();
+      damageSequence.AppendCallback(() =>
+      {
+        Collider[] hits = Physics.OverlapSphere(
+          transform.position,
+          10,
+          _entitymask,
+          QueryTriggerInteraction.Collide
+        );
+
+        Vector3 closestPoint = Vector3.zero;
+        float closestSqrDist = float.PositiveInfinity;
+        bool found = false;
+
+        foreach (Collider hit in hits)
+        {
+          if (hit.gameObject == gameObject)
+            continue;
+
+          float sqrDist = (hit.transform.position - transform.position).sqrMagnitude;
+          if (sqrDist < closestSqrDist)
+          {
+            closestSqrDist = sqrDist;
+            closestPoint = hit.transform.position;
+            found = true;
+          }
+        }
+
+        Motor.Engine.ForceUnground(.5f);
+
+        if (found)
+        {
+          Vector3 toSelf = transform.position - closestPoint;
+          Vector3 horizontalDir = new Vector3(toSelf.x, 0, toSelf.z).normalized;
+
+          Vector3 velocity = _knockbackStrength * horizontalDir + Vector3.up * _launchStrength;
+          Motor.AddVelocity(velocity);
+        }
+      });
+      damageSequence.AppendCallback(() =>
+      {
+        LocomotionLayer.ChangeState(LockedInHorizontal, this);
+        ActionLayer.PopEveryState(this);
+        HurtboxCollider.TriggerInvulnerability(1000f);
+
+        _damageBlinkTween?.Kill();
+        _damageBlinkTween = DOVirtual
+          .Float(
+            0f,
+            -1f,
+            0.12f,
+            value => _modelMaterials.ForEach(model => model.SetFloat("_Tweak_transparency", value))
+          )
+          .SetEase(Ease.InOutSine)
+          .SetLoops(-1, LoopType.Yoyo);
+
+        Motor.WaitForGrounded(EndDamageBlink);
+      });
+    });
+  }
+
+  private void EndDamageBlink()
+  {
+    HurtboxCollider.TriggerInvulnerability(2);
+    LocomotionLayer.ChangeState(Moving, this);
+    DOVirtual.DelayedCall(
+      2,
+      () =>
+      {
+        _damageBlinkTween.Kill();
+        _damageBlinkTween = null;
+        _modelMaterials.ForEach(model => model.SetFloat("_Tweak_transparency", 0f));
+      }
+    );
   }
   #endregion
 

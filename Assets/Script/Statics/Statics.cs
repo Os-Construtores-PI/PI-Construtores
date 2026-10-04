@@ -241,6 +241,15 @@ public static class QualityOfLife
     return Mathf.Lerp(from, to, cubicT);
   }
 
+  public static float FixedSmoothCubicOut(float from, float to, float smoothing)
+  {
+    float t = 1f - Mathf.Exp(-smoothing * Time.fixedDeltaTime);
+    float invT = t - 1f;
+    // Formula Cubic Out: (t-1)^3 + 1
+    float cubicT = invT * invT * invT + 1f;
+    return Mathf.Lerp(from, to, cubicT);
+  }
+
   public static float SmoothQuadIn(float from, float to, float smoothing)
   {
     float t = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
@@ -254,12 +263,6 @@ public static class QualityOfLife
     // Aplica a curvatura Quad Out: t * (2 - t)
     float quadT = t * (2f - t);
     return Mathf.Lerp(from, to, quadT);
-  }
-
-  public static float PlayerFriction(float value, float frictionAmount, Vector2 intention)
-  {
-    // Se não há intenção, aplica fricção cúbica para uma parada mais natural
-    return (intention == Vector2.zero) ? SmoothCubicOut(value, 0f, frictionAmount) : value;
   }
 
   public static bool IsValidIndex<T>(List<T> list, int index)
@@ -340,4 +343,43 @@ public static class DataCryptography
 
     return Encoding.UTF8.GetString(data);
   }
+}
+
+public static class RespawnManager
+{
+  private static readonly HashSet<IRespawnable> _respawnables = new();
+
+  public static void ResetSession()
+  {
+    _respawnables.Clear();
+  }
+
+  public static void Register(IRespawnable respawnable) => _respawnables.Add(respawnable);
+
+  public static void Unregister(IRespawnable respawnable) => _respawnables.Remove(respawnable);
+
+  public static void ResetAll()
+  {
+    _respawnables.RemoveWhere(r => r == null);
+
+    foreach (var respawnable in _respawnables)
+    {
+      if (!respawnable.IsAlive)
+      {
+        respawnable.Respawn();
+      }
+    }
+  }
+}
+
+public static class RailManager
+{
+  private static readonly HashSet<RailObject> _rails = new();
+  public static HashSet<RailObject> Rails => _rails;
+
+  public static void ResetSession() => _rails.Clear();
+
+  public static void Register(RailObject railObject) => _rails.Add(railObject);
+
+  public static void Unregister(RailObject railObject) => _rails.Remove(railObject);
 }

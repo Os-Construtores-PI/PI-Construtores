@@ -1,29 +1,31 @@
-
-using UnityEngine;
 using System.Collections;
 using DG.Tweening;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class StageIntroDirector : MonoBehaviour
 {
-    [Header("Canvas")]
+  [Header("Canvas")]
+  [SerializeField]
+  private GameObject _root;
 
-    [SerializeField] private GameObject _root;
+  [Header("Text")]
+  [SerializeField]
+  Image _stageNumber;
 
-    [Header("Text")]
+  [SerializeField]
+  Image _stageTitle;
 
-    [SerializeField] Image _stageNumber;
+  [SerializeField]
+  private MenuSlideIn[] slideObjects;
 
-    [SerializeField] Image _stageTitle;
+  public bool IsPlaying { get; private set; }
 
-    [SerializeField] private MenuSlideIn[] slideObjects;
-
-    public bool IsPlaying { get; private set; }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public IEnumerator Play(StageIntroData data)
-    {
-        IsPlaying = true;
+  public IEnumerator Play(StageIntroData data)
+  {
+    IsPlaying = true;
+    Time.timeScale = 0;
 
     _root.SetActive(true);
 
@@ -31,23 +33,22 @@ public class StageIntroDirector : MonoBehaviour
     _stageTitle.sprite = data.StageNumberSprite;
 
     foreach (var slide in slideObjects)
-        slide.PlayAnimation();
+      slide.PlayEnterAnimation();
 
-    yield return new WaitForSeconds(data.WaitTime);
+    yield return new WaitForSecondsRealtime(data.WaitTime);
 
     Tween lastTween = null;
 
     foreach (var slide in slideObjects)
-        lastTween = slide.PlayExitAnimation();
+      lastTween = slide.PlayExitAnimation();
 
     if (lastTween != null)
-        yield return lastTween.WaitForCompletion();
+      yield return lastTween.WaitForCompletion();
 
-    yield return new WaitForSeconds(0.15f);
+    yield return new WaitForSecondsRealtime(0.15f);
 
     _root.SetActive(false);
-
+    Time.timeScale = 1;
     IsPlaying = false;
-    }
-
+  }
 }

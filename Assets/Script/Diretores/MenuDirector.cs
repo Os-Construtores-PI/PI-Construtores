@@ -579,7 +579,10 @@ public class MenuDirector : MonoBehaviour
 
   private IEnumerator PlaySelectionFeedback(MenuPanelTypes from, MenuPanelTypes to)
   {
-    if (MenuSelectionCursor.Instance != null)
+    if (
+      MenuSelectionCursor.Instance != null
+      && MenuSelectionCursor.Instance.gameObject.activeInHierarchy
+    )
     {
       MenuSelectionCursor.Instance.SetPressed(selectedPressedDuration);
     }

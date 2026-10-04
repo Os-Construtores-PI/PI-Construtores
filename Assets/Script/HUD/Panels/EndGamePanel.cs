@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,13 +24,13 @@ public class EndGamePanel : MonoBehaviour
 
   [Header("Stats")]
   [SerializeField]
-  private TextMeshProUGUI _scoreOutput;
+  private AnimatedIntValue _scoreOutput;
 
   [SerializeField]
-  private TextMeshProUGUI _previewScoreOutput;
+  private AnimatedIntValue _previewScoreOutput;
 
   [SerializeField]
-  private TextMeshProUGUI _timeOutput;
+  private AnimatedTimeValue _timeOutput;
 
   [SerializeField]
   private TextMeshProUGUI _uuidOutput;
@@ -78,32 +79,29 @@ public class EndGamePanel : MonoBehaviour
 
   public void Populate(int score, int previewScore, float time, string uuid, RankType rank)
   {
-    SetScore(score);
+    HideRank();
+
+    SetScore(score, () => SetRank(rank));
     SetPreviewScore(previewScore);
     SetTime(time);
-    SetRank(rank);
     SetUUID(uuid);
   }
 
-  private void SetScore(int score)
+  private void SetScore(int score, Action onComplete = null)
   {
-    if (_scoreOutput)
-      _scoreOutput.text = score.ToString("D8");
-  }
-
-  private void SetPreviewScore(int previewScore)
-  {
-    if (_previewScoreOutput)
-      _previewScoreOutput.text = previewScore.ToString("D8");
-  }
-
-  private void SetTime(float seconds)
-  {
-    if (!_timeOutput)
+    if (!_scoreOutput)
+    {
+      onComplete?.Invoke();
       return;
+    }
 
-    TimeSpan span = TimeSpan.FromSeconds(Mathf.Max(0f, seconds));
-    _timeOutput.text = span.Hours > 0 ? span.ToString(@"hh\:mm\:ss") : span.ToString(@"mm\:ss\.ff");
+    _scoreOutput.SetValue(score).OnComplete(() => onComplete?.Invoke());
+  }
+
+  private void HideRank()
+  {
+    if (_rankOutput)
+      _rankOutput.gameObject.SetActive(false);
   }
 
   private void SetRank(RankType rank)
@@ -118,6 +116,22 @@ public class EndGamePanel : MonoBehaviour
       _rankOutput.sprite = sprite;
     else
       Debug.LogWarning($"[EndGamePanel] Nenhum sprite mapeado para o rank {rank}.");
+
+    _rankOutput.gameObject.SetActive(true);
+  }
+
+  private void SetPreviewScore(int previewScore)
+  {
+    if (_previewScoreOutput)
+      _previewScoreOutput.SetValue(previewScore);
+  }
+
+  private void SetTime(float seconds)
+  {
+    if (!_timeOutput)
+      return;
+
+    _timeOutput.SetValue(seconds);
   }
 
   private void SetUUID(string uuid)

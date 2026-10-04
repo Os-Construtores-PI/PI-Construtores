@@ -331,7 +331,8 @@ public sealed class DataDirector : MonoBehaviour
     foreach (var b in behaviours)
       b.enabled = false;
 
-    player.transform.position = data.Position;
+    player.Motor.Engine.SetPosition(data.Position);
+    player.Motor.Velocity = Vector3.zero;
     player.Health = data.Health;
     player.SetAmethysts(data.AmethystsCount);
     player.SetScore(data.Score);

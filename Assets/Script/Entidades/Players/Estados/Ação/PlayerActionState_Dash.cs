@@ -44,13 +44,15 @@ public class PlayerActionStateDash : IPlayerState<Player>
   [SerializeField]
   private float _hitRumbleHighFrequency = 0.1f;
 
-  [Header("Configurações de Quicada e GraceTime")]
+  [Header("Configurações de Quicada")]
   [SerializeField]
   private float _bounceUpwardForce = 6f;
 
+  [Header("Configurações de GraceTime")]
   [SerializeField]
   private float _graceTimeDuration = 0.35f;
 
+  [Header("Configurações de Hitstop")]
   [SerializeField]
   private float _hitStopTimeScale = .05f;
 
@@ -69,17 +71,43 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   [SerializeField]
   private float _vibrationDuration;
+
+  [Header("Antecipação do Dash (Startup)")]
+  [SerializeField]
+  private float _dashWindupDuration = 0.08f;
+
+  [Header("Segurança - Saída sem Colisão")]
+  [Tooltip(
+    "A colisão é quase certa, então a saída do dash agora é guiada por ela. "
+      + "Este buffer é aplicado apenas como rede de segurança, caso nenhum hit ocorra "
+      + "dentro da duração esperada do dash (evita travar o estado)."
+  )]
+  [SerializeField]
+  private float _noHitSafetyBuffer = 0.35f;
+
+  [Header("Segurança - Buffer Mínimo com LockedTarget")]
+  [Tooltip(
+    "Mesmo com LockedTarget, a checagem de saída roda no FixedUpdate antes da física "
+      + "resolver a colisão daquele step, então a saída exata (buffer 0) pode disparar "
+      + "antes do trigger do hitbox registrar o hit. Esta margem mínima garante pelo menos "
+      + "um step extra de chance de detecção antes de forçar a saída."
+  )]
+  [SerializeField]
+  private float _minCollisionCheckBuffer = 0.1f;
+
+  private bool _isWindingUp;
+  private float _currentWindupTime;
+
   private bool _hasHit;
   private float _currentGraceTime;
   private Player _currentPlayer;
   private HitboxComponent _hitboxComponent;
-
   private float _currentVerticalVelocity;
-  private float _targetVerticalVelocity;
   private Tween _verticalTween;
+  private bool _isInGraceTime;
 
   public PlayerActionType Type => PlayerActionType.Dash;
-  public HashSet<PlayerActionType> IncompatibleActions => new() { { PlayerActionType.GroundSlam } };
+  public HashSet<PlayerActionType> IncompatibleActions => new() { PlayerActionType.GroundSlam };
 
   public void Enter(Player player)
   {
@@ -87,6 +115,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
       return;
 
     _currentPlayer = player;
+
+    player.Motor.Engine.BaseVelocity = Vector3.zero;
 
     if (!_firstTime)
     {
@@ -106,9 +136,14 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _currentGraceTime = 0f;
     timeToExitWalker = 0f;
     _currentVerticalVelocity = 0f;
-    _targetVerticalVelocity = 0f;
+    _isInGraceTime = false;
+    _isWindingUp = true;
+    _currentWindupTime = _dashWindupDuration;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
+    // NOTA: confirmar na implementação de HurtboxCollider se TriggerInvulnerability
+    // de fato desativa o collider (enabled = false) ou apenas seta uma flag de
+    // invencibilidade. A partir deste arquivo não é possível garantir qual dos dois.
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
     _dashHitboxCollider.enabled = true;
 
@@ -153,9 +188,19 @@ public class PlayerActionStateDash : IPlayerState<Player>
       player.transform.rotation = Quaternion.LookRotation(player.DashDirection);
 
     player.DashDuration = player.DashDistance / player.DashSpeed;
-    timeToExit = player.DashDuration;
+
+    // timeToExit agora funciona apenas como timeout de segurança (sem hit).
+    // Com hit, a saída é controlada pelo grace time em FixedUpdate.
+    // Com LockedTarget a colisão é praticamente garantida (dash mirado no alvo),
+    // então o buffer extra só é aplicado quando não há alvo travado.
+    float safetyBuffer =
+      player.LockedTarget != null ? _minCollisionCheckBuffer : _noHitSafetyBuffer;
+    timeToExit = player.DashDuration + _dashWindupDuration + safetyBuffer;
+
     player.IsDashing = true;
     player.CanDash = false;
+
+    player.Motor.Engine.ForceUnground(0.1f);
 
     player.EffectsSystem.PlayEffect(EntityEffectType.PlayerDashEffect, player.DashDuration);
     player.CurrentDashCount += 1;
@@ -171,15 +216,48 @@ public class PlayerActionStateDash : IPlayerState<Player>
 
   public void FixedUpdate(Player player)
   {
-    if (_hasHit && _currentGraceTime > 0f)
+    if (_isWindingUp)
+    {
+      _currentWindupTime -= Time.fixedDeltaTime;
+      if (_currentWindupTime <= 0f)
+        _isWindingUp = false;
+    }
+
+    // Saída sem colisão: apenas timeout de segurança.
+    // Saída com colisão: tratada abaixo, quando o grace time zera.
+    if (!_hasHit && player.IsDashing)
+    {
+      if (timeToExitWalker < timeToExit)
+      {
+        timeToExitWalker += Time.fixedDeltaTime;
+      }
+      else
+      {
+        player.ActionLayer.ExitStateDeferred(this, player);
+        timeToExitWalker = 0f;
+      }
+    }
+
+    if (player.LockedTarget != null && !_isInGraceTime)
+    {
+      Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
+      if (diff.sqrMagnitude > 0.1f)
+      {
+        player.DashDirection = diff.normalized;
+        player.transform.rotation = Quaternion.Slerp(
+          player.transform.rotation,
+          Quaternion.LookRotation(player.DashDirection),
+          40f * Time.fixedDeltaTime
+        );
+      }
+    }
+
+    if (_isInGraceTime && _currentGraceTime > 0f)
     {
       _currentGraceTime -= Time.fixedDeltaTime;
 
       float elapsedT = 1f - Mathf.Clamp01(_currentGraceTime / _graceTimeDuration);
       _currentVerticalVelocity = _verticalImpulseCurve.Evaluate(elapsedT) * _bounceUpwardForce;
-
-      Vector3 verticalMovement = Vector3.up * _currentVerticalVelocity * Time.fixedDeltaTime;
-      player.CharacterController.Move(verticalMovement);
 
       Vector3 newDir = Vector3.zero;
       if (player.LockedTarget != null)
@@ -200,25 +278,15 @@ public class PlayerActionStateDash : IPlayerState<Player>
           15f * Time.fixedDeltaTime
         );
       }
-    }
-    else
-    {
-      if (player.LockedTarget != null)
+
+      if (_currentGraceTime <= 0f)
       {
-        Vector3 diff = player.LockedTarget.transform.position - player.transform.position;
-        if (diff.sqrMagnitude > 0.1f)
-        {
-          player.DashDirection = diff.normalized;
-          player.transform.rotation = Quaternion.Slerp(
-            player.transform.rotation,
-            Quaternion.LookRotation(player.DashDirection),
-            40f * Time.fixedDeltaTime
-          );
-        }
+        // Grace time do hit terminou: agora sim saímos do estado.
+        _isInGraceTime = false;
+        player.ActionLayer.ExitStateDeferred(this, player);
+        timeToExitWalker = 0f;
       }
     }
-
-    ExitTimer(player);
   }
 
   public void Update(Player player) { }
@@ -227,6 +295,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
   {
     _verticalTween?.Kill();
     _verticalTween = null;
+    _isWindingUp = false;
 
     if (_hitboxComponent != null)
     {
@@ -250,18 +319,47 @@ public class PlayerActionStateDash : IPlayerState<Player>
     {
       Vector3 postDash =
         new Vector3(player.DashDirection.x, 0, player.DashDirection.z) * player.DashSpeed;
-      player.MovementVector += postDash;
+      player.Motor.Engine.BaseVelocity = postDash;
     }
     else
     {
-      player.MovementVector = new Vector3(
-        player.MovementVector.x,
-        _currentVerticalVelocity * 0.5f,
-        player.MovementVector.z
-      );
+      player.Motor.Engine.BaseVelocity = new Vector3(0, _currentVerticalVelocity * 0.5f, 0);
     }
 
     ResetDashHUD(player.DashHudScript);
+  }
+
+  public bool UpdateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
+  {
+    if (_isWindingUp)
+    {
+      currentVelocity = Vector3.zero;
+      return true;
+    }
+
+    if (_isInGraceTime && _currentGraceTime > 0f)
+    {
+      Vector3 inputDir = Vector3.zero;
+      if (player.MoveInput != Vector2.zero)
+      {
+        inputDir = CalculateRawInputDirection(player);
+      }
+      else if (player.LockedTarget != null)
+      {
+        inputDir = (player.LockedTarget.transform.position - player.transform.position).normalized;
+        inputDir.y = 0;
+      }
+
+      float horizontalSpeed = player.Speed * 0.3f;
+      Vector3 horizontalVel = inputDir * horizontalSpeed;
+
+      currentVelocity = new Vector3(horizontalVel.x, _currentVerticalVelocity, horizontalVel.z);
+
+      return true;
+    }
+
+    currentVelocity = player.DashDirection * player.DashSpeed;
+    return true;
   }
 
   private void OnDashHitDetected()
@@ -270,12 +368,16 @@ public class PlayerActionStateDash : IPlayerState<Player>
       return;
 
     _hasHit = true;
+    _isInGraceTime = true;
     _currentGraceTime = _graceTimeDuration;
 
-    timeToExit += _graceTimeDuration;
+    // A saída do estado agora é controlada inteiramente pelo grace time
+    // (ver FixedUpdate), então não precisamos mais somar ao timeToExit aqui.
 
     _dashHitboxCollider.enabled = false;
-    _currentPlayer.MovementVector = Vector3.zero;
+
+    _currentPlayer.Motor.Engine.BaseVelocity = Vector3.zero;
+
     _currentPlayer.CurrentDashCount = 0;
     _currentPlayer.transform.up = Vector3.up;
     _currentPlayer.CustomShake.Invoke(
@@ -301,26 +403,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
     return (
       camForward.normalized * player.MoveInput.y + camRight.normalized * player.MoveInput.x
     ).normalized;
-  }
-
-  private void ExitTimer(Player player)
-  {
-    if (timeToExitWalker < timeToExit && player.IsDashing)
-    {
-      timeToExitWalker += Time.fixedDeltaTime;
-
-      if (!(_hasHit && _currentGraceTime > 0f))
-      {
-        player.CharacterController.Move(
-          player.DashSpeed * Time.fixedDeltaTime * player.DashDirection
-        );
-      }
-    }
-    else
-    {
-      player.ActionLayer.ExitStateDeferred(this, player);
-      timeToExitWalker = 0f;
-    }
   }
 
   private float ComputeDashSpeed(float distance)

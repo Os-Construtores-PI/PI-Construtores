@@ -4,8 +4,11 @@ using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class CameraLogic : Entities
+public class CameraLogic : Entity
 {
+  [SerializeField]
+  private float _distance = 900f;
+
   [Header("Referência atual do jogador")]
   [SerializeField]
   private Player playerTarget;
@@ -41,20 +44,17 @@ public class CameraLogic : Entities
     if (playerTarget == null || _currentCinemachineCamera == null)
       return;
 
-    // Garante referência ao controlador de input
     if (inputAxisController == null)
       _currentCinemachineCamera.TryGetComponent(out inputAxisController);
 
     if (playerTarget.CameraLocked)
     {
-      // 🔥 trava completamente os inputs da câmera
       if (inputAxisController != null)
         inputAxisController.enabled = false;
 
       return;
     }
 
-    // se destravou → garante que voltou ao normal
     if (inputAxisController != null && !inputAxisController.enabled)
       inputAxisController.enabled = true;
   }
@@ -93,7 +93,7 @@ public class CameraLogic : Entities
     float[] layersDistance = new float[32];
     for (int i = 0; i < layersDistance.Count(); i++)
     {
-      layersDistance[i] = 900;
+      layersDistance[i] = _distance;
     }
     if (TryGetComponent(out Camera cam))
     {
@@ -101,9 +101,6 @@ public class CameraLogic : Entities
     }
   }
 
-  /// <summary>
-  /// Configura a CinemachineCamera para seguir o alvo.
-  /// </summary>
   public void SetTarget(
     Player newTarget,
     CinemachineCamera freeLook = null,
@@ -146,9 +143,6 @@ public class CameraLogic : Entities
     }
   }
 
-  /// <summary>
-  /// Troca para outra câmera virtual em runtime.
-  /// </summary>
   public void SwitchCamera(CinemachineCamera newCam, Player newTarget)
   {
     if (newCam == null || newTarget == null)

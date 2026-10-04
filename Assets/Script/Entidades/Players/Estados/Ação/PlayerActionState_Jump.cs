@@ -18,25 +18,14 @@ public class PlayerActionStateJump : IPlayerState<Player>
 
   public void Enter(Player player)
   {
-    Vector3 targetVelocity = player.MovementVector;
+    player.Motor.Engine.ForceUnground(0.1f);
+
+    Vector3 targetVelocity = player.Motor.Engine.BaseVelocity;
     float jumpY;
 
-    // ─── Bounce ───────────────────────────────────────────────────────────
-    PlayerActionStateBounce bounceState = player.ActionLayer.GetActive<PlayerActionStateBounce>();
-    bool isBouncing = bounceState != null && player.GroundSlamImpactSpeed > 0f;
+    float jumpMultiplier = 1f + player.CurrentJumpCount * _jumpHeightMultiplierPerExtraJump;
+    jumpY = player.JumpForce * jumpMultiplier;
 
-    if (isBouncing)
-    {
-      jumpY = bounceState.CalculateBounceImpulse(player, ref targetVelocity);
-      player.ActionLayer.ExitState(bounceState, player);
-    }
-    else
-    {
-      float jumpMultiplier = 1f + player.CurrentJumpCount * _jumpHeightMultiplierPerExtraJump;
-      jumpY = player.JumpForce * jumpMultiplier;
-    }
-
-    // ─── Wall Jump ────────────────────────────────────────────────────────
     if (player.TouchingWall)
     {
       Vector3 jumpDir = (Vector3.up + player.LastWallNormal * _wallJumpHorizontalBias).normalized;
@@ -48,7 +37,6 @@ public class PlayerActionStateJump : IPlayerState<Player>
       targetVelocity.y = jumpY;
     }
 
-    // ─── Rail Slide cancel ────────────────────────────────────────────────
     if (player.ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
       player.RailSlide.RequestCancel();
 
@@ -58,7 +46,8 @@ public class PlayerActionStateJump : IPlayerState<Player>
     player.CurrentJumpCount++;
     player.EffectsSystem?.PlayEffect(EntityEffectType.PlayerJumpEffect, 1);
 
-    player.MovementVector = targetVelocity;
+    player.Motor.Engine.BaseVelocity = targetVelocity;
+
     player.ActionLayer.ExitState(this, player);
   }
 
@@ -67,4 +56,7 @@ public class PlayerActionStateJump : IPlayerState<Player>
   public void Update(Player player) { }
 
   public void FixedUpdate(Player player) { }
+
+  public bool UpdateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime) =>
+    false;
 }

@@ -44,9 +44,25 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _maxVelocity = 100f;
 
-  [Tooltip("Velocidade de rotação em graus por segundo durante o boost.")]
   [SerializeField]
-  private float _rotationSpeed = 180f;
+  private float _gravityInState = -50f;
+
+  [Header("Boost Ramp (início e fim gradual)")]
+  [SerializeField]
+  private float _rampInDuration = 1.5f;
+
+  [SerializeField]
+  private float _rampOutDuration = 3f;
+
+  [SerializeField]
+  private Ease _rampInEase = Ease.InQuad;
+
+  [SerializeField]
+  private Ease _rampOutEase = Ease.OutQuad;
+
+  private Tween _speedRampTween;
+  private Tween _gravityRampTween;
+  private float _currentBoostSpeedRatio = 1f;
 
   [Header("Vibração do Gamepad na Corrida")]
   [SerializeField]
@@ -77,25 +93,22 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   private CancellationTokenSource _hitRumbleCts;
 
-  private float _playerOriginalSpeed;
   private float _boostSpeedRatio;
   private string _boostSourceId;
 
-  private Quaternion _boostRotation;
   #endregion
 
   #region IState Callbacks
   public void Enter(Player player)
   {
-    float boostSpeed = Mathf.Clamp(player.BoostValue, 0f, _maxVelocity);
-    _boostSpeedRatio = boostSpeed / player.Speed;
-
-    _playerOriginalSpeed = player.Speed;
-    _boostRotation = player.transform.rotation;
-
-    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
-
-    _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _boostSpeedRatio);
+    if (player.Stats.TryGetBaseNum(StatType.Speed, out float baseSpeed))
+    {
+      _boostSpeedRatio = _maxVelocity / baseSpeed;
+    }
+    else
+    {
+      _boostSpeedRatio = _maxVelocity / player.Speed;
+    }
 
     player.SpeedLines.Invoke(true);
 
@@ -117,11 +130,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     var hitbox = _boostHitboxCollider.GetComponent<HitboxComponent>();
     hitbox?.Hit.AddListener(OnBoostHitDetected);
 
-    float velocityFraction = boostSpeed / _maxVelocity;
     player.CustomShake.Invoke(
       player.ID,
-      _enterShakeAmplitude * velocityFraction,
-      _enterShakeFrequency * velocityFraction,
+      _enterShakeAmplitude,
+      _enterShakeFrequency,
       _enterShakeDuration
     );
 
@@ -131,6 +143,41 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
 
     Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
+
+    _speedRampTween?.Kill();
+
+    if (!string.IsNullOrEmpty(_boostSourceId))
+    {
+      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+      _boostSourceId = null;
+    }
+
+    _currentBoostSpeedRatio = 1f;
+    _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _currentBoostSpeedRatio);
+
+    _speedRampTween = DOTween
+      .To(
+        () => _currentBoostSpeedRatio,
+        ratio =>
+        {
+          _currentBoostSpeedRatio = ratio;
+
+          if (!string.IsNullOrEmpty(_boostSourceId))
+          {
+            player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+          }
+
+          _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
+        },
+        _boostSpeedRatio,
+        _rampInDuration
+      )
+      .SetEase(_rampInEase);
+
+    _gravityRampTween?.Kill();
+    _gravityRampTween = DOTween
+      .To(() => player.GravityValue, g => player.GravityValue = g, _gravityInState, _rampInDuration)
+      .SetEase(_rampInEase);
 
     _fovTween?.Kill();
     _fovTween = DOTween.To(
@@ -152,21 +199,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     _hitRumbleCts?.Dispose();
     _hitRumbleCts = null;
 
-    if (!string.IsNullOrEmpty(_boostSourceId))
-    {
-      player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
-      _boostSourceId = null;
-    }
-
-    _boostSpeedRatio = 0f;
-
-    float currentYVelocity = player.MovementVector.y;
-    player.MovementVector = Vector3.zero;
-    player.MovementVector.y = currentYVelocity;
-
     Gamepad.current?.SetMotorSpeeds(0, 0);
-
-    player.LocomotionLayer.ChangeState(player.Moving, player);
 
     player.SpeedLines.Invoke(false);
 
@@ -189,6 +222,41 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
 
+    _speedRampTween?.Kill();
+    _speedRampTween = DOTween
+      .To(
+        () => _currentBoostSpeedRatio,
+        ratio =>
+        {
+          _currentBoostSpeedRatio = ratio;
+
+          if (!string.IsNullOrEmpty(_boostSourceId))
+          {
+            player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+            _boostSourceId = null;
+          }
+
+          if (ratio > 1f + 0.001f)
+          {
+            _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
+          }
+        },
+        1f,
+        _rampOutDuration
+      )
+      .SetEase(_rampOutEase);
+
+    _gravityRampTween?.Kill();
+    _gravityRampTween = DOTween
+      .To(
+        () => player.GravityValue,
+        g => player.GravityValue = g,
+        player.InitialGravityValue,
+        _rampOutDuration
+      )
+      .SetEase(_rampOutEase);
+
+    // --- FOV de volta ao padrão ---
     _fovTween?.Kill();
     _fovTween = DOTween.To(
       () => player.MainCamera.Lens.FieldOfView,
@@ -213,21 +281,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       player.ActionLayer.ExitState(this, player);
       return;
     }
-
-    float turnInput = player.MoveInput.x;
-    if (Mathf.Abs(turnInput) > 0.01f)
-    {
-      _boostRotation *= Quaternion.AngleAxis(
-        turnInput * _rotationSpeed * Time.deltaTime,
-        Vector3.up
-      );
-      player.transform.rotation = _boostRotation;
-    }
-
-    Vector3 newMovementVector = player.transform.forward * player.Speed;
-    newMovementVector.y = player.MovementVector.y;
-
-    player.MovementVector = newMovementVector;
 
     if (!player.PlayerInput.actions.FindAction("Dash / Boost").IsPressed())
     {

@@ -1,93 +1,168 @@
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
+using KinematicCharacterController;
 using UnityEngine;
 
-public class MobilePlatform : BasePlatform
+[RequireComponent(typeof(PhysicsMover))]
+public class MobilePlatform : BasePlatform, IMoverController
 {
-  private readonly List<Vector3> _targets = new(); // Array fixo de posições usado para a animação do caminho
+  private readonly List<Vector3> _targets = new();
 
-  [Header("Tipos e Cor do Gizmo")]
+  [Header("Path Configuration")]
   [SerializeField]
-  PathType _pathType = PathType.Linear; // Tipo do caminho (linear, curva, etc)
-
-  [SerializeField]
-  PathMode _pathMode = PathMode.Full3D; // Modo do caminho (2D, 3D, etc)
+  private PathType _pathType = PathType.Linear;
 
   [SerializeField]
-  Ease _animationType = Ease.Linear; // Tipo de interpolação da animação
+  private PathMode _pathMode = PathMode.Full3D;
 
   [SerializeField]
-  LoopType _loopType = LoopType.Yoyo; // Tipo de loop (vai e volta)
+  private Ease _animationType = Ease.Linear;
 
   [SerializeField]
-  int _pathResolution = 10; // Resolução do caminho para suavidade
+  private LoopType _loopType = LoopType.Yoyo;
 
   [SerializeField]
-  private Color gizmoColor = Color.white; // Cor do gizmo para visualização no editor
-
-  [Header("Duração e Quantidade de Loops (-1 para infinitos loops)")]
-  [SerializeField]
-  private float _duration = 4; // Tempo que a plataforma leva para completar o caminho
+  private int _pathResolution = 10;
 
   [SerializeField]
-  private int _loopNum = -1; // Quantidade de repetições da animação (loop)
+  private Color _gizmoColor = Color.white;
 
-  // Inicializa e começa a animação no início
+  [Header("Timing")]
+  [SerializeField]
+  private float _duration = 4f;
+
+  [SerializeField]
+  private int _loopNum = -1;
+
+  [Header("Physics Mover")]
+  [SerializeField]
+  private PhysicsMover _mover;
+
+  private Vector3 _originalPosition;
+  private Quaternion _originalRotation;
+  private Tweener _tweener;
+  private float _currentProgress;
+
   public override void Start()
   {
     base.Start();
-    InitTargets(); // Pega os pontos filhos e salva as posições
-    // Se existir pontos no caminho, inicia a animação de caminho com os parâmetros configurados
-    if (_targets.Count() > 0)
+    InitializeTargets();
+
+    if (_mover == null)
     {
-      transform
-        .DOPath(
-          _targets.ToArray(), // Array de posições para o caminho
-          _duration, // Duração total do caminho
-          _pathType, // Tipo do caminho
-          _pathMode, // Modo do caminho
-          _pathResolution, // Resolução da curva
-          gizmoColor // Cor do gizmo para visualização
-        )
-        .SetLoops(_loopNum, _loopType) // Define quantos loops e o tipo de loop
-        .SetEase(_animationType) // Define a interpolação da animação
-        .SetUpdate(UpdateType.Fixed); // Atualiza no FixedUpdate para sincronizar com física
+      Debug.LogError("PhysicsMover is not assigned.", this);
+      enabled = false;
+      return;
+    }
+
+    _originalPosition = _mover.Rigidbody.position;
+    _originalRotation = _mover.Rigidbody.rotation;
+    _mover.MoverController = this;
+
+    if (_targets.Count > 0)
+    {
+      SetupTween();
     }
   }
 
-  // Prepara a lista de pontos do caminho com as posições dos filhos
-  void InitTargets()
+  private void InitializeTargets()
   {
     foreach (Transform child in transform)
     {
       if (child.name.ToLower().Contains("target"))
       {
-        _targets.Add(child.position); // Adiciona cada posição de filho na lista
+        _targets.Add(child.position);
       }
     }
   }
 
-  // Quando o jogador entra na plataforma, ele se torna filho para acompanhar o movimento
-  public void OnTriggerEnter(Collider collision)
+  private void SetupTween()
   {
-    if (!collision.gameObject.CompareTag("Player"))
-      return;
-    collision.transform.SetParent(transform);
+    _tweener = DOTween
+      .To(() => 0f, value => _currentProgress = value, 1f, _duration)
+      .SetLoops(_loopNum, _loopType)
+      .SetEase(_animationType)
+      .SetUpdate(UpdateType.Fixed);
   }
 
-  // Quando o jogador sai da plataforma, remove a hierarquia para não se mover junto
-  public void OnTriggerExit(Collider collision)
+  public void UpdateMovement(out Vector3 goalPosition, out Quaternion goalRotation, float deltaTime)
   {
-    if (!collision.gameObject.CompareTag("Player"))
-      return;
-    collision.transform.SetParent(null, true); // Remove o pai mantendo a posição mundial
-    collision.transform.localScale = Vector3.one; // Reseta escala para evitar problemas visuais
+    goalPosition = EvaluatePathPosition(_currentProgress);
+    goalRotation = _originalRotation;
   }
 
-  // Quando a plataforma é destruída, para todas as animações DOTween vinculadas a esse transform
-  public void OnDestroy()
+  private Vector3 EvaluatePathPosition(float progress)
   {
-    transform.DOKill();
+    if (_targets.Count == 0)
+    {
+      return _originalPosition;
+    }
+
+    if (_targets.Count == 1)
+    {
+      return Vector3.Lerp(_originalPosition, _targets[0], progress);
+    }
+
+    if (_pathType == PathType.Linear)
+    {
+      return EvaluateLinearPath(progress);
+    }
+
+    return EvaluateCatmullRomPath(progress);
+  }
+
+  private Vector3 EvaluateLinearPath(float progress)
+  {
+    float totalLength = _targets.Count;
+    float scaledProgress = progress * totalLength;
+    int segmentIndex = Mathf.FloorToInt(scaledProgress);
+    float segmentProgress = scaledProgress - segmentIndex;
+
+    segmentIndex = Mathf.Clamp(segmentIndex, 0, _targets.Count - 1);
+    int nextIndex = Mathf.Clamp(segmentIndex + 1, 0, _targets.Count - 1);
+
+    Vector3 from = segmentIndex == 0 ? _originalPosition : _targets[segmentIndex - 1];
+    Vector3 to = _targets[nextIndex == 0 ? 0 : nextIndex - 1];
+
+    return Vector3.Lerp(from, to, segmentProgress);
+  }
+
+  private Vector3 EvaluateCatmullRomPath(float progress)
+  {
+    float totalLength = _targets.Count;
+    float scaledProgress = progress * totalLength;
+    int segmentIndex = Mathf.FloorToInt(scaledProgress);
+    float segmentProgress = scaledProgress - segmentIndex;
+
+    segmentIndex = Mathf.Clamp(segmentIndex, 0, _targets.Count - 1);
+
+    Vector3 p0 = segmentIndex == 0 ? _originalPosition : _targets[segmentIndex - 1];
+    Vector3 p1 = _targets[Mathf.Clamp(segmentIndex, 0, _targets.Count - 1)];
+    Vector3 p2 = _targets[Mathf.Clamp(segmentIndex + 1, 0, _targets.Count - 1)];
+    Vector3 p3 = _targets[Mathf.Clamp(segmentIndex + 2, 0, _targets.Count - 1)];
+
+    return CatmullRom(p0, p1, p2, p3, segmentProgress);
+  }
+
+  private static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+  {
+    float t2 = t * t;
+    float t3 = t2 * t;
+
+    return 0.5f
+      * (
+        (2f * p1)
+        + (-p0 + p2) * t
+        + (2f * p0 - 5f * p1 + 4f * p2 - p3) * t2
+        + (-p0 + 3f * p1 - 3f * p2 + p3) * t3
+      );
+  }
+
+  private void OnDestroy()
+  {
+    if (_tweener != null && _tweener.IsActive())
+    {
+      _tweener.Kill();
+    }
   }
 }

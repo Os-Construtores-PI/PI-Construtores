@@ -13,4 +13,6 @@ public class PlayerLocomotionStateLocked : ILocomotionState<Player>
   public void Update(Player player) { }
 
   public void FixedUpdate(Player player) { }
+
+  public void CalculateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime) { }
 }

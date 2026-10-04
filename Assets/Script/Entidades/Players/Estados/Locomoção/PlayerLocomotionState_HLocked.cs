@@ -13,21 +13,25 @@ public class PlayerLocomotionStateHLocked : ILocomotionState<Player>
 
   public void FixedUpdate(Player player)
   {
-    if (player.IsGrounded)
+    if (player.Motor.IsGrounded)
     {
       player.CurrentJumpCount = 0;
       player.CurrentDashCount = 0;
 
-      if (player.MovementVector.y < 0f)
+      if (player.Motor.Engine.Velocity.y < 0f)
       {
-        Vector3 move = player.MovementVector;
+        Vector3 move = player.Motor.Engine.Velocity;
         move.y = -2f;
-        player.MovementVector = move;
+        player.Motor.Engine.BaseVelocity = move;
       }
     }
-    else
+  }
+
+  public void CalculateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
+  {
+    if (!player.Motor.IsGrounded)
     {
-      ILocomotionState<Player>.ApplyGravity(player);
+      ILocomotionState<Player>.ApplyGravity(ref currentVelocity, player, deltaTime);
     }
   }
 

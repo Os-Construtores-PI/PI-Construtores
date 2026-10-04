@@ -15,9 +15,13 @@ public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
   private bool _isExiting;
   private string _speedSourceId;
 
+  private float _wallSlideVerticalSpeed = 0f;
+  private const float MAX_WALL_SLIDE_SPEED = -3f;
+
   public void Enter(Player player)
   {
     _isExiting = false;
+    _wallSlideVerticalSpeed = 0f;
     player.CurrentJumpCount = 1;
     player.TouchingWall = true;
 
@@ -38,6 +42,34 @@ public class PlayerActionStateWallSliding : IPlayerState<Player>, IDisposable
   public void Update(Player player) { }
 
   public void FixedUpdate(Player player) { }
+
+  public bool UpdateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
+  {
+    if (_isExiting)
+    {
+      currentVelocity = Vector3.zero;
+      return true;
+    }
+
+    Vector3 horizontal = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
+    horizontal = Vector3.MoveTowards(horizontal, Vector3.zero, player.AirFriction * deltaTime);
+
+    float wallGravity = player.GravityValue * player.GravityDownMultiplier * 0.3f;
+    _wallSlideVerticalSpeed += wallGravity * deltaTime;
+
+    if (_wallSlideVerticalSpeed < MAX_WALL_SLIDE_SPEED)
+      _wallSlideVerticalSpeed = MAX_WALL_SLIDE_SPEED;
+
+    Vector3 wallPush = Vector3.zero;
+    if (player.LastWallNormal != Vector3.zero)
+    {
+      wallPush = player.LastWallNormal * 0.5f;
+    }
+
+    currentVelocity = horizontal + Vector3.up * _wallSlideVerticalSpeed + wallPush * deltaTime;
+
+    return true;
+  }
 
   private async Task StartWallSlideAsync(Player player)
   {
