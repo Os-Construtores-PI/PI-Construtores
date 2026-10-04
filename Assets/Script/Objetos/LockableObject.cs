@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class LockableInteractableObject : InteractableObject, ILockable
+public class LockableObject : Object, ILockable
 {
   [SerializeField]
   private float _lockRange = 10;

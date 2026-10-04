@@ -21,6 +21,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   public HashSet<PlayerActionType> IncompatibleActions => _incompatibleActions;
 
   public SplineContainer CurrentRail { get; set; }
+  private RailObject _currentRailObject;
 
   private float _currentRailLength;
   private float _railProgress;
@@ -59,15 +60,16 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private int _slideIncrementScore = 1;
 
-  [HideInInspector]
-  public event Action<int> OnScoreAwarded;
-
   private CancellationTokenSource _exitBuffCts;
 
   private Vector3 _targetPosition;
   private bool _hasTargetPosition = false;
 
-  public void SetRail(SplineContainer rail) => CurrentRail = rail;
+  public void SetRail(SplineContainer rail, RailObject railObject)
+  {
+    CurrentRail = rail;
+    _currentRailObject = railObject;
+  }
 
   public void RequestCancel() => _cancelRequested = true;
 
@@ -128,10 +130,13 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _isSnapping = false;
     _cancelRequested = false;
     _hasTargetPosition = false;
-
     _exitBuffCts?.Cancel();
 
+    _currentRailObject?.StartReEntryCooldown();
+    _currentRailObject = null;
+
     CleanupPlayerState(player);
+
     CurrentRail = null;
   }
 
@@ -155,8 +160,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       return;
     }
 
-    var railObject = CurrentRail.GetComponent<RailObject>();
-    float targetSpeed = railObject != null ? railObject.SlideSpeed : 10f;
+    float targetSpeed = _currentRailObject.SlideSpeed;
 
     _currentSpeed = Mathf.MoveTowards(
       _currentSpeed,
@@ -175,7 +179,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     }
 
     CalculateTargetPosition(player);
-    OnScoreAwarded?.Invoke(_slideIncrementScore);
+    player.AddScore(_slideIncrementScore);
   }
 
   public void FixedUpdate(Player player) { }
@@ -202,6 +206,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.AnimatorComponent.SetBool(IsSlidingHash, true);
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
+    player.WillLock = false;
     player.SpeedLines?.Invoke(true);
     player.LocomotionLayer.ChangeState(player.Locked, player);
   }
@@ -313,6 +318,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.Motor.Engine.SetRotation(Quaternion.Euler(Vector3.up));
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
+    player.WillLock = true;
     player.SpeedLines?.Invoke(false);
     player.LocomotionLayer.ChangeState(player.Moving, player);
     player.Motor.OverrideMotorRotation = false;

@@ -44,6 +44,12 @@ public class LevelManager : MonoBehaviour
     return sorted.Count > 0 ? sorted[^1].Rank : default;
   }
 
+  public void Awake()
+  {
+    RespawnManager.ResetSession();
+    RailManager.ResetSession();
+  }
+
   public void Start()
   {
     _dataSystem = DataDirector.Instance;
@@ -117,7 +123,8 @@ public class LevelManager : MonoBehaviour
 
     yield return new WaitUntil(() => dialogueFinished);
 
-    player = _gameDirector.playerDirector?.FirstPlayerContext;
+    player =
+      _gameDirector.playerDirector != null ? _gameDirector.playerDirector.FirstPlayerContext : null;
     if (player != null)
     {
       player.PlayerInput.actions.Disable();
@@ -196,7 +203,7 @@ public class LevelManager : MonoBehaviour
       return;
     }
 
-    GameDirector.RespawnManager.ResetAll();
+    RespawnManager.ResetAll();
 
     Debug.Log("[LevelManager] RespawnPlayers chamado, iniciando coroutine.");
     StartCoroutine(RespawnRoutine());
@@ -225,6 +232,8 @@ public class LevelManager : MonoBehaviour
 
       player.transform.SetParent(null, true);
       player.ActionLayer.PopEveryState(player);
+      player.LocomotionLayer.ChangeState(player.Moving, player);
+      player.GravityValue = player.InitialGravityValue;
       player.Motor.Velocity = Vector3.zero;
       player.BoostValue = player.MaxBoostValue;
 

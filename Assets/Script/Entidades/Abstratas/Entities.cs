@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public abstract class Entities : BaseRenderedGameObject
+public abstract class Entity : BaseRenderedGameObject
 {
   private static int _nextId = 0;
   protected int id;
