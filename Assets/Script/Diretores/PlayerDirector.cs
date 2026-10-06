@@ -3,10 +3,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Orquestra o ciclo de vida dos jogadores: spawning, câmeras, HUD e configuração.
-/// Requer um <see cref="ManualPlayersSpawner"/> no mesmo GameObject.
-/// </summary>
+
 [RequireComponent(typeof(ManualPlayersSpawner))]
 public class PlayerDirector : MonoBehaviour
 {
@@ -47,6 +44,9 @@ public class PlayerDirector : MonoBehaviour
   [Header("Referências de cena")]
   [SerializeField]
   private HudDirector _hudDirector;
+
+  [SerializeField]
+  private CameraDirector _cameraDirector;
 
   [SerializeField]
   private Transform _spawnTransform;
@@ -227,6 +227,7 @@ public class PlayerDirector : MonoBehaviour
       _hudDirector.InitializeNoise(id, noise);
 
     _playerCameras[id] = camObj;
+    _cameraDirector.Register(player.transform, groupRoot);
   }
 
   // =========================================================

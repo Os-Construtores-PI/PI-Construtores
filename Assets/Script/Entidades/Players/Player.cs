@@ -16,7 +16,7 @@ using static Constants.PlayerShakes;
 using static TutorialGlobal;
 
 [RequireComponent(typeof(KinematicCharacterMotor), typeof(PlayerInput), typeof(Collider))]
-[RequireComponent(typeof(Animator), typeof(AudioSource))]
+[RequireComponent(typeof(AudioSource))]
 [DefaultExecutionOrder(-100)]
 public class Player : CombatEntities
 {
@@ -617,7 +617,6 @@ public class Player : CombatEntities
     _lifetimeCts = new CancellationTokenSource();
 
     Motor = GetComponent<PlayerMotor>();
-    AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
     DetectDevice(PlayerInput);
@@ -653,14 +652,13 @@ public class Player : CombatEntities
   {
     base.Update();
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
     HandleDevModeInput();
-#endif
-
     ComboTimer();
 
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+
+
     ScanWithCamera();
   }
 
