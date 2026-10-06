@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Splines;
 
 public static class Lookups
 {
@@ -372,6 +374,9 @@ public static class RespawnManager
   }
 }
 
+
+#region Spline
+
 public static class RailManager
 {
   private static readonly HashSet<RailObject> _rails = new();
@@ -383,3 +388,75 @@ public static class RailManager
 
   public static void Unregister(RailObject railObject) => _rails.Remove(railObject);
 }
+
+
+public static class SplineSegmentBuilder
+{
+  private const float MIN_SEGMENT_LENGTH = 0.1f;
+  private const float MIN_TANGENT_SQR = 0.0001f;
+  private const int CAPSULE_DIRECTION_Z = 2;
+
+  public static List<GameObject> Build(
+    SplineContainer container,
+    float segmentLength,
+    float segmentRadius,
+    Action<GameObject> onSegmentCreated = null,
+    bool isTrigger = true,
+    string namePrefix = "Segment"
+  )
+  {
+    var segments = new List<GameObject>();
+
+    if (container == null || container.Spline.Count == 0)
+      return segments;
+
+    Spline spline = container.Spline;
+    float totalLength = spline.GetLength();
+    int segmentCount = Mathf.Max(
+      1,
+      Mathf.CeilToInt(totalLength / Mathf.Max(segmentLength, MIN_SEGMENT_LENGTH))
+    );
+    float capsuleHeight = (totalLength / segmentCount) + segmentRadius;
+
+    for (int i = 0; i < segmentCount; i++)
+    {
+      float t = (i + 0.5f) / segmentCount;
+
+      GameObject segment = CreateSegment(container.transform, spline, t, $"{namePrefix}_{i}");
+      AddCapsule(segment, segmentRadius, capsuleHeight, isTrigger);
+
+      onSegmentCreated?.Invoke(segment);
+      segments.Add(segment);
+    }
+
+    return segments;
+  }
+
+  private static GameObject CreateSegment(Transform parent, Spline spline, float t, string name)
+  {
+    float3 localPosition = spline.EvaluatePosition(t);
+    float3 localTangent = spline.EvaluateTangent(t);
+    Vector3 tangentDirection = ((Vector3)localTangent).normalized;
+
+    var segment = new GameObject(name);
+    segment.transform.SetParent(parent, false);
+    segment.layer = parent.gameObject.layer;
+    segment.transform.localPosition = localPosition;
+
+    if (tangentDirection.sqrMagnitude > MIN_TANGENT_SQR)
+      segment.transform.localRotation = Quaternion.LookRotation(tangentDirection, Vector3.up);
+
+    return segment;
+  }
+
+  private static void AddCapsule(GameObject segment, float radius, float height, bool isTrigger)
+  {
+    var capsule = segment.AddComponent<CapsuleCollider>();
+    capsule.isTrigger = isTrigger;
+    capsule.direction = CAPSULE_DIRECTION_Z;
+    capsule.radius = radius;
+    capsule.height = height;
+  }
+}
+
+#endregion

@@ -434,29 +434,16 @@ public class Player : CombatEntities
   [SerializeField, Min(10)]
   private float enemyScanRadius = 10f;
 
-  private const float CameraScanSphereRadius = 8f;
-  private const float CameraScanMaxDistance = 150f;
-  private const float CameraScanDotThreshold = 0.5f;
-  private const float WallScanDistance = 5f;
-
-  private Camera _selectedCamera = null;
-  private readonly RaycastHit[] _sphereCastResults = new RaycastHit[20];
-
-  private Scanner<Ray, (bool, RaycastHit)> _cameraScanner;
-  private Scanner<Vector3, bool> _enemyScanner;
-  private Scanner<(Ray, Ray), RaycastHit?> _wallScanner;
-
   [Header("Scanner - Trilho")]
   [SerializeField]
   private float _railEntryRadius = 1.2f;
 
-  [SerializeField]
-  private float _railEntryMinDot = 0.3f;
+  private Camera _selectedCamera = null;
 
-  [SerializeField]
-  private LayerMask _railLayerMask;
-
-  private Scanner<Vector3, RailObject> _railEntryScanner;
+  private IScanner<Ray, (bool found, RaycastHit hit)> _cameraScanner;
+  private IScanner<Vector3, bool> _enemyScanner;
+  private IScanner<Transform, RaycastHit?> _wallScanner;
+  private IScanner<RailScanQuery, RailObject> _railEntryScanner;
   #endregion
 
   #region Lock-On
@@ -633,7 +620,6 @@ public class Player : CombatEntities
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
 
-    _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
     DetectDevice(PlayerInput);
   }
 
@@ -768,35 +754,16 @@ public class Player : CombatEntities
 
   private void SetupScanners()
   {
+    _cameraScanner = new CameraTargetScanner();
+    _enemyScanner = new EnemyActivationScanner(enemyScanRadius);
+    _wallScanner = new WallScanner();
+    _railEntryScanner = new RailEntryScanner(_railEntryRadius);
+
     TickDirector.Instance.OnTick.AddListener(_ => ScanRailEntry());
     TickDirector.Instance.OnFiveTick.AddListener(_ => _enemyScanner.Scan(transform.position));
     TickDirector.Instance.OnFiveTick.AddListener(_ => ScanWalls());
-
-    _cameraScanner = new Scanner<Ray, (bool, RaycastHit)>(BuildCameraScanner());
-    _enemyScanner = new Scanner<Vector3, bool>(ScanEnemies);
-    _wallScanner = new Scanner<(Ray, Ray), RaycastHit?>(ScanWallRays);
-    _railEntryScanner = new Scanner<Vector3, RailObject>(BuildRailEntryScanner());
   }
 
-  private RaycastHit? ScanWallRays((Ray left, Ray right) rays)
-  {
-    int mask = LayerMask.GetMask(LAYER_RUNNING_WALL);
-    if (
-      Physics.Raycast(
-        rays.left,
-        out RaycastHit hit,
-        WallScanDistance,
-        mask,
-        QueryTriggerInteraction.Ignore
-      )
-    )
-      return hit;
-    if (
-      Physics.Raycast(rays.right, out hit, WallScanDistance, mask, QueryTriggerInteraction.Ignore)
-    )
-      return hit;
-    return null;
-  }
 
   private bool TryGetTargetPoint(Collider col, Vector3 referencePoint, out Vector3 targetPoint)
   {
@@ -813,161 +780,30 @@ public class Player : CombatEntities
     return true;
   }
 
-  private Func<Ray, (bool, RaycastHit)> BuildCameraScanner() =>
-    ray =>
-    {
-      LayerMask targetsMask = LayerMask.GetMask(LAYER_OBJECT, LAYER_ENTITY);
-      LayerMask obstacleMask = LayerMask.GetMask(LAYER_DEFAULT);
-
-      int hitCount = Physics.SphereCastNonAlloc(
-        ray.origin,
-        CameraScanSphereRadius,
-        ray.direction,
-        _sphereCastResults,
-        CameraScanMaxDistance,
-        targetsMask,
-        QueryTriggerInteraction.Collide
-      );
-
-      Collider bestTarget = null;
-      Vector3 bestTargetPoint = default;
-      float closestDistance = float.MaxValue;
-
-      for (int i = 0; i < hitCount; i++)
-      {
-        Collider col = _sphereCastResults[i].collider;
-
-        if (col.CompareTag(TAG_PLAYER))
-        {
-          continue;
-        }
-
-        if (!TryGetTargetPoint(col, ray.origin, out Vector3 targetCenter))
-        {
-          continue;
-        }
-
-        float dot = Vector3.Dot(ray.direction.normalized, (targetCenter - ray.origin).normalized);
-        if (dot < CameraScanDotThreshold)
-        {
-          continue;
-        }
-
-        float distance = Vector3.Distance(ray.origin, targetCenter);
-        if (distance > CameraScanMaxDistance)
-        {
-          continue;
-        }
-
-        bool blocked = Physics.Linecast(
-          ray.origin,
-          targetCenter,
-          obstacleMask,
-          QueryTriggerInteraction.Ignore
-        );
-        if (blocked)
-        {
-          continue;
-        }
-
-        if (distance < closestDistance)
-        {
-          closestDistance = distance;
-          bestTarget = col;
-          bestTargetPoint = targetCenter;
-        }
-      }
-
-      if (bestTarget != null)
-      {
-        Vector3 finalDir = (bestTargetPoint - ray.origin).normalized;
-
-        bool raycastHit = Physics.Raycast(
-          ray.origin,
-          finalDir,
-          out RaycastHit finalHit,
-          CameraScanMaxDistance + CAMERA_SCAN_BUFFER,
-          targetsMask | obstacleMask,
-          QueryTriggerInteraction.Collide
-        );
-
-        if (raycastHit)
-        {
-          bool isTargetLayer = (targetsMask.value & (1 << finalHit.collider.gameObject.layer)) != 0;
-
-          if (isTargetLayer)
-          {
-            return (true, finalHit);
-          }
-        }
-      }
-
-      return (false, default);
-    };
-
-  private Func<Vector3, RailObject> BuildRailEntryScanner() =>
-    playerPos =>
-    {
-      if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
-        return null;
-
-      Vector3 moveDir =
-        Motor.Engine.Velocity.sqrMagnitude > SQR_EPSILON
-          ? Motor.Engine.Velocity.normalized
-          : (
-            MoveInput.sqrMagnitude > 0.01f
-              ? GetCameraRelativeDirection(MoveInput)
-              : transform.forward
-          );
-
-      var allRails = RailManager.Rails;
-
-      RailObject bestRail = null;
-      float bestScore = -1f;
-
-      foreach (var rail in allRails)
-      {
-        if (rail.IsOnCooldown)
-          continue;
-
-        if (!rail.GetNearestPointOnSpline(playerPos, out Vector3 nearestPoint, out float t))
-          continue;
-
-        float distance = Vector3.Distance(playerPos, nearestPoint);
-
-        float effectiveRadius = Mathf.Max(_railEntryRadius, 3f);
-
-        if (distance > effectiveRadius)
-          continue;
-
-        Vector3 toRail = (nearestPoint - playerPos).normalized;
-        float alignment = Vector3.Dot(toRail, moveDir);
-
-        float proximityScore = 1f - (distance / effectiveRadius);
-        float alignmentScore = (alignment + 1f) * 0.5f;
-        float score = proximityScore * 0.7f + alignmentScore * 0.3f;
-
-        if (distance < 1f)
-          score += 10f;
-
-        if (score > bestScore)
-        {
-          bestScore = score;
-          bestRail = rail;
-        }
-      }
-
-      return bestRail;
-    };
-
   private void ScanRailEntry()
   {
-    var (executed, rail) = _railEntryScanner.Scan(transform.position);
-    if (executed && rail != null)
-    {
-      RailSlide.SetRail(rail.GetComponent<SplineContainer>(), rail);
-      ActionLayer.PushState(RailSlide, this);
-    }
+    if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
+      return;
+
+    RailObject rail = _railEntryScanner.Scan(
+      new RailScanQuery(transform.position, GetRailMoveDirection())
+    );
+    if (rail == null)
+      return;
+
+    RailSlide.SetRail(rail.GetComponent<SplineContainer>(), rail);
+    ActionLayer.PushState(RailSlide, this);
+  }
+
+  private Vector3 GetRailMoveDirection()
+  {
+    Vector3 velocity = Motor.Engine.Velocity;
+    if (velocity.sqrMagnitude > SQR_EPSILON)
+      return velocity.normalized;
+
+    return MoveInput.sqrMagnitude > 0.01f
+      ? GetCameraRelativeDirection(MoveInput)
+      : transform.forward;
   }
   #endregion
 
@@ -1103,11 +939,7 @@ public class Player : CombatEntities
   #region Scan
   private void ScanWalls()
   {
-    (bool executed, RaycastHit? hit) = _wallScanner.Scan(
-      (new Ray(transform.position, transform.right), new Ray(transform.position, -transform.right))
-    );
-    if (!executed)
-      return;
+    RaycastHit? hit = _wallScanner.Scan(transform);
 
     if (hit.HasValue)
     {
@@ -1120,20 +952,6 @@ public class Player : CombatEntities
     }
   }
 
-  private bool ScanEnemies(Vector3 playerPos)
-  {
-    if (EnemySpawner.Instance == null)
-      return false;
-    int amount = EnemySpawner.Instance.GetAmountPool();
-
-    for (int i = 0; i < amount; i++)
-    {
-      GameObject enemy = EnemySpawner.Instance.GetDisabledObject();
-      if (enemy != null && Vector3.Distance(enemy.transform.position, playerPos) <= enemyScanRadius)
-        enemy.SetActive(true);
-    }
-    return true;
-  }
 
   protected virtual (bool success, RaycastHit hit) ScanWithCamera()
   {
@@ -1148,19 +966,15 @@ public class Player : CombatEntities
       .normalized;
     Ray ray = new(transform.position + Vector3.up * 1.5f, camForward);
 
-    var (executed, result) = _cameraScanner.Scan(ray);
+    (bool targetFound, RaycastHit hit) = _cameraScanner.Scan(ray);
 
-    if (!executed)
-      return _lastValidResult;
-
-    if (!result.Item1)
+    if (!targetFound)
     {
       ClearInteractable();
       DisableLockIn();
       return _lastValidResult = (false, default);
     }
 
-    RaycastHit hit = result.Item2;
     if (hit.collider == null)
     {
       DisableLockIn();
