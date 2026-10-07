@@ -13,8 +13,15 @@ public class CameraLogic : Entity
   [SerializeField]
   private Player playerTarget;
 
-  private CinemachineCamera _currentCinemachineCamera;
+  [Header("Câmeras Cinemachine")]
+  [SerializeField]
   private CinemachineCamera _lockOnCinemachineCamera;
+
+  [Header("Modo trilho")]
+  [SerializeField]
+  private bool _railDriven = true;
+
+  private CinemachineCamera _currentCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
   private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
 
@@ -41,6 +48,7 @@ public class CameraLogic : Entity
         pair.Value.Stop();
       }
     }
+
     if (playerTarget == null || _currentCinemachineCamera == null)
       return;
 
@@ -95,6 +103,7 @@ public class CameraLogic : Entity
     {
       layersDistance[i] = _distance;
     }
+
     if (TryGetComponent(out Camera cam))
     {
       cam.layerCullDistances = layersDistance;
@@ -122,25 +131,23 @@ public class CameraLogic : Entity
       targetTransform = newTarget.transform;
     }
 
-    if (freeLook != null)
-    {
-      freeLook.Follow = targetTransform;
-      freeLook.LookAt = targetTransform;
-      _currentCinemachineCamera = freeLook;
-    }
-    else if (_currentCinemachineCamera != null)
-    {
-      _currentCinemachineCamera.Follow = targetTransform;
-      _currentCinemachineCamera.LookAt = targetTransform;
-      _lockOnCinemachineCamera.Follow = targetTransform;
-      _lockOnCinemachineCamera.LookAt = targetTransform;
-    }
+    Transform followTarget = _railDriven ? null : targetTransform;
 
-    if (boostCam != null)
-    {
-      boostCam.Follow = targetTransform;
-      boostCam.LookAt = targetTransform;
-    }
+    if (freeLook != null)
+      _currentCinemachineCamera = freeLook;
+
+    ApplyTarget(_currentCinemachineCamera, followTarget);
+    ApplyTarget(_lockOnCinemachineCamera, followTarget);
+    ApplyTarget(boostCam, followTarget);
+  }
+
+  private static void ApplyTarget(CinemachineCamera cam, Transform target)
+  {
+    if (cam == null)
+      return;
+
+    cam.Follow = target;
+    cam.LookAt = target;
   }
 
   public void SwitchCamera(CinemachineCamera newCam, Player newTarget)

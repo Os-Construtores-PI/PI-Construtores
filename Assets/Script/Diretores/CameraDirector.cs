@@ -6,21 +6,29 @@ using UnityEngine.Splines;
 [DefaultExecutionOrder(-100)]
 public class CameraDirector : MonoBehaviour
 {
+  // =========================================================
+  // CONSTANTS
+  // =========================================================
+
   private const float MinTangentSqr = 0.0001f;
 
-  [Header("Trilho")]
+  // =========================================================
+  // INSPECTOR
+  // =========================================================
+
+  [Header("Rail")]
   [SerializeField]
   private SplineContainer _cameraPath;
 
-  [Tooltip("Marque se os jogadores andam no sentido contrário ao do spline.")]
+  [Tooltip("Check if players move opposite to the spline direction.")]
   [SerializeField]
   private bool _flipDirection;
 
-  [Tooltip("Distância extra que outro ramo precisa ganhar para a câmera trocar de spline.")]
+  [Tooltip("Extra distance another branch must win to switch splines.")]
   [SerializeField]
   private float _branchSwitchMargin = 1.5f;
 
-  [Tooltip("Ignora a altura ao escolher o ramo, evitando troca indevida durante pulos.")]
+  [Tooltip("Ignore height when choosing a branch, avoiding unwanted switches during jumps.")]
   [SerializeField]
   private bool _ignoreHeightOnBranchSelection = true;
 
@@ -30,49 +38,38 @@ public class CameraDirector : MonoBehaviour
   [SerializeField]
   private int _nearestIterations = 4;
 
-  [Header("Enquadramento")]
-  [Tooltip("Deslocamento lateral em relação ao trilho.")]
+  [Header("Framing")]
+  [Tooltip("Lateral offset relative to the rail.")]
   [SerializeField]
   private float _lateralOffset;
 
-  [Tooltip("Altura da câmera acima do jogador.")]
+  [Tooltip("Camera height above the player (follows jumps).")]
   [SerializeField]
-  private float _heightOffset = 2f;
+  private float _heightAboveRail = 2f;
 
-  [Tooltip("Distância ao longo do trilho. Negativo = atrás do jogador.")]
+  [Tooltip("Distance behind the player along the rail.")]
   [SerializeField]
-  private float _railDistanceOffset = -8f;
+  private float _distanceBehind = 6f;
 
+  [Header("Smoothing")]
+  [Tooltip("Time to follow the player along the rail. 0 = instant.")]
   [SerializeField]
-  private float _pitch = 10f;
+  private float _followSmoothTime = 0.1f;
 
-  [SerializeField]
-  private float _yaw;
-
-  [Header("Suavização")]
-  [SerializeField]
-  private float _railSmoothTime = 0.15f;
-
-  [Tooltip("Máximo de metros que a câmera pode ficar atrás ou à frente do jogador no trilho.")]
-  [SerializeField]
-  private float _maxRailLag = 3f;
-
+  [Tooltip("Transition time between splines.")]
   [SerializeField]
   private float _transitionSmoothTime = 0.35f;
 
-  [Tooltip("Máximo que a câmera pode se afastar do trilho durante a troca de ramo.")]
-  [SerializeField]
-  private float _maxTransitionDeviation = 2f;
-
-  [SerializeField]
-  private float _verticalSmoothTime = 0.25f;
-
-  [Tooltip("Variação de altura do jogador ignorada antes da câmera começar a seguir.")]
-  [SerializeField]
-  private float _verticalDeadZone = 0.5f;
-
   [SerializeField]
   private float _rotationSpeed = 6f;
+
+  [Header("Debug")]
+  [SerializeField]
+  private bool _drawGizmos = true;
+
+  // =========================================================
+  // AUXILIARIES
+  // =========================================================
 
   private class CameraEntry
   {
@@ -81,16 +78,16 @@ public class CameraDirector : MonoBehaviour
     public int SplineIndex = -1;
     public float Distance;
     public float DistanceVelocity;
-    public Vector3 TransitionOffset;
-    public Vector3 TransitionVelocity;
     public Vector3 LastRailPosition;
     public Vector3 LastForward = Vector3.forward;
-    public float Height;
-    public float HeightVelocity;
     public bool Initialized;
   }
 
   private readonly List<CameraEntry> _entries = new();
+
+  // =========================================================
+  // SETUP
+  // =========================================================
 
   public void Register(Transform target, Transform rig)
   {
@@ -124,6 +121,10 @@ public class CameraDirector : MonoBehaviour
     }
   }
 
+  // =========================================================
+  // LIFECYCLE
+  // =========================================================
+
   private void LateUpdate()
   {
     if (_cameraPath == null || _cameraPath.Splines.Count == 0)
@@ -143,10 +144,10 @@ public class CameraDirector : MonoBehaviour
     }
   }
 
-  /*
-   * Projeta o alvo no trilho, avança a posição do trilho com suavização em metros,
-   * posiciona o rig sobre o trilho (com deslocamento lateral) e deixa só a altura livre.
-   */
+  // =========================================================
+  // CORE
+  // =========================================================
+
   private void UpdateEntry(CameraEntry entry)
   {
     Vector3 targetPosition = entry.Target.position;
@@ -154,59 +155,50 @@ public class CameraDirector : MonoBehaviour
 
     Spline spline = _cameraPath.Splines[index];
     float length = Mathf.Max(spline.GetLength(), 0.001f);
-    float targetDistance = targetT * length;
+    float targetDistance = spline.ConvertIndexUnit(
+      targetT,
+      PathIndexUnit.Normalized,
+      PathIndexUnit.Distance
+    );
 
     bool switched = entry.Initialized && index != entry.SplineIndex;
+
+    float desiredDistance = targetDistance - _distanceBehind;
 
     if (!entry.Initialized || switched)
     {
       entry.SplineIndex = index;
-      entry.Distance = targetDistance;
+      entry.Distance = desiredDistance;
       entry.DistanceVelocity = 0f;
     }
     else
     {
-      AdvanceAlongRail(entry, spline, length, targetDistance);
+      float delta = WrapDelta(desiredDistance - entry.Distance, length, spline.Closed);
+      float step = _followSmoothTime <= 0f
+        ? delta
+        : Mathf.SmoothDamp(0f, delta, ref entry.DistanceVelocity, _followSmoothTime);
+      entry.Distance = NormalizeDistance(entry.Distance + step, length, spline.Closed);
     }
 
-    float alongOffset = _flipDirection ? -_railDistanceOffset : _railDistanceOffset;
     EvaluateRail(
       spline,
       length,
-      entry.Distance + alongOffset,
+      entry.Distance,
       entry.LastForward,
       out Vector3 railPosition,
       out Vector3 forward
     );
     entry.LastForward = forward;
-
-    if (switched)
-    {
-      Vector3 jump = entry.LastRailPosition - railPosition;
-      jump.y = 0f;
-      entry.TransitionOffset = Vector3.ClampMagnitude(jump, _maxTransitionDeviation);
-      entry.TransitionVelocity = Vector3.zero;
-    }
-    else
-    {
-      entry.TransitionOffset = Vector3.SmoothDamp(
-        entry.TransitionOffset,
-        Vector3.zero,
-        ref entry.TransitionVelocity,
-        _transitionSmoothTime
-      );
-    }
-
-    entry.LastRailPosition = railPosition + entry.TransitionOffset;
+    entry.LastRailPosition = railPosition;
 
     Vector3 right = Vector3.Cross(Vector3.up, forward);
-    Vector3 flatPosition = entry.LastRailPosition + right * _lateralOffset;
+    if (right.sqrMagnitude < 1e-6f) right = Vector3.right;
+    else right.Normalize();
 
-    float height = UpdateHeight(entry, targetPosition.y + _heightOffset);
+    Vector3 finalPosition = railPosition + right * _lateralOffset;
+    finalPosition.y = targetPosition.y + _heightAboveRail;
 
-    Quaternion desiredRotation =
-      Quaternion.LookRotation(forward, Vector3.up) * Quaternion.Euler(_pitch, _yaw, 0f);
-    Vector3 finalPosition = new(flatPosition.x, height, flatPosition.z);
+    Quaternion desiredRotation = Quaternion.LookRotation(forward, Vector3.up);
 
     if (!entry.Initialized)
     {
@@ -222,54 +214,6 @@ public class CameraDirector : MonoBehaviour
     );
   }
 
-  /*
-   * Suaviza a distância percorrida no spline (em metros). Em splines fechados usa o
-   * menor caminho, e limita o atraso máximo da câmera em relação ao alvo.
-   */
-  private void AdvanceAlongRail(CameraEntry entry, Spline spline, float length, float targetDistance)
-  {
-    float delta = WrapDelta(targetDistance - entry.Distance, length, spline.Closed);
-    float step = Mathf.SmoothDamp(0f, delta, ref entry.DistanceVelocity, _railSmoothTime);
-
-    float remaining = delta - step;
-    if (Mathf.Abs(remaining) > _maxRailLag)
-      step = delta - Mathf.Sign(remaining) * _maxRailLag;
-
-    entry.Distance = NormalizeDistance(entry.Distance + step, length, spline.Closed);
-  }
-
-  /*
-   * Altura livre com zona morta: pequenas variações do jogador são ignoradas,
-   * e a câmera só acompanha o excedente.
-   */
-  private float UpdateHeight(CameraEntry entry, float desiredHeight)
-  {
-    if (!entry.Initialized)
-    {
-      entry.Height = desiredHeight;
-      entry.HeightVelocity = 0f;
-      return entry.Height;
-    }
-
-    float diff = desiredHeight - entry.Height;
-    float adjusted =
-      Mathf.Abs(diff) <= _verticalDeadZone
-        ? entry.Height
-        : desiredHeight - Mathf.Sign(diff) * _verticalDeadZone;
-
-    entry.Height = Mathf.SmoothDamp(
-      entry.Height,
-      adjusted,
-      ref entry.HeightVelocity,
-      _verticalSmoothTime
-    );
-    return entry.Height;
-  }
-
-  /*
-   * Avalia o spline em espaço local e converte para o mundo uma única vez.
-   * Se a tangente for degenerada, mantém a última direção válida.
-   */
   private void EvaluateRail(
     Spline spline,
     float length,
@@ -279,8 +223,14 @@ public class CameraDirector : MonoBehaviour
     out Vector3 forward
   )
   {
-    float normalized = NormalizeDistance(distance, length, spline.Closed) / length;
-    SplineUtility.Evaluate(spline, normalized, out float3 localPoint, out float3 localTangent, out float3 _);
+    float clampedDistance = NormalizeDistance(distance, length, spline.Closed);
+    float t = spline.ConvertIndexUnit(
+      clampedDistance,
+      PathIndexUnit.Distance,
+      PathIndexUnit.Normalized
+    );
+
+    SplineUtility.Evaluate(spline, t, out float3 localPoint, out float3 localTangent, out float3 _);
 
     Transform pathTransform = _cameraPath.transform;
     position = pathTransform.TransformPoint(localPoint);
@@ -298,10 +248,10 @@ public class CameraDirector : MonoBehaviour
     forward = _flipDirection ? -tangent : tangent;
   }
 
-  /*
-   * Procura o spline mais próximo do alvo. O ramo atual só é trocado se outro
-   * estiver mais perto por _branchSwitchMargin, evitando oscilação nas bifurcações.
-   */
+  // =========================================================
+  // NEAREST SEARCH
+  // =========================================================
+
   private void FindNearest(Vector3 worldPoint, int currentIndex, out int bestIndex, out float bestT)
   {
     Transform pathTransform = _cameraPath.transform;
@@ -320,14 +270,29 @@ public class CameraDirector : MonoBehaviour
 
     for (int i = 0; i < splines.Count; i++)
     {
+      float3 query = local;
+
       SplineUtility.GetNearestPoint(
         splines[i],
-        local,
+        query,
         out float3 nearest,
         out float t,
         _nearestResolution,
         _nearestIterations
       );
+
+      if (_ignoreHeightOnBranchSelection)
+      {
+        query.y = nearest.y;
+        SplineUtility.GetNearestPoint(
+          splines[i],
+          query,
+          out nearest,
+          out t,
+          _nearestResolution,
+          _nearestIterations
+        );
+      }
 
       Vector3 offset = pathTransform.TransformPoint(nearest) - worldPoint;
       if (_ignoreHeightOnBranchSelection)
@@ -359,6 +324,10 @@ public class CameraDirector : MonoBehaviour
     }
   }
 
+  // =========================================================
+  // MATH HELPERS
+  // =========================================================
+
   private static float WrapDelta(float delta, float length, bool closed)
   {
     if (!closed)
@@ -370,4 +339,39 @@ public class CameraDirector : MonoBehaviour
 
   private static float NormalizeDistance(float distance, float length, bool closed) =>
     closed ? Mathf.Repeat(distance, length) : Mathf.Clamp(distance, 0f, length);
+
+  // =========================================================
+  // GIZMOS
+  // =========================================================
+
+  private void OnDrawGizmos()
+  {
+    if (!_drawGizmos || _cameraPath == null)
+      return;
+
+    Gizmos.color = Color.cyan;
+    foreach (Spline spline in _cameraPath.Splines)
+    {
+      const int steps = 32;
+      Vector3 prev = _cameraPath.transform.TransformPoint(spline.EvaluatePosition(0f));
+
+      for (int i = 1; i <= steps; i++)
+      {
+        float t = i / (float)steps;
+        Vector3 curr = _cameraPath.transform.TransformPoint(spline.EvaluatePosition(t));
+        Gizmos.DrawLine(prev, curr);
+        prev = curr;
+      }
+    }
+
+    Gizmos.color = Color.yellow;
+    foreach (CameraEntry entry in _entries)
+    {
+      if (entry.Rig != null && entry.Target != null)
+      {
+        Gizmos.DrawWireSphere(entry.Rig.position, 0.3f);
+        Gizmos.DrawLine(entry.Rig.position, entry.Target.position);
+      }
+    }
+  }
 }

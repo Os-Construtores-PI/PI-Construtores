@@ -53126,7 +53126,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 499323485}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -270.4, y: 37, z: -705.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -53252,9 +53252,9 @@ MonoBehaviour:
           z: 0
           w: 0.9937697
     - Position:
-        x: 257.9
+        x: 272.8
         y: -22.1
-        z: 390.1
+        z: 405.2
       TangentIn:
         x: 0
         y: 0
@@ -53270,9 +53270,9 @@ MonoBehaviour:
           z: -0
           w: 0.99983513
     - Position:
-        x: 252.20001
+        x: 269.69998
         y: -22.1
-        z: 547.00006
+        z: 547
       TangentIn:
         x: 0
         y: 0
@@ -53288,9 +53288,9 @@ MonoBehaviour:
           z: -0
           w: 0.99983513
     - Position:
-        x: 246.50003
+        x: 270.3
         y: -22.1
-        z: 703.90015
+        z: 703.9
       TangentIn:
         x: 0
         y: 0
@@ -53306,7 +53306,7 @@ MonoBehaviour:
           z: -0
           w: 0.99983513
     - Position:
-        x: 254.09999
+        x: 269.3
         y: -22.1
         z: 925.4
       TangentIn:
@@ -53354,7 +53354,7 @@ MonoBehaviour:
   - m_EditModeType: 1
     m_Knots:
     - Position:
-        x: 254.09999
+        x: 266.8
         y: -22.1
         z: 925.4
       TangentIn:
@@ -53368,12 +53368,12 @@ MonoBehaviour:
       Rotation:
         value:
           x: 0
-          y: -0.6086344
+          y: -0.6086345
           z: -0
           w: 0.7934508
     - Position:
         x: 134
-        y: 28.599998
+        y: 9.299999
         z: 965.2
       TangentIn:
         x: 0
@@ -53389,7 +53389,47 @@ MonoBehaviour:
           y: -0.62782407
           z: -0
           w: 0.7783553
+    - Position:
+        x: 24.699997
+        y: 7.700001
+        z: 1048
+      TangentIn:
+        x: 0
+        y: 0
+        z: -49.58889
+      TangentOut:
+        x: 0
+        y: 0
+        z: 49.58889
+      Rotation:
+        value:
+          x: 0
+          y: -0.32520568
+          z: -0
+          w: 0.9456433
+    - Position:
+        x: -45.5
+        y: 60.83
+        z: 1375.2
+      TangentIn:
+        x: 0
+        y: 0
+        z: -53.75725
+      TangentOut:
+        x: 0
+        y: 0
+        z: 53.75725
+      Rotation:
+        value:
+          x: 0
+          y: -0.094362
+          z: -0
+          w: 0.995538
     m_MetaData:
+    - Mode: 2
+      Tension: 0.5
+    - Mode: 2
+      Tension: 0.5
     - Mode: 2
       Tension: 0.5
     - Mode: 2
@@ -142824,17 +142864,12 @@ MonoBehaviour:
   _nearestResolution: 16
   _nearestIterations: 4
   _lateralOffset: 0
-  _heightOffset: 2
-  _railDistanceOffset: -8
-  _pitch: 10
-  _yaw: 0
-  _railSmoothTime: 0.15
-  _maxRailLag: 3
+  _heightAboveRail: 6
+  _distanceBehind: 10
+  _followSmoothTime: 0.1
   _transitionSmoothTime: 0.35
-  _maxTransitionDeviation: 2
-  _verticalSmoothTime: 0.25
-  _verticalDeadZone: 0.5
   _rotationSpeed: 6
+  _drawGizmos: 1
 --- !u!1 &1206805565
 GameObject:
   m_ObjectHideFlags: 0
