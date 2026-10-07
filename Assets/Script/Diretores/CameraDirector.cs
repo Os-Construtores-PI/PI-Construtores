@@ -28,7 +28,7 @@ public class CameraDirector : MonoBehaviour
     "Distance the player must travel in the opposite direction before the camera turns around."
   )]
   [SerializeField]
-  private float _directionSwitchDistance = 1.5f;
+  private float _directionSwitchDistance = .5f;
 
   [Tooltip("Extra distance another branch must win to switch splines.")]
   [SerializeField]
