@@ -23,6 +23,8 @@ public class TutorialTrigger : MonoBehaviour
 
   private PlayerInput _playerInput;
 
+  private TutorialGlobal _tutorialGlobal;
+
   private bool _playerInside;
 
   private bool _tutorialConsumed;
@@ -30,7 +32,23 @@ public class TutorialTrigger : MonoBehaviour
   private void Start()
   {
     if (_interactionSprite != null)
-            _interactionSprite.gameObject.SetActive(false);
+    {
+      _interactionSprite.gameObject.SetActive(false);
+    }
+
+    _tutorialGlobal =
+      FindAnyObjectByType<TutorialGlobal>(
+        FindObjectsInactive.Include);
+
+
+    if(_tutorialGlobal == null)
+    {
+      Debug.LogError(
+        $"[TutorialTrigger]" +
+        $"TutorialGlobal não encontrado na cena." +
+        $"Verifique se o CanvasHUD está ativo e possui o TutorialGlobal");
+    }
+    
   }
 
   private void OnTriggerEnter(Collider other)
@@ -49,10 +67,15 @@ public class TutorialTrigger : MonoBehaviour
         DeviceInputManager.Instance?.ForceRefresh();
 
         if (_interactionSprite != null)
-            _interactionSprite.gameObject.SetActive(true);
+        {
+           _interactionSprite.gameObject.SetActive(true);
+        }
 
         if (_interactionIcon != null)
-            _interactionIcon.Hide();
+        {
+           _interactionIcon.Hide();
+        }
+            
     }
 
 
@@ -64,10 +87,16 @@ public class TutorialTrigger : MonoBehaviour
         _playerInside = false;
 
         if (_interactionSprite != null)
-            _interactionSprite.gameObject.SetActive(false);
+        {
+          _interactionSprite.gameObject.SetActive(false);
+        }
+            
 
         if (_interactionIcon != null)
-            _interactionIcon.Show();
+        {
+           _interactionIcon.Show();
+        }
+            
     }
 
 
@@ -123,20 +152,37 @@ public class TutorialTrigger : MonoBehaviour
             return;
         }
 
+        if(_tutorialGlobal == null)
+        {
+           _tutorialGlobal = 
+                 FindAnyObjectByType<TutorialGlobal>(
+                   FindObjectsInactive.Include);
+        }
 
-        if (TutorialGlobal.Instance == null)
-            return;
+
+        if(_tutorialGlobal == null)
+        {
+      Debug.LogError(
+        "[TutorialTrigger]" +
+        "Não foi possível econtrar o TutorialGlobal do CanvasHUD");
+
+          return;
+        }
 
 
         _tutorialConsumed = true;
 
 
         if (_interactionSprite != null)
-            _interactionSprite.gameObject.SetActive(false);
+        {
+          _interactionSprite.gameObject.SetActive(false);
+        }
+         
 
         if (_interactionIcon != null)
-            _interactionIcon.Hide();
-
+        {
+          _interactionIcon.Hide();
+        }
 
         TutorialGlobal.Instance.OpenTutorial(
             _tutorialVideo

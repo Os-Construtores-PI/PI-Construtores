@@ -30,7 +30,7 @@ public class TutorialGlobal : MonoBehaviour
   [Header("Animation")]
 
   [SerializeField]
-  private float interfaceStartX = -1200f;
+  private float interfaceExitOffset = 100f;
 
   [SerializeField]
   private float interfaceDuration = 0.5f;
@@ -94,7 +94,7 @@ public class TutorialGlobal : MonoBehaviour
     {
       interfaceLeft.anchoredPosition =
            new Vector2(
-            interfaceStartX,
+            CalculateHiddenPosition(interfaceLeft),
             _leftFinalPosition.y
            );
     }
@@ -103,13 +103,30 @@ public class TutorialGlobal : MonoBehaviour
     {
       interfaceRight.anchoredPosition =
            new Vector2(
-            interfaceStartX,
+            CalculateHiddenPosition(interfaceRight),
             _rightFinalPosition.y
            );
     }
 
     if (videoPanel != null)
         videoPanel.SetActive(false);
+  }
+
+  private float CalculateHiddenPosition(RectTransform target)
+  {
+    if (target == null)
+    {
+      return -2000f;
+    }
+
+    float width =
+      target.rect.width *
+      target.localScale.x;
+
+    return
+      _leftFinalPosition.x -
+      width -
+      interfaceExitOffset;
   }
 
   public void OpenTutorial(VideoClip video)
@@ -135,10 +152,15 @@ public class TutorialGlobal : MonoBehaviour
     PrepareTutorial();
 
     if(tutorialHUD != null)
-       tutorialHUD.SetActive(true);
+    {
+      tutorialHUD.SetActive(true);
+    }
+       
 
     if(videoPanel != null)
+    {
        videoPanel.SetActive(false);
+    }
 
     PlayEntranceAnimation(video);
   }
@@ -223,7 +245,7 @@ public class TutorialGlobal : MonoBehaviour
       sequence.Append(
         interfaceRight
              .DOAnchorPosX(
-              interfaceStartX,
+              CalculateHiddenPosition(interfaceLeft),
               exitDuration
              )
              .SetEase(Ease.InCubic)
@@ -235,7 +257,7 @@ public class TutorialGlobal : MonoBehaviour
       sequence.Append(
         interfaceLeft
             .DOAnchorPosX(
-                interfaceStartX,
+                CalculateHiddenPosition(interfaceLeft),
                 exitDuration
             )
             .SetEase(Ease.InCubic)
