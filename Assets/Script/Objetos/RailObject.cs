@@ -47,12 +47,27 @@ public class RailObject : MonoBehaviour
   private void Awake()
   {
     _spline = GetComponent<SplineContainer>();
-    BuildSegmentColliders();
+
+    SplineSegmentBuilder.Build(
+      _spline,
+      _segmentLength,
+      _segmentRadius,
+      ConfigureSegment,
+      namePrefix: "RailSegment"
+    );
   }
 
   private void Start()
   {
     RailManager.Register(this);
+  }
+
+  private void ConfigureSegment(GameObject segment)
+  {
+    var marker = segment.AddComponent<RailSegmentMarker>();
+    marker.Owner = this;
+    marker.LockRange = _lockRange;
+    marker.BoostGrace = _boostGrace;
   }
 
   public bool GetNearestPointOnSpline(Vector3 worldPosition, out Vector3 nearestPoint, out float t)
@@ -73,44 +88,5 @@ public class RailObject : MonoBehaviour
       return Vector3.forward;
     float3 tangentLocal = _spline.Spline.EvaluateTangent(t);
     return _spline.transform.TransformDirection(tangentLocal).normalized;
-  }
-
-  private void BuildSegmentColliders()
-  {
-    if (_spline == null || _spline.Spline.Count == 0)
-      return;
-
-    float totalLength = _spline.Spline.GetLength();
-    int segmentCount = Mathf.Max(1, Mathf.CeilToInt(totalLength / _segmentLength));
-
-    for (int i = 0; i < segmentCount; i++)
-    {
-      float tStart = i / (float)segmentCount;
-      float tEnd = (i + 1) / (float)segmentCount;
-      float tMid = (tStart + tEnd) * 0.5f;
-
-      float3 localPos = _spline.Spline.EvaluatePosition(tMid);
-      float3 localTangent = _spline.Spline.EvaluateTangent(tMid);
-      Vector3 tangentDir = ((Vector3)localTangent).normalized;
-
-      var segmentGO = new GameObject($"RailSegment_{i}");
-      segmentGO.transform.SetParent(transform, false);
-      segmentGO.layer = gameObject.layer;
-      segmentGO.transform.localPosition = localPos;
-
-      if (tangentDir.sqrMagnitude > 0.0001f)
-        segmentGO.transform.localRotation = Quaternion.LookRotation(tangentDir, Vector3.up);
-
-      var capsule = segmentGO.AddComponent<CapsuleCollider>();
-      capsule.isTrigger = true;
-      capsule.direction = 2;
-      capsule.radius = _segmentRadius;
-      capsule.height = (totalLength / segmentCount) + _segmentRadius;
-
-      var marker = segmentGO.AddComponent<RailSegmentMarker>();
-      marker.Owner = this;
-      marker.LockRange = _lockRange;
-      marker.BoostGrace = _boostGrace;
-    }
   }
 }
