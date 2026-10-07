@@ -20,9 +20,15 @@ public class CameraDirector : MonoBehaviour
   [SerializeField]
   private SplineContainer _cameraPath;
 
-  [Tooltip("Check if players move opposite to the spline direction.")]
+  [Tooltip("Check if players start moving opposite to the spline direction.")]
   [SerializeField]
   private bool _flipDirection;
+
+  [Tooltip(
+    "Distance the player must travel in the opposite direction before the camera turns around."
+  )]
+  [SerializeField]
+  private float _directionSwitchDistance = 1.5f;
 
   [Tooltip("Extra distance another branch must win to switch splines.")]
   [SerializeField]
@@ -76,6 +82,9 @@ public class CameraDirector : MonoBehaviour
     public Transform Target;
     public Transform Rig;
     public int SplineIndex = -1;
+    public int TravelSign = 1;
+    public float LastTargetDistance;
+    public float OppositeTravel;
     public float Distance;
     public float DistanceVelocity;
     public Vector3 LastRailPosition;
@@ -97,7 +106,14 @@ public class CameraDirector : MonoBehaviour
     if (_entries.Exists(e => e.Target == target))
       return;
 
-    _entries.Add(new CameraEntry { Target = target, Rig = rig });
+    _entries.Add(
+      new CameraEntry
+      {
+        Target = target,
+        Rig = rig,
+        TravelSign = _flipDirection ? -1 : 1,
+      }
+    );
   }
 
   public void Register(Transform target, Camera camera)
@@ -118,6 +134,8 @@ public class CameraDirector : MonoBehaviour
     {
       entry.SplineIndex = -1;
       entry.Initialized = false;
+      entry.TravelSign = _flipDirection ? -1 : 1;
+      entry.OppositeTravel = 0f;
     }
   }
 
@@ -163,7 +181,17 @@ public class CameraDirector : MonoBehaviour
 
     bool switched = entry.Initialized && index != entry.SplineIndex;
 
-    float desiredDistance = targetDistance - _distanceBehind;
+    if (!entry.Initialized || switched)
+    {
+      entry.LastTargetDistance = targetDistance;
+      entry.OppositeTravel = 0f;
+    }
+    else
+    {
+      TrackDirection(entry, targetDistance, length, spline.Closed);
+    }
+
+    float desiredDistance = targetDistance - _distanceBehind * entry.TravelSign;
 
     if (!entry.Initialized || switched)
     {
@@ -174,9 +202,10 @@ public class CameraDirector : MonoBehaviour
     else
     {
       float delta = WrapDelta(desiredDistance - entry.Distance, length, spline.Closed);
-      float step = _followSmoothTime <= 0f
-        ? delta
-        : Mathf.SmoothDamp(0f, delta, ref entry.DistanceVelocity, _followSmoothTime);
+      float step =
+        _followSmoothTime <= 0f
+          ? delta
+          : Mathf.SmoothDamp(0f, delta, ref entry.DistanceVelocity, _followSmoothTime);
       entry.Distance = NormalizeDistance(entry.Distance + step, length, spline.Closed);
     }
 
@@ -184,6 +213,7 @@ public class CameraDirector : MonoBehaviour
       spline,
       length,
       entry.Distance,
+      entry.TravelSign,
       entry.LastForward,
       out Vector3 railPosition,
       out Vector3 forward
@@ -192,8 +222,10 @@ public class CameraDirector : MonoBehaviour
     entry.LastRailPosition = railPosition;
 
     Vector3 right = Vector3.Cross(Vector3.up, forward);
-    if (right.sqrMagnitude < 1e-6f) right = Vector3.right;
-    else right.Normalize();
+    if (right.sqrMagnitude < 1e-6f)
+      right = Vector3.right;
+    else
+      right.Normalize();
 
     Vector3 finalPosition = railPosition + right * _lateralOffset;
     finalPosition.y = targetPosition.y + _heightAboveRail;
@@ -218,6 +250,7 @@ public class CameraDirector : MonoBehaviour
     Spline spline,
     float length,
     float distance,
+    int travelSign,
     Vector3 fallbackForward,
     out Vector3 position,
     out Vector3 forward
@@ -245,7 +278,7 @@ public class CameraDirector : MonoBehaviour
     }
 
     tangent.Normalize();
-    forward = _flipDirection ? -tangent : tangent;
+    forward = tangent * travelSign;
   }
 
   // =========================================================
@@ -339,6 +372,20 @@ public class CameraDirector : MonoBehaviour
 
   private static float NormalizeDistance(float distance, float length, bool closed) =>
     closed ? Mathf.Repeat(distance, length) : Mathf.Clamp(distance, 0f, length);
+
+  private void TrackDirection(CameraEntry entry, float targetDistance, float length, bool closed)
+  {
+    float moved = WrapDelta(targetDistance - entry.LastTargetDistance, length, closed);
+    entry.LastTargetDistance = targetDistance;
+
+    entry.OppositeTravel = Mathf.Max(0f, entry.OppositeTravel - moved * entry.TravelSign);
+
+    if (entry.OppositeTravel >= _directionSwitchDistance)
+    {
+      entry.TravelSign = -entry.TravelSign;
+      entry.OppositeTravel = 0f;
+    }
+  }
 
   // =========================================================
   // GIZMOS
