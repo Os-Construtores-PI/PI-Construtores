@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DG.Tweening;
+using PLAYERTWO.PlatformerProject;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -62,6 +63,7 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, Sprite> originalSprites = new();
   private readonly Dictionary<int, CameraLogic> _playerCachedCameras = new();
   private readonly Dictionary<int, StopwatchHUD> _playerCachedStopwatches = new();
+  private readonly HashSet<int> _tutorialPopupPlayers = new();
   private Dictionary<int, int> _playerCachedScores = new();
 
   private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
@@ -634,24 +636,73 @@ public class HudDirector : MonoBehaviour
 
   public void InteractionPopup(int playerID, bool seeing, InteractableObject obj)
   {
-    if (!interactionTexts.ContainsKey(playerID) || !interactionImages.ContainsKey(playerID))
+    if (_tutorialPopupPlayers.Contains(playerID))
       return;
 
-    var text = interactionTexts[playerID];
-    var image = interactionImages[playerID];
+    if (!interactionTexts.TryGetValue(playerID, out var text) || !interactionImages.TryGetValue(playerID, out var image))
+      return;
+
 
     if (!seeing)
     {
       HidePanel(HudPanelType.InteractionPopup, playerID, independent: true);
       text.DOColor(Color.white, PANEL_TWEEN_DURATION);
       text.text = string.Empty;
-      image.sprite = originalSprites[playerID];
+      if (originalSprites.TryGetValue(playerID, out var OriginalSprite))
+        image.sprite = OriginalSprite;
       return;
     }
 
-    string bindLabel = InputSystem.actions.FindAction("Interaction").GetBindingDisplayString();
-    ApplyInteractionVisuals(obj, text, image, bindLabel);
+    var action = InputSystem.actions.FindAction("Interaction");
+    string bindLabel = action != null
+      ? action.GetBindingDisplayString()
+      : "Interagir";
+
+    if (obj != null)
+      ApplyInteractionVisuals(obj, text, image, bindLabel);
+    else
+      text.text = bindLabel;
+
     ShowPanel(HudPanelType.InteractionPopup, playerID, independent: true);
+  }
+
+  public void TutorialInteractionPopup(int playerID, bool show)
+  {
+    if (!interactionTexts.TryGetValue(playerID, out var text) ||
+        !interactionImages.TryGetValue(playerID, out var image))
+      return;
+
+    if (show)
+    {
+      _tutorialPopupPlayers.Add(playerID);
+
+      var action = InputSystem.actions?.FindAction("Interaction");
+      text.text = action != null
+          ? action.GetBindingDisplayString()
+          : "Interagir";
+
+      text.DOColor(Color.white, PANEL_TWEEN_DURATION);
+
+      ShowPanel(
+          HudPanelType.InteractionPopup,
+          playerID,
+          independent: true
+      );
+    }
+    else
+    {
+      _tutorialPopupPlayers.Remove(playerID);
+
+      HidePanel(
+          HudPanelType.InteractionPopup,
+          playerID,
+          independent: true
+      );
+      text.text = string.Empty;
+
+      if (originalSprites.TryGetValue(playerID, out var originalSprite))
+        image.sprite = originalSprite;
+    }
   }
 
   private void ApplyInteractionVisuals(

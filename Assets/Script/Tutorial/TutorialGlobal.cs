@@ -115,18 +115,23 @@ public class TutorialGlobal : MonoBehaviour
   private float CalculateHiddenPosition(RectTransform target)
   {
     if (target == null)
-    {
-      return -2000f;
-    }
+        return -2000f;
 
     float width =
       target.rect.width *
       target.localScale.x;
 
-    return
-      _leftFinalPosition.x -
-      width -
-      interfaceExitOffset;
+    if (target == interfaceLeft)
+    {
+      return _leftFinalPosition.x - width - interfaceExitOffset;
+    }
+
+    if (target == interfaceRight)
+    {
+      return _rightFinalPosition.x + width + interfaceExitOffset;
+    }
+
+    return target.anchoredPosition.x;
   }
 
   public void OpenTutorial(VideoClip video)
@@ -182,6 +187,14 @@ public class TutorialGlobal : MonoBehaviour
 
           .SetEase(Ease.OutCubic)
       );
+    }
+
+    if(interfaceRight != null)
+    {
+      sequence.Join(
+        interfaceRight.DOAnchorPos(_rightFinalPosition, interfaceDuration)
+                       .SetEase(Ease.OutCubic)
+     );
     }
 
     sequence.AppendInterval(videoDelay);
@@ -240,12 +253,12 @@ public class TutorialGlobal : MonoBehaviour
 
     Sequence sequence = DOTween.Sequence();
 
-    if(interfaceRight != null)
+    if (interfaceRight != null)
     {
       sequence.Append(
         interfaceRight
              .DOAnchorPosX(
-              CalculateHiddenPosition(interfaceLeft),
+              CalculateHiddenPosition(interfaceRight),
               exitDuration
              )
              .SetEase(Ease.InCubic)
@@ -264,10 +277,7 @@ public class TutorialGlobal : MonoBehaviour
     );
     }
 
-    sequence.AppendCallback(() =>
-    {
-      FinishTutorial();
-    });
+    sequence.AppendCallback(FinishTutorial);
 
     sequence.SetUpdate(true);
 

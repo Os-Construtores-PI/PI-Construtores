@@ -6,12 +6,6 @@ using static TutorialGlobal;
 
 public class TutorialTrigger : MonoBehaviour
 {
-  [Header("UI")]
-  [SerializeField]
-  private ImageTriggerEvent _interactionIcon;
-
-  [SerializeField]
-  private Image _interactionSprite;
 
   [Header("Config")]
   [SerializeField]
@@ -25,174 +19,211 @@ public class TutorialTrigger : MonoBehaviour
 
   private TutorialGlobal _tutorialGlobal;
 
+  private Player _player;
+  private HudDirector _hudDirector;
+
   private bool _playerInside;
 
   private bool _tutorialConsumed;
 
+  private bool _popupVisible;
+
   private void Start()
   {
-    if (_interactionSprite != null)
-    {
-      _interactionSprite.gameObject.SetActive(false);
-    }
+    _hudDirector = FindAnyObjectByType<HudDirector>();
 
-    _tutorialGlobal =
-      FindAnyObjectByType<TutorialGlobal>(
-        FindObjectsInactive.Include);
+    _tutorialGlobal = TutorialGlobal.Instance;
 
 
-    if(_tutorialGlobal == null)
-    {
-      Debug.LogError(
-        $"[TutorialTrigger]" +
-        $"TutorialGlobal não encontrado na cena." +
-        $"Verifique se o CanvasHUD está ativo e possui o TutorialGlobal");
-    }
+    if (_hudDirector == null)
+      Debug.LogError("[TutorialTrigger] HUDDirector não encontrado");
+
+    if (_tutorialGlobal == null)
+      Debug.LogError("[TutorialTrigger] TutorialGlobal não encontrado");
     
+  }
+
+  private void Awake()
+  {
+    ResolveReferences();
+  }
+
+  private void ResolveReferences()
+  {
+    if (_hudDirector == null)
+      _hudDirector = FindAnyObjectByType<HudDirector>(
+          FindObjectsInactive.Include
+      );
+
+    if (_tutorialGlobal == null)
+    {
+      _tutorialGlobal = TutorialGlobal.Instance;
+
+      if (_tutorialGlobal == null)
+      {
+        _tutorialGlobal = FindAnyObjectByType<TutorialGlobal>(
+            FindObjectsInactive.Include
+        );
+      }
+    }
   }
 
   private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player"))
-            return;
+    Player player = other.GetComponentInParent<Player>();
 
-        if (_onlyOnce && _tutorialConsumed)
-            return;
+    if (player == null)
+      return;
 
-        _playerInput =
-            other.GetComponentInParent<PlayerInput>();
+    if (_onlyOnce && _tutorialConsumed)
+      return;
 
-        _playerInside = true;
+    PlayerInput input = player.GetComponent<PlayerInput>();
 
-        DeviceInputManager.Instance?.ForceRefresh();
+    if (input == null)
+      input = player.GetComponentInParent<PlayerInput>();
 
-        if (_interactionSprite != null)
-        {
-           _interactionSprite.gameObject.SetActive(true);
-        }
-
-        if (_interactionIcon != null)
-        {
-           _interactionIcon.Hide();
-        }
-            
+    if (input == null)
+    {
+      Debug.LogWarning(
+          "[TutorialTrigger] PlayerInput não encontrado no jogador."
+      );
+      return;
     }
 
+    // Evita reinicializar o popup se outro collider do mesmo jogador entrar.
+    if (_playerInside && _player == player)
+      return;
+
+    _player = player;
+    _playerInput = input;
+    _playerInside = true;
+
+    DeviceInputManager.Instance?.ForceRefresh();
+
+    ResolveReferences();
+    SetInteractionPopup(true);
+
+
+  }
+
+
+  private void Update()
+  {
+    if (!_playerInside || _playerInput == null || _player == null)
+      return;
+
+    if (_onlyOnce && _tutorialConsumed)
+      return;
+
+    // Não escondemos o popup durante a permanência no trigger.
+    // Ele será escondido na saída do trigger.
+    ResolveReferences();
+
+    if (_tutorialGlobal == null)
+      return;
+
+    if (_tutorialGlobal.IsTutorialActive || GameContext.IsPaused)
+      return;
+
+    if (_player.IgnoreGameplayInputThisFrame)
+      return;
+
+    InputAction interaction =
+        _playerInput.actions?.FindAction("Interaction");
+
+    if (interaction != null && interaction.WasPerformedThisFrame())
+      OpenTutorial();
+  }
+
+  private void UpdateInteractionPopup(bool show)
+  {
+    if (_hudDirector == null)
+      _hudDirector = FindAnyObjectByType<HudDirector>();
+
+    if (_hudDirector == null || _player == null)
+      return;
+
+    if (_popupVisible == show)
+      return;
+
+    _hudDirector.TutorialInteractionPopup(_player.ID, show);
+    _popupVisible = show;
+  }
+
+  private void SetInteractionPopup(bool show)
+  {
+    ResolveReferences();
+
+    if (_hudDirector == null || _player == null)
+      return;
+
+    if (_popupVisible == show)
+      return;
+
+    _hudDirector.TutorialInteractionPopup(_player.ID, show);
+    _popupVisible = show;
+  }
+
+
+  public void OpenTutorial()
+  {
+    if (!_playerInside || _player == null)
+      return;
+
+    if (_tutorialVideo == null)
+    {
+      Debug.LogWarning(
+          $"[TutorialTrigger] Nenhum vídeo configurado em {gameObject.name}."
+      );
+      return;
+    }
+
+    ResolveReferences();
+
+    if (_tutorialGlobal == null)
+    {
+      Debug.LogError(
+          "[TutorialTrigger] Não foi encontrado um TutorialGlobal. " +
+          "Adiciona o componente à cena e associa-o no Inspector."
+      );
+      return;
+    }
+
+    if (_tutorialGlobal.IsTutorialActive)
+      return;
+
+    _tutorialConsumed = true;
+
+    // O popup permanece visível enquanto o jogador estiver no trigger.
+    _tutorialGlobal.OpenTutorial(_tutorialVideo);
+  }
 
     private void OnTriggerExit(Collider other)
     {
-        if (!other.CompareTag("Player"))
-            return;
+    if (_player == null)
+      return;
 
-        _playerInside = false;
+    Player exitingPlayer = other.GetComponentInParent<Player>();
 
-        if (_interactionSprite != null)
-        {
-          _interactionSprite.gameObject.SetActive(false);
-        }
-            
+    if (exitingPlayer != _player)
+      return;
 
-        if (_interactionIcon != null)
-        {
-           _interactionIcon.Show();
-        }
-            
-    }
+    SetInteractionPopup(false);
 
-
-    private void Update()
-    {
-        if (!_playerInside)
-            return;
-
-        if (_playerInput == null)
-            return;
-
-        if (TutorialGlobal.Instance == null)
-            return;
-
-        if (TutorialGlobal.Instance.IsTutorialActive)
-            return;
-
-        if (GameContext.IsPaused)
-            return;
-
-
-        Player player =
-            _playerInput.GetComponent<Player>();
-
-        if (
-            player != null &&
-            player.IgnoreGameplayInputThisFrame
-        )
-        {
-            return;
-        }
-
-
-        if (
-            _playerInput.actions["Interaction"]
-            .WasPerformedThisFrame()
-        )
-        {
-            OpenTutorial();
-        }
-    }
-
-
-    public void OpenTutorial()
-    {
-        if (_tutorialVideo == null)
-        {
-            Debug.LogWarning(
-                $"[TutorialTrigger] " +
-                $"Nenhum vídeo configurado em {gameObject.name}."
-            );
-
-            return;
-        }
-
-        if(_tutorialGlobal == null)
-        {
-           _tutorialGlobal = 
-                 FindAnyObjectByType<TutorialGlobal>(
-                   FindObjectsInactive.Include);
-        }
-
-
-        if(_tutorialGlobal == null)
-        {
-      Debug.LogError(
-        "[TutorialTrigger]" +
-        "Não foi possível econtrar o TutorialGlobal do CanvasHUD");
-
-          return;
-        }
-
-
-        _tutorialConsumed = true;
-
-
-        if (_interactionSprite != null)
-        {
-          _interactionSprite.gameObject.SetActive(false);
-        }
-         
-
-        if (_interactionIcon != null)
-        {
-          _interactionIcon.Hide();
-        }
-
-        TutorialGlobal.Instance.OpenTutorial(
-            _tutorialVideo
-        );
-    }
+    _playerInside = false;
+    _playerInput = null;
+    _player = null;
+  }
 
 
     private void OnDisable()
     {
-        _playerInside = false;
-    }
+    UpdateInteractionPopup(false);
+
+    _playerInside = false;
+    _playerInput = null;
+    _player = null;
+  }
 
 }
