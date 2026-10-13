@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -27,6 +28,8 @@ public class TutorialTrigger : MonoBehaviour
   private bool _tutorialConsumed;
 
   private bool _popupVisible;
+
+  private readonly HashSet<Collider> _playerCollidersInside = new();
 
   private void Start()
   {
@@ -69,7 +72,7 @@ public class TutorialTrigger : MonoBehaviour
   }
 
   private void OnTriggerEnter(Collider other)
-    {
+  {
     Player player = other.GetComponentInParent<Player>();
 
     if (player == null)
@@ -91,20 +94,23 @@ public class TutorialTrigger : MonoBehaviour
       return;
     }
 
-    // Evita reinicializar o popup se outro collider do mesmo jogador entrar.
-    if (_playerInside && _player == player)
+    // Ignora colliders de outro jogador.
+    if (_player != null && _player != player)
       return;
 
     _player = player;
     _playerInput = input;
+
+    // Registra cada collider que entrou no trigger.
+    _playerCollidersInside.Add(other);
+
     _playerInside = true;
 
     DeviceInputManager.Instance?.ForceRefresh();
 
     ResolveReferences();
+
     SetInteractionPopup(true);
-
-
   }
 
 
@@ -161,8 +167,13 @@ public class TutorialTrigger : MonoBehaviour
     if (_popupVisible == show)
       return;
 
-    _hudDirector.TutorialInteractionPopup(_player.ID, show);
-    _popupVisible = show;
+    bool success = _hudDirector.TutorialInteractionPopup(
+        _player.ID,
+        show
+    );
+
+    if (success)
+      _popupVisible = show;
   }
 
 
@@ -199,8 +210,8 @@ public class TutorialTrigger : MonoBehaviour
     _tutorialGlobal.OpenTutorial(_tutorialVideo);
   }
 
-    private void OnTriggerExit(Collider other)
-    {
+  private void OnTriggerExit(Collider other)
+  {
     if (_player == null)
       return;
 
@@ -209,6 +220,14 @@ public class TutorialTrigger : MonoBehaviour
     if (exitingPlayer != _player)
       return;
 
+    // Remove apenas o collider que saiu.
+    _playerCollidersInside.Remove(other);
+
+    // Se ainda houver algum collider dentro, mantém o popup.
+    if (_playerCollidersInside.Count > 0)
+      return;
+
+    // O jogador saiu completamente do trigger.
     SetInteractionPopup(false);
 
     _playerInside = false;
@@ -217,9 +236,13 @@ public class TutorialTrigger : MonoBehaviour
   }
 
 
-    private void OnDisable()
-    {
-    UpdateInteractionPopup(false);
+  private void OnDisable()
+  {
+    if (_popupVisible && _hudDirector != null && _player != null)
+      _hudDirector.TutorialInteractionPopup(_player.ID, false);
+
+    _popupVisible = false;
+    _playerCollidersInside.Clear();
 
     _playerInside = false;
     _playerInput = null;

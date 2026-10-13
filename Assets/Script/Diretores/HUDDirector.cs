@@ -666,43 +666,65 @@ public class HudDirector : MonoBehaviour
     ShowPanel(HudPanelType.InteractionPopup, playerID, independent: true);
   }
 
-  public void TutorialInteractionPopup(int playerID, bool show)
+  public bool TutorialInteractionPopup(int playerID, bool show)
   {
-    if (!interactionTexts.TryGetValue(playerID, out var text) ||
-        !interactionImages.TryGetValue(playerID, out var image))
-      return;
+    Debug.Log(
+        $"[HudDirector] TutorialInteractionPopup chamado. " +
+        $"Player ID: {playerID} | Mostrar: {show}"
+    );
 
-    if (show)
+    if (!canvasMap.ContainsKey(playerID))
     {
-      _tutorialPopupPlayers.Add(playerID);
-
-      var action = InputSystem.actions?.FindAction("Interaction");
-      text.text = action != null
-          ? action.GetBindingDisplayString()
-          : "Interagir";
-
-      text.DOColor(Color.white, PANEL_TWEEN_DURATION);
-
-      ShowPanel(
-          HudPanelType.InteractionPopup,
-          playerID,
-          independent: true
+      Debug.LogError(
+          $"[HudDirector] HUD não inicializado para o jogador {playerID}."
       );
+      return false;
     }
-    else
+
+    var panels = GetPanel(playerID, HudPanelType.InteractionPopup);
+
+    if (panels.Count == 0)
     {
-      _tutorialPopupPlayers.Remove(playerID);
-
-      HidePanel(
-          HudPanelType.InteractionPopup,
-          playerID,
-          independent: true
+      Debug.LogError(
+          "[HudDirector] Painel InteractionPopup não encontrado. " +
+          "Confira o nome do objeto no HUD."
       );
-      text.text = string.Empty;
-
-      if (originalSprites.TryGetValue(playerID, out var originalSprite))
-        image.sprite = originalSprite;
+      return false;
     }
+
+    if (!interactionTexts.TryGetValue(playerID, out var text) || text == null)
+    {
+      Debug.LogError(
+          $"[HudDirector] Texto do popup não registrado para o jogador {playerID}."
+      );
+      return false;
+    }
+
+    if (!show)
+      return true; // Por enquanto, não estamos testando o fechamento.
+
+    _tutorialPopupPlayers.Add(playerID);
+
+    var action = InputSystem.actions?.FindAction("Interaction");
+
+    text.text = action != null
+        ? action.GetBindingDisplayString()
+        : "Interagir";
+
+    text.color = Color.white;
+
+    ShowPanel(
+        HudPanelType.InteractionPopup,
+        playerID,
+        independent: true
+    );
+
+    Debug.Log(
+        $"[HudDirector] Popup solicitado para abrir. " +
+        $"Painéis encontrados: {panels.Count}"
+    );
+
+    return true;
   }
 
   private void ApplyInteractionVisuals(
