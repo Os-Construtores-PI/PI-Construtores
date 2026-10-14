@@ -220,14 +220,11 @@ public class TutorialTrigger : MonoBehaviour
     if (exitingPlayer != _player)
       return;
 
-    // Remove apenas o collider que saiu.
     _playerCollidersInside.Remove(other);
 
-    // Se ainda houver algum collider dentro, mantém o popup.
     if (_playerCollidersInside.Count > 0)
       return;
 
-    // O jogador saiu completamente do trigger.
     SetInteractionPopup(false);
 
     _playerInside = false;
