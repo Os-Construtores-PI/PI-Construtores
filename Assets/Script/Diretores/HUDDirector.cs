@@ -719,17 +719,25 @@ public class HudDirector : MonoBehaviour
 
     if (show)
     {
-      // Dá prioridade ao popup do tutorial.
+      // Dá prioridade ao tutorial e bloqueia o popup comum.
       _tutorialPopupPlayers.Add(playerID);
       _interactionPopupVisiblePlayers.Remove(playerID);
 
       var action = InputSystem.actions?.FindAction("Interaction");
 
+      text.DOKill();
       text.text = action != null
           ? action.GetBindingDisplayString()
           : "Interagir";
 
       text.color = Color.white;
+
+      if (interactionImages.TryGetValue(playerID, out var image)
+          && image != null
+          && originalSprites.TryGetValue(playerID, out var originalSpritess))
+      {
+        image.sprite = originalSpritess;
+      }
 
       ShowPanel(
           HudPanelType.InteractionPopup,
@@ -737,14 +745,10 @@ public class HudDirector : MonoBehaviour
           independent: true
       );
 
-      Debug.Log(
-          $"[HudDirector] Popup do tutorial exibido para o jogador {playerID}."
-      );
-
       return true;
     }
 
-    // O jogador saiu do Trigger: libera o popup comum.
+    // Remove o estado do tutorial.
     _tutorialPopupPlayers.Remove(playerID);
     _interactionPopupVisiblePlayers.Remove(playerID);
 
@@ -752,21 +756,20 @@ public class HudDirector : MonoBehaviour
     text.text = string.Empty;
     text.color = Color.white;
 
-    if (interactionImages.TryGetValue(playerID, out var image)
-        && image != null
+    if (interactionImages.TryGetValue(playerID, out var imageToReset)
+        && imageToReset != null
         && originalSprites.TryGetValue(playerID, out var originalSprite))
     {
-      image.sprite = originalSprite;
+      imageToReset.sprite = originalSprite;
     }
 
+    // Esconde o popup imediatamente para não deixar o ícone preso.
     HidePanel(
         HudPanelType.InteractionPopup,
         playerID,
-        independent: true
-    );
-
-    Debug.Log(
-        $"[HudDirector] Popup do tutorial fechado para o jogador {playerID}."
+        independent: true,
+        fade: false,
+        instant: true
     );
 
     return true;
