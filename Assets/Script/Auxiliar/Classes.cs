@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
-using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.PostProcessing;
 
 #region Utilities
 
@@ -245,6 +243,7 @@ public class EffectsWorker : IDisposable
     particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     await Task.Yield();
 
+    // Bail out if another call superseded us while we were suspended.
     if (!IsCurrent(effectType, cts) || !effect)
       return;
 
@@ -447,7 +446,3 @@ public class PlayerTeleportEvent : UnityEvent<int> { }
 public class PlayerAmethystsEvent : UnityEvent<int> { }
 
 #endregion
-
-
-
-
