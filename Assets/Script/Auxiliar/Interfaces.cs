@@ -75,9 +75,3 @@ public interface IRespawnable
   public bool IsAlive { get; }
   public void Respawn();
 }
-
-
-public interface IScanner<TInput, TOutput>
-{
-  TOutput Scan(TInput input);
-}
