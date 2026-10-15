@@ -58,11 +58,13 @@ public class PlayerMotor : MonoBehaviour, ICharacterController
     if (OverrideMotorRotation)
       return;
 
-    if (_player.Direction.sqrMagnitude > 0.01f)
-    {
-      Quaternion targetRot = Quaternion.LookRotation(_player.Direction, Engine.CharacterUp);
-      currentRotation = Quaternion.Slerp(currentRotation, targetRot, 15f * deltaTime);
-    }
+    float turnInput = _player.MoveInput.x;
+
+    if (Mathf.Abs(turnInput) < 0.01f)
+      return;
+
+    float angle = turnInput * _player.TurnSpeed * deltaTime;
+    currentRotation = Quaternion.AngleAxis(angle, Engine.CharacterUp) * currentRotation;
   }
 
   public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)

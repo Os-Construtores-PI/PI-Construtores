@@ -47,6 +47,16 @@ public class Player : CombatEntities
     set => _speed = value;
   }
 
+  [Header("Rotação")]
+  [SerializeField]
+  private float _turnSpeed = 180f;
+
+  public float TurnSpeed
+  {
+    get => _turnSpeed;
+    set => _turnSpeed = value;
+  }
+
   public float InitialSpeed { get; private set; }
 
   [HideInInspector]

@@ -3,7 +3,6 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
 [RequireComponent(typeof(ManualPlayersSpawner))]
 public class PlayerDirector : MonoBehaviour
 {
@@ -44,9 +43,6 @@ public class PlayerDirector : MonoBehaviour
   [Header("Referências de cena")]
   [SerializeField]
   private HudDirector _hudDirector;
-
-  [SerializeField]
-  private CameraDirector _cameraDirector;
 
   [SerializeField]
   private Transform _spawnTransform;
@@ -227,7 +223,6 @@ public class PlayerDirector : MonoBehaviour
       _hudDirector.InitializeNoise(id, noise);
 
     _playerCameras[id] = camObj;
-    _cameraDirector.Register(player.transform, groupRoot);
   }
 
   // =========================================================

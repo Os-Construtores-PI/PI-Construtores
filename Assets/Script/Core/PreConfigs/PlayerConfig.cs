@@ -25,6 +25,10 @@ public class PlayerConfig : ScriptableObject
   [SerializeField]
   private float velocidade = 30f;
 
+  [Header("Rotação")]
+  [SerializeField]
+  private float velocidadeRotacao = 180f;
+
   [SerializeField]
   private float aceleracao;
 
@@ -92,6 +96,7 @@ public class PlayerConfig : ScriptableObject
     player.EnableRegen = habilitarRegeneracao;
     player.RegenerationInterval = intervaloRegeneracao;
     player.Speed = velocidade;
+    player.TurnSpeed = velocidadeRotacao;
     player.Acceleration = aceleracao;
     player.Friction = friccaoTerra;
     player.AirFriction = friccaoAr;

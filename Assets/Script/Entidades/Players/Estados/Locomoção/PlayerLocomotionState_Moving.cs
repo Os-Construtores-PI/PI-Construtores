@@ -6,17 +6,14 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
   public PlayerActionType Type => PlayerActionType.Move;
   public HashSet<PlayerActionType> IncompatibleActions => new();
 
-  // ─── Coyote Time ──────────────────────────────────────────────────────────
   private readonly Timer _coyoteTimer = new();
   private bool _coyoteStarted = false;
   private const float CoyoteInterval = 0.3f;
+  private const float TurnSpeed = 180f;
 
-  // ─── Estado Interno ───────────────────────────────────────────────────────
   private bool _wasGrounded;
   private bool _justLanded = false;
   private bool _requestBounce = false;
-
-  // ─── Enter / Exit ─────────────────────────────────────────────────────────
 
   public void Enter(Player player)
   {
@@ -39,8 +36,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
 
   public void Update(Player player) { }
 
-  // ─── FixedUpdate ──────────────────────────────────────────────────────────
-
   public void FixedUpdate(Player player)
   {
     if (!player.Motor.IsGrounded && _wasGrounded)
@@ -60,11 +55,7 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     {
       HandleCoyoteTime(player);
     }
-
-    HandleRotation(player);
   }
-
-  // ─── Landing Logic ────────────────────────────────────────────────────────
 
   private void ApplyLandingLogic(Player player)
   {
@@ -80,23 +71,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     }
   }
 
-  // ─── Rotação (Visual) ─────────────────────────────────────────────────────
-
-  private void HandleRotation(Player player)
-  {
-    if (player.MoveInput == Vector2.zero)
-      return;
-
-    Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
-    player.transform.rotation = Quaternion.Slerp(
-      player.transform.rotation,
-      Quaternion.LookRotation(direction),
-      10f * Time.fixedDeltaTime
-    );
-  }
-
-  // ─── Coyote Time ──────────────────────────────────────────────────────────
-
   private void HandleCoyoteTime(Player player)
   {
     if (!_coyoteStarted)
@@ -110,8 +84,6 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
       _coyoteStarted = false;
     }
   }
-
-  // ─── KCC: CalculateKCCVelocity ────────────────────────────────────────────
 
   public void CalculateKCCVelocity(Player player, ref Vector3 currentVelocity, float deltaTime)
   {
@@ -127,26 +99,27 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
 
     Vector3 horizontalVel = new(currentVelocity.x, 0f, currentVelocity.z);
 
-    bool hasInput = player.MoveInput.sqrMagnitude > 0.1f;
+    float moveInput = player.MoveInput.y;
+    bool hasInput = Mathf.Abs(moveInput) > 0.1f;
 
     if (!hasInput)
     {
-      float holspeed = horizontalVel.magnitude;
-      float newSpeed = Mathf.MoveTowards(holspeed, 0f, friction * deltaTime);
+      float currentSpeed = horizontalVel.magnitude;
+      float newSpeed = Mathf.MoveTowards(currentSpeed, 0f, friction * deltaTime);
       horizontalVel = newSpeed <= 0.5f ? Vector3.zero : horizontalVel.normalized * newSpeed;
     }
     else
     {
-      Vector3 direction = ILocomotionState<Player>.CalculateCameraDirection(player);
+      Vector3 forward = player.Motor.Engine.CharacterForward;
+      forward.y = 0f;
+      forward.Normalize();
 
-      if (direction.sqrMagnitude > 0.01f)
-        player.Direction = direction;
+      player.Direction = forward * Mathf.Sign(moveInput);
 
-      horizontalVel.x = QualityOfLife.SmoothStepLerp(horizontalVel.x, direction.x * speed, accel);
-      horizontalVel.z = QualityOfLife.SmoothStepLerp(horizontalVel.z, direction.z * speed, accel);
+      Vector3 targetVel = forward * (moveInput * speed);
+      horizontalVel.x = QualityOfLife.SmoothStepLerp(horizontalVel.x, targetVel.x, accel);
+      horizontalVel.z = QualityOfLife.SmoothStepLerp(horizontalVel.z, targetVel.z, accel);
     }
-
-    if (!player.Motor.IsGrounded && player.IsImpulsioned && player.MoveInput == Vector2.zero) { }
 
     if (horizontalVel.sqrMagnitude < 0.25f)
     {
@@ -161,13 +134,5 @@ public class PlayerLocomotionStateMoving : ILocomotionState<Player>
     ILocomotionState<Player>.ApplyGravity(ref currentVelocity, player, deltaTime);
 
     currentVelocity = new Vector3(horizontalVel.x, currentVelocity.y, horizontalVel.z);
-  }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-
-  private static float GetStatValue(Player player, StatType statType, float fallback)
-  {
-    player.Stats.TryGetNum(statType, out float value);
-    return value > 0f ? value : fallback;
   }
 }
