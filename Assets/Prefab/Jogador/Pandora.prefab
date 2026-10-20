@@ -22580,6 +22580,8 @@ MonoBehaviour:
     _continuousBoostUsage: 10
     _maxVelocity: 100
     _gravityInState: -50
+    _lateralSpeed: 15
+    _inputDeadzone: 0.2
     _rampInDuration: 1.5
     _rampOutDuration: 3
     _rampInEase: 5
@@ -22603,13 +22605,33 @@ MonoBehaviour:
     _exitMinHorizontalSpeed: 8
     _modelOffset: {x: 0, y: 1.55, z: 0}
     _slideIncrementScore: 20
+    _slideIncrementBoost: 20
   Trick:
     TrickDeadzone: 0.3
+    _freeTrickScore: 100
     _sequenceTimeout: 0.35
     _groundedGraceTime: 0.1
     _landingResetDuration: 0.1
     _landingResetEase: 6
+    _rotations:
+    - Direction: 1
+      Rotation: {x: 0, y: -360, z: 0}
+      Duration: 0.5
+      Ease: 6
+    - Direction: 3
+      Rotation: {x: 0, y: 360, z: 0}
+      Duration: 0.5
+      Ease: 6
+    - Direction: 2
+      Rotation: {x: 360, y: 0, z: 0}
+      Duration: 0.5
+      Ease: 6
+    - Direction: 4
+      Rotation: {x: -360, y: 0, z: 0}
+      Duration: 0.5
+      Ease: 6
     _sequences: []
+    _comboPerTrick: 3
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
   MoveInput: {x: 0, y: 0}
@@ -22634,7 +22656,7 @@ MonoBehaviour:
   _initialBoostValue: 100
   _entitymask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 576
   _knockbackStrength: 20
   _launchStrength: 30
   _stagesOfCombo:
@@ -22652,7 +22674,7 @@ MonoBehaviour:
   - {fileID: 6841662986189966198}
   enemyScanRadius: 10
   _railEntryRadius: 12
-  _railEntryMinDot: -0.5
+  _railEntryMinDot: 0.5
   _railLayerMask:
     serializedVersion: 2
     m_Bits: 513

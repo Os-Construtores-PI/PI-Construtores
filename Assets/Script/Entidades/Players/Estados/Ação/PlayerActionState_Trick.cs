@@ -8,7 +8,11 @@ public class PlayerActionStateTrick : IPlayerState<Player>
 {
   public enum TrickDirection
   {
-    None, Left, Up, Right, Down
+    None,
+    Left,
+    Up,
+    Right,
+    Down,
   }
 
   [Serializable]
@@ -29,76 +33,98 @@ public class PlayerActionStateTrick : IPlayerState<Player>
   }
 
   public float TrickDeadzone = .6f;
+
   [SerializeField]
   private int _freeTrickScore = 100;
+
   [SerializeField]
   private float _sequenceTimeout = 0.35f;
+
   [SerializeField]
   private float _groundedGraceTime = 0.1f;
+
   [SerializeField]
   private float _landingResetDuration = 0.1f;
+
   [SerializeField]
   private Ease _landingResetEase = Ease.OutQuad;
+
   [SerializeField]
   private List<DirectionRotation> _rotations = new()
   {
-    new DirectionRotation { Direction = TrickDirection.Left, Rotation = new Vector3(0f, -360f, 0f) },
-    new DirectionRotation { Direction = TrickDirection.Right, Rotation = new Vector3(0f, 360f, 0f) },
+    new DirectionRotation
+    {
+      Direction = TrickDirection.Left,
+      Rotation = new Vector3(0f, -360f, 0f),
+    },
+    new DirectionRotation
+    {
+      Direction = TrickDirection.Right,
+      Rotation = new Vector3(0f, 360f, 0f),
+    },
     new DirectionRotation { Direction = TrickDirection.Up, Rotation = new Vector3(360f, 0f, 0f) },
-    new DirectionRotation { Direction = TrickDirection.Down, Rotation = new Vector3(-360f, 0f, 0f) },
+    new DirectionRotation
+    {
+      Direction = TrickDirection.Down,
+      Rotation = new Vector3(-360f, 0f, 0f),
+    },
   };
+
   [SerializeField]
   private List<TrickSequence> _sequences = new();
 
   public PlayerActionType Type => PlayerActionType.Trick;
 
-  public HashSet<PlayerActionType> IncompatibleActions => new();
+  public HashSet<PlayerActionType> IncompatibleActions => new() { PlayerActionType.RailSlide };
 
-  readonly List<TrickDirection> buffer = new();
-  Tween trickTween;
-  Tween resetTween;
-  Quaternion restRotation;
-  float bufferTimer;
-  float timeInState;
+  readonly List<TrickDirection> _buffer = new();
+  Tween _trickTween;
+  Tween _resetTween;
+  Quaternion _restRotation;
+  float _bufferTimer;
+  float _timeInState;
+
+  [SerializeField]
+  private int _comboPerTrick = 3;
+  int _trickCount = 0;
 
   public void Enter(Player entity)
   {
-    if (resetTween != null && resetTween.IsActive())
-      resetTween.Complete();
+    if (_resetTween != null && _resetTween.IsActive())
+      _resetTween.Complete();
 
-    restRotation = entity.Model.localRotation;
-    buffer.Clear();
-    bufferTimer = 0f;
-    timeInState = 0f;
+    _restRotation = entity.Model.localRotation;
+    _buffer.Clear();
+    _bufferTimer = 0f;
+    _trickCount = 0;
+    _timeInState = 0f;
   }
 
   public void Exit(Player entity)
   {
-    buffer.Clear();
+    _buffer.Clear();
 
-    if (trickTween != null && trickTween.IsActive())
-      trickTween.Kill();
+    if (_trickTween != null && _trickTween.IsActive())
+      _trickTween.Kill();
 
     if (_landingResetDuration <= 0f)
     {
-      entity.Model.localRotation = restRotation;
+      entity.Model.localRotation = _restRotation;
       return;
     }
 
-    resetTween = entity.Model
-      .DOLocalRotateQuaternion(restRotation, _landingResetDuration)
+    _resetTween = entity
+      .Model.DOLocalRotateQuaternion(_restRotation, _landingResetDuration)
       .SetEase(_landingResetEase);
   }
 
-  public void FixedUpdate(Player entity)
-  {
-  }
+  public void FixedUpdate(Player entity) { }
 
   public void Update(Player entity)
   {
-    timeInState += Time.deltaTime;
+    _timeInState += Time.deltaTime;
 
-    if (entity.Motor.IsGrounded && timeInState >= _groundedGraceTime)
+    if (entity.Motor.IsGrounded && _timeInState >= _groundedGraceTime)
     {
       entity.ActionLayer.ExitState(this, entity);
       return;
@@ -112,52 +138,58 @@ public class PlayerActionStateTrick : IPlayerState<Player>
       PushDirection(entity, direction);
     }
 
-    if (buffer.Count == 0)
+    if (_buffer.Count == 0)
       return;
 
-    bufferTimer += Time.deltaTime;
+    _bufferTimer += Time.deltaTime;
 
-    if (bufferTimer >= _sequenceTimeout)
+    if (_bufferTimer >= _sequenceTimeout)
     {
       TrickSequence match = FindExactMatch();
 
       if (match != null)
         entity.AddScore(match.Score);
 
-      buffer.Clear();
+      _buffer.Clear();
     }
   }
 
   void PerformFreeTrick(Player entity, TrickDirection direction)
   {
     entity.AddScore(_freeTrickScore);
+    _trickCount += 1;
+
+    if (_trickCount % _comboPerTrick == 0)
+    {
+      entity.ComboUp();
+    }
 
     DirectionRotation config = FindRotation(direction);
 
     if (config == null)
       return;
 
-    if (trickTween != null && trickTween.IsActive())
-      trickTween.Complete();
+    if (_trickTween != null && _trickTween.IsActive())
+      _trickTween.Complete();
 
-    trickTween = entity.Model
-      .DOLocalRotate(config.Rotation, config.Duration, RotateMode.LocalAxisAdd)
+    _trickTween = entity
+      .Model.DOLocalRotate(config.Rotation, config.Duration, RotateMode.LocalAxisAdd)
       .SetEase(config.Ease);
   }
 
   void PushDirection(Player entity, TrickDirection direction)
   {
-    buffer.Add(direction);
-    bufferTimer = 0f;
+    _buffer.Add(direction);
+    _bufferTimer = 0f;
 
     if (!IsPrefixOfAny())
     {
-      buffer.Clear();
-      buffer.Add(direction);
+      _buffer.Clear();
+      _buffer.Add(direction);
 
       if (!IsPrefixOfAny())
       {
-        buffer.Clear();
+        _buffer.Clear();
         return;
       }
     }
@@ -168,7 +200,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
     {
       entity.AddScore(match.Score);
       entity.ComboUp();
-      buffer.Clear();
+      _buffer.Clear();
     }
   }
 
@@ -189,7 +221,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
 
     foreach (TrickSequence sequence in _sequences)
     {
-      if (sequence.Directions.Count != buffer.Count)
+      if (sequence.Directions.Count != _buffer.Count)
         continue;
 
       if (StartsWithBuffer(sequence))
@@ -203,7 +235,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
   {
     foreach (TrickSequence sequence in _sequences)
     {
-      if (sequence.Directions.Count >= buffer.Count && StartsWithBuffer(sequence))
+      if (sequence.Directions.Count >= _buffer.Count && StartsWithBuffer(sequence))
         return true;
     }
 
@@ -214,7 +246,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
   {
     foreach (TrickSequence sequence in _sequences)
     {
-      if (sequence.Directions.Count > buffer.Count && StartsWithBuffer(sequence))
+      if (sequence.Directions.Count > _buffer.Count && StartsWithBuffer(sequence))
         return true;
     }
 
@@ -223,9 +255,9 @@ public class PlayerActionStateTrick : IPlayerState<Player>
 
   bool StartsWithBuffer(TrickSequence sequence)
   {
-    for (int i = 0; i < buffer.Count; i++)
+    for (int i = 0; i < _buffer.Count; i++)
     {
-      if (sequence.Directions[i] != buffer[i])
+      if (sequence.Directions[i] != _buffer[i])
         return false;
     }
 

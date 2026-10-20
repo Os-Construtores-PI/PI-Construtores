@@ -47,6 +47,12 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _gravityInState = -50f;
 
+  [SerializeField]
+  private float _lateralSpeed = 15f;
+
+  [SerializeField]
+  private float _inputDeadzone = 0.2f;
+
   [Header("Boost Ramp (início e fim gradual)")]
   [SerializeField]
   private float _rampInDuration = 1.5f;
@@ -141,6 +147,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
+    player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
 
     Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
 
@@ -221,6 +228,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.StopEffect(TrailType.MovementTrail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.StopEffect(TrailType.MovementSupport2Trail);
+    player.LocomotionLayer.ChangeState(player.Moving, player);
 
     _speedRampTween?.Kill();
     _speedRampTween = DOTween
@@ -289,7 +297,18 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     }
   }
 
-  public void FixedUpdate(Player player) { }
+  public void FixedUpdate(Player player)
+  {
+    float x = player.MoveInput.x;
+    float side = Mathf.Abs(x) > _inputDeadzone ? Mathf.Sign(x) : 0f;
+
+    Vector3 forward = player.transform.forward * player.Speed;
+    Vector3 lateral = _lateralSpeed * side * player.transform.right;
+
+    Vector3 velocity = forward + lateral;
+    velocity.y = player.Motor.Velocity.y;
+    player.Motor.Velocity = velocity;
+  }
 
   private void OnBoostHitDetected()
   {

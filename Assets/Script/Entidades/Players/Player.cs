@@ -36,7 +36,6 @@ public class Player : CombatEntities
   private const string TAG_DASH_HUD = "DashHUDIcon";
   private const string TAG_GAME_CONTROLLER = "GameController";
 
-
   #endregion
 
   #region Movimento - Stats
@@ -1006,13 +1005,15 @@ public class Player : CombatEntities
     trickArmed = false;
 
     if (Mathf.Abs(raw.x) > Mathf.Abs(raw.y))
-      _trickInput = raw.x > 0f
-        ? PlayerActionStateTrick.TrickDirection.Right
-        : PlayerActionStateTrick.TrickDirection.Left;
+      _trickInput =
+        raw.x > 0f
+          ? PlayerActionStateTrick.TrickDirection.Right
+          : PlayerActionStateTrick.TrickDirection.Left;
     else
-      _trickInput = raw.y > 0f
-        ? PlayerActionStateTrick.TrickDirection.Up
-        : PlayerActionStateTrick.TrickDirection.Down;
+      _trickInput =
+        raw.y > 0f
+          ? PlayerActionStateTrick.TrickDirection.Up
+          : PlayerActionStateTrick.TrickDirection.Down;
 
     ActionLayer.PushState(Trick, this);
   }

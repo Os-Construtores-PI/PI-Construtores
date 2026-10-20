@@ -896,16 +896,18 @@ public class HudDirector : MonoBehaviour
   private void UpdateComboText(List<GameObject> panels, int comboIndex)
   {
     foreach (var go in panels)
-    foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
     {
-      if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
-        continue;
+      foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
+      {
+        if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
+          continue;
 
-      text.text = $"x{comboIndex + 1}";
-      text.transform.DOKill();
-      text.transform.localScale = Vector3.one;
-      text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
-        .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
+        text.transform.DOKill();
+        text.SetText($"x{comboIndex + 1}");
+        text.transform.localScale = Vector3.one;
+        text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
+          .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
+      }
     }
   }
 
