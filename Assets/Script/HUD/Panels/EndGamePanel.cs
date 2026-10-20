@@ -35,6 +35,8 @@ public class EndGamePanel : MonoBehaviour
   [SerializeField]
   private TextMeshProUGUI _uuidOutput;
 
+  private bool _canInput = false;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Unity Events
   // ═══════════════════════════════════════════════════════════════════════════
@@ -80,11 +82,49 @@ public class EndGamePanel : MonoBehaviour
   public void Populate(int score, int previewScore, float time, string uuid, RankType rank)
   {
     HideRank();
+    _canInput = false;
 
-    SetScore(score, () => SetRank(rank));
-    SetPreviewScore(previewScore);
-    SetTime(time);
+    int pending = 3;
+
+    void Done()
+    {
+      if (--pending == 0)
+        _canInput = true;
+    }
+
+    SetScore(
+      score,
+      () =>
+      {
+        SetRank(rank);
+        Done();
+      }
+    );
+    SetPreviewScore(previewScore, Done);
+    SetTime(time, Done);
     SetUUID(uuid);
+  }
+
+  private void SetPreviewScore(int previewScore, Action onComplete = null)
+  {
+    if (!_previewScoreOutput)
+    {
+      onComplete?.Invoke();
+      return;
+    }
+
+    _previewScoreOutput.SetValue(previewScore).OnComplete(() => onComplete?.Invoke());
+  }
+
+  private void SetTime(float seconds, Action onComplete = null)
+  {
+    if (!_timeOutput)
+    {
+      onComplete?.Invoke();
+      return;
+    }
+
+    _timeOutput.SetValue(seconds).OnComplete(() => onComplete?.Invoke());
   }
 
   private void SetScore(int score, Action onComplete = null)
@@ -120,20 +160,6 @@ public class EndGamePanel : MonoBehaviour
     _rankOutput.gameObject.SetActive(true);
   }
 
-  private void SetPreviewScore(int previewScore)
-  {
-    if (_previewScoreOutput)
-      _previewScoreOutput.SetValue(previewScore);
-  }
-
-  private void SetTime(float seconds)
-  {
-    if (!_timeOutput)
-      return;
-
-    _timeOutput.SetValue(seconds);
-  }
-
   private void SetUUID(string uuid)
   {
     if (!_uuidOutput)
@@ -144,6 +170,8 @@ public class EndGamePanel : MonoBehaviour
 
   private void ListeningForInput()
   {
+    if (!_canInput)
+      return;
     bool advancePressed = false;
     bool resetPressed = false;
     if (Keyboard.current != null)

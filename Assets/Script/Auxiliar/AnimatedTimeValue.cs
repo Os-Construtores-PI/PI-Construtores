@@ -25,7 +25,7 @@ public class AnimatedTimeValue : MonoBehaviour
 
   private Tween _currentTween;
 
-  public void SetValue(float newTimeInSeconds)
+  public Tween SetValue(float newTimeInSeconds)
   {
     _currentTween?.Kill();
 
@@ -35,6 +35,8 @@ public class AnimatedTimeValue : MonoBehaviour
       .Float(startValue, newTimeInSeconds, _duration, value => _textOutput.text = FormatTime(value))
       .SetEase(_ease)
       .SetUpdate(true);
+
+    return _currentTween;
   }
 
   public void SetValueImmediate(float newTimeInSeconds)
