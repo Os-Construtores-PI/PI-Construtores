@@ -22247,7 +22247,19 @@ MonoBehaviour:
     m_ActionId: 351f2ccd-1f9f-44bf-9bec-d62ac5c5f408
     m_ActionName: 'Player/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6754862074013953145}
+        m_TargetAssemblyTypeName: Pandora, Assembly-CSharp
+        m_MethodName: OnTrick
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6b444451-8a00-4d00-a97e-f47457f736a8
     m_ActionName: 'Player/Look[/Mouse/delta]'
   - m_PersistentCalls:
@@ -22469,7 +22481,6 @@ MonoBehaviour:
   _enableRegen: 0
   regenerationInterval: 5
   Damaged: 0
-  _turnSpeed: 180
   WallSpeedMultiplier: 2
   Acceleration: 5
   AccelerationRunning: 10
@@ -22592,6 +22603,13 @@ MonoBehaviour:
     _exitMinHorizontalSpeed: 8
     _modelOffset: {x: 0, y: 1.55, z: 0}
     _slideIncrementScore: 20
+  Trick:
+    TrickDeadzone: 0.3
+    _sequenceTimeout: 0.35
+    _groundedGraceTime: 0.1
+    _landingResetDuration: 0.1
+    _landingResetEase: 6
+    _sequences: []
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
   MoveInput: {x: 0, y: 0}
@@ -22606,7 +22624,7 @@ MonoBehaviour:
   MaxDashCount: 1
   CurrentDashCount: 0
   DashDuration: 0
-  _modelTransform: {fileID: 6707445767027251514}
+  Model: {fileID: 6707445767027251514}
   LastDevice: 0
   JumpInteractionPressed: 0
   BoostChanged:

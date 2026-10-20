@@ -117,6 +117,7 @@ public enum PlayerActionType
   Boost,
   Bounce,
   RailSlide,
+  Trick
 }
 
 public enum DialogueLayoutType

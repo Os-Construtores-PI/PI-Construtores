@@ -35,6 +35,8 @@ public class Player : CombatEntities
   private const string TAG_PLAYER = "Player";
   private const string TAG_DASH_HUD = "DashHUDIcon";
   private const string TAG_GAME_CONTROLLER = "GameController";
+
+
   #endregion
 
   #region Movimento - Stats
@@ -47,8 +49,6 @@ public class Player : CombatEntities
     set => _speed = value;
   }
 
-  [Header("Rotação")]
-  [SerializeField]
   private float _turnSpeed = 180f;
 
   public float TurnSpeed
@@ -177,6 +177,7 @@ public class Player : CombatEntities
   public PlayerActionStateBoost Boost = new();
   public PlayerActionStateJump Jump = new();
   public PlayerActionStateRailSlide RailSlide = new();
+  public PlayerActionStateTrick Trick = new();
 
   public readonly PlayerLocomotionStateMoving Moving = new();
   public readonly PlayerLocomotionStateLocked Locked = new();
@@ -193,6 +194,8 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public Vector2 MoveInput;
+
+  private PlayerActionStateTrick.TrickDirection _trickInput;
 
   [HideInInspector]
   public Vector3 LastWallNormal;
@@ -238,7 +241,7 @@ public class Player : CombatEntities
 
   [HideInInspector]
   public float GroundSlamImpactSpeed { get; set; } = 0f;
-  public Transform _modelTransform;
+  public Transform Model;
 
   [HideInInspector]
   public DeviceType LastDevice = DeviceType.Keyboard;
@@ -607,21 +610,13 @@ public class Player : CombatEntities
     if (Keyboard.current == null)
       return;
 
-    if (Keyboard.current.f1Key.wasPressedThisFrame)
+    if (Keyboard.current.f5Key.wasPressedThisFrame)
     {
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
       GameContext.ShowStageIntro = true;
     }
 
-    if (Keyboard.current.f2Key.wasPressedThisFrame)
-    {
-      _willInvertYAxis = !_willInvertYAxis;
-      InputAction lookAction = InputSystem.actions.FindAction("Look");
-      lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
-      Debug.Log($"[DevMode] Inverter eixo Y: {_willInvertYAxis}");
-    }
-
-    if (Keyboard.current.f3Key.wasPressedThisFrame)
+    if (Keyboard.current.f6Key.wasPressedThisFrame)
     {
       _devInvulnerable = !_devInvulnerable;
       HurtboxCollider.TriggerInvulnerability(_devInvulnerable ? float.MaxValue : 0f);
@@ -667,7 +662,6 @@ public class Player : CombatEntities
 
     TrailsSystem.InitTrails(transform.Find("Trails"));
     PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
-    _modelTransform = transform.Find("Model");
     BoostValue = _initialBoostValue;
 
     LocomotionLayer.ChangeState(Moving, this);
@@ -677,9 +671,7 @@ public class Player : CombatEntities
   {
     base.Update();
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
     HandleDevModeInput();
-#endif
 
     ComboTimer();
 
@@ -771,7 +763,6 @@ public class Player : CombatEntities
   private void SetupCinemachine()
   {
     InputAction lookAction = InputSystem.actions.FindAction("Look");
-    lookAction.ApplyParameterOverride((InvertVector2Processor p) => p.invertY, _willInvertYAxis);
     _cinemachineInput = MainCamera.GetComponent<CinemachineInputAxisController>();
     _cinemachineOrbital = MainCamera.GetComponent<CinemachineOrbitalFollow>();
   }
@@ -987,6 +978,50 @@ public class Player : CombatEntities
     if (IgnoreGameplayInputThisFrame)
       return;
     MoveInput = context.ReadValue<Vector2>();
+  }
+
+  bool trickArmed = true;
+
+  public void OnTrick(InputAction.CallbackContext context)
+  {
+    if (IgnoreGameplayInputThisFrame)
+      return;
+
+    Vector2 raw = context.ReadValue<Vector2>();
+    float trickDeadzone = Trick.TrickDeadzone;
+    float deadzoneSqr = trickDeadzone * trickDeadzone;
+
+    if (raw.sqrMagnitude < deadzoneSqr)
+    {
+      trickArmed = true;
+      return;
+    }
+
+    if (!trickArmed)
+      return;
+
+    if (Motor.IsGrounded)
+      return;
+
+    trickArmed = false;
+
+    if (Mathf.Abs(raw.x) > Mathf.Abs(raw.y))
+      _trickInput = raw.x > 0f
+        ? PlayerActionStateTrick.TrickDirection.Right
+        : PlayerActionStateTrick.TrickDirection.Left;
+    else
+      _trickInput = raw.y > 0f
+        ? PlayerActionStateTrick.TrickDirection.Up
+        : PlayerActionStateTrick.TrickDirection.Down;
+
+    ActionLayer.PushState(Trick, this);
+  }
+
+  public PlayerActionStateTrick.TrickDirection ConsumeTrickInput()
+  {
+    var dir = _trickInput;
+    _trickInput = PlayerActionStateTrick.TrickDirection.None;
+    return dir;
   }
 
   public void OnDash(InputAction.CallbackContext context)
