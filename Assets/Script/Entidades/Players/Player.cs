@@ -374,7 +374,7 @@ public class Player : CombatEntities
       ComboDown();
   }
 
-  private void ComboUp()
+  public void ComboUp()
   {
     int next = _currentComboIndex + 1;
     _currentComboTypeIndex = Mathf.Min(next, _comboPopupTypes.Count - 1);
@@ -414,7 +414,7 @@ public class Player : CombatEntities
     }
   }
 
-  private void ComboDown()
+  public void ComboDown()
   {
     _currentComboIndex--;
 

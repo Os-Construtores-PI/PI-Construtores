@@ -167,6 +167,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
     if (match != null && !HasLongerSequence())
     {
       entity.AddScore(match.Score);
+      entity.ComboUp();
       buffer.Clear();
     }
   }
