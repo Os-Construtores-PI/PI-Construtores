@@ -838,6 +838,8 @@ public class HudDirector : MonoBehaviour
     {
       DisableHud(player.ID);
       var panel = ShowPanel(HudPanelType.EndGame, player.ID, independent: true);
+
+      player.PlayerInput.DeactivateInput();
       panel.PanelTween.OnComplete(() =>
       {
         if (panel.Panels.FirstOrDefault().GetComponent<EndGamePanel>() is { } endGamePanel)
@@ -863,6 +865,7 @@ public class HudDirector : MonoBehaviour
               : 0f;
             ;
 
+            player.PlayerInput.ActivateInput();
             endGamePanel.Populate(score, previewScore, time, uuid, levelManager.GetRank(time));
           }
         }
