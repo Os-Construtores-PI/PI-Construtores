@@ -26,6 +26,9 @@ public class TutorialGlobal : MonoBehaviour
   [Header("Video")]
   [SerializeField]
   private VideoPlayer videoPlayer;
+  [SerializeField] private CanvasGroup videoCanvasGroup;
+  [SerializeField] private float videoFadeInDuration = 0.5f;
+  [SerializeField] private float videoFadeOutDuration = 0.3f;
 
   [Header("Animation")]
 
@@ -231,10 +234,20 @@ public class TutorialGlobal : MonoBehaviour
     videoPlayer.loopPointReached -= OnVideoFinished;
     videoPlayer.loopPointReached += OnVideoFinished;
 
+    if (videoCanvasGroup != null)
+        videoCanvasGroup.alpha = 0f;
+
     if(videoPanel != null)
        videoPanel.SetActive(true);
 
     videoPlayer.Play();
+
+    if (videoCanvasGroup != null)
+    {
+      videoCanvasGroup.DOFade(1f, videoFadeInDuration)
+        .SetEase(Ease.OutQuad)
+        .SetUpdate(true);
+    }
   }
 
   private void OnVideoFinished(VideoPlayer source)
@@ -247,34 +260,48 @@ public class TutorialGlobal : MonoBehaviour
     if(!IsTutorialActive)
        return;
 
+
     _currentTween?.Kill();
 
     StopVideo();
 
     Sequence sequence = DOTween.Sequence();
 
+    if (videoCanvasGroup != null)
+    {
+      sequence.Append(
+        videoCanvasGroup
+        .DOFade(0f, videoFadeOutDuration))
+        .SetEase(Ease.InQuad);
+    }
+
+    sequence.AppendCallback(() =>
+    {
+      if (videoPanel != null)
+        videoPanel.SetActive(false);
+    });
+
     if (interfaceRight != null)
     {
       sequence.Append(
         interfaceRight
-             .DOAnchorPosX(
-              CalculateHiddenPosition(interfaceRight),
-              exitDuration
-             )
-             .SetEase(Ease.InCubic)
-      );
+        .DOAnchorPosX(
+          CalculateHiddenPosition(interfaceRight),
+          exitDuration)
+        .SetEase(Ease.InCubic)
+        );
     }
 
-    if(interfaceLeft != null)
+    if (interfaceLeft != null)
     {
-      sequence.Append(
+      sequence.Join(
         interfaceLeft
-            .DOAnchorPosX(
-                CalculateHiddenPosition(interfaceLeft),
-                exitDuration
-            )
-            .SetEase(Ease.InCubic)
-    );
+        .DOAnchorPosX(
+          CalculateHiddenPosition(interfaceLeft),
+          exitDuration
+        )
+        .SetEase(Ease.InCubic)
+      );
     }
 
     sequence.AppendCallback(FinishTutorial);
@@ -290,6 +317,9 @@ public class TutorialGlobal : MonoBehaviour
 
     if(videoPanel != null)
        videoPanel.SetActive(false);
+
+    if (videoCanvasGroup != null)
+        videoCanvasGroup.alpha = 1f;
 
     if(tutorialHUD != null)
        tutorialHUD.SetActive(false);
