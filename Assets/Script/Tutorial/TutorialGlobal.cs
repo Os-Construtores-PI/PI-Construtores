@@ -3,6 +3,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Video;
+using UnityEngine.UI;
 
 public class TutorialGlobal : MonoBehaviour
 {
@@ -46,6 +47,10 @@ public class TutorialGlobal : MonoBehaviour
 
   [SerializeField]
   private float exitDuration = 0.4f;
+
+  [Header("Textos em Sprite")]
+  [SerializeField]
+  private Image[] textosTutorial;
 
 
   public bool IsTutorialActive {get; private set;}
@@ -362,5 +367,27 @@ public class TutorialGlobal : MonoBehaviour
 
     if(Instance == this)
        Instance = null;
+  }
+
+  public void SetTutorialSprites(Sprite[] sprites)
+  {
+    if (textosTutorial == null)
+        return;
+
+    for (int i = 0; i < textosTutorial.Length; i++)
+    {
+      if (textosTutorial[i] == null)
+          continue;
+
+      bool hasSprite =
+        sprites != null &&
+        i < sprites.Length &&
+        sprites[i] != null;
+
+      textosTutorial[i].sprite =
+        hasSprite ? sprites[i] : null;
+
+      textosTutorial[i].enabled = hasSprite;
+    }
   }
 }

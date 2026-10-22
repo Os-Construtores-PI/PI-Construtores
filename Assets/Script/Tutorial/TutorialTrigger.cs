@@ -31,6 +31,10 @@ public class TutorialTrigger : MonoBehaviour
 
   private readonly HashSet<Collider> _playerCollidersInside = new();
 
+  [Header("Textos do Tutorial")]
+  [SerializeField]
+  private TutorialSpriteText[] _textosTutorial;
+
   private void Start()
   {
     _hudDirector = FindAnyObjectByType<HudDirector>();
@@ -180,6 +184,8 @@ public class TutorialTrigger : MonoBehaviour
     if (_tutorialGlobal.IsTutorialActive)
         return;
 
+    ApplyTutorialSprites();
+
     _tutorialConsumed = true;
 
     _tutorialGlobal.OpenTutorial(_tutorialVideo);
@@ -311,6 +317,36 @@ public class TutorialTrigger : MonoBehaviour
     ResolveReferences();
 
     SetInteractionPopup(true);
+  }
+
+  private void ApplyTutorialSprites()
+  {
+    ResolveReferences();
+
+    if (_tutorialGlobal == null)
+      return;
+
+    if (_textosTutorial == null)
+    {
+      _tutorialGlobal.SetTutorialSprites(null);
+      return;
+    }
+
+    Sprite[] sprites = new Sprite[_textosTutorial.Length];
+
+    for (int i = 0;  i < _textosTutorial.Length; i++)
+    {
+      sprites[i] = _textosTutorial[i].sprite;
+    }
+
+    _tutorialGlobal.SetTutorialSprites(sprites);
+  }
+
+  [System.Serializable]
+  public class TutorialSpriteText
+  {
+    public string nome;
+    public Sprite sprite;
   }
 
 }
