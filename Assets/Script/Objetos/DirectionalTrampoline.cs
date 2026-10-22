@@ -23,8 +23,8 @@ public class DirectionalTrampoline : LockableObject
     player.Motor.Engine.ForceUnground(.1f);
     player.IsImpulsioned = true;
     player.CurrentDashCount = 0;
-    player.BoostValue += _boostGrace;
     player.DisableLockIn();
+    player.AddBoost(_boostGrace);
     player.AnimatorComponent.SetTrigger(Constants.AnimatorTriggerNames.WasVerticalBoosted);
     _jumpTimer.Start(_jumpCooldown);
   }

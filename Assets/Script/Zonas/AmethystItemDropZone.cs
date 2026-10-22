@@ -141,7 +141,7 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
       return;
 
     player.AddAmethysts(_quantity);
-    player.BoostValue += _boostGrace;
+    player.AddBoost(_boostGrace);
   }
 
   protected override void AfterCollect()

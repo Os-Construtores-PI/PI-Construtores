@@ -183,7 +183,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
     CalculateTargetPosition(player);
     player.AddScore(_slideIncrementScore);
-    player.BoostValue += _slideIncrementBoost * Time.deltaTime;
+    player.AddBoost(_slideIncrementBoost * Time.deltaTime);
   }
 
   public void FixedUpdate(Player player) { }
