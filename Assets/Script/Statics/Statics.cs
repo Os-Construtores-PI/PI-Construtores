@@ -17,6 +17,7 @@ public static class Lookups
       { EntityEffectType.PlayerBoostEffect.ToString(), EntityEffectType.PlayerBoostEffect },
       { EntityEffectType.PlayerSpeedEffect.ToString(), EntityEffectType.PlayerSpeedEffect },
       { EntityEffectType.EntityDeathEffect.ToString(), EntityEffectType.EntityDeathEffect },
+      { EntityEffectType.PlayerTrickEffect.ToString(), EntityEffectType.PlayerTrickEffect },
     };
   }
 

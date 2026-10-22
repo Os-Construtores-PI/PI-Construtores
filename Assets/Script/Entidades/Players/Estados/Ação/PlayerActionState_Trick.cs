@@ -157,7 +157,9 @@ public class PlayerActionStateTrick : IPlayerState<Player>
   void PerformFreeTrick(Player entity, TrickDirection direction)
   {
     entity.AddScore(_freeTrickScore);
+    entity.EffectsSystem.PlayEffect(EntityEffectType.PlayerTrickEffect, 2);
     entity.AddBoostStage();
+
     _trickCount += 1;
 
     if (_trickCount % _comboPerTrick == 0)

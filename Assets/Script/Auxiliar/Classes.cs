@@ -229,32 +229,44 @@ public class EffectsWorker : IDisposable
     Action onComplete = null
   )
   {
-    if (
-      !effects.TryGetValue(effectType, out GameObject effect)
-      || !effect
-      || !effect.TryGetComponent(out ParticleSystem particleSystem)
-    )
+    if (!effects.TryGetValue(effectType, out GameObject effect) || !effect)
+      return;
+
+    ParticleSystem[] systems = effect.GetComponentsInChildren<ParticleSystem>(true);
+    if (systems.Length == 0)
       return;
 
     CancelToken(effectType);
     var cts = new CancellationTokenSource();
     activeTokens[effectType] = cts;
 
-    particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    foreach (ParticleSystem ps in systems)
+    {
+      if (ps)
+        ps.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+    }
+
     await Task.Yield();
 
-    // Bail out if another call superseded us while we were suspended.
     if (!IsCurrent(effectType, cts) || !effect)
       return;
 
-    particleSystem.Clear(true);
-    particleSystem.Simulate(0f, true, true);
-    particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    foreach (ParticleSystem ps in systems)
+    {
+      if (!ps)
+        continue;
 
-    ParticleSystem.MainModule main = particleSystem.main;
-    main.duration = duration;
-    main.loop = false;
-    particleSystem.Play(true);
+      ps.Clear(false);
+      ps.Simulate(0f, false, true);
+      ps.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+      ParticleSystem.MainModule main = ps.main;
+      main.duration = duration;
+      main.loop = false;
+
+      ps.Play(false);
+    }
+
     SetLights(effect, true);
 
     try
@@ -268,7 +280,7 @@ public class EffectsWorker : IDisposable
     catch (ObjectDisposedException)
     {
       return;
-    } // safety net for the same race
+    }
 
     if (!IsCurrent(effectType, cts) || !effect)
       return;

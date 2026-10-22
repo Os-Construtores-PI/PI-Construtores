@@ -117,7 +117,7 @@ public enum PlayerActionType
   Boost,
   Bounce,
   RailSlide,
-  Trick
+  Trick,
 }
 
 public enum DialogueLayoutType
@@ -157,6 +157,7 @@ public enum BillboardType
 public enum EntityEffectType
 {
   PlayerDashEffect,
+  PlayerTrickEffect,
   PlayerJumpEffect,
   PlayerBoostEffect,
   PlayerSpeedEffect,
