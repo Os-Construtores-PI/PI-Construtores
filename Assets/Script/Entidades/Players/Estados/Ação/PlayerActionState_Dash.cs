@@ -163,7 +163,7 @@ public class PlayerActionStateDash : IPlayerState<Player>
       {
         targetDir = diff.normalized;
         player.DashDistance = dist;
-        player.BoostValue += player.LockedTarget.BoostGrace;
+        player.AddBoost(player.LockedTarget.BoostGrace);
         player.DashSpeed = ComputeDashSpeed(dist);
       }
     }

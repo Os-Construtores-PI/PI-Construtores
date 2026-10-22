@@ -270,30 +270,76 @@ public class Player : CombatEntities
   [HideInInspector]
   public UnityEvent<float> BoostChanged;
 
-  [Header("Boost Value Options")]
-  [SerializeField]
-  private float _maxBoostValue = 100f;
+  [HideInInspector]
+  public UnityEvent<int> BoostStageChanged;
 
-  public float MaxBoostValue
-  {
-    get => _maxBoostValue;
-  }
+  [Header("Boost Options")]
+  [SerializeField]
+  private float _maxBoost = 300f;
 
   [SerializeField]
   private float _initialBoostValue = 100f;
 
-  [HideInInspector]
-  public float BoostValue
-  {
-    get { return _boostValue; }
-    set
-    {
-      _boostValue = Mathf.Clamp(value, 0f, _maxBoostValue);
-      BoostChanged.Invoke(_boostValue / _maxBoostValue);
-    }
-  }
+  private const int StageCount = 3;
 
   private float _boostValue = 0f;
+  private int _boostStage = 0;
+
+  public float BoostValue => _boostValue;
+  public int BoostStage => _boostStage;
+  public int MaxBoostStage => StageCount;
+  public float MaxBoostValue => _maxBoost;
+  public float StageCapacity => _maxBoost / StageCount;
+  public float BoostNormalized => _maxBoost > 0f ? _boostValue / _maxBoost : 0f;
+
+  public void AddBoost(float amount)
+  {
+    if (amount <= 0f)
+      return;
+    SetBoost(_boostValue + amount);
+  }
+
+  public void RemoveBoost(float amount)
+  {
+    if (amount <= 0f)
+      return;
+    SetBoost(_boostValue - amount);
+  }
+
+  public void AddBoostStage()
+  {
+    SetBoost(_boostValue + StageCapacity);
+  }
+
+  public void RemoveBoostStage()
+  {
+    SetBoost(_boostValue - StageCapacity);
+  }
+
+  public void ResetBoost()
+  {
+    SetBoost(_initialBoostValue);
+  }
+
+  private void SetBoost(float value)
+  {
+    _boostValue = Mathf.Clamp(value, 0f, _maxBoost);
+    BoostChanged.Invoke(BoostNormalized);
+
+    int newStage = CalculateStage(_boostValue);
+    if (newStage == _boostStage)
+      return;
+
+    _boostStage = newStage;
+    BoostStageChanged.Invoke(_boostStage);
+  }
+
+  private int CalculateStage(float value)
+  {
+    if (_maxBoost <= 0f)
+      return 0;
+    return Mathf.Min(Mathf.FloorToInt(value / StageCapacity), StageCount);
+  }
 
   #endregion Boost
 
@@ -658,11 +704,10 @@ public class Player : CombatEntities
     SetupModelMaterials();
     SetupDamage();
     SetupHitboxCombo();
+    ResetBoost();
 
     TrailsSystem.InitTrails(transform.Find("Trails"));
     PlayerSoundSystem.Init(_playerSFX, playersfx => playersfx.Type, _playerAudioSource);
-    BoostValue = _initialBoostValue;
-
     LocomotionLayer.ChangeState(Moving, this);
   }
 

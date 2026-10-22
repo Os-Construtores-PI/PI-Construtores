@@ -235,7 +235,7 @@ public class LevelManager : MonoBehaviour
       player.LocomotionLayer.ChangeState(player.Moving, player);
       player.GravityValue = player.InitialGravityValue;
       player.Motor.Velocity = Vector3.zero;
-      player.BoostValue = player.MaxBoostValue;
+      player.ResetBoost();
 
       Debug.Log($"[LevelManager] SetParent(null) aplicado em {player.name}.");
 

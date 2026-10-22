@@ -133,8 +133,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       _boostHitboxCollider.enabled = true;
     }
 
-    var hitbox = _boostHitboxCollider.GetComponent<HitboxComponent>();
-    hitbox?.Hit.AddListener(OnBoostHitDetected);
+    if (_boostHitboxCollider.TryGetComponent<HitboxComponent>(out var hitbox))
+      hitbox.Hit.AddListener(OnBoostHitDetected);
 
     player.CustomShake.Invoke(
       player.ID,
@@ -281,8 +281,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   public void Update(Player player)
   {
-    player.BoostValue -= _continuousBoostUsage * Time.deltaTime;
-    player.BoostValue = Mathf.Max(0f, player.BoostValue);
+    player.RemoveBoost(_continuousBoostUsage * Time.deltaTime);
 
     if (player.BoostValue <= 0f)
     {
