@@ -230,34 +230,37 @@ public class TutorialGlobal : MonoBehaviour
       return;
     }
 
+    if (videoCanvasGroup != null)
+    {
+      videoCanvasGroup.DOKill();
+      videoCanvasGroup.alpha = 0f;
+    }
+
+    if (videoPanel != null)
+        videoPanel.SetActive(true);
+    
+
     videoPlayer.Stop();
-
     videoPlayer.clip = video;
-
-    videoPlayer.isLooping = false;
+    videoPlayer.isLooping = true;
 
     videoPlayer.loopPointReached -= OnVideoFinished;
-    videoPlayer.loopPointReached += OnVideoFinished;
-
-    if (videoCanvasGroup != null)
-        videoCanvasGroup.alpha = 0f;
-
-    if(videoPanel != null)
-       videoPanel.SetActive(true);
 
     videoPlayer.Play();
 
+
     if (videoCanvasGroup != null)
     {
-      videoCanvasGroup.DOFade(1f, videoFadeInDuration)
-        .SetEase(Ease.OutQuad)
-        .SetUpdate(true);
+        videoCanvasGroup
+            .DOFade(1f, videoFadeInDuration)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
     }
   }
 
   private void OnVideoFinished(VideoPlayer source)
   {
-    CloseTutorial();
+    //CloseTutorial();
   }
 
   public void CloseTutorial()
@@ -342,12 +345,7 @@ public class TutorialGlobal : MonoBehaviour
 
   private void StopVideo()
   {
-    if(videoPlayer == null)
-      return;
-
-    videoPlayer.loopPointReached -= OnVideoFinished;
-
-    videoPlayer.Stop();
+    //
   }
 
   public void SkipTutorial()

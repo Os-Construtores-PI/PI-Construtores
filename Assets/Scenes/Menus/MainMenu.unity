@@ -548,12 +548,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0c04186d4e7b8d42a218a67940538a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  targetFPS: 60
-  useVSync: 0
-  vSyncCount: 0
-  limitFPSOnBackground: 1
-  backgroundFPS: 10
-  showFPSInConsole: 0
 --- !u!1 &215297850
 GameObject:
   m_ObjectHideFlags: 0
@@ -1505,9 +1499,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a9daf3ab6d0f6644b30df2329ec9ef0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeviceSpriteManager
-  _KeyBoardSprite: {fileID: -1715719919, guid: baf426e33a3b64a4c82f3013d8ad2379, type: 3}
-  _xboxSprite: {fileID: -1029081070, guid: 2bbb7399515f9d245bacd99fb802a2b6, type: 3}
-  _playstationSprite: {fileID: 0}
+  _KeyBoardSprite: {fileID: -769715261, guid: 86f06249891cbf746b52ac63550a6c8f, type: 3}
+  _xboxSprite: {fileID: 465338243, guid: 2c960f355755e904196ce069132a2bda, type: 3}
+  _playstationSprite: {fileID: -1025848896, guid: c41a6874c1f3ce549afb3163a02863cd, type: 3}
   _dashKeyboard: {fileID: 1017315391, guid: 70430632c82a4514db919de3577ada26, type: 3}
   _dashXbox: {fileID: 2135299542, guid: b825a86c6b8378e43a5fbd912f642904, type: 3}
   _dashPlaystation: {fileID: 0}
@@ -3797,6 +3791,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageIntroDirector
   _root: {fileID: 7993210930988611499}
   _stageNumber: {fileID: 0}
+  _backGroundBlack: {fileID: 0}
+  _backGroundHoldTime: 0.35
   _stageTitle: {fileID: 0}
   slideObjects:
   - {fileID: 1418141246173034906}
@@ -7691,6 +7687,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoadingScreen
   _loadingRoot: {fileID: 2868069129898777184}
+  _materials: []
   _progressBar: {fileID: 4098232637221189774}
   _loadingText: {fileID: 6028100686570688652}
   _spinner: {fileID: 3411832831162386897}
