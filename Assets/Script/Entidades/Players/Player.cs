@@ -237,6 +237,8 @@ public class Player : CombatEntities
   #region Flags de Input - Pulo
   public bool JumpInteractionPressed = false;
 
+  private bool _ignoreJumpUntilReleased;
+
   public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
   #endregion
 
@@ -250,6 +252,8 @@ public class Player : CombatEntities
   public bool IgnoreGameplayInputThisFrame { get; set; } = false;
   public bool WaitForJumpRelease { get; set; } = false;
   public bool BlockJumpByDialogue { get; set; } = false;
+
+  public bool BlockJumpByTutorialTrigger {get; set;} = false;
   #endregion
 
 
@@ -1005,18 +1009,43 @@ public class Player : CombatEntities
 
   public void OnJump(InputAction.CallbackContext context)
   {
-    if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
-      return;
+     // Detecta quando o jogador solta o botão.
+    if (context.canceled)
+    {
+        _ignoreJumpUntilReleased = false;
+        return;
+    }
 
     if (!context.started)
-      return;
+        return;
+
+    // Bloqueia o pulo enquanto estiver no trigger
+    // ou enquanto o botão de fechar estiver pressionado.
+    if (BlockJumpByTutorialTrigger ||
+        _ignoreJumpUntilReleased ||
+        GameContext.IsTutorialActive)
+    {
+        _ignoreJumpUntilReleased = true;
+        return;
+    }
+
+    if (IsHardLocked ||
+        IgnoreGameplayInputThisFrame ||
+        BlockJumpByDialogue)
+        return;
 
     if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
-      RailSlide.RequestCancel();
+        RailSlide.RequestCancel();
 
     if (!Motor.IsGrounded)
-      JumpInteractionPressed = true;
+        JumpInteractionPressed = true;
+
     TryJump();
+  }
+
+  public void BlockJumpUntilReleased()
+  {
+    _ignoreJumpUntilReleased = true;
   }
 
   public void OnInteract(InputAction.CallbackContext context)

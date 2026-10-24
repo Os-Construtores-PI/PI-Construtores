@@ -235,6 +235,8 @@ public class TutorialTrigger : MonoBehaviour
 
     SetInteractionPopup(false);
 
+    _player.BlockJumpByTutorialTrigger = false;
+
     _playerInside = false;
     _playerInput = null;
     _player = null;
@@ -261,6 +263,8 @@ public class TutorialTrigger : MonoBehaviour
 
     SetInteractionPopup(false);
 
+    _player.BlockJumpByTutorialTrigger = false;
+
     _playerInside = false;
     _playerInput = null;
     _player = null;
@@ -271,6 +275,10 @@ public class TutorialTrigger : MonoBehaviour
   {
     if (_popupVisible && _hudDirector != null && _player != null)
       _hudDirector.TutorialInteractionPopup(_player.ID, false);
+
+    
+    if (_player != null)
+        _player.BlockJumpByTutorialTrigger = false;
 
     _popupVisible = false;
     _playerCollidersInside.Clear();
@@ -311,6 +319,10 @@ public class TutorialTrigger : MonoBehaviour
     _playerCollidersInside.Add(playerCollider);
 
     _playerInside = true;
+
+    // Bloqueia o pulo enquanto o jogador estiver no Trigger
+
+    _player.BlockJumpByTutorialTrigger = true;
 
     DeviceInputManager.Instance?.ForceRefresh();
 

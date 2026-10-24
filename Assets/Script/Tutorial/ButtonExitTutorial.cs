@@ -11,6 +11,8 @@ public class ButtonExitTutorial : MonoBehaviour
   private DeviceSpriteManager deviceSpriteManager;
   private TutorialGlobal tutorialGlobal;
 
+  private bool _confirmacaoBloqueada;
+
   private void OnEnable()
   {
     if (PlayerInput.all.Count > 0)
@@ -62,11 +64,37 @@ public class ButtonExitTutorial : MonoBehaviour
 
   public void ClosedTutorial()
   {
-    if (tutorialGlobal != null &&
-    tutorialGlobal.IsTutorialActive)
+    if (tutorialGlobal == null ||
+        !tutorialGlobal.IsTutorialActive ||
+        _confirmacaoBloqueada)
+        return;
+
+    _confirmacaoBloqueada = true;
+
+    // Localiza o Player associado ao PlayerInput.
+    Player player = null;
+
+    if (playerInput != null)
     {
-      tutorialGlobal.CloseTutorial();
+        player = playerInput.GetComponent<Player>();
+
+        if (player == null)
+            player = playerInput.GetComponentInParent<Player>();
     }
+
+    // Impede que o botão de fechar seja reaproveitado para pular.
+    if (player != null)
+        player.BlockJumpUntilReleased();
+
+    tutorialGlobal.CloseTutorial();
+
+    CancelInvoke(nameof(LiberarConfirmacao));
+    Invoke(nameof(LiberarConfirmacao), 0.2f);
+  }
+
+  private void LiberarConfirmacao()
+  {
+    _confirmacaoBloqueada = false;
   }
 
   private void OnDeviceChanged(string device)
