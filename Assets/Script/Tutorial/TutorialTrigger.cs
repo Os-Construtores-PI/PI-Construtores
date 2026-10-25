@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -35,8 +36,29 @@ public class TutorialTrigger : MonoBehaviour
   [SerializeField]
   private TutorialSpriteText[] _textosTutorial;
 
+  [Header("Indicador do Tutorial")]
+  [SerializeField] 
+  private ImageTriggerEvent _imagemInteracao;
+
+  [SerializeField]
+  private float _tempoOculto = 5f;
+
+  private Coroutine _rotinaIndicador;
+
+  private Player _ultimoPlayer;
+  private PlayerInput _ultimoPlayerInput;
+
+  private bool _aguardandoSaidadoTrigger;
+
   private void Start()
   {
+
+    if (_tutorialGlobal != null)
+{
+    _tutorialGlobal.OnTutorialStateChanged -= OnTutorialStateChanged;
+    _tutorialGlobal.OnTutorialStateChanged += OnTutorialStateChanged;
+}
+
     _hudDirector = FindAnyObjectByType<HudDirector>();
 
     _tutorialGlobal = TutorialGlobal.Instance;
@@ -134,10 +156,13 @@ public class TutorialTrigger : MonoBehaviour
     ResolveReferences();
 
     if (_hudDirector == null || _player == null)
-      return;
-
-    if (_popupVisible == show)
-      return;
+    {
+        Debug.LogWarning(
+            "[TutorialTrigger] HUDDirector ou Player não encontrado.",
+            this
+        );
+        return;
+    }
 
     bool success = _hudDirector.TutorialInteractionPopup(
         _player.ID,
@@ -145,7 +170,13 @@ public class TutorialTrigger : MonoBehaviour
     );
 
     if (success)
-      _popupVisible = show;
+        _popupVisible = show;
+    else
+        Debug.LogWarning(
+            $"[TutorialTrigger] Não foi possível " +
+            $"{(show ? "mostrar" : "ocultar")} o popup do jogador {_player.ID}.",
+            this
+        );
   }
 
 
@@ -161,24 +192,24 @@ public class TutorialTrigger : MonoBehaviour
   {
     if (!_playerInside || _player == null)
         return;
-    
+
     if (_tutorialVideo == null)
     {
-      Debug.LogWarning(
-        $"[TutorialTrigger] Nenhum video configurado em {gameObject.name}. "
-
-      );
-      return;
+        Debug.LogWarning(
+            $"[TutorialTrigger] Nenhum vídeo configurado em {gameObject.name}.",
+            this
+        );
+        return;
     }
 
     ResolveReferences();
 
     if (_tutorialGlobal == null)
     {
-      Debug.LogError(
-        "[TutorialTrigger] TutorialGlobal não encontrado."
-      );
-      return;
+        Debug.LogError(
+            "[TutorialTrigger] TutorialGlobal não encontrado."
+        );
+        return;
     }
 
     if (_tutorialGlobal.IsTutorialActive)
@@ -187,6 +218,9 @@ public class TutorialTrigger : MonoBehaviour
     ApplyTutorialSprites();
 
     _tutorialConsumed = true;
+
+    // Esconde a imagem somente quando o tutorial é solicitado.
+    OcultarIndicadorTemporariamente();
 
     _tutorialGlobal.OpenTutorial(_tutorialVideo);
   }
@@ -214,24 +248,15 @@ public class TutorialTrigger : MonoBehaviour
 
   private void OnTriggerExit(Collider other)
   {
-    if (_player == null)
-      return;
-
     Player exitingPlayer = other.GetComponentInParent<Player>();
 
-    if (exitingPlayer != _player)
-      return;
+    if (exitingPlayer == null || exitingPlayer != _player)
+        return;
 
     _playerCollidersInside.Remove(other);
 
-    _playerCollidersInside.RemoveWhere(collider =>
-        collider == null ||
-        !collider.enabled ||
-        !collider.gameObject.activeInHierarchy ||
-        !collider.bounds.Intersects(GetComponent<Collider>().bounds));
-
     if (_playerCollidersInside.Count > 0)
-      return;
+        return;
 
     SetInteractionPopup(false);
 
@@ -240,45 +265,77 @@ public class TutorialTrigger : MonoBehaviour
     _playerInside = false;
     _playerInput = null;
     _player = null;
+
+    // Só inicia os 5 segundos depois de fechar o tutorial
+    // e sair da área.
+    if (_aguardandoSaidadoTrigger &&
+    (_tutorialGlobal == null || !_tutorialGlobal.IsTutorialActive))
+{
+    _aguardandoSaidadoTrigger = false;
+    OcultarIndicadorTemporariamente();
+}
   }
 
-  private void LateUpdate()
+  private void OnEnable()
   {
-    if (!_playerInside || _player == null)
-        return;
+    ResolveReferences();
 
-    Collider triggerCollider = GetComponent<Collider>();
-
-    if (triggerCollider == null)
-        return;
-    
-    _playerCollidersInside.RemoveWhere(collider =>
-         collider == null ||
-         !collider.enabled ||
-         !collider.gameObject.activeInHierarchy ||
-         !collider.bounds.Intersects(triggerCollider.bounds));
-    
-    if (_playerCollidersInside.Count > 0)
-        return;
-
-    SetInteractionPopup(false);
-
-    _player.BlockJumpByTutorialTrigger = false;
-
-    _playerInside = false;
-    _playerInput = null;
-    _player = null;
+    if (_tutorialGlobal != null)
+        _tutorialGlobal.OnTutorialStateChanged += OnTutorialStateChanged;
   }
+
+  private void OnTutorialStateChanged(bool isActive)
+  {
+    if (isActive)
+    {
+        // Cancela qualquer contagem enquanto o tutorial estiver aberto.
+        if (_rotinaIndicador != null)
+        {
+            StopCoroutine(_rotinaIndicador);
+            _rotinaIndicador = null;
+        }
+
+        if (_imagemInteracao != null)
+            _imagemInteracao.Hide();
+
+        SetInteractionPopup(false);
+
+        _aguardandoSaidadoTrigger = false;
+        return;
+    }
+
+    // O tutorial foi fechado.
+    _aguardandoSaidadoTrigger = true;
+
+    // Se o jogador já saiu, não precisamos esperar outro OnTriggerExit.
+    if (!_playerInside)
+    {
+        _aguardandoSaidadoTrigger = false;
+        OcultarIndicadorTemporariamente();
+    }
+  }
+
 
 
   private void OnDisable()
   {
-    if (_popupVisible && _hudDirector != null && _player != null)
-      _hudDirector.TutorialInteractionPopup(_player.ID, false);
+    if (_rotinaIndicador != null)
+    {
+        StopCoroutine(_rotinaIndicador);
+        _rotinaIndicador = null;
+    }
 
-    
+    if (_imagemInteracao != null)
+        _imagemInteracao.Hide();
+
+    if (_popupVisible && _hudDirector != null && _player != null)
+        _hudDirector.TutorialInteractionPopup(_player.ID, false);
+
     if (_player != null)
         _player.BlockJumpByTutorialTrigger = false;
+
+    if (_tutorialGlobal != null)
+    _tutorialGlobal.OnTutorialStateChanged -= OnTutorialStateChanged;
 
     _popupVisible = false;
     _playerCollidersInside.Clear();
@@ -292,41 +349,69 @@ public class TutorialTrigger : MonoBehaviour
   {
     if (player == null || playerCollider == null)
         return;
-    
-    if (_onlyOnce && _tutorialConsumed)
-        return;
 
     if (_player != null && _player != player)
         return;
-    
+
     PlayerInput input = player.GetComponent<PlayerInput>();
 
     if (input == null)
         input = player.GetComponentInParent<PlayerInput>();
-    
+
     if (input == null)
     {
-      Debug.LogWarning(
-        "[TutorialTrigger] PlayerInput não encontrado no jogador."
-      );
-
-      return;
+        Debug.LogWarning(
+            "[TutorialTrigger] PlayerInput não encontrado.",
+            this
+        );
+        return;
     }
+
+    bool primeiraEntrada = !_playerInside;
 
     _player = player;
     _playerInput = input;
+    _ultimoPlayer = player;
+    _ultimoPlayerInput = input;
 
     _playerCollidersInside.Add(playerCollider);
-
     _playerInside = true;
-
-    // Bloqueia o pulo enquanto o jogador estiver no Trigger
 
     _player.BlockJumpByTutorialTrigger = true;
 
     DeviceInputManager.Instance?.ForceRefresh();
-
     ResolveReferences();
+
+    if (_tutorialGlobal != null && _tutorialGlobal.IsTutorialActive)
+    {
+        SetInteractionPopup(false);
+        return;
+    }
+
+    // Se já existe uma rotina, deixa ela terminar.
+    if (_rotinaIndicador != null)
+        return;
+
+    if (primeiraEntrada)
+    {
+      if (_imagemInteracao != null)
+          _imagemInteracao.Show();
+
+      
+      SetInteractionPopup(true);
+      return;
+    }
+
+    // Se o tutorial já foi consumido, não mostra o popup
+    // quando ele só pode ser aberto uma vez.
+    if (_onlyOnce && _tutorialConsumed)
+    {
+        SetInteractionPopup(false);
+        return;
+    }
+
+    if (_imagemInteracao != null)
+        _imagemInteracao.Show();
 
     SetInteractionPopup(true);
   }
@@ -353,6 +438,43 @@ public class TutorialTrigger : MonoBehaviour
 
     _tutorialGlobal.SetTutorialSprites(sprites);
   }
+
+
+  private void OcultarIndicadorTemporariamente()
+{
+    if (_rotinaIndicador != null)
+    {
+        StopCoroutine(_rotinaIndicador);
+        _rotinaIndicador = null;
+    }
+
+    _rotinaIndicador = StartCoroutine(RotinaIndicador());
+}
+
+private IEnumerator RotinaIndicador()
+{
+    // Esconde a imagem de interação.
+    if (_imagemInteracao != null)
+        _imagemInteracao.Hide();
+
+    yield return new WaitForSecondsRealtime(_tempoOculto);
+
+    ResolveReferences();
+
+    // Se o tutorial ainda estiver aberto, não ativa o ícone.
+    if (_tutorialGlobal != null &&
+        _tutorialGlobal.IsTutorialActive)
+    {
+        _rotinaIndicador = null;
+        yield break;
+    }
+
+    // O ícone pode reaparecer mesmo com o jogador fora da área.
+    if (_imagemInteracao != null)
+        _imagemInteracao.Show();
+
+    _rotinaIndicador = null;
+}
 
   [System.Serializable]
   public class TutorialSpriteText

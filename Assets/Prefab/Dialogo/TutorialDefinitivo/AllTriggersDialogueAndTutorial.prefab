@@ -79,6 +79,8 @@ MonoBehaviour:
     sprite: {fileID: 1054196490, guid: 7ae45d28f09f41844bdf536c19611293, type: 3}
   - nome: MovimentosBasicos
     sprite: {fileID: -1930793103, guid: 7ae45d28f09f41844bdf536c19611293, type: 3}
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
 --- !u!114 &8313364865526455370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429,6 +431,8 @@ MonoBehaviour:
     sprite: {fileID: -257625542, guid: 5d0a53fcba42f824989388b166417f03, type: 3}
   - nome: InformacaoTricks
     sprite: {fileID: 1235330370, guid: 5d0a53fcba42f824989388b166417f03, type: 3}
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
 --- !u!114 &6929011796444239581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -522,6 +526,8 @@ MonoBehaviour:
     sprite: {fileID: -1394805716, guid: a915ebfc3d22c1045b44cd8e867fe056, type: 3}
   - nome: Boost
     sprite: {fileID: -164161476, guid: 6631d1a3dc0396a4794329efde70fe60, type: 3}
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
 --- !u!114 &7885971659903487454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -788,6 +794,8 @@ MonoBehaviour:
     sprite: {fileID: 1091746467, guid: da7237062401c8841ab729ee999c0926, type: 3}
   - nome: InformacaoQuicada
     sprite: {fileID: -625476661, guid: da7237062401c8841ab729ee999c0926, type: 3}
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
 --- !u!114 &5621288583466810032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -881,6 +889,8 @@ MonoBehaviour:
     sprite: {fileID: 546194840, guid: 851271e0d614c5844834b0111713b579, type: 3}
   - nome: TextoInformacaoLockOn
     sprite: {fileID: 1689307590, guid: 851271e0d614c5844834b0111713b579, type: 3}
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
 --- !u!114 &6552314806916486919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -967,7 +977,6 @@ GameObject:
   - component: {fileID: 2136279584304397851}
   - component: {fileID: 7629002834344521886}
   - component: {fileID: 7651210318870422855}
-  - component: {fileID: 5950757884142425416}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -1078,20 +1087,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImageTriggerEvent
   rotationDuration: 4
---- !u!114 &5950757884142425416
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8065872116923515352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4ff0462e65bcf54d92075ab5fc570e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DialogueAutoActivator
-  targetTrigger: {fileID: 7777093937618382798}
-  onlyOnce: 1
 --- !u!1 &8494006060874934640
 GameObject:
   m_ObjectHideFlags: 0

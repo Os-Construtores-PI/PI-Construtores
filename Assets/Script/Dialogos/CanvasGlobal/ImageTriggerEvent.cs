@@ -11,42 +11,53 @@ public class ImageTriggerEvent : MonoBehaviour
   private CanvasGroup canvasGroup;
 
   private void Awake()
-  {
-    rectTransform = GetComponent<RectTransform>();
-    ShowImmediate();
-  }
+    {
+        rectTransform = GetComponent<RectTransform>();
+    }
 
-  public void Show()
-  {
-    gameObject.SetActive(true);
-    StartSpin();
-  }
+    private void OnEnable()
+    {
+        StartSpin();
+    }
 
-  public void Hide()
-  {
-    StopSpin();
-    gameObject.SetActive(false);
-  }
+    private void OnDisable()
+    {
+        StopSpin();
+    }
 
-  private void StartSpin()
-  {
-    StopSpin();
+    public void Show()
+    {
+        gameObject.SetActive(true);
+    }
 
-    rotationTween = rectTransform
-      .DORotate(new Vector3(0f, -360f, 0), rotationDuration, RotateMode.FastBeyond360)
-      .SetEase(Ease.Linear)
-      .SetLoops(-1);
-  }
+    public void Hide()
+    {
+        gameObject.SetActive(false);
+    }
 
-  private void StopSpin()
-  {
-    rotationTween?.Kill();
-    rotationTween = null;
-  }
+    private void StartSpin()
+    {
+        if (rectTransform == null)
+            rectTransform = GetComponent<RectTransform>();
 
-  private void ShowImmediate()
-  {
-    StartSpin();
-    gameObject.SetActive(true);
-  }
+        if (rectTransform == null)
+            return;
+
+        StopSpin();
+
+        rotationTween = rectTransform
+            .DORotate(
+                new Vector3(0f, -360f, 0f),
+                rotationDuration,
+                RotateMode.FastBeyond360
+            )
+            .SetEase(Ease.Linear)
+            .SetLoops(-1);
+    }
+
+    private void StopSpin()
+    {
+        rotationTween?.Kill();
+        rotationTween = null;
+    }
 }
