@@ -1009,7 +1009,8 @@ public class Player : CombatEntities
 
   public void OnJump(InputAction.CallbackContext context)
   {
-     // Detecta quando o jogador solta o botão.
+     // Quando o jogador soltar o botão, libera o bloqueio temporário.
+    // O botão precisa ser solto antes de poder pular novamente.
     if (context.canceled)
     {
         _ignoreJumpUntilReleased = false;
@@ -1019,8 +1020,8 @@ public class Player : CombatEntities
     if (!context.started)
         return;
 
-    // Bloqueia o pulo enquanto estiver no trigger
-    // ou enquanto o botão de fechar estiver pressionado.
+    // Bloqueia o pulo enquanto o jogador está na área
+    // ou enquanto o tutorial está ativo.
     if (BlockJumpByTutorialTrigger ||
         _ignoreJumpUntilReleased ||
         GameContext.IsTutorialActive)
