@@ -56,6 +56,8 @@ public class BasicMenuLogic : MonoBehaviour
 
   private bool _pauseButtonsAnimating;
 
+  private Tween _pauseButtonsInDelay;
+
   #region  === MENU GAMEOVER ===
 
   private void Update()
@@ -168,29 +170,27 @@ public class BasicMenuLogic : MonoBehaviour
     }
 
     // Espera TODOS os botões terminarem
-    DOVirtual
-      .DelayedCall(
-        totalDuration,
-        () =>
-        {
-          _pauseButtonsAnimating = false;
+    _pauseButtonsInDelay = DOVirtual.DelayedCall(
+    totalDuration,
+    () =>
+    {
+      _pauseButtonsInDelay = null;
+      _pauseButtonsAnimating = false;
 
-          foreach (RectTransform button in _pauseButtons)
-          {
-            if (button == null)
-              continue;
+      foreach (RectTransform button in _pauseButtons)
+      {
+        if (button == null)
+          continue;
 
-            Button uiButton = button.GetComponent<Button>();
+        Button uiButton = button.GetComponent<Button>();
 
-            if (uiButton != null)
-              uiButton.interactable = true;
-          }
+        if (uiButton != null)
+          uiButton.interactable = true;
+      }
 
-          // AGORA SIM o Confirmar / Voltar aparece
-          AnimatedPauseBottomHintIn();
-        }
-      )
-      .SetUpdate(true);
+      AnimatedPauseBottomHintIn();
+    }
+).SetUpdate(true);
   }
 
   private void AnimatedPauseBottomHintIn()
@@ -348,15 +348,9 @@ public class BasicMenuLogic : MonoBehaviour
 
   public void ClosePauseWithAnimation()
   {
-    if (_pauseButtonsAnimating)
-      return;
+    Debug.Log("[Pause] ESC chamou ClosePauseWithAnimation");
 
-    PlayPauseSound();
-
-    AnimatedPauseButtonsOut(() =>
-    {
-      GlobalEventBus.Instance.Pause.Invoke(false);
-    });
+    ContinueGame();
   }
 
   private void AnimatedPauseBackgroundIn()
@@ -515,7 +509,7 @@ public class BasicMenuLogic : MonoBehaviour
       });
   }
 
-  private void AnimatedPauseButtonsOut(Action onComplete = null)
+  public void AnimatedPauseButtonsOut(Action onComplete = null)
   {
     if (_pauseButtons == null || _pauseButtons.Length == 0)
     {

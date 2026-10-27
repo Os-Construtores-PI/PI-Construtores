@@ -79,6 +79,8 @@ public class HudDirector : MonoBehaviour
 
   public CameraLogic GetCameraScript(int id) => _playerCachedCameras[id];
 
+  private bool _pauseClosingWithAnimation;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Unity Events
   // ═══════════════════════════════════════════════════════════════════════════
@@ -829,6 +831,12 @@ public class HudDirector : MonoBehaviour
     return result;
   }
 
+
+  public void SetPauseClosingWithAnimation(bool closing)
+  {
+    _pauseClosingWithAnimation = closing;
+  }
+
   private static void AnimateCinematicBars(
     List<GameObject> panels,
     float targetSize,
@@ -1114,13 +1122,14 @@ public class HudDirector : MonoBehaviour
       }
       else
       {
+        // A animação do BasicMenuLogic já terminou.
         HidePanel(
-            HudPanelType.Pause,
-            player.ID,
-            independent: true,
-            fade: false,
-            instant: true
-        );
+        HudPanelType.Pause,
+        player.ID,
+        independent: true,
+        fade: false,
+        instant: true
+    );
 
         EnableHUD(player.ID);
       }

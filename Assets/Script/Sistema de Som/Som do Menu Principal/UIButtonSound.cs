@@ -11,27 +11,69 @@ public class UIButtonSound
   [SerializeField]
   private UIAudioConfig _uiAudioConfig;
 
+  private static GameObject _lastSelectedObject;
+  private static bool _navigationStarted;
+
   public void OnPointerEnter(PointerEventData eventData)
   {
-    if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
+    PlayHoverSound();
   }
 
   public void OnPointerClick(PointerEventData eventData)
   {
-    if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    PlayClickSound();
   }
 
   public void OnSelect(BaseEventData eventData)
   {
-    if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
+    // Ignora a seleção automática inicial do menu.
+    if (!_navigationStarted)
+    {
+      _navigationStarted = true;
+      _lastSelectedObject = gameObject;
+      return;
+    }
+
+    // Só toca quando a seleção muda para outro botão.
+    if (_lastSelectedObject != gameObject)
+    {
+      _lastSelectedObject = gameObject;
+      PlayHoverSound();
+    }
+  }
+
+  public void OnDeselect(BaseEventData eventData)
+  {
+    // Não limpamos a seleção aqui, pois o próximo botão
+    // precisa ser comparado com o botão anteriormente selecionado.
   }
 
   public void OnSubmit(BaseEventData eventData)
   {
-    if (AudioManager.Instance != null)
-      AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+    PlayClickSound();
+  }
+
+  private void PlayHoverSound()
+  {
+    if (_uiAudioConfig == null ||
+        AudioManager.Instance == null)
+      return;
+
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Hover);
+  }
+
+  private void PlayClickSound()
+  {
+    if (_uiAudioConfig == null ||
+        AudioManager.Instance == null)
+      return;
+
+    AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);
+  }
+
+  private void OnDisable()
+  {
+    if (_lastSelectedObject == gameObject)
+      _lastSelectedObject = null;
   }
 }

@@ -1122,11 +1122,59 @@ public class Player : CombatEntities
   #region Pause
   private void Pause()
   {
-    if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
+    if (TutorialGlobal.Instance != null &&
+        TutorialGlobal.Instance.IsTutorialActive)
       return;
-    if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
+
+    if (DialogueGlobal.Instance != null &&
+        DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.Pause.Invoke(!GameContext.IsPaused);
+
+    // Abrindo o Pause
+    if (!GameContext.IsPaused)
+    {
+      GlobalEventBus.Instance.Pause.Invoke(true);
+      return;
+    }
+
+    HudDirector hudDirector = FindFirstObjectByType<HudDirector>();
+
+    if (hudDirector != null)
+    {
+      List<GameObject> pausePanels =
+          hudDirector.GetPanel(ID, HudPanelType.Pause);
+
+      foreach (GameObject panel in pausePanels)
+      {
+        if (panel == null || !panel.activeInHierarchy)
+          continue;
+
+        // CanvasHUD é o pai do Pause.
+        Transform canvasHUD = panel.transform.parent;
+
+        if (canvasHUD == null)
+          continue;
+
+        // GameLogic é irmão do Pause, dentro do CanvasHUD.
+        Transform gameLogic = canvasHUD.Find("GameLogic");
+
+        if (gameLogic == null)
+          continue;
+
+        BasicMenuLogic menuLogic =
+            gameLogic.GetComponent<BasicMenuLogic>();
+
+        if (menuLogic == null)
+          continue;
+
+        // Fecha o Pause utilizando a animação do menu.
+        menuLogic.ClosePauseWithAnimation();
+        return;
+      }
+    }
+
+    // Alternativa caso não seja possível encontrar o menu.
+    GlobalEventBus.Instance.Pause.Invoke(false);
   }
   #endregion
 
