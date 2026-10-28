@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System;
+using System.Collections.Generic;
 
 public class BasicMenuLogic : MonoBehaviour
 {
@@ -57,6 +58,22 @@ public class BasicMenuLogic : MonoBehaviour
   private bool _pauseButtonsAnimating;
 
   private Tween _pauseButtonsInDelay;
+
+  [Header("Animação do Painel de Morte")]
+  [SerializeField] private RectTransform _deathPanelBackground;
+  [SerializeField] private RectTransform[] _deathButtons;
+
+  [SerializeField] private float _deathPanelScaleStarte = 0.8f;
+  [SerializeField] private float _deathPanelDuration = 0.35f;
+  [SerializeField] private float _deathButtonDelay = 0.12f;
+  [SerializeField] private float _deathButtonDuration = 0.25f;
+
+
+  private Vector3 _deathPanelOriginalScale;
+  private Vector3[] _deathButtonsOriginalScales;
+  private Sequence _deathSequence;
+  private bool _deathAnimationPlaying;
+  private bool _deathVisualsInitialized;
 
   #region  === MENU GAMEOVER ===
 
@@ -589,5 +606,156 @@ public class BasicMenuLogic : MonoBehaviour
        });
   }
 
+
+  private void InitializedDeathVisuals()
+  {
+    if (_deathVisualsInitialized)
+      return;
+
+    if (_deathPanelBackground != null)
+      _deathPanelOriginalScale = _deathPanelBackground.localScale;
+
+    if (_deathButtons != null)
+    {
+      _deathButtonsOriginalScales = new Vector3[_deathButtons.Length];
+
+      for (int i = 0; i < _deathButtons.Length; i++)
+      {
+        RectTransform button = _deathButtons[i];
+
+        if (button == null)
+          continue;
+
+
+        _deathButtonsOriginalScales[i] = button.localScale;
+      }
+    }
+
+    _deathVisualsInitialized = true;
   }
+
+  public void PlayDeathPanelAnimation(List<GameObject> deathPanels)
+  {
+
+    if (deathPanels == null || deathPanels.Count == 0)
+    {
+      Debug.LogWarning(
+      "DeathPanel: nenhum painel GameOver foi encontrado."
+      );
+
+      return;
+    }
+
+    foreach (GameObject panel in deathPanels)
+    {
+      if (panel == null)
+        continue;
+
+      // Localiza o RectTransform do painel recebido.
+      RectTransform panelBackground =
+          panel.GetComponent<RectTransform>();
+
+      if (panelBackground == null)
+      {
+        Debug.LogWarning(
+            $"DeathPanel: {panel.name} não possui RectTransform."
+        );
+
+        continue;
+      }
+
+      // Localiza os botões que pertencem a ESTE GameOver.
+      List<RectTransform> buttons = new List<RectTransform>();
+
+      foreach (RectTransform configuredButton in _deathButtons)
+      {
+        if (configuredButton == null)
+          continue;
+
+        // Só aceita botões que pertencem ao painel recebido.
+        if (configuredButton.transform.IsChildOf(panel.transform))
+          buttons.Add(configuredButton);
+      }
+
+      // Se os botões configurados não pertencem ao painel,
+      // a animação não deve continuar com referências incorretas.
+      if (buttons.Count == 0)
+      {
+        Debug.LogWarning(
+            $"DeathPanel: nenhum botão de _deathButtons pertence " +
+            $"ao painel {panel.name}. Configure os botões corretamente."
+        );
+      }
+
+      // Guarda a escala original do painel.
+      Vector3 originalPanelScale = panelBackground.localScale;
+
+      // Prepara o painel para a animação.
+      panelBackground.DOKill();
+
+      panelBackground.localScale =
+          originalPanelScale * _deathPanelScaleStarte;
+
+      // Guarda as escalas originais dos botões ANTES de escondê-los.
+      List<Vector3> originalButtonScales = new List<Vector3>();
+
+      foreach (RectTransform button in buttons)
+      {
+        originalButtonScales.Add(button.localScale);
+
+        button.DOKill();
+        button.localScale = Vector3.zero;
+
+        Button uiButton = button.GetComponent<Button>();
+
+        if (uiButton != null)
+          uiButton.interactable = false;
+      }
+
+      // Cria a sequência de animação.
+      Sequence sequence = DOTween.Sequence()
+          .SetUpdate(true);
+
+      // FASE 1: aparece o painel de morte.
+      sequence.Append(
+          panelBackground
+              .DOScale(
+                  originalPanelScale,
+                  _deathPanelDuration
+              )
+              .SetEase(Ease.OutBack)
+      );
+
+      // FASE 2: os botões aparecem individualmente.
+      for (int i = 0; i < buttons.Count; i++)
+      {
+        RectTransform button = buttons[i];
+        Vector3 originalScale = originalButtonScales[i];
+
+        sequence.AppendInterval(_deathButtonDelay);
+
+        sequence.Append(
+            button
+                .DOScale(
+                    originalScale,
+                    _deathButtonDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        // Libera a interação depois da animação de cada botão.
+        sequence.AppendCallback(() =>
+        {
+          if (button == null)
+            return;
+
+          Button uiButton = button.GetComponent<Button>();
+
+          if (uiButton != null)
+            uiButton.interactable = true;
+        });
+      }
+    }
+  }
+}
 #endregion

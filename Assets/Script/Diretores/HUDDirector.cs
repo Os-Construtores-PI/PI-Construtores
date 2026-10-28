@@ -933,16 +933,28 @@ public class HudDirector : MonoBehaviour
   private void DeathPanel()
   {
     CursorOptions(visible: true);
+
     if (AudioManager.Instance != null && _backgroundMusicConfig != null)
     {
       AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
     }
 
+    // O BasicMenuLogic fica no CanvasHUD, não no painel GameOver.
+    BasicMenuLogic menuLogic = FindFirstObjectByType<BasicMenuLogic>();
+
     ForEachPlayer(player =>
     {
-      ShowPanel(HudPanelType.GameOver, player.ID, independent: true);
+      // O HudDirector apenas instancia e exibe o painel.
+      ShowPanel(
+          HudPanelType.GameOver,
+          player.ID,
+          independent: true
+      );
+
       DisableHud(player.ID);
     });
+
+
   }
 
   private void RespawnPanel()
