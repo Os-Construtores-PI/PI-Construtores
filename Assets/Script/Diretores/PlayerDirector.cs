@@ -180,6 +180,7 @@ public class PlayerDirector : MonoBehaviour
 
     player.Motor.Engine.BaseVelocity = Vector3.zero;
     player.Motor.Engine.SetPosition(_spawnTransform.position);
+    player.Motor.Engine.SetRotation(_spawnTransform.rotation);
     player._OnHealthChanged.Invoke(player.Health / player.MaxHealth);
 
     QualityOfLife.CursorOptions(false);
