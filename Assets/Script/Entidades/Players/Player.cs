@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -153,8 +154,6 @@ public class Player : CombatEntities
 
   public PlayerInput PlayerInput;
 
-  public TextMeshProUGUI PlayerScoreText;
-
   protected Camera _myCamera;
 
   private readonly List<Material> _modelMaterials = new();
@@ -278,15 +277,47 @@ public class Player : CombatEntities
   [HideInInspector]
   public UnityEvent<int> BoostStageChanged;
 
-  [Header("Boost Options")]
+  [Header("Boost")]
+  [SerializeField]
+  private GameObject _boostEffect;
+
   [SerializeField]
   private float _maxBoost = 300f;
 
   [SerializeField]
   private float _initialBoostValue = 100f;
 
-  private const int StageCount = 3;
+  [SerializeField]
+  private float _effectDuration = 0.5f;
 
+  [SerializeField]
+  private AnimationCurve _effectCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+  [SerializeField]
+  private float _orbitDuration = 0.6f;
+
+  [SerializeField]
+  private float _orbitRadius = 1.5f;
+
+  [SerializeField]
+  private float _orbitHeight = 0.5f;
+
+  [SerializeField]
+  private float _orbitTurns = 1f;
+
+  [SerializeField]
+  private float _returnDuration = 0.35f;
+
+  [SerializeField]
+  private AnimationCurve _orbitCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+  [SerializeField]
+  private AnimationCurve _returnCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+  private Coroutine _effectRoutine;
+  private Vector3 _effectBaseScale;
+  private bool _effectScaleCached;
+  private const int StageCount = 3;
   private float _boostValue = 0f;
   private int _boostStage = 0;
 
@@ -311,9 +342,86 @@ public class Player : CombatEntities
     SetBoost(_boostValue - amount);
   }
 
-  public void AddBoostStage()
+  public void AddBoostStage(Transform target = null)
   {
     SetBoost(_boostValue + StageCapacity);
+    PlayBoostEffect(target != null ? target.position : null);
+  }
+
+  public void AddBoostStage(Vector3 worldOrigin)
+  {
+    SetBoost(_boostValue + StageCapacity);
+    PlayBoostEffect(worldOrigin);
+  }
+
+  private void PlayBoostEffect(Vector3? worldOrigin)
+  {
+    if (_boostEffect == null)
+      return;
+
+    if (!_effectScaleCached)
+    {
+      _effectBaseScale = _boostEffect.transform.localScale;
+      _effectScaleCached = true;
+    }
+
+    if (_effectRoutine != null)
+      StopCoroutine(_effectRoutine);
+
+    _effectRoutine = StartCoroutine(BoostEffectRoutine(worldOrigin));
+  }
+
+  private IEnumerator BoostEffectRoutine(Vector3? worldOrigin)
+  {
+    Transform effect = _boostEffect.transform;
+
+    _boostEffect.SetActive(true);
+    effect.localScale = _effectBaseScale;
+
+    if (worldOrigin.HasValue)
+      effect.position = worldOrigin.Value;
+
+    Vector3 start = effect.localPosition;
+    float startAngle = Mathf.Atan2(start.z, start.x);
+    float startRadius = new Vector2(start.x, start.z).magnitude;
+    float totalAngle = _orbitTurns * Mathf.PI * 2f;
+
+    float elapsed = 0f;
+    Vector3 current = start;
+
+    while (elapsed < _orbitDuration)
+    {
+      elapsed += Time.deltaTime;
+      float t = Mathf.Clamp01(elapsed / _orbitDuration);
+      float k = _orbitCurve.Evaluate(t);
+
+      float angle = startAngle + totalAngle * t;
+      float radius = Mathf.LerpUnclamped(startRadius, _orbitRadius, k);
+      float height = Mathf.LerpUnclamped(start.y, _orbitHeight, k);
+
+      current = new Vector3(Mathf.Cos(angle) * radius, height, Mathf.Sin(angle) * radius);
+      effect.localPosition = current;
+
+      yield return null;
+    }
+
+    elapsed = 0f;
+
+    while (elapsed < _returnDuration)
+    {
+      elapsed += Time.deltaTime;
+      float k = _returnCurve.Evaluate(Mathf.Clamp01(elapsed / _returnDuration));
+
+      effect.localPosition = Vector3.LerpUnclamped(current, Vector3.zero, k);
+      effect.localScale = Vector3.LerpUnclamped(_effectBaseScale, Vector3.zero, k);
+
+      yield return null;
+    }
+
+    effect.localPosition = Vector3.zero;
+    effect.localScale = Vector3.zero;
+    _boostEffect.SetActive(false);
+    _effectRoutine = null;
   }
 
   public void RemoveBoostStage()
@@ -365,6 +473,9 @@ public class Player : CombatEntities
 
   [Header("Popups")]
   [SerializeField]
+  private TextMeshProUGUI _playerScoreText;
+
+  [SerializeField]
   private float popScale = 1.25f;
 
   [SerializeField]
@@ -411,7 +522,7 @@ public class Player : CombatEntities
     {
       isVisible = true;
       displayedScore = 0;
-      PlayerScoreText.SetText("0");
+      _playerScoreText.SetText("0");
       scoreRect.localScale = Vector3.zero;
     }
 
@@ -429,7 +540,7 @@ public class Player : CombatEntities
         value =>
         {
           displayedScore = value;
-          PlayerScoreText.SetText("{0}", value);
+          _playerScoreText.SetText("{0}", value);
         }
       )
       .SetEase(Ease.OutQuad)
@@ -448,7 +559,7 @@ public class Player : CombatEntities
     isVisible = false;
     bufferedScore = 0;
     displayedScore = 0;
-    PlayerScoreText.SetText("0");
+    _playerScoreText.SetText("0");
   }
 
   public void SetScore(int amount)
@@ -765,7 +876,7 @@ public class Player : CombatEntities
     Motor = GetComponent<PlayerMotor>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
-    scoreRect = PlayerScoreText.GetComponent<RectTransform>();
+    scoreRect = _playerScoreText.GetComponent<RectTransform>();
     scoreRect.localScale = Vector3.zero;
 
     _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);

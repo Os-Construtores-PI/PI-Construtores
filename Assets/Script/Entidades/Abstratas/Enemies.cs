@@ -154,6 +154,7 @@ public abstract class Enemies : CombatEntities, ILockable
       {
         player.AddScore(_scoreWhenKilled);
         player.AddAmethysts(_lootTable.PickEntry());
+        player.AddBoostStage(transform);
       }
     }
 
