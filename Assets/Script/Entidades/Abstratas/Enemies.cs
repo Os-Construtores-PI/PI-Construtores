@@ -325,6 +325,7 @@ public abstract class Enemies : CombatEntities, ILockable
   protected virtual void TriggerRewards(Player player)
   {
     player.AddScore(_scoreWhenDamaged);
+    player.AddBoostStage(transform);
   }
 
   protected virtual void TriggerDamagePopup()
