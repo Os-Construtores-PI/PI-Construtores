@@ -78,6 +78,7 @@ public class SavedPlayerData
   public List<SavedItemEntry> Inventory = new();
   public int AmethystsCount;
   public Vector3 Position;
+  public Quaternion Rotation;
   public float Health;
   public float Time;
   public int Score;

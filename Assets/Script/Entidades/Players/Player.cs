@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using DG.Tweening;
 using KinematicCharacterController;
+using TMPro;
 using Unity.Cinemachine;
 using Unity.Mathematics;
 using UnityEngine;
@@ -147,8 +148,12 @@ public class Player : CombatEntities
   public CinemachineOrbitalFollow _cinemachineOrbital;
 
   public HurtboxComponent HurtboxCollider;
+
   public Animator AnimatorComponent;
+
   public PlayerInput PlayerInput;
+
+  public TextMeshProUGUI PlayerScoreText;
 
   protected Camera _myCamera;
 
@@ -358,14 +363,92 @@ public class Player : CombatEntities
 
   #region Score
 
+  [Header("Popups")]
+  [SerializeField]
+  private float popScale = 1.25f;
 
+  [SerializeField]
+  private float popDuration = 0.1f;
+
+  [SerializeField]
+  private float countDuration = 0.5f;
+
+  [SerializeField]
+  private float holdDuration = 1f;
+
+  [SerializeField]
+  private float hideDuration = 0.5f;
+
+  private RectTransform scoreRect;
+  private Tween countTween;
+  private Sequence popSequence;
+  private Sequence hideSequence;
+  private int bufferedScore;
+  private int displayedScore;
+  private bool isVisible;
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
 
-  public void AddScore(int amount)
+  public void AddScore(int amount, bool withPopup = false)
   {
     _currentScore += amount;
+    if (withPopup)
+    {
+      ScorePopupSequence(amount);
+    }
     GlobalEventBus.Instance.ScoreUpdate.Invoke(ID, _currentScore);
+  }
+
+  private void ScorePopupSequence(int amount)
+  {
+    bufferedScore += amount;
+
+    hideSequence?.Kill();
+    popSequence?.Kill();
+    countTween?.Kill();
+
+    if (!isVisible)
+    {
+      isVisible = true;
+      displayedScore = 0;
+      PlayerScoreText.SetText("0");
+      scoreRect.localScale = Vector3.zero;
+    }
+
+    popSequence = DOTween
+      .Sequence()
+      .Append(scoreRect.DOScale(popScale, popDuration))
+      .Append(scoreRect.DOScale(1f, popDuration))
+      .SetLink(gameObject);
+
+    countTween = DOVirtual
+      .Int(
+        displayedScore,
+        bufferedScore,
+        countDuration,
+        value =>
+        {
+          displayedScore = value;
+          PlayerScoreText.SetText("{0}", value);
+        }
+      )
+      .SetEase(Ease.OutQuad)
+      .SetLink(gameObject);
+
+    hideSequence = DOTween
+      .Sequence()
+      .AppendInterval(holdDuration)
+      .Append(scoreRect.DOScale(0f, hideDuration))
+      .OnComplete(ResetScorePopup)
+      .SetLink(gameObject);
+  }
+
+  private void ResetScorePopup()
+  {
+    isVisible = false;
+    bufferedScore = 0;
+    displayedScore = 0;
+    PlayerScoreText.SetText("0");
   }
 
   public void SetScore(int amount)
@@ -682,6 +765,8 @@ public class Player : CombatEntities
     Motor = GetComponent<PlayerMotor>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
+    scoreRect = PlayerScoreText.GetComponent<RectTransform>();
+    scoreRect.localScale = Vector3.zero;
 
     _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
     DetectDevice(PlayerInput);
@@ -761,6 +846,9 @@ public class Player : CombatEntities
   {
     base.OnDestroy();
     DOTween.Kill(this);
+    countTween?.Kill();
+    popSequence?.Kill();
+    hideSequence?.Kill();
 
     _lifetimeCts?.Cancel();
     _lifetimeCts?.Dispose();

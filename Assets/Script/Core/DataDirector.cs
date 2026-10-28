@@ -191,6 +191,7 @@ public sealed class DataDirector : MonoBehaviour
   private void CollectInto(Player p, SavedPlayerData d)
   {
     d.Position = p.transform.position;
+    d.Rotation = p.transform.rotation;
     d.Health = p.Health;
     d.AmethystsCount = p.Amethysts;
     d.Score = p.CurrentScore;
@@ -332,6 +333,7 @@ public sealed class DataDirector : MonoBehaviour
       b.enabled = false;
 
     player.Motor.Engine.SetPosition(data.Position);
+    player.Motor.Engine.SetRotation(data.Rotation);
     player.Motor.Velocity = Vector3.zero;
     player.Health = data.Health;
     player.SetAmethysts(data.AmethystsCount);

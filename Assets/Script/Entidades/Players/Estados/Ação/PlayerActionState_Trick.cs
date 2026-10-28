@@ -148,7 +148,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
       TrickSequence match = FindExactMatch();
 
       if (match != null)
-        entity.AddScore(match.Score);
+        entity.AddScore(match.Score, true);
 
       _buffer.Clear();
     }
@@ -156,7 +156,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
 
   void PerformFreeTrick(Player entity, TrickDirection direction)
   {
-    entity.AddScore(_freeTrickScore);
+    entity.AddScore(_freeTrickScore, true);
     entity.EffectsSystem.PlayEffect(EntityEffectType.PlayerTrickEffect, 2);
     entity.AddBoostStage();
 
