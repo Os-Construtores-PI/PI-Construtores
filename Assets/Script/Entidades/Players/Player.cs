@@ -279,7 +279,7 @@ public class Player : CombatEntities
 
   [Header("Boost")]
   [SerializeField]
-  private GameObject _boostEffect;
+  private ManualSingleSpawner _boostSpawner;
 
   [SerializeField]
   private float _maxBoost = 300f;
@@ -314,7 +314,7 @@ public class Player : CombatEntities
   [SerializeField]
   private AnimationCurve _returnCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-  private Coroutine _effectRoutine;
+  private readonly Dictionary<GameObject, Coroutine> _activeEffects = new();
   private Vector3 _effectBaseScale;
   private bool _effectScaleCached;
   private const int StageCount = 3;
@@ -356,26 +356,27 @@ public class Player : CombatEntities
 
   private void PlayBoostEffect(Vector3? worldOrigin)
   {
-    if (_boostEffect == null)
+    if (_boostSpawner == null)
+      return;
+
+    GameObject effectObject = _boostSpawner.AcquireObject();
+    if (effectObject == null)
       return;
 
     if (!_effectScaleCached)
     {
-      _effectBaseScale = _boostEffect.transform.localScale;
+      _effectBaseScale = _boostSpawner.transform.localScale;
       _effectScaleCached = true;
     }
 
-    if (_effectRoutine != null)
-      StopCoroutine(_effectRoutine);
-
-    _effectRoutine = StartCoroutine(BoostEffectRoutine(worldOrigin));
+    _activeEffects[effectObject] = StartCoroutine(BoostEffectRoutine(effectObject, worldOrigin));
   }
 
-  private IEnumerator BoostEffectRoutine(Vector3? worldOrigin)
+  private IEnumerator BoostEffectRoutine(GameObject effectObject, Vector3? worldOrigin)
   {
-    Transform effect = _boostEffect.transform;
+    Transform effect = effectObject.transform;
 
-    _boostEffect.SetActive(true);
+    effectObject.SetActive(true);
     effect.localScale = _effectBaseScale;
 
     if (worldOrigin.HasValue)
@@ -418,10 +419,31 @@ public class Player : CombatEntities
       yield return null;
     }
 
+    ReleaseEffect(effectObject);
+  }
+
+  private void ReleaseEffect(GameObject effectObject)
+  {
+    _activeEffects.Remove(effectObject);
+
+    Transform effect = effectObject.transform;
     effect.localPosition = Vector3.zero;
     effect.localScale = Vector3.zero;
-    _boostEffect.SetActive(false);
-    _effectRoutine = null;
+    _boostSpawner.ReturnObject(effectObject);
+  }
+
+  private void CancelBoostEffects()
+  {
+    if (_activeEffects.Count == 0)
+      return;
+
+    var effects = new List<KeyValuePair<GameObject, Coroutine>>(_activeEffects);
+    foreach (var pair in effects)
+    {
+      if (pair.Value != null)
+        StopCoroutine(pair.Value);
+      ReleaseEffect(pair.Key);
+    }
   }
 
   public void RemoveBoostStage()
