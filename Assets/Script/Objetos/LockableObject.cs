@@ -9,4 +9,7 @@ public class LockableObject : Object, ILockable
   protected float _boostGrace = 0f;
   public float LockRange => _lockRange;
   public float BoostGrace => _boostGrace;
+
+  protected bool _canLock = true;
+  public bool CanLock => _canLock;
 }

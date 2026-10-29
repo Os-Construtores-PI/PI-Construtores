@@ -67,6 +67,7 @@ public interface ILockable
   public Transform transform { get; }
   public float LockRange { get; }
   public float BoostGrace { get; }
+  public bool CanLock { get; }
   public Vector3 GetLockOnPoint(Vector3 referencePoint) => transform.position;
 }
 

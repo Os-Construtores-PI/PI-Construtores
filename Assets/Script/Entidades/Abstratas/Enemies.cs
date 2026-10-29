@@ -39,6 +39,9 @@ public abstract class Enemies : CombatEntities, ILockable
   public float BoostGrace => _boostGrace;
   public bool IsActive => enabled && gameObject.activeInHierarchy;
 
+  private bool _canLock = true;
+  public bool CanLock => _canLock;
+
   // ==== CONFIGURAÇÕES DE DETECÇÃO ====
   [Header("Configurações de Detecção")]
   [SerializeField]
@@ -158,6 +161,8 @@ public abstract class Enemies : CombatEntities, ILockable
       }
     }
 
+    _canLock = false;
+
     EffectsSystem.PlayEffect(
       EntityEffectType.EntityDeathEffect,
       _deathEffectDuration,
@@ -191,6 +196,7 @@ public abstract class Enemies : CombatEntities, ILockable
     memoryCooldownWalker = 0f;
     visionIntervalwalker = 0f;
     attackIntervalwalker = 0f;
+    _canLock = true;
     Health = MaxHealth;
   }
 

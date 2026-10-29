@@ -7,4 +7,6 @@ public class RailSegmentMarker : MonoBehaviour, ILockable
   public float LockRange { get; set; }
 
   public float BoostGrace { get; set; }
+
+  public bool CanLock => true;
 }

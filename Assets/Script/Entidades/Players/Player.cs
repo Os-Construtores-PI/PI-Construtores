@@ -1481,7 +1481,7 @@ public class Player : CombatEntities
 
     bool foundSomething = false;
 
-    if (WillLock && hit.collider.TryGetComponent(out ILockable lockable))
+    if (WillLock && hit.collider.TryGetComponent(out ILockable lockable) && lockable.CanLock)
     {
       if (hit.distance <= lockable.LockRange)
       {
