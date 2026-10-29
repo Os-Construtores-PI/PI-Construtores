@@ -498,27 +498,29 @@ public class Player : CombatEntities
   private TextMeshProUGUI _playerScoreText;
 
   [SerializeField]
-  private float popScale = 1.25f;
+  private RectTransform _scoreRect;
 
   [SerializeField]
-  private float popDuration = 0.1f;
+  private float _popScale = 1.25f;
 
   [SerializeField]
-  private float countDuration = 0.5f;
+  private float _popDuration = 0.1f;
 
   [SerializeField]
-  private float holdDuration = 1f;
+  private float _countDuration = 0.5f;
 
   [SerializeField]
-  private float hideDuration = 0.5f;
+  private float _holdDuration = 1f;
 
-  private RectTransform scoreRect;
-  private Tween countTween;
-  private Sequence popSequence;
-  private Sequence hideSequence;
-  private int bufferedScore;
-  private int displayedScore;
-  private bool isVisible;
+  [SerializeField]
+  private float _hideDuration = 0.5f;
+
+  private Tween _countTween;
+  private Sequence _popSequence;
+  private Sequence _hideSequence;
+  private int _bufferedScore;
+  private int _displayedScore;
+  private bool _isVisible;
   private int _currentScore = 0;
   public int CurrentScore => _currentScore;
 
@@ -534,53 +536,53 @@ public class Player : CombatEntities
 
   private void ScorePopupSequence(int amount)
   {
-    bufferedScore += amount;
+    _bufferedScore += amount;
 
-    hideSequence?.Kill();
-    popSequence?.Kill();
-    countTween?.Kill();
+    _hideSequence?.Kill();
+    _popSequence?.Kill();
+    _countTween?.Kill();
 
-    if (!isVisible)
+    if (!_isVisible)
     {
-      isVisible = true;
-      displayedScore = 0;
+      _isVisible = true;
+      _displayedScore = 0;
       _playerScoreText.SetText("0");
-      scoreRect.localScale = Vector3.zero;
+      _scoreRect.localScale = Vector3.zero;
     }
 
-    popSequence = DOTween
+    _popSequence = DOTween
       .Sequence()
-      .Append(scoreRect.DOScale(popScale, popDuration))
-      .Append(scoreRect.DOScale(1f, popDuration))
+      .Append(_scoreRect.DOScale(_popScale, _popDuration))
+      .Append(_scoreRect.DOScale(1f, _popDuration))
       .SetLink(gameObject);
 
-    countTween = DOVirtual
+    _countTween = DOVirtual
       .Int(
-        displayedScore,
-        bufferedScore,
-        countDuration,
+        _displayedScore,
+        _bufferedScore,
+        _countDuration,
         value =>
         {
-          displayedScore = value;
+          _displayedScore = value;
           _playerScoreText.SetText("{0}", value);
         }
       )
       .SetEase(Ease.OutQuad)
       .SetLink(gameObject);
 
-    hideSequence = DOTween
+    _hideSequence = DOTween
       .Sequence()
-      .AppendInterval(holdDuration)
-      .Append(scoreRect.DOScale(0f, hideDuration))
+      .AppendInterval(_holdDuration)
+      .Append(_scoreRect.DOScale(0f, _hideDuration))
       .OnComplete(ResetScorePopup)
       .SetLink(gameObject);
   }
 
   private void ResetScorePopup()
   {
-    isVisible = false;
-    bufferedScore = 0;
-    displayedScore = 0;
+    _isVisible = false;
+    _bufferedScore = 0;
+    _displayedScore = 0;
     _playerScoreText.SetText("0");
   }
 
@@ -898,8 +900,7 @@ public class Player : CombatEntities
     Motor = GetComponent<PlayerMotor>();
     AnimatorComponent = GetComponent<Animator>();
     PlayerInput = GetComponent<PlayerInput>();
-    scoreRect = _playerScoreText.GetComponent<RectTransform>();
-    scoreRect.localScale = Vector3.zero;
+    _scoreRect.localScale = Vector3.zero;
 
     _railLayerMask = LayerMask.GetMask(LAYER_DEFAULT);
     DetectDevice(PlayerInput);
@@ -979,9 +980,9 @@ public class Player : CombatEntities
   {
     base.OnDestroy();
     DOTween.Kill(this);
-    countTween?.Kill();
-    popSequence?.Kill();
-    hideSequence?.Kill();
+    _countTween?.Kill();
+    _popSequence?.Kill();
+    _hideSequence?.Kill();
 
     _lifetimeCts?.Cancel();
     _lifetimeCts?.Dispose();
