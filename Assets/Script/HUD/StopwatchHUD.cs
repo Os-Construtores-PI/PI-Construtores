@@ -13,6 +13,9 @@ public class StopwatchHUD : MonoBehaviour
 
   private void Update()
   {
+    if (GlobalEventBus.IsTutorialTimeFrozen)
+      return;
+
     _elapsed += Time.deltaTime;
     UpdateDisplay();
   }

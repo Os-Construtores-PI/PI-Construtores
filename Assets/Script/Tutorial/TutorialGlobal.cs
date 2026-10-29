@@ -160,6 +160,8 @@ public class TutorialGlobal : MonoBehaviour
 
     GameContext.IsTutorialActive = true;
 
+    GlobalEventBus.SetTutorialTimeFrozen(true);
+
     OnTutorialStateChanged?.Invoke(true);
 
     PrepareTutorial();
@@ -337,6 +339,8 @@ public class TutorialGlobal : MonoBehaviour
     IsTutorialActive = false;
 
     GameContext.IsTutorialActive = false;
+
+    GlobalEventBus.SetTutorialTimeFrozen(false);
 
     Time.timeScale = 1f;
 
