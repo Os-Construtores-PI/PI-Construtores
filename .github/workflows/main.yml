@@ -47,7 +47,7 @@ jobs:
           targetPlatform: StandaloneWindows64
           buildName: ${{ matrix.buildName }} 
           customParameters: -activeBuildProfile Assets/Settings/BuildProfiles/${{ matrix.profileName }}.asset
-          customImage: seu-usuario-docker/unity-blender:6000.3.12f1
+          customImage: breadgamedev/unity-blender:6000.3.12f1
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
