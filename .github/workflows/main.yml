@@ -46,7 +46,7 @@ jobs:
         with:
           targetPlatform: StandaloneWindows64
           buildName: ${{ matrix.buildName }} 
-          customParameters: -activeBuildProfile "Assets/Settings/Build Profiles/${{ matrix.profileName }}.asset"
+          customParameters: '-activeBuildProfile "Assets/Settings/Build Profiles/Windows Dev.asset"'
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
