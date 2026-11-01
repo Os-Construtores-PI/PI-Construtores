@@ -15,8 +15,10 @@ jobs:
       matrix:
         include:
           - profileName: "Windows Dev"
+            buildName: "windows-dev"
             artifactName: "Windows-Dev-Build"
           - profileName: "Windows Prod"
+            buildName: "windows-prod"
             artifactName: "Windows-Prod-Build"
 
     steps:
@@ -43,8 +45,8 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: StandaloneWindows64
+          buildName: ${{ matrix.buildName }} 
           customParameters: -activeBuildProfile "Assets/Settings/Build Profiles/${{ matrix.profileName }}.asset"
-          buildName: ${{ matrix.profileName }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
