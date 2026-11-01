@@ -1,0 +1,54 @@
+name: Build Unity 6 - Windows Build Profiles
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  buildWindowsProfiles:
+    name: Build ${{ matrix.profileName }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    strategy:
+      matrix:
+        include:
+          - profileName: "Windows Dev"
+            artifactName: "Windows-Dev-Build"
+          - profileName: "Windows Prod"
+            artifactName: "Windows-Prod-Build"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Windows-${{ matrix.profileName }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-Windows-${{ matrix.profileName }}-
+            Library-
+
+      - name: Build with GameCI (Build Profile)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: StandaloneWindows64
+          buildProfile: "Assets/Settings/Build Profiles/${{ matrix.profileName }}.asset"
+          buildName: ${{ matrix.profileName }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifactName }}
+          path: build
+          retention-days: 7
