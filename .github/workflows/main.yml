@@ -14,10 +14,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - profileName: "Windows Dev"
+          - profileName: "WindowsDev"
             buildName: "windows-dev"
             artifactName: "Windows-Dev-Build"
-          - profileName: "Windows Prod"
+          - profileName: "WindowsProd"
             buildName: "windows-prod"
             artifactName: "Windows-Prod-Build"
 
@@ -46,7 +46,7 @@ jobs:
         with:
           targetPlatform: StandaloneWindows64
           buildName: ${{ matrix.buildName }} 
-          customParameters: '-activeBuildProfile "Assets/Settings/Build Profiles/Windows Dev.asset"'
+          customParameters: -activeBuildProfile Assets/Settings/BuildProfiles/${{ matrix.profileName }}.asset
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
