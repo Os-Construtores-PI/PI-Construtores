@@ -1,0 +1,14 @@
+# escape=`
+FROM unityci/editor:windows-6000.3.12f1-windows-il2cpp-3.2.2
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+ARG BLENDER_VERSION=5.2.1
+ARG BLENDER_SERIES=5.2
+
+RUN Invoke-WebRequest -Uri "https://download.blender.org/release/Blender$env:BLENDER_SERIES/blender-$env:BLENDER_VERSION-windows-x64.msi" -OutFile blender.msi; `
+    $p = Start-Process msiexec.exe -ArgumentList '/i','blender.msi','/qn','/norestart' -Wait -PassThru; `
+    if ($p.ExitCode -ne 0) { throw "msiexec exit code $($p.ExitCode)" }; `
+    Remove-Item blender.msi
+
+RUN & "C:\Program Files\Blender Foundation\Blender $env:BLENDER_SERIES\blender.exe" --version
