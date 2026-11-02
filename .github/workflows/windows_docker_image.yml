@@ -1,0 +1,19 @@
+name: Build Unity Windows Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  image:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - run: docker build -f ci/Dockerfile.windows -t breadgamedev/unity-blender:6000.3.12f1-windows-il2cpp ci
+
+      - run: docker push breadgamedev/unity-blender:6000.3.12f1-windows-il2cpp
