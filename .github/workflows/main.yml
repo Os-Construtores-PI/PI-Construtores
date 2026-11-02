@@ -12,47 +12,33 @@ jobs:
     timeout-minutes: 120
 
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - profileName: "WindowsDev"
-            buildName: "windows-dev"
-            artifactName: "Windows-Dev-Build"
-          - profileName: "WindowsProd"
-            buildName: "windows-prod"
-            artifactName: "Windows-Prod-Build"
+          - profileName: WindowsDev
+            buildName: windows-dev
+            artifactName: Windows-Dev-Build
+          - profileName: WindowsProd
+            buildName: windows-prod
+            artifactName: Windows-Prod-Build
 
     steps:
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          docker-images: false
-          swap-storage: true
-          
       - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: true
           fetch-depth: 0
 
-      - name: Cache Library
-        uses: actions/cache@v4
+      - name: Restore Library
+        id: cache
+        uses: actions/cache/restore@v4
         with:
           path: Library
-          key: Library-Windows-${{ matrix.profileName }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ matrix.profileName }}-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
-            Library-Windows-${{ matrix.profileName }}-
-            Library-
+            Library-${{ matrix.profileName }}-
 
-      - name: Disk usage
-        if: always()
-        run: df -h
-
-      - name: Build with GameCI (Custom Parameters)
+      - name: Build
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -60,13 +46,16 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: StandaloneWindows64
-          buildName: ${{ matrix.buildName }} 
-          customParameters: -activeBuildProfile Assets/Settings/BuildProfiles/${{ matrix.profileName }}.asset
+          buildProfile: Assets/Settings/BuildProfiles/${{ matrix.profileName }}.asset
+          buildName: ${{ matrix.buildName }}
           customImage: breadgamedev/unity-blender:6000.3.12f1
 
-      - name: Disk usage
-        if: always()
-        run: df -h
+      - name: Save Library
+        if: always() && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: Library
+          key: Library-${{ matrix.profileName }}-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
