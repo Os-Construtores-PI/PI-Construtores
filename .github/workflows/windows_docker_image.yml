@@ -8,6 +8,11 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+      - name: Start Docker
+        run: |
+          Get-Service *docker*
+          Start-Service docker
+          docker version
 
       - uses: docker/login-action@v3
         with:
