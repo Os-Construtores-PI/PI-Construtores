@@ -11,11 +11,5 @@ RUN Invoke-WebRequest -Uri "https://download.blender.org/release/Blender$env:BLE
     if ($p.ExitCode -ne 0) { throw "msiexec exit code $($p.ExitCode)" }; `
     Remove-Item blender.msi
 
-RUN $dir = 'C:\Program Files\Blender Foundation\Blender ' + $env:BLENDER_SERIES; `
-    $p = Start-Process ($dir + '\blender.exe') -ArgumentList '--version' -Wait -PassThru -NoNewWindow; `
-    'exit code: ' + $p.ExitCode + ' (0x' + ('{0:X}' -f $p.ExitCode) + ')'; `
-    $dump = (Get-ChildItem 'C:\Program Files*\Microsoft Visual Studio' -Recurse -Filter dumpbin.exe -ErrorAction SilentlyContinue | Select-Object -First 1).FullName; `
-    if (-not $dump) { 'dumpbin not found'; exit 0 }; `
-    $deps = Get-ChildItem $dir -File | Where-Object { $_.Extension -in '.dll','.exe' } | ForEach-Object { & $dump /dependents $_.FullName } | Select-String -Pattern '^\s+(\S+\.dll)\s*$' | ForEach-Object { $_.Matches[0].Groups[1].Value.ToLower() } | Sort-Object -Unique; `
-    foreach ($n in $deps) { if ($n -notlike 'api-ms-*' -and $n -notlike 'ext-ms-*' -and -not (Test-Path ('C:\Windows\System32\' + $n)) -and -not (Test-Path ($dir + '\' + $n))) { 'MISSING: ' + $n } }; `
-    exit 0
+COPY Find-MissingDlls.ps1 C:/Find-MissingDlls.ps1
+RUN powershell -ExecutionPolicy Bypass -File C:\Find-MissingDlls.ps1
