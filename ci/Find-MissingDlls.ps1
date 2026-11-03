@@ -34,18 +34,25 @@ function Get-PeImports([string]$path) {
     }
 }
 
-$files = Get-ChildItem $dir -File | Where-Object { $_.Extension -in '.dll', '.exe' }
+'top-level folders: ' + ((Get-ChildItem $dir -Directory | ForEach-Object Name) -join ', ')
+
+$all = Get-ChildItem $dir -Recurse -File
+$have = @{}
+foreach ($f in $all) { $have[$f.Name.ToLower()] = $true }
+
+$files = $all | Where-Object { $_.Extension -in '.dll', '.exe', '.pyd' }
 $missing = @{}
 foreach ($f in $files) {
     foreach ($name in Get-PeImports $f.FullName) {
         if ($name -like 'api-ms-*' -or $name -like 'ext-ms-*') { continue }
-        if ((Test-Path (Join-Path $dir $name)) -or (Test-Path (Join-Path 'C:\Windows\System32' $name))) { continue }
+        if ($have.ContainsKey($name) -or (Test-Path (Join-Path 'C:\Windows\System32' $name))) { continue }
         if (-not $missing.ContainsKey($name)) { $missing[$name] = @() }
         $missing[$name] += $f.Name
     }
 }
+
 foreach ($k in ($missing.Keys | Sort-Object)) {
     'MISSING: ' + $k + '  <- ' + (($missing[$k] | Select-Object -First 3) -join ', ')
 }
-'checked ' + $files.Count + ' files'
+'checked ' + $files.Count + ' files, ' + $missing.Count + ' missing'
 exit 0
