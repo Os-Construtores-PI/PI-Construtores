@@ -253,6 +253,8 @@ public class Player : CombatEntities
   #region Flags de Input - Pulo
   public bool JumpInteractionPressed = false;
 
+  private bool _ignoreJumpUntilReleased;
+
   public void ConsumeJumpInteraction() => JumpInteractionPressed = false;
   #endregion
 
@@ -266,6 +268,8 @@ public class Player : CombatEntities
   public bool IgnoreGameplayInputThisFrame { get; set; } = false;
   public bool WaitForJumpRelease { get; set; } = false;
   public bool BlockJumpByDialogue { get; set; } = false;
+
+  public bool BlockJumpByTutorialTrigger {get; set;} = false;
   #endregion
 
 
@@ -1318,18 +1322,44 @@ public class Player : CombatEntities
 
   public void OnJump(InputAction.CallbackContext context)
   {
-    if (IsHardLocked || IgnoreGameplayInputThisFrame || BlockJumpByDialogue)
-      return;
+     // Quando o jogador soltar o botão, libera o bloqueio temporário.
+    // O botão precisa ser solto antes de poder pular novamente.
+    if (context.canceled)
+    {
+        _ignoreJumpUntilReleased = false;
+        return;
+    }
 
     if (!context.started)
-      return;
+        return;
+
+    // Bloqueia o pulo enquanto o jogador está na área
+    // ou enquanto o tutorial está ativo.
+    if (BlockJumpByTutorialTrigger ||
+        _ignoreJumpUntilReleased ||
+        GameContext.IsTutorialActive)
+    {
+        _ignoreJumpUntilReleased = true;
+        return;
+    }
+
+    if (IsHardLocked ||
+        IgnoreGameplayInputThisFrame ||
+        BlockJumpByDialogue)
+        return;
 
     if (ActionLayer.GetActive<PlayerActionStateRailSlide>() != null)
-      RailSlide.RequestCancel();
+        RailSlide.RequestCancel();
 
     if (!Motor.IsGrounded)
-      JumpInteractionPressed = true;
+        JumpInteractionPressed = true;
+
     TryJump();
+  }
+
+  public void BlockJumpUntilReleased()
+  {
+    _ignoreJumpUntilReleased = true;
   }
 
   public void OnInteract(InputAction.CallbackContext context)
@@ -1405,11 +1435,59 @@ public class Player : CombatEntities
   #region Pause
   private void Pause()
   {
-    if (TutorialGlobal.Instance != null && TutorialGlobal.Instance.IsTutorialActive)
+    if (TutorialGlobal.Instance != null &&
+        TutorialGlobal.Instance.IsTutorialActive)
       return;
-    if (DialogueGlobal.Instance != null && DialogueGlobal.Instance.IsDialogueActive)
+
+    if (DialogueGlobal.Instance != null &&
+        DialogueGlobal.Instance.IsDialogueActive)
       return;
-    GlobalEventBus.Instance.Pause.Invoke(!GameContext.IsPaused);
+
+    // Abrindo o Pause
+    if (!GameContext.IsPaused)
+    {
+      GlobalEventBus.Instance.Pause.Invoke(true);
+      return;
+    }
+
+    HudDirector hudDirector = FindFirstObjectByType<HudDirector>();
+
+    if (hudDirector != null)
+    {
+      List<GameObject> pausePanels =
+          hudDirector.GetPanel(ID, HudPanelType.Pause);
+
+      foreach (GameObject panel in pausePanels)
+      {
+        if (panel == null || !panel.activeInHierarchy)
+          continue;
+
+        // CanvasHUD é o pai do Pause.
+        Transform canvasHUD = panel.transform.parent;
+
+        if (canvasHUD == null)
+          continue;
+
+        // GameLogic é irmão do Pause, dentro do CanvasHUD.
+        Transform gameLogic = canvasHUD.Find("GameLogic");
+
+        if (gameLogic == null)
+          continue;
+
+        BasicMenuLogic menuLogic =
+            gameLogic.GetComponent<BasicMenuLogic>();
+
+        if (menuLogic == null)
+          continue;
+
+        // Fecha o Pause utilizando a animação do menu.
+        menuLogic.ClosePauseWithAnimation();
+        return;
+      }
+    }
+
+    // Alternativa caso não seja possível encontrar o menu.
+    GlobalEventBus.Instance.Pause.Invoke(false);
   }
   #endregion
 

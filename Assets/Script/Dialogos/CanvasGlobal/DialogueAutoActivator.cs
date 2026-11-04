@@ -9,20 +9,27 @@ public class DialogueAutoActivator : MonoBehaviour
 
   private void OnTriggerEnter(Collider other)
   {
-    if (!other.CompareTag("Player"))
-      return;
+    Player player = other.GetComponentInParent<Player>();
 
+    if (player == null)
+        return;
+    
     if (onlyOnce && alreadyTriggered)
-      return;
+       return;
+    
+    if (targetTrigger == null)
+    {
+      Debug.LogWarning(
+        "[DialogueAutoActivator] nenhum tutorial atribuido",
+        this
+      );
 
-    if (targetTrigger != null)
-    {
-      targetTrigger.OpenTutorial();
-      alreadyTriggered = true;
+      return;
     }
-    else
-    {
-      Debug.LogWarning("[DialogueAutoActivator] Nenhum DialogueTrigger atribuído!", this);
-    }
+
+    if (onlyOnce)
+        alreadyTriggered = true;
+    
+    targetTrigger.OpenTutorialAutomatically(player);
   }
 }

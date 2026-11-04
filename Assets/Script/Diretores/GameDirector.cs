@@ -19,6 +19,9 @@ public class GameDirector : MonoBehaviour
   [SerializeField]
   private StageIntroData stageData;
 
+  private float _animatorSpeedOriginal = 1f;
+  private bool _animatorCongelado;
+
   private void Start()
   {
     GlobalEventBus.Instance.Pause.AddListener(SetPauseWorld);
@@ -165,18 +168,32 @@ public class GameDirector : MonoBehaviour
 
   private void OnTutorialStateChanged(bool active)
   {
-    if (!playerDirector || playerDirector.FirstPlayerContext == null)
+    Player player = playerDirector != null
+      ? playerDirector.FirstPlayerContext : null;
+
+    if (player == null || player.AnimatorComponent == null)
       return;
 
-    var player = playerDirector.FirstPlayerContext;
-
-    if (active)
+    if(active)
     {
+      if (!_animatorCongelado)
+      {
+        _animatorSpeedOriginal = player.AnimatorComponent.speed;
+        _animatorCongelado = true;
+      }
+
+      player.AnimatorComponent.speed = 0f;
+
       SetLockPlayer(player, true);
     }
     else
     {
-      player.IgnoreGameplayInputThisFrame = true;
+      if (_animatorCongelado)
+      {
+        player.AnimatorComponent.speed = _animatorSpeedOriginal;
+        _animatorCongelado = false;
+      }
+
       StartCoroutine(UnlockPlayerInNextFrame(player));
     }
   }

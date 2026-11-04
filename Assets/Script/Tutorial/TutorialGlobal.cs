@@ -1,31 +1,68 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class TutorialGlobal : MonoBehaviour
 {
   public static TutorialGlobal Instance { get; private set; }
 
-  [Header("Audio")]
-  [SerializeField]
-  private TutorialAudioConfig _tutorialAudioConfig;
-
-  [Header("UI")]
+  [Header("Tutorial UI")]
   [SerializeField]
   private GameObject tutorialHUD;
 
-  [Header("Tutorials")]
   [SerializeField]
-  private GameObject movementTutorial;
+  private RectTransform interfaceLeft;
 
   [SerializeField]
-  private GameObject dashTutorial;
+  private RectTransform interfaceRight;
 
-  public event System.Action<bool> OnTutorialStateChanged;
+  [SerializeField]
+  private GameObject videoPanel;
+
+  [Header("Video")]
+  [SerializeField]
+  private VideoPlayer videoPlayer;
+
+  [SerializeField]
+  private CanvasGroup videoCanvasGroup;
+
+  [SerializeField]
+  private float videoFadeInDuration = 0.5f;
+
+  [SerializeField]
+  private float videoFadeOutDuration = 0.3f;
+
+  [Header("Animation")]
+  [SerializeField]
+  private float interfaceExitOffset = 100f;
+
+  [SerializeField]
+  private float interfaceDuration = 0.5f;
+
+  [SerializeField]
+  private float interfaceDelay = 0.15f;
+
+  [SerializeField]
+  private float videoDelay = 0.15f;
+
+  [SerializeField]
+  private float exitDuration = 0.4f;
+
+  [Header("Textos em Sprite")]
+  [SerializeField]
+  private Image[] textosTutorial;
 
   public bool IsTutorialActive { get; private set; }
 
   private Tween _currentTween;
+  private int _currentID;
+  private Vector2 _leftFinalPosition;
+  private Vector2 _rightFinalPosition;
+
+  public event Action<bool> OnTutorialStateChanged;
 
   private void Awake()
   {
@@ -36,39 +73,174 @@ public class TutorialGlobal : MonoBehaviour
     }
 
     Instance = this;
-    DeactivateAll();
+
+    // Guarda as posições originais
+    if (interfaceLeft != null)
+      _leftFinalPosition = interfaceLeft.anchoredPosition;
+
+    if (interfaceRight != null)
+      _rightFinalPosition = interfaceRight.anchoredPosition;
+
+    PrepareTutorial();
   }
 
   private void Start()
   {
-    tutorialHUD.SetActive(false);
+    if (tutorialHUD != null)
+      tutorialHUD.SetActive(false);
+
+    if (videoPanel != null)
+      videoPanel.SetActive(false);
+
+    StopVideo();
   }
 
-  public void OpenTutorial(TutorialTrigger.TutorialType type)
+  private void PrepareTutorial()
+  {
+    if (interfaceLeft != null)
+    {
+      interfaceLeft.anchoredPosition = new Vector2(
+        CalculateHiddenPosition(interfaceLeft),
+        _leftFinalPosition.y
+      );
+    }
+
+    if (interfaceRight != null)
+    {
+      interfaceRight.anchoredPosition = new Vector2(
+        CalculateHiddenPosition(interfaceRight),
+        _rightFinalPosition.y
+      );
+    }
+
+    if (videoPanel != null)
+      videoPanel.SetActive(false);
+  }
+
+  private float CalculateHiddenPosition(RectTransform target)
+  {
+    if (target == null)
+      return -2000f;
+
+    float width = target.rect.width * target.localScale.x;
+
+    if (target == interfaceLeft)
+    {
+      return _leftFinalPosition.x - width - interfaceExitOffset;
+    }
+
+    if (target == interfaceRight)
+    {
+      return _rightFinalPosition.x + width + interfaceExitOffset;
+    }
+
+    return target.anchoredPosition.x;
+  }
+
+  public void OpenTutorial(VideoClip video, int playerid)
   {
     if (IsTutorialActive)
       return;
+    _currentID = playerid;
+
+    if (video == null)
+    {
+      Debug.LogWarning("[TutorialGlobal] nenhum VideoClip foi fornecido");
+
+      return;
+    }
 
     IsTutorialActive = true;
+
     GameContext.IsTutorialActive = true;
 
-    if (AudioManager.Instance != null && _tutorialAudioConfig != null)
-    {
-      AudioManager.Instance.PlaySFX(_tutorialAudioConfig.TutorialOpen);
-    }
-
-    DeviceInputManager.Instance?.ForceRefresh();
-
-    DeactivateAll();
-    tutorialHUD.SetActive(true);
-
-    GameObject panel = GetPanel(type);
-    if (panel != null)
-    {
-      AnimateEntrance(panel);
-    }
-
     OnTutorialStateChanged?.Invoke(true);
+
+    PrepareTutorial();
+
+    if (tutorialHUD != null)
+    {
+      tutorialHUD.SetActive(true);
+    }
+
+    if (videoPanel != null)
+    {
+      videoPanel.SetActive(false);
+    }
+
+    PlayEntranceAnimation(video);
+    GlobalEventBus.Instance.TimeRunning.Invoke(_currentID, false);
+  }
+
+  private void PlayEntranceAnimation(VideoClip video)
+  {
+    _currentTween?.Kill();
+
+    Sequence sequence = DOTween.Sequence();
+
+    if (interfaceLeft != null)
+    {
+      sequence.Append(
+        interfaceLeft.DOAnchorPos(_leftFinalPosition, interfaceDuration).SetEase(Ease.OutCubic)
+      );
+    }
+
+    if (interfaceRight != null)
+    {
+      sequence.Join(
+        interfaceRight.DOAnchorPos(_rightFinalPosition, interfaceDuration).SetEase(Ease.OutCubic)
+      );
+    }
+
+    sequence.AppendInterval(videoDelay);
+
+    sequence.AppendCallback(() =>
+    {
+      PlayVideo(video);
+    });
+
+    sequence.SetUpdate(true);
+
+    _currentTween = sequence;
+  }
+
+  private void PlayVideo(VideoClip video)
+  {
+    if (videoPlayer == null)
+    {
+      Debug.LogError("[TutorialGlobal] VideoPlayer não configurado");
+
+      CloseTutorial();
+
+      return;
+    }
+
+    if (videoCanvasGroup != null)
+    {
+      videoCanvasGroup.DOKill();
+      videoCanvasGroup.alpha = 0f;
+    }
+
+    if (videoPanel != null)
+      videoPanel.SetActive(true);
+
+    videoPlayer.Stop();
+    videoPlayer.clip = video;
+    videoPlayer.isLooping = true;
+
+    videoPlayer.loopPointReached -= OnVideoFinished;
+
+    videoPlayer.Play();
+
+    if (videoCanvasGroup != null)
+    {
+      videoCanvasGroup.DOFade(1f, videoFadeInDuration).SetEase(Ease.OutQuad).SetUpdate(true);
+    }
+  }
+
+  private void OnVideoFinished(VideoPlayer source)
+  {
+    //CloseTutorial();
   }
 
   public void CloseTutorial()
@@ -76,96 +248,111 @@ public class TutorialGlobal : MonoBehaviour
     if (!IsTutorialActive)
       return;
 
+    _currentTween?.Kill();
+
+    StopVideo();
+
+    Sequence sequence = DOTween.Sequence();
+
+    if (videoCanvasGroup != null)
+    {
+      sequence.Append(videoCanvasGroup.DOFade(0f, videoFadeOutDuration)).SetEase(Ease.InQuad);
+    }
+
+    sequence.AppendCallback(() =>
+    {
+      if (videoPanel != null)
+        videoPanel.SetActive(false);
+    });
+
+    if (interfaceRight != null)
+    {
+      sequence.Append(
+        interfaceRight
+          .DOAnchorPosX(CalculateHiddenPosition(interfaceRight), exitDuration)
+          .SetEase(Ease.InCubic)
+      );
+    }
+
+    if (interfaceLeft != null)
+    {
+      sequence.Join(
+        interfaceLeft
+          .DOAnchorPosX(CalculateHiddenPosition(interfaceLeft), exitDuration)
+          .SetEase(Ease.InCubic)
+      );
+    }
+
+    sequence.AppendCallback(FinishTutorial);
+
+    sequence.SetUpdate(true);
+
+    _currentTween = sequence;
+  }
+
+  private void FinishTutorial()
+  {
+    _currentTween?.Kill();
+
+    if (videoPanel != null)
+      videoPanel.SetActive(false);
+
+    if (videoCanvasGroup != null)
+      videoCanvasGroup.alpha = 1f;
+
+    if (tutorialHUD != null)
+      tutorialHUD.SetActive(false);
+
+    PrepareTutorial();
+
     IsTutorialActive = false;
+
     GameContext.IsTutorialActive = false;
 
-    if (AudioManager.Instance != null && _tutorialAudioConfig != null)
-    {
-      AudioManager.Instance.PlaySFX(_tutorialAudioConfig.TutorialClose);
-    }
-
-    GameObject activePanel = GetActivePanel();
-    if (activePanel != null)
-    {
-      AnimateExit(activePanel);
-    }
-    else
-    {
-      tutorialHUD.SetActive(false);
-      Time.timeScale = 1f;
-    }
-
-    DeviceInputManager.Instance?.ForceRefresh();
+    Time.timeScale = 1f;
     OnTutorialStateChanged?.Invoke(false);
+    GlobalEventBus.Instance.TimeRunning.Invoke(_currentID, true);
   }
 
-  private void AnimateEntrance(GameObject panel)
+  private void StopVideo()
+  {
+    //
+  }
+
+  public void SkipTutorial()
+  {
+    if (!IsTutorialActive)
+      return;
+
+    CloseTutorial();
+  }
+
+  private void OnDestroy()
   {
     _currentTween?.Kill();
 
-    Time.timeScale = 0f;
-    panel.SetActive(true);
+    if (videoPlayer != null)
+      videoPlayer.loopPointReached -= OnVideoFinished;
 
-    CanvasGroup cg = panel.GetComponent<CanvasGroup>();
-    RectTransform rt = panel.GetComponent<RectTransform>();
-
-    cg.alpha = 0f;
-    rt.localScale = Vector3.one * 0.9f;
-
-    _currentTween = DOTween
-      .Sequence()
-      .Append(cg.DOFade(1f, 0.25f))
-      .Join(rt.DOScale(1f, 0.25f))
-      .SetEase(Ease.OutBack)
-      .SetUpdate(UpdateType.Normal, true);
+    if (Instance == this)
+      Instance = null;
   }
 
-  private void AnimateExit(GameObject panel)
+  public void SetTutorialSprites(Sprite[] sprites)
   {
-    _currentTween?.Kill();
+    if (textosTutorial == null)
+      return;
 
-    CanvasGroup cg = panel.GetComponent<CanvasGroup>();
-    RectTransform rt = panel.GetComponent<RectTransform>();
-
-    _currentTween = DOTween
-      .Sequence()
-      .Append(cg.DOFade(0f, 0.2f))
-      .Join(rt.DOScale(0.9f, 0.2f))
-      .SetEase(Ease.InBack)
-      .SetUpdate(UpdateType.Normal, true)
-      .OnComplete(() =>
-      {
-        panel.SetActive(false);
-        tutorialHUD.SetActive(false);
-        Time.timeScale = 1f;
-      });
-  }
-
-  private void DeactivateAll()
-  {
-    if (movementTutorial != null)
-      movementTutorial.SetActive(false);
-    if (dashTutorial != null)
-      dashTutorial.SetActive(false);
-  }
-
-  private GameObject GetPanel(TutorialTrigger.TutorialType type)
-  {
-    return type switch
+    for (int i = 0; i < textosTutorial.Length; i++)
     {
-      TutorialTrigger.TutorialType.Movement => movementTutorial,
-      TutorialTrigger.TutorialType.Dash => dashTutorial,
-      _ => null,
-    };
-  }
+      if (textosTutorial[i] == null)
+        continue;
 
-  private GameObject GetActivePanel()
-  {
-    if (movementTutorial != null && movementTutorial.activeSelf)
-      return movementTutorial;
-    if (dashTutorial != null && dashTutorial.activeSelf)
-      return dashTutorial;
+      bool hasSprite = sprites != null && i < sprites.Length && sprites[i] != null;
 
-    return null;
+      textosTutorial[i].sprite = hasSprite ? sprites[i] : null;
+
+      textosTutorial[i].enabled = hasSprite;
+    }
   }
 }

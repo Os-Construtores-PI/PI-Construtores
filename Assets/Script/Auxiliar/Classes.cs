@@ -457,4 +457,6 @@ public class PlayerTeleportEvent : UnityEvent<int> { }
 
 public class PlayerAmethystsEvent : UnityEvent<int> { }
 
+public class PlayerTimeStopEvent : UnityEvent<int, bool> { }
+
 #endregion

@@ -23,6 +23,7 @@ public class GlobalEventBus : MonoBehaviour
   public readonly PlayerCinematicEvent Cinematic = new();
   public readonly PlayerTeleportEvent Teleport = new();
   public readonly PlayerAmethystsEvent AmethystsChanged = new();
+  public readonly PlayerTimeStopEvent TimeRunning = new();
   public readonly UnityEvent Death = new();
   public readonly UnityEvent Respawn = new();
   public readonly UnityEvent EndGame = new();
