@@ -62,6 +62,8 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, Sprite> originalSprites = new();
   private readonly Dictionary<int, CameraLogic> _playerCachedCameras = new();
   private readonly Dictionary<int, StopwatchHUD> _playerCachedStopwatches = new();
+  private readonly HashSet<int> _tutorialPopupPlayers = new();
+  private readonly HashSet<int> _interactionPopupVisiblePlayers = new();
   private Dictionary<int, int> _playerCachedScores = new();
 
   private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
@@ -1001,6 +1003,87 @@ public class HudDirector : MonoBehaviour
   private void OptionsPausePanel(bool set) { } // TODO: abrir painel/cena de opções
 
   private void SoundOptionsPausePanel(bool set) { } // TODO: menu de som
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Tutorial
+  // ═══════════════════════════════════════════════════════════════════════════
+  public bool TutorialInteractionPopup(int playerID, bool show)
+  {
+    if (!canvasMap.ContainsKey(playerID))
+    {
+      Debug.LogWarning($"[HudDirector] HUD não inicializado para o jogador {playerID}.");
+      return false;
+    }
+
+    var panels = GetPanel(playerID, HudPanelType.InteractionPopup);
+
+    if (panels.Count == 0)
+    {
+      Debug.LogWarning("[HudDirector] Painel InteractionPopup não encontrado.");
+      return false;
+    }
+
+    if (!interactionTexts.TryGetValue(playerID, out var text) || text == null)
+    {
+      Debug.LogWarning($"[HudDirector] Texto do popup não registrado para o jogador {playerID}.");
+      return false;
+    }
+
+    if (show)
+    {
+      // Dá prioridade ao tutorial e bloqueia o popup comum.
+      _tutorialPopupPlayers.Add(playerID);
+      _interactionPopupVisiblePlayers.Remove(playerID);
+
+      var action = InputSystem.actions?.FindAction("Interaction");
+
+      text.DOKill();
+      text.text = action != null ? action.GetBindingDisplayString() : "Interagir";
+
+      text.color = Color.white;
+
+      if (
+        interactionImages.TryGetValue(playerID, out var image)
+        && image != null
+        && originalSprites.TryGetValue(playerID, out var originalSpritess)
+      )
+      {
+        image.sprite = originalSpritess;
+      }
+
+      ShowPanel(HudPanelType.InteractionPopup, playerID, independent: true);
+
+      return true;
+    }
+
+    // Remove o estado do tutorial.
+    _tutorialPopupPlayers.Remove(playerID);
+    _interactionPopupVisiblePlayers.Remove(playerID);
+
+    text.DOKill();
+    text.text = string.Empty;
+    text.color = Color.white;
+
+    if (
+      interactionImages.TryGetValue(playerID, out var imageToReset)
+      && imageToReset != null
+      && originalSprites.TryGetValue(playerID, out var originalSprite)
+    )
+    {
+      imageToReset.sprite = originalSprite;
+    }
+
+    // Esconde o popup imediatamente para não deixar o ícone preso.
+    HidePanel(
+      HudPanelType.InteractionPopup,
+      playerID,
+      independent: true,
+      fade: false,
+      instant: true
+    );
+
+    return true;
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Helpers Gerais
