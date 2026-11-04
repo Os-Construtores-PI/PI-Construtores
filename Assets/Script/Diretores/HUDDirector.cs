@@ -99,6 +99,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.ComboUpdate.AddListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.AddListener(MaxComboPanel);
     GlobalEventBus.Instance.ScoreUpdate.AddListener(ScorePanel);
+    GlobalEventBus.Instance.TimeRunning.AddListener(PauseStopwatch);
   }
 
   private void OnDisable()
@@ -118,6 +119,7 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
     GlobalEventBus.Instance.ScoreUpdate.RemoveListener(ScorePanel);
+    GlobalEventBus.Instance.TimeRunning.RemoveListener(PauseStopwatch);
   }
 
   private void OnDestroy()
@@ -1035,7 +1037,8 @@ public class HudDirector : MonoBehaviour
       _tutorialPopupPlayers.Add(playerID);
       _interactionPopupVisiblePlayers.Remove(playerID);
 
-      var action = InputSystem.actions?.FindAction("Interaction");
+      var action =
+        InputSystem.actions != null ? InputSystem.actions.FindAction("Interaction") : null;
 
       text.DOKill();
       text.text = action != null ? action.GetBindingDisplayString() : "Interagir";
@@ -1104,6 +1107,15 @@ public class HudDirector : MonoBehaviour
     foreach (var root in GetPanel(playerID, panel))
     foreach (var t in root.GetComponentsInChildren<Transform>(true))
       yield return t.gameObject;
+  }
+
+  public void PauseStopwatch(int playerid, bool running)
+  {
+    var cachedStopwatch = _playerCachedStopwatches.FirstOrDefault(pair => pair.Key == playerid);
+    if (cachedStopwatch.Value != null)
+    {
+      cachedStopwatch.Value.Elapsing = running;
+    }
   }
 
   public void ResetAllStopwatches()

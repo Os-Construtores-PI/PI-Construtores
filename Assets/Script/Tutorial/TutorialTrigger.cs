@@ -8,7 +8,6 @@ using static TutorialGlobal;
 
 public class TutorialTrigger : MonoBehaviour
 {
-
   [Header("Config")]
   [SerializeField]
   private bool _onlyOnce;
@@ -37,7 +36,7 @@ public class TutorialTrigger : MonoBehaviour
   private TutorialSpriteText[] _textosTutorial;
 
   [Header("Indicador do Tutorial")]
-  [SerializeField] 
+  [SerializeField]
   private ImageTriggerEvent _imagemInteracao;
 
   [SerializeField]
@@ -62,14 +61,13 @@ public class TutorialTrigger : MonoBehaviour
 
   private void Start()
   {
-
     ResolveReferences();
 
     if (_hudDirector == null)
-        Debug.LogError("[TutorialTrigger] HUDDirector não encontrado.", this);
+      Debug.LogError("[TutorialTrigger] HUDDirector não encontrado.", this);
 
     if (_tutorialGlobal == null)
-        Debug.LogError("[TutorialTrigger] TutorialGlobal não encontrado.", this);
+      Debug.LogError("[TutorialTrigger] TutorialGlobal não encontrado.", this);
   }
 
   private void Awake()
@@ -77,22 +75,22 @@ public class TutorialTrigger : MonoBehaviour
     ResolveReferences();
 
     if (_triggerCollider == null)
-        _triggerCollider = GetComponent<Collider>();
+      _triggerCollider = GetComponent<Collider>();
   }
 
   private void ResolveReferences()
   {
     if (_hudDirector == null)
-        _hudDirector = FindAnyObjectByType<HudDirector>(FindObjectsInactive.Include);
+      _hudDirector = FindAnyObjectByType<HudDirector>(FindObjectsInactive.Include);
 
     if (_tutorialGlobal == null)
     {
-        _tutorialGlobal = TutorialGlobal.Instance;
+      _tutorialGlobal = TutorialGlobal.Instance;
 
-        if (_tutorialGlobal == null)
-            _tutorialGlobal = FindAnyObjectByType<TutorialGlobal>(FindObjectsInactive.Include);
+      if (_tutorialGlobal == null)
+        _tutorialGlobal = FindAnyObjectByType<TutorialGlobal>(FindObjectsInactive.Include);
 
-        InscreverEventoTutorial();
+      InscreverEventoTutorial();
     }
   }
 
@@ -101,56 +99,52 @@ public class TutorialTrigger : MonoBehaviour
     Player player = other.GetComponentInParent<Player>();
 
     if (player == null)
-        return;
+      return;
 
     RegisterPlayer(player, other);
   }
-
 
   private void Update()
   {
     ResolveReferences();
 
     // Fallback: se o evento não chegou, detectamos a mudança por polling.
-    if (_tutorialGlobal != null &&
-        _tutorialGlobal.IsTutorialActive != _ultimoEstadoTutorial)
+    if (_tutorialGlobal != null && _tutorialGlobal.IsTutorialActive != _ultimoEstadoTutorial)
     {
-        OnTutorialStateChanged(_tutorialGlobal.IsTutorialActive);
+      OnTutorialStateChanged(_tutorialGlobal.IsTutorialActive);
     }
 
     if (_triggerDesativadoTemporariamente)
     {
       // Mesmo com o BoxCollider desativado, verifica
-    // se o jogador já saiu da área de interação.
-    if (!_triggerCollider.enabled &&
-        _playerInside &&
-        PlayerSaiuDoTriggerDesativado())
-    {
+      // se o jogador já saiu da área de interação.
+      if (!_triggerCollider.enabled && _playerInside && PlayerSaiuDoTriggerDesativado())
+      {
         LiberarJogadorForaDoTrigger();
-    }
+      }
 
-    return;
+      return;
     }
 
     if (!_playerInside || _playerInput == null || _player == null)
-        return;
+      return;
 
     if (_onlyOnce && _tutorialConsumed)
-        return;
+      return;
 
     if (_tutorialGlobal == null)
-        return;
+      return;
 
     if (_tutorialGlobal.IsTutorialActive || GameContext.IsPaused)
-        return;
+      return;
 
     if (_player.IgnoreGameplayInputThisFrame)
-        return;
+      return;
 
     InputAction interaction = _playerInput.actions?.FindAction("Interaction");
 
     if (interaction != null && interaction.WasPerformedThisFrame())
-        OpenTutorial();
+      OpenTutorial();
   }
 
   private void UpdateInteractionPopup(bool show)
@@ -174,28 +168,21 @@ public class TutorialTrigger : MonoBehaviour
 
     if (_hudDirector == null || _player == null)
     {
-        Debug.LogWarning(
-            "[TutorialTrigger] HUDDirector ou Player não encontrado.",
-            this
-        );
-        return;
+      Debug.LogWarning("[TutorialTrigger] HUDDirector ou Player não encontrado.", this);
+      return;
     }
 
-    bool success = _hudDirector.TutorialInteractionPopup(
-        _player.ID,
-        show
-    );
+    bool success = _hudDirector.TutorialInteractionPopup(_player.ID, show);
 
     if (success)
-        _popupVisible = show;
+      _popupVisible = show;
     else
-        Debug.LogWarning(
-            $"[TutorialTrigger] Não foi possível " +
-            $"{(show ? "mostrar" : "ocultar")} o popup do jogador {_player.ID}.",
-            this
-        );
+      Debug.LogWarning(
+        $"[TutorialTrigger] Não foi possível "
+          + $"{(show ? "mostrar" : "ocultar")} o popup do jogador {_player.ID}.",
+        this
+      );
   }
-
 
   public void OpenTutorial()
   {
@@ -208,29 +195,24 @@ public class TutorialTrigger : MonoBehaviour
   public void OpenTutorialInternal()
   {
     if (!_playerInside || _player == null)
-        return;
+      return;
 
     if (_tutorialVideo == null)
     {
-        Debug.LogWarning(
-            $"[TutorialTrigger] Nenhum vídeo configurado em {gameObject.name}.",
-            this
-        );
-        return;
+      Debug.LogWarning($"[TutorialTrigger] Nenhum vídeo configurado em {gameObject.name}.", this);
+      return;
     }
 
     ResolveReferences();
 
     if (_tutorialGlobal == null)
     {
-        Debug.LogError(
-            "[TutorialTrigger] TutorialGlobal não encontrado."
-        );
-        return;
+      Debug.LogError("[TutorialTrigger] TutorialGlobal não encontrado.");
+      return;
     }
 
     if (_tutorialGlobal.IsTutorialActive)
-        return;
+      return;
 
     ApplyTutorialSprites();
 
@@ -238,24 +220,20 @@ public class TutorialTrigger : MonoBehaviour
 
     _esteTriggerAbriuTutorial = true;
 
-
-    _tutorialGlobal.OpenTutorial(_tutorialVideo);
+    _tutorialGlobal.OpenTutorial(_tutorialVideo, _player.ID);
   }
 
   public void OpenTutorialAutomatically(Player player)
   {
     if (player == null)
-        return;
+      return;
 
     if (_onlyOnce && _tutorialConsumed)
-        return;
-    
+      return;
+
     if (_player != player)
     {
-      Debug.LogWarning(
-        "[TutorialTrigger] o Jogador não corresponde ao jogador registrado",
-        this
-      );
+      Debug.LogWarning("[TutorialTrigger] o Jogador não corresponde ao jogador registrado", this);
 
       return;
     }
@@ -268,12 +246,12 @@ public class TutorialTrigger : MonoBehaviour
     Player exitingPlayer = other.GetComponentInParent<Player>();
 
     if (exitingPlayer == null || exitingPlayer != _player)
-        return;
+      return;
 
     _playerCollidersInside.Remove(other);
 
     if (_playerCollidersInside.Count > 0)
-        return;
+      return;
 
     // Libera o pulo assim que o jogador sai da área.
     _player.BlockJumpByTutorialTrigger = false;
@@ -283,7 +261,6 @@ public class TutorialTrigger : MonoBehaviour
     _playerInside = false;
     _playerInput = null;
     _player = null;
-
   }
 
   private void OnEnable()
@@ -292,77 +269,75 @@ public class TutorialTrigger : MonoBehaviour
     InscreverEventoTutorial();
 
     if (_tutorialGlobal != null && _tutorialGlobal.IsTutorialActive)
-        OnTutorialStateChanged(true);
+      OnTutorialStateChanged(true);
   }
 
   private void InscreverEventoTutorial()
-{
+  {
     if (_tutorialGlobal == null)
-        return;
+      return;
 
     _tutorialGlobal.OnTutorialStateChanged -= OnTutorialStateChanged;
     _tutorialGlobal.OnTutorialStateChanged += OnTutorialStateChanged;
-}
+  }
 
   private void OnTutorialStateChanged(bool isActive)
   {
     // Só reage se este trigger abriu o tutorial.
     if (!_esteTriggerAbriuTutorial)
-        return;
+      return;
 
     if (isActive == _ultimoEstadoTutorial)
-        return;
+      return;
 
     _ultimoEstadoTutorial = isActive;
 
     if (isActive)
     {
-        if (_rotinaIndicador != null)
-        {
-            StopCoroutine(_rotinaIndicador);
-            _rotinaIndicador = null;
-        }
+      if (_rotinaIndicador != null)
+      {
+        StopCoroutine(_rotinaIndicador);
+        _rotinaIndicador = null;
+      }
 
-        _triggerDesativadoTemporariamente = true;
+      _triggerDesativadoTemporariamente = true;
 
-        if (_triggerCollider != null)
-            _triggerCollider.enabled = false;
+      if (_triggerCollider != null)
+        _triggerCollider.enabled = false;
 
-        AtualizarIndicadorEPopup(false);
-        return;
+      AtualizarIndicadorEPopup(false);
+      return;
     }
 
     if (isActiveAndEnabled)
-        OcultarIndicadorTemporariamente();
+      OcultarIndicadorTemporariamente();
   }
-
-
 
   private void OnDisable()
   {
     if (_rotinaIndicador != null)
     {
-        StopCoroutine(_rotinaIndicador);
-        _rotinaIndicador = null;
+      StopCoroutine(_rotinaIndicador);
+      _rotinaIndicador = null;
     }
 
     if (_imagemInteracao != null)
-        _imagemInteracao.Hide();
+      _imagemInteracao.Hide();
 
     if (_popupVisible && _hudDirector != null && _player != null)
-        _hudDirector.TutorialInteractionPopup(_player.ID, false);
+      _hudDirector.TutorialInteractionPopup(_player.ID, false);
 
     if (_player != null)
-        _player.BlockJumpByTutorialTrigger = false;
+      _player.BlockJumpByTutorialTrigger = false;
 
     if (_tutorialGlobal != null)
-        _tutorialGlobal.OnTutorialStateChanged -= OnTutorialStateChanged;
+      _tutorialGlobal.OnTutorialStateChanged -= OnTutorialStateChanged;
 
     _triggerDesativadoTemporariamente = false;
     _ultimoEstadoTutorial = false;
 
     if (_triggerCollider != null)
-        _triggerCollider.enabled = true;
+      _triggerCollider.enabled = true;
 
     _popupVisible = false;
     _playerCollidersInside.Clear();
@@ -374,28 +349,24 @@ public class TutorialTrigger : MonoBehaviour
 
   public void RegisterPlayer(Player player, Collider playerCollider)
   {
-
     if (_triggerDesativadoTemporariamente)
-        return;
-    
+      return;
+
     if (player == null || playerCollider == null)
-        return;
+      return;
 
     if (_player != null && _player != player)
-        return;
+      return;
 
     PlayerInput input = player.GetComponent<PlayerInput>();
 
     if (input == null)
-        input = player.GetComponentInParent<PlayerInput>();
+      input = player.GetComponentInParent<PlayerInput>();
 
     if (input == null)
     {
-        Debug.LogWarning(
-            "[TutorialTrigger] PlayerInput não encontrado.",
-            this
-        );
-        return;
+      Debug.LogWarning("[TutorialTrigger] PlayerInput não encontrado.", this);
+      return;
     }
 
     //bool primeiraEntrada = !_playerInside;
@@ -410,33 +381,35 @@ public class TutorialTrigger : MonoBehaviour
 
     _player.BlockJumpByTutorialTrigger = true;
 
-    DeviceInputManager.Instance?.ForceRefresh();
+    if (DeviceInputManager.Instance != null)
+      DeviceInputManager.Instance.ForceRefresh();
+
     ResolveReferences();
 
     if (_tutorialGlobal != null && _tutorialGlobal.IsTutorialActive)
-{
-    AtualizarIndicadorEPopup(false);
-    return;
-}
+    {
+      AtualizarIndicadorEPopup(false);
+      return;
+    }
 
-// Enquanto a imagem estiver temporariamente oculta,
-// não mostre o popup.
-if (_rotinaIndicador != null)
-{
-    AtualizarIndicadorEPopup(false);
-    return;
-}
+    // Enquanto a imagem estiver temporariamente oculta,
+    // não mostre o popup.
+    if (_rotinaIndicador != null)
+    {
+      AtualizarIndicadorEPopup(false);
+      return;
+    }
 
     // Se o tutorial já foi consumido, não mostra o popup
     // quando ele só pode ser aberto uma vez.
     if (_onlyOnce && _tutorialConsumed)
     {
-        SetInteractionPopup(false);
-        return;
+      SetInteractionPopup(false);
+      return;
     }
 
     if (_imagemInteracao != null)
-        _imagemInteracao.Show();
+      _imagemInteracao.Show();
 
     SetInteractionPopup(true);
   }
@@ -456,7 +429,7 @@ if (_rotinaIndicador != null)
 
     Sprite[] sprites = new Sprite[_textosTutorial.Length];
 
-    for (int i = 0;  i < _textosTutorial.Length; i++)
+    for (int i = 0; i < _textosTutorial.Length; i++)
     {
       sprites[i] = _textosTutorial[i].sprite;
     }
@@ -464,35 +437,34 @@ if (_rotinaIndicador != null)
     _tutorialGlobal.SetTutorialSprites(sprites);
   }
 
-
   private void OcultarIndicadorTemporariamente()
-{
+  {
     if (_rotinaIndicador != null)
     {
-        StopCoroutine(_rotinaIndicador);
-        _rotinaIndicador = null;
+      StopCoroutine(_rotinaIndicador);
+      _rotinaIndicador = null;
     }
 
     _rotinaIndicador = StartCoroutine(RotinaIndicador());
-}
+  }
 
-private IEnumerator RotinaIndicador()
-{
-     _triggerDesativadoTemporariamente = true;
+  private IEnumerator RotinaIndicador()
+  {
+    _triggerDesativadoTemporariamente = true;
 
     if (_triggerCollider != null)
-        _triggerCollider.enabled = false;
+      _triggerCollider.enabled = false;
 
     AtualizarIndicadorEPopup(false);
 
     yield return new WaitForSecondsRealtime(_tempoOculto);
 
     while (_tutorialGlobal != null && _tutorialGlobal.IsTutorialActive)
-        yield return null;
+      yield return null;
 
     // Popup já está escondido; limpa o estado antes de reativar.
     if (_player != null)
-        _player.BlockJumpByTutorialTrigger = false;
+      _player.BlockJumpByTutorialTrigger = false;
 
     _playerCollidersInside.Clear();
     _playerInside = false;
@@ -508,41 +480,40 @@ private IEnumerator RotinaIndicador()
 
     // Ao reativar, a Unity chama OnTriggerEnter de novo se o jogador ainda estiver dentro.
     if (_triggerCollider != null)
-        _triggerCollider.enabled = true;
+      _triggerCollider.enabled = true;
 
     if (!(_onlyOnce && _tutorialConsumed) && _imagemInteracao != null)
-        _imagemInteracao.Show();
-}
+      _imagemInteracao.Show();
+  }
 
-private bool PlayerSaiuDoTriggerDesativado()
+  private bool PlayerSaiuDoTriggerDesativado()
   {
     if (_player == null || _triggerCollider == null)
-        return false;
+      return false;
 
     if (_triggerCollider is not BoxCollider box)
-        return false;
+      return false;
 
-    Vector3 posicaoLocal =
-        box.transform.InverseTransformPoint(_player.transform.position);
+    Vector3 posicaoLocal = box.transform.InverseTransformPoint(_player.transform.position);
 
     Vector3 centro = box.center;
     Vector3 metade = box.size * 0.5f;
 
-    return posicaoLocal.x < centro.x - metade.x ||
-           posicaoLocal.x > centro.x + metade.x ||
-           posicaoLocal.y < centro.y - metade.y ||
-           posicaoLocal.y > centro.y + metade.y ||
-           posicaoLocal.z < centro.z - metade.z ||
-           posicaoLocal.z > centro.z + metade.z;
+    return posicaoLocal.x < centro.x - metade.x
+      || posicaoLocal.x > centro.x + metade.x
+      || posicaoLocal.y < centro.y - metade.y
+      || posicaoLocal.y > centro.y + metade.y
+      || posicaoLocal.z < centro.z - metade.z
+      || posicaoLocal.z > centro.z + metade.z;
   }
 
-private void LiberarJogadorForaDoTrigger()
+  private void LiberarJogadorForaDoTrigger()
   {
     if (_player != null)
-        _player.BlockJumpByTutorialTrigger = false;
+      _player.BlockJumpByTutorialTrigger = false;
 
     if (_popupVisible && _player != null)
-        SetInteractionPopup(false);
+      SetInteractionPopup(false);
 
     _playerCollidersInside.Clear();
     _playerInside = false;
@@ -551,18 +522,18 @@ private void LiberarJogadorForaDoTrigger()
     _popupVisible = false;
   }
 
-private void AtualizarIndicadorEPopup(bool mostrar)
-{
+  private void AtualizarIndicadorEPopup(bool mostrar)
+  {
     if (_imagemInteracao != null)
     {
-        if (mostrar)
-            _imagemInteracao.Show();
-        else
-            _imagemInteracao.Hide();
+      if (mostrar)
+        _imagemInteracao.Show();
+      else
+        _imagemInteracao.Hide();
     }
 
     SetInteractionPopup(mostrar && _playerInside);
-}
+  }
 
   [System.Serializable]
   public class TutorialSpriteText
@@ -570,5 +541,4 @@ private void AtualizarIndicadorEPopup(bool mostrar)
     public string nome;
     public Sprite sprite;
   }
-
 }

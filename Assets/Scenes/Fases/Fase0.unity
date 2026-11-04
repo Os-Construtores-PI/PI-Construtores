@@ -23155,7 +23155,7 @@ Transform:
   m_GameObject: {fileID: 496395478}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.258819, z: 0, w: 0.9659259}
-  m_LocalPosition: {x: 1.41, y: 14.58, z: -1.33}
+  m_LocalPosition: {x: 1.41, y: 7.4, z: -1.33}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -44271,6 +44271,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageIntroDirector
   _root: {fileID: 1074824945}
   _stageNumber: {fileID: 1815907157}
+  _backGroundBlack: {fileID: 0}
+  _backGroundHoldTime: 0.35
   _stageTitle: {fileID: 900679195}
   slideObjects:
   - {fileID: 1281117684}
@@ -74397,6 +74399,63 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1001 &1648176163
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 198.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 532
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2632048252968506684, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3868902846112265813, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
+      propertyPath: m_Name
+      value: AllTriggersDialogueAndTutorial.1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a877a07ea91d7c4418985d6533bf9baf, type: 3}
 --- !u!1 &1664938686 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3792408667733560685, guid: 024f79cb5b4f404408c9671c0ce2c641, type: 3}
@@ -97893,10 +97952,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54a808ab1c69b7946b5a91c632ee6f51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialTrigger
-  _interactionIcon: {fileID: 0}
-  _interactionSprite: {fileID: 0}
   _onlyOnce: 0
-  _tutorialType: 0
+  _tutorialVideo: {fileID: 0}
+  _textosTutorial: []
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
+  _triggerCollider: {fileID: 0}
 --- !u!114 &5429460668137862588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98006,10 +98067,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54a808ab1c69b7946b5a91c632ee6f51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialTrigger
-  _interactionIcon: {fileID: 0}
-  _interactionSprite: {fileID: 0}
   _onlyOnce: 0
-  _tutorialType: 0
+  _tutorialVideo: {fileID: 0}
+  _textosTutorial: []
+  _imagemInteracao: {fileID: 0}
+  _tempoOculto: 5
+  _triggerCollider: {fileID: 0}
 --- !u!224 &6042366335586076734
 RectTransform:
   m_ObjectHideFlags: 0
@@ -99531,3 +99594,4 @@ SceneRoots:
   - {fileID: 1346750733}
   - {fileID: 849526561}
   - {fileID: 1635588248}
+  - {fileID: 1648176163}

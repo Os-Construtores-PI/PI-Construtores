@@ -2,13 +2,12 @@ using System;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Video;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class TutorialGlobal : MonoBehaviour
 {
   public static TutorialGlobal Instance { get; private set; }
-
 
   [Header("Tutorial UI")]
   [SerializeField]
@@ -23,16 +22,20 @@ public class TutorialGlobal : MonoBehaviour
   [SerializeField]
   private GameObject videoPanel;
 
-
   [Header("Video")]
   [SerializeField]
   private VideoPlayer videoPlayer;
-  [SerializeField] private CanvasGroup videoCanvasGroup;
-  [SerializeField] private float videoFadeInDuration = 0.5f;
-  [SerializeField] private float videoFadeOutDuration = 0.3f;
+
+  [SerializeField]
+  private CanvasGroup videoCanvasGroup;
+
+  [SerializeField]
+  private float videoFadeInDuration = 0.5f;
+
+  [SerializeField]
+  private float videoFadeOutDuration = 0.3f;
 
   [Header("Animation")]
-
   [SerializeField]
   private float interfaceExitOffset = 100f;
 
@@ -52,15 +55,12 @@ public class TutorialGlobal : MonoBehaviour
   [SerializeField]
   private Image[] textosTutorial;
 
-
-  public bool IsTutorialActive {get; private set;}
+  public bool IsTutorialActive { get; private set; }
 
   private Tween _currentTween;
-  
+  private int _currentID;
   private Vector2 _leftFinalPosition;
   private Vector2 _rightFinalPosition;
-
-
 
   public event Action<bool> OnTutorialStateChanged;
 
@@ -75,59 +75,54 @@ public class TutorialGlobal : MonoBehaviour
     Instance = this;
 
     // Guarda as posições originais
-    if(interfaceLeft != null)
-       _leftFinalPosition = interfaceLeft.anchoredPosition;
-    
-    if(interfaceRight != null)
-       _rightFinalPosition = interfaceRight.anchoredPosition;
+    if (interfaceLeft != null)
+      _leftFinalPosition = interfaceLeft.anchoredPosition;
+
+    if (interfaceRight != null)
+      _rightFinalPosition = interfaceRight.anchoredPosition;
 
     PrepareTutorial();
-       
   }
 
   private void Start()
   {
     if (tutorialHUD != null)
-        tutorialHUD.SetActive(false);
+      tutorialHUD.SetActive(false);
 
-    if(videoPanel != null)
-       videoPanel.SetActive(false);
-    
+    if (videoPanel != null)
+      videoPanel.SetActive(false);
+
     StopVideo();
   }
 
   private void PrepareTutorial()
   {
-    if(interfaceLeft != null)
+    if (interfaceLeft != null)
     {
-      interfaceLeft.anchoredPosition =
-           new Vector2(
-            CalculateHiddenPosition(interfaceLeft),
-            _leftFinalPosition.y
-           );
+      interfaceLeft.anchoredPosition = new Vector2(
+        CalculateHiddenPosition(interfaceLeft),
+        _leftFinalPosition.y
+      );
     }
 
-    if(interfaceRight != null)
+    if (interfaceRight != null)
     {
-      interfaceRight.anchoredPosition =
-           new Vector2(
-            CalculateHiddenPosition(interfaceRight),
-            _rightFinalPosition.y
-           );
+      interfaceRight.anchoredPosition = new Vector2(
+        CalculateHiddenPosition(interfaceRight),
+        _rightFinalPosition.y
+      );
     }
 
     if (videoPanel != null)
-        videoPanel.SetActive(false);
+      videoPanel.SetActive(false);
   }
 
   private float CalculateHiddenPosition(RectTransform target)
   {
     if (target == null)
-        return -2000f;
+      return -2000f;
 
-    float width =
-      target.rect.width *
-      target.localScale.x;
+    float width = target.rect.width * target.localScale.x;
 
     if (target == interfaceLeft)
     {
@@ -142,16 +137,15 @@ public class TutorialGlobal : MonoBehaviour
     return target.anchoredPosition.x;
   }
 
-  public void OpenTutorial(VideoClip video)
+  public void OpenTutorial(VideoClip video, int playerid)
   {
-    if(IsTutorialActive)
-       return;
+    if (IsTutorialActive)
+      return;
+    _currentID = playerid;
 
-    if(video == null)
+    if (video == null)
     {
-      Debug.LogWarning(
-        "[TutorialGlobal] nenhum VideoClip foi fornecido"
-      );
+      Debug.LogWarning("[TutorialGlobal] nenhum VideoClip foi fornecido");
 
       return;
     }
@@ -164,18 +158,18 @@ public class TutorialGlobal : MonoBehaviour
 
     PrepareTutorial();
 
-    if(tutorialHUD != null)
+    if (tutorialHUD != null)
     {
       tutorialHUD.SetActive(true);
     }
-       
 
-    if(videoPanel != null)
+    if (videoPanel != null)
     {
-       videoPanel.SetActive(false);
+      videoPanel.SetActive(false);
     }
 
     PlayEntranceAnimation(video);
+    GlobalEventBus.Instance.TimeRunning.Invoke(_currentID, false);
   }
 
   private void PlayEntranceAnimation(VideoClip video)
@@ -184,25 +178,18 @@ public class TutorialGlobal : MonoBehaviour
 
     Sequence sequence = DOTween.Sequence();
 
-    if(interfaceLeft != null)
+    if (interfaceLeft != null)
     {
       sequence.Append(
-        interfaceLeft
-            .DOAnchorPos(
-              _leftFinalPosition,
-              interfaceDuration
-            )
-
-          .SetEase(Ease.OutCubic)
+        interfaceLeft.DOAnchorPos(_leftFinalPosition, interfaceDuration).SetEase(Ease.OutCubic)
       );
     }
 
-    if(interfaceRight != null)
+    if (interfaceRight != null)
     {
       sequence.Join(
-        interfaceRight.DOAnchorPos(_rightFinalPosition, interfaceDuration)
-                       .SetEase(Ease.OutCubic)
-     );
+        interfaceRight.DOAnchorPos(_rightFinalPosition, interfaceDuration).SetEase(Ease.OutCubic)
+      );
     }
 
     sequence.AppendInterval(videoDelay);
@@ -219,11 +206,9 @@ public class TutorialGlobal : MonoBehaviour
 
   private void PlayVideo(VideoClip video)
   {
-    if(videoPlayer == null)
+    if (videoPlayer == null)
     {
-      Debug.LogError(
-        "[TutorialGlobal] VideoPlayer não configurado"
-      );
+      Debug.LogError("[TutorialGlobal] VideoPlayer não configurado");
 
       CloseTutorial();
 
@@ -237,8 +222,7 @@ public class TutorialGlobal : MonoBehaviour
     }
 
     if (videoPanel != null)
-        videoPanel.SetActive(true);
-    
+      videoPanel.SetActive(true);
 
     videoPlayer.Stop();
     videoPlayer.clip = video;
@@ -248,13 +232,9 @@ public class TutorialGlobal : MonoBehaviour
 
     videoPlayer.Play();
 
-
     if (videoCanvasGroup != null)
     {
-        videoCanvasGroup
-            .DOFade(1f, videoFadeInDuration)
-            .SetEase(Ease.OutQuad)
-            .SetUpdate(true);
+      videoCanvasGroup.DOFade(1f, videoFadeInDuration).SetEase(Ease.OutQuad).SetUpdate(true);
     }
   }
 
@@ -265,9 +245,8 @@ public class TutorialGlobal : MonoBehaviour
 
   public void CloseTutorial()
   {
-    if(!IsTutorialActive)
-       return;
-
+    if (!IsTutorialActive)
+      return;
 
     _currentTween?.Kill();
 
@@ -277,10 +256,7 @@ public class TutorialGlobal : MonoBehaviour
 
     if (videoCanvasGroup != null)
     {
-      sequence.Append(
-        videoCanvasGroup
-        .DOFade(0f, videoFadeOutDuration))
-        .SetEase(Ease.InQuad);
+      sequence.Append(videoCanvasGroup.DOFade(0f, videoFadeOutDuration)).SetEase(Ease.InQuad);
     }
 
     sequence.AppendCallback(() =>
@@ -293,22 +269,17 @@ public class TutorialGlobal : MonoBehaviour
     {
       sequence.Append(
         interfaceRight
-        .DOAnchorPosX(
-          CalculateHiddenPosition(interfaceRight),
-          exitDuration)
-        .SetEase(Ease.InCubic)
-        );
+          .DOAnchorPosX(CalculateHiddenPosition(interfaceRight), exitDuration)
+          .SetEase(Ease.InCubic)
+      );
     }
 
     if (interfaceLeft != null)
     {
       sequence.Join(
         interfaceLeft
-        .DOAnchorPosX(
-          CalculateHiddenPosition(interfaceLeft),
-          exitDuration
-        )
-        .SetEase(Ease.InCubic)
+          .DOAnchorPosX(CalculateHiddenPosition(interfaceLeft), exitDuration)
+          .SetEase(Ease.InCubic)
       );
     }
 
@@ -323,15 +294,15 @@ public class TutorialGlobal : MonoBehaviour
   {
     _currentTween?.Kill();
 
-    if(videoPanel != null)
-       videoPanel.SetActive(false);
+    if (videoPanel != null)
+      videoPanel.SetActive(false);
 
     if (videoCanvasGroup != null)
-        videoCanvasGroup.alpha = 1f;
+      videoCanvasGroup.alpha = 1f;
 
-    if(tutorialHUD != null)
-       tutorialHUD.SetActive(false);
-    
+    if (tutorialHUD != null)
+      tutorialHUD.SetActive(false);
+
     PrepareTutorial();
 
     IsTutorialActive = false;
@@ -339,8 +310,8 @@ public class TutorialGlobal : MonoBehaviour
     GameContext.IsTutorialActive = false;
 
     Time.timeScale = 1f;
-
     OnTutorialStateChanged?.Invoke(false);
+    GlobalEventBus.Instance.TimeRunning.Invoke(_currentID, true);
   }
 
   private void StopVideo()
@@ -350,8 +321,8 @@ public class TutorialGlobal : MonoBehaviour
 
   public void SkipTutorial()
   {
-    if(!IsTutorialActive)
-       return;
+    if (!IsTutorialActive)
+      return;
 
     CloseTutorial();
   }
@@ -360,30 +331,26 @@ public class TutorialGlobal : MonoBehaviour
   {
     _currentTween?.Kill();
 
-    if(videoPlayer != null)
-       videoPlayer.loopPointReached -= OnVideoFinished;
+    if (videoPlayer != null)
+      videoPlayer.loopPointReached -= OnVideoFinished;
 
-    if(Instance == this)
-       Instance = null;
+    if (Instance == this)
+      Instance = null;
   }
 
   public void SetTutorialSprites(Sprite[] sprites)
   {
     if (textosTutorial == null)
-        return;
+      return;
 
     for (int i = 0; i < textosTutorial.Length; i++)
     {
       if (textosTutorial[i] == null)
-          continue;
+        continue;
 
-      bool hasSprite =
-        sprites != null &&
-        i < sprites.Length &&
-        sprites[i] != null;
+      bool hasSprite = sprites != null && i < sprites.Length && sprites[i] != null;
 
-      textosTutorial[i].sprite =
-        hasSprite ? sprites[i] : null;
+      textosTutorial[i].sprite = hasSprite ? sprites[i] : null;
 
       textosTutorial[i].enabled = hasSprite;
     }
