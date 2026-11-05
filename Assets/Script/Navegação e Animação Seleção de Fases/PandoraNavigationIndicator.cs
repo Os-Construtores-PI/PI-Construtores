@@ -4,9 +4,9 @@ using UnityEngine.UI;
 
 public class PandoraNavigationIndicator : MonoBehaviour
 {
-    public static PandoraNavigationIndicator Instance { get; private set; }
+  public static PandoraNavigationIndicator Instance { get; private set; }
 
-  [Header("Referencias")]
+  [Header("Referências")]
   [SerializeField] private RectTransform _pandora;
 
   [Header("Configuração")]
@@ -21,45 +21,70 @@ public class PandoraNavigationIndicator : MonoBehaviour
     Instance = this;
 
     if (_pandora == null)
-        _pandora = GetComponent<RectTransform>();
+      _pandora = GetComponent<RectTransform>();
 
-    _canvas = GetComponent<Canvas>();
+    _canvas = GetComponentInParent<Canvas>();
+
+    Hide();
   }
 
-  public void MoveTo(Button butto, bool instant = false)
+  public void ShowAt(Button button, bool instant = false)
   {
-    if (butto == null || _pandora == null)
+    if (_pandora == null || button == null)
       return;
 
-    RectTransform target = butto.GetComponent<RectTransform>();
+    _pandora.gameObject.SetActive(true);
+
+    MoveTo(button, instant);
+  }
+
+  public void Hide()
+  {
+    if (_pandora == null)
+      return;
+
+    _pandora.DOKill();
+    _pandora.gameObject.SetActive(false);
+  }
+
+  public void MoveTo(Button button, bool instant = false)
+  {
+    if (button == null || _pandora == null)
+      return;
+
+    RectTransform target = button.GetComponent<RectTransform>();
 
     if (target == null)
       return;
 
+    if (_canvas == null)
+      _canvas = GetComponentInParent<Canvas>();
+
     Camera canvasCamera = null;
 
     if (_canvas != null &&
-      _canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+        _canvas.renderMode != RenderMode.ScreenSpaceOverlay)
     {
       canvasCamera = _canvas.worldCamera;
     }
 
-    Vector2 screenPoint =
-      RectTransformUtility.WorldToScreenPoint(
-        canvasCamera,
-        target.position);
+    Vector2 screenPosition =
+        RectTransformUtility.WorldToScreenPoint(
+            canvasCamera,
+            target.position
+        );
 
-    RectTransform parent =
-      _pandora.parent as RectTransform;
+    RectTransform parent = _pandora.parent as RectTransform;
 
     if (parent == null)
       return;
 
     RectTransformUtility.ScreenPointToLocalPointInRectangle(
-      parent,
-      screenPoint,
-      canvasCamera,
-      out Vector2 localPosition);
+        parent,
+        screenPosition,
+        canvasCamera,
+        out Vector2 localPosition
+    );
 
     Vector2 destination = localPosition + _offset;
 
@@ -72,15 +97,16 @@ public class PandoraNavigationIndicator : MonoBehaviour
     }
 
     _pandora.DOAnchorPos(destination, _moveDuration)
-      .SetEase(_moveEase)
-      .SetUpdate(true);
+        .SetEase(_moveEase)
+        .SetUpdate(true);
   }
 
   private void OnDestroy()
   {
-    _pandora?.DOKill();
+    if (_pandora != null)
+      _pandora.DOKill();
 
     if (Instance == this)
-       Instance = null;
+      Instance = null;
   }
 }

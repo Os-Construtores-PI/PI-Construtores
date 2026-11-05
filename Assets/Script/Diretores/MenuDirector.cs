@@ -329,6 +329,7 @@ public class MenuDirector : MonoBehaviour
       // Sem animação de entrada: a transição já está completa agora,
       // então pode selecionar imediatamente.
       SelectDefaultOrFirstButton(panel);
+      UpdatePandoraSelection(panel);
     }
 
     MenuPreview.Instance.gameObject.SetActive(false);
@@ -522,20 +523,27 @@ public class MenuDirector : MonoBehaviour
   {
     SelectDefaultOrFirstButton(panel);
 
-    GameObject selected = EventSystem.current.currentSelectedGameObject;
+    GameObject selected =
+        EventSystem.current.currentSelectedGameObject;
 
-    if (selected == null)
-      return;
+    if (selected != null)
+    {
+      Button btn = selected.GetComponent<Button>();
 
-    Button btn = selected.GetComponent<Button>();
+      if (btn != null &&
+          MenuSelectionCursor.Instance != null)
+      {
+        MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+      }
 
-    if (btn != null)
-      MenuSelectionCursor.Instance.ShowAfterAnimation(btn);
+      MenuSelectable selectable =
+          selected.GetComponent<MenuSelectable>();
 
-    MenuSelectable selectable = selected.GetComponent<MenuSelectable>();
+      if (selectable != null)
+        selectable.ForcePreview();
+    }
 
-    if (selectable != null)
-      selectable.ForcePreview();
+    UpdatePandoraSelection(panel);
   }
 
   public void NotifyAnimationsFinished()
@@ -602,6 +610,34 @@ public class MenuDirector : MonoBehaviour
     yield return new WaitUntil(() => finished);
 
     ShowPanel(to);
+  }
+
+  private void UpdatePandoraSelection(MenuPanelTypes panel)
+  {
+    if (PandoraNavigationIndicator.Instance == null)
+      return;
+
+    if (panel != MenuPanelTypes.SaveMenu)
+    {
+      PandoraNavigationIndicator.Instance.Hide();
+      return;
+    }
+
+    GameObject selected =
+      EventSystem.current.currentSelectedGameObject;
+
+    if (selected == null)
+      return;
+
+    Button selectedButton = selected.GetComponent<Button>();
+
+    if (selectedButton == null)
+      return;
+
+    PandoraNavigationIndicator.Instance.ShowAt(
+      selectedButton,
+      true
+      );
   }
 
   #endregion
