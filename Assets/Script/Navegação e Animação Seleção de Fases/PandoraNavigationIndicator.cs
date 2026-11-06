@@ -1,112 +1,87 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class PandoraNavigationIndicator : MonoBehaviour
 {
   public static PandoraNavigationIndicator Instance { get; private set; }
 
-  [Header("Refer�ncias")]
-  [SerializeField] private RectTransform _pandora;
+    [Header("Referências")]
+    [SerializeField] private RectTransform _pandora;
+    [SerializeField] private Image _pandoraImage;
 
-  [Header("Configura��o")]
-  [SerializeField] private Vector2 _offset = new Vector2(0f, 110f);
-  [SerializeField] private float _moveDuration = 0.25f;
-  [SerializeField] private Ease _moveEase = Ease.OutCubic;
+    [Tooltip("Ponto que define a posição fixa da Pandora.")]
+    [SerializeField] private RectTransform _positionReference;
 
-  private Canvas _canvas;
+    [Header("Configuração")]
+    [SerializeField] private float _moveDuration = 0.25f;
+    [SerializeField] private Ease _moveEase = Ease.OutCubic;
 
-  private void Awake()
-  {
-    Instance = this;
-
-    if (_pandora == null)
-      _pandora = GetComponent<RectTransform>();
-
-    _canvas = GetComponentInParent<Canvas>();
-
-    Hide();
-  }
-
-  public void ShowAt(Button button, bool instant = false)
-  {
-    if (_pandora == null || button == null)
-      return;
-
-    _pandora.gameObject.SetActive(true);
-
-    MoveTo(button, instant);
-  }
-
-  public void Hide()
-  {
-    if (_pandora == null)
-      return;
-
-    _pandora.DOKill();
-    _pandora.gameObject.SetActive(false);
-  }
-
-  public void MoveTo(Button button, bool instant = false)
-  {
-    if (button == null || _pandora == null)
-      return;
-
-    RectTransform target = button.GetComponent<RectTransform>();
-
-    if (target == null)
-      return;
-
-    if (_canvas == null)
-      _canvas = GetComponentInParent<Canvas>();
-
-    Camera canvasCamera = null;
-
-    if (_canvas != null &&
-        _canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+    private void Awake()
     {
-      canvasCamera = _canvas.worldCamera;
+        Instance = this;
+
+        if (_pandora == null)
+            _pandora = GetComponent<RectTransform>();
+
+        if (_pandoraImage == null && _pandora != null)
+            _pandoraImage = _pandora.GetComponent<Image>();
+
+        Show();
     }
 
-    Vector2 screenPosition =
-        RectTransformUtility.WorldToScreenPoint(
-            canvasCamera,
-            target.position
-        );
-
-    RectTransform parent = _pandora.parent as RectTransform;
-
-    if (parent == null)
-      return;
-
-    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-        parent,
-        screenPosition,
-        canvasCamera,
-        out Vector2 localPosition
-    );
-
-    Vector2 destination = localPosition + _offset;
-
-    _pandora.DOKill();
-
-    if (instant)
+    public void MoveTo(float horizontalPosition)
     {
-      _pandora.anchoredPosition = destination;
-      return;
+        RectTransform parent = _pandora.parent as RectTransform;
+
+if (parent == null)
+    return;
+
+Vector3 referenceLocal =
+    parent.InverseTransformPoint(_positionReference.position);
+
+// Mantém Y e Z fixos.
+Vector3 currentPosition = _pandora.localPosition;
+
+_pandora.localPosition = new Vector3(
+    currentPosition.x,
+    referenceLocal.y,
+    currentPosition.z
+);
+
+float destinationX = referenceLocal.x + horizontalPosition;
+
+_pandora.DOKill();
+
+Show();
+
+_pandora.DOLocalMoveX(destinationX, _moveDuration)
+    .SetEase(_moveEase)
+    .SetUpdate(true);
     }
 
-    _pandora.DOAnchorPos(destination, _moveDuration)
-        .SetEase(_moveEase)
-        .SetUpdate(true);
-  }
+    public void Show()
+    {
+        if (_pandoraImage != null)
+            _pandoraImage.enabled = true;
+    }
 
-  private void OnDestroy()
-  {
-    if (_pandora != null)
-      _pandora.DOKill();
+    public void Hide()
+    {
+        if (_pandora != null)
+            _pandora.DOKill();
 
-    if (Instance == this)
-      Instance = null;
-  }
+        if (_pandoraImage != null)
+            _pandoraImage.enabled = false;
+    }
+
+    private void OnDestroy()
+    {
+        if (_pandora != null)
+            _pandora.DOKill();
+
+        if (Instance == this)
+            Instance = null;
+    }
 }

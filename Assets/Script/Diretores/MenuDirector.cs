@@ -329,7 +329,7 @@ public class MenuDirector : MonoBehaviour
       // Sem animação de entrada: a transição já está completa agora,
       // então pode selecionar imediatamente.
       SelectDefaultOrFirstButton(panel);
-      UpdatePandoraSelection(panel);
+
     }
 
     MenuPreview.Instance.gameObject.SetActive(false);
@@ -543,7 +543,6 @@ public class MenuDirector : MonoBehaviour
         selectable.ForcePreview();
     }
 
-    UpdatePandoraSelection(panel);
   }
 
   public void NotifyAnimationsFinished()
@@ -612,33 +611,6 @@ public class MenuDirector : MonoBehaviour
     ShowPanel(to);
   }
 
-  private void UpdatePandoraSelection(MenuPanelTypes panel)
-  {
-    if (PandoraNavigationIndicator.Instance == null)
-      return;
-
-    if (panel != MenuPanelTypes.SaveMenu)
-    {
-      PandoraNavigationIndicator.Instance.Hide();
-      return;
-    }
-
-    GameObject selected =
-      EventSystem.current.currentSelectedGameObject;
-
-    if (selected == null)
-      return;
-
-    Button selectedButton = selected.GetComponent<Button>();
-
-    if (selectedButton == null)
-      return;
-
-    PandoraNavigationIndicator.Instance.ShowAt(
-      selectedButton,
-      true
-      );
-  }
 
   #endregion
 }
