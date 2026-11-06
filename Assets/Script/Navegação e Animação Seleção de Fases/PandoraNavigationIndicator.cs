@@ -24,57 +24,35 @@ public class PandoraNavigationIndicator : MonoBehaviour
 
         if (_pandora == null)
             _pandora = GetComponent<RectTransform>();
-
-        if (_pandoraImage == null && _pandora != null)
-            _pandoraImage = _pandora.GetComponent<Image>();
-
-        Show();
     }
 
     public void MoveTo(float horizontalPosition)
     {
+        if (_pandora == null || _positionReference == null) return;
+
         RectTransform parent = _pandora.parent as RectTransform;
 
-if (parent == null)
-    return;
+        if (parent == null) return;
 
-Vector3 referenceLocal =
-    parent.InverseTransformPoint(_positionReference.position);
+        Vector3 referenceLocal = 
+               parent.InverseTransformPoint(_positionReference.position);
 
-// Mantém Y e Z fixos.
-Vector3 currentPosition = _pandora.localPosition;
+        Vector3 currentPosition = _pandora.localPosition;
 
-_pandora.localPosition = new Vector3(
-    currentPosition.x,
-    referenceLocal.y,
-    currentPosition.z
-);
+        _pandora.localPosition = new Vector3(
+          currentPosition.x,
+          referenceLocal.y,
+          currentPosition.z );
 
-float destinationX = referenceLocal.x + horizontalPosition;
+        float destinationX = referenceLocal.x + horizontalPosition;
 
-_pandora.DOKill();
+        _pandora.DOKill();
 
-Show();
-
-_pandora.DOLocalMoveX(destinationX, _moveDuration)
-    .SetEase(_moveEase)
-    .SetUpdate(true);
+         _pandora.DOLocalMoveX(destinationX, _moveDuration)
+                 .SetEase(_moveEase)
+                 .SetUpdate(true);
     }
 
-    public void Show()
-    {
-        if (_pandoraImage != null)
-            _pandoraImage.enabled = true;
-    }
-
-    public void Hide()
-    {
-        if (_pandora != null)
-            _pandora.DOKill();
-
-        if (_pandoraImage != null)
-            _pandoraImage.enabled = false;
-    }
 
     private void OnDestroy()
     {
