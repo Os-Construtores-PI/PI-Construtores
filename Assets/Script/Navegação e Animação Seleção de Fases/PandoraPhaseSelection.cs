@@ -3,11 +3,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class PandoraPhaseSelection : MonoBehaviour,
 
    ISelectHandler,
-    IDeselectHandler,
     IPointerEnterHandler,
     ISubmitHandler,
     IPointerClickHandler
@@ -15,15 +15,32 @@ public class PandoraPhaseSelection : MonoBehaviour,
   [Header("Posição Horizontal")]
   [SerializeField] private float _horizontalPosition;
 
-  [Header("Ação após os efeitos")]
+  [Header("Ação ao Confirmar")]
   [SerializeField] private UnityEvent _onPhaseConfirmed;
 
   private Button _button;
   private bool _isConfirming;
 
+  [Header("Efeitos Visuais")]
+  [SerializeField] private GameObject _starts;
+
+
+  [Header("Gradiente")]
+  [SerializeField] private GameObject _gradiente;
+
   private void Awake()
   {
     _button = GetComponent<Button>();
+
+    if (_starts != null )
+    {
+      _starts.SetActive(false);
+    }
+
+    if (_gradiente != null)
+    {
+      _gradiente.SetActive(false);
+    }
   }
 
   public void OnSelect(BaseEventData eventData)
@@ -58,38 +75,11 @@ public class PandoraPhaseSelection : MonoBehaviour,
     if (_isConfirming)
       return;
 
-    if (PhaseSelectionEffects.Instance == null)
-    {
-      Debug.LogError("[PandoraPhaseSelection] PhaseSelectionEffects não encontrado!");
-      return;
-    }
-
     _isConfirming = true;
 
     Debug.Log("[PandoraPhaseSelection] Fase confirmada!");
 
-    // Executa os efeitos e aguarda sua conclusão.
-    PhaseSelectionEffects.Instance.Show(() =>
-    {
-      Debug.Log("[PandoraPhaseSelection] Executando ação após os efeitos!");
-
-      _onPhaseConfirmed?.Invoke();
-    });
-  }
-
-  public void OnDeselect(BaseEventData eventData)
-  {
-    if (_isConfirming)
-      return;
-
-    GameObject nextSelected = eventData.selectedObject;
-
-    if (nextSelected != null &&
-        nextSelected.GetComponent<PandoraPhaseSelection>() != null)
-      return;
-
-    if (PhaseSelectionEffects.Instance != null)
-      PhaseSelectionEffects.Instance.Hide();
+    _onPhaseConfirmed?.Invoke();
   }
 
   public void OnPointerEnter(PointerEventData eventData)
@@ -97,6 +87,32 @@ public class PandoraPhaseSelection : MonoBehaviour,
     if (_button == null || !_button.interactable)
       return;
 
-    EventSystem.current.SetSelectedGameObject(gameObject);
+    if (EventSystem.current != null)
+      EventSystem.current.SetSelectedGameObject(gameObject);
   }
+
+  public void ShowStarts()
+  {
+    if (_starts != null)
+    {
+      _starts.SetActive(true);
+    }
+  }
+
+  public void HideStarts()
+  {
+    if (_starts != null)
+    {
+      _starts.SetActive(false);
+    }
+  }
+
+  public void ShowGradiente()
+  {
+    if (_gradiente != null)
+    {
+      _gradiente.SetActive(true);
+    }
+  }
+
 }

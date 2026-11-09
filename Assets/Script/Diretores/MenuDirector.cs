@@ -28,6 +28,10 @@ public class MenuDirector : MonoBehaviour
   [SerializeField]
   private float panelTransitionDelay = 0.35f;
 
+  [Header("Animação de Confirmação")]
+  [SerializeField] private float _starstDisplayDuration = 0.3f;
+
+
   [System.Serializable]
   private struct PanelSelectable
   {
@@ -470,6 +474,33 @@ public class MenuDirector : MonoBehaviour
     }
 
     SceneManager.LoadScene("Fase0");
+  }
+
+  public void StartNewGamePlusWithStarts(int slot)
+  {
+    GameObject selectedObject =
+      EventSystem.current.currentSelectedGameObject;
+
+    if (selectedObject != null)
+    {
+      PandoraPhaseSelection phaseSelection =
+        selectedObject.GetComponent<PandoraPhaseSelection>();
+
+      if (phaseSelection != null)
+      {
+        phaseSelection.ShowStarts();
+        phaseSelection.ShowGradiente();
+      }
+    }
+
+    StartCoroutine(LoadNewGamePlusAfterStarts(slot));
+  }
+
+  private IEnumerator LoadNewGamePlusAfterStarts(int slot)
+  {
+    yield return new WaitForSecondsRealtime(_starstDisplayDuration);
+
+    StartNewGamePlus(slot);
   }
 
   private void OnDestroy()
