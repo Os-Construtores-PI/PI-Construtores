@@ -39,6 +39,12 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   [Header("Boost Settings")]
   [SerializeField]
+  private float _propulsionInterval = .6f;
+
+  [SerializeField]
+  private float _propulsionVelocity = 100f;
+
+  [SerializeField]
   private float _continuousBoostUsage = 10f;
 
   [SerializeField]
@@ -68,6 +74,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   private Tween _speedRampTween;
   private Tween _gravityRampTween;
+  private Sequence _startSequence;
   private float _currentBoostSpeedRatio = 1f;
 
   [Header("Vibração do Gamepad na Corrida")]
@@ -101,6 +108,7 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   private float _boostSpeedRatio;
   private string _boostSourceId;
+  private bool _inPropulsion;
 
   #endregion
 
@@ -133,8 +141,10 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       _boostHitboxCollider.enabled = true;
     }
 
-    if (_boostHitboxCollider.TryGetComponent<HitboxComponent>(out var hitbox))
-      hitbox.Hit.AddListener(OnBoostHitDetected);
+    if (_boostHitboxComponent != null)
+    {
+      _boostHitboxComponent.Hit.AddListener(OnBoostHitDetected);
+    }
 
     player.CustomShake.Invoke(
       player.ID,
@@ -146,12 +156,9 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     player.TrailsSystem.PlayEffect(TrailType.MovementTrail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport1Trail);
     player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
-    player.TrailsSystem.PlayEffect(TrailType.MovementSupport2Trail);
     player.LocomotionLayer.ChangeState(player.LockedInHorizontal, player);
 
     Gamepad.current?.SetMotorSpeeds(_runRumbleLowFrequency, _runRumbleHighFrequency);
-
-    _speedRampTween?.Kill();
 
     if (!string.IsNullOrEmpty(_boostSourceId))
     {
@@ -162,46 +169,78 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     _currentBoostSpeedRatio = 1f;
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _currentBoostSpeedRatio);
 
-    _speedRampTween = DOTween
-      .To(
-        () => _currentBoostSpeedRatio,
-        ratio =>
-        {
-          _currentBoostSpeedRatio = ratio;
+    _startSequence?.Kill();
+    _inPropulsion = false;
+    _startSequence = DOTween.Sequence();
 
-          if (!string.IsNullOrEmpty(_boostSourceId))
+    _startSequence.AppendCallback(() =>
+    {
+      player.Motor.Engine.ForceUnground(.1f);
+      player.Motor.AddVelocity(player.transform.forward * _propulsionVelocity);
+      _inPropulsion = true;
+    });
+    _startSequence.AppendInterval(_propulsionInterval);
+    _startSequence.AppendCallback(() =>
+    {
+      _inPropulsion = false;
+
+      _speedRampTween?.Kill();
+      _speedRampTween = DOTween
+        .To(
+          () => _currentBoostSpeedRatio,
+          ratio =>
           {
-            player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
-          }
+            _currentBoostSpeedRatio = ratio;
 
-          _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
+            if (!string.IsNullOrEmpty(_boostSourceId))
+            {
+              player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+            }
+
+            _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
+          },
+          _boostSpeedRatio,
+          _rampInDuration
+        )
+        .SetEase(_rampInEase);
+
+      _gravityRampTween?.Kill();
+      _gravityRampTween = DOTween
+        .To(
+          () => player.GravityValue,
+          g => player.GravityValue = g,
+          _gravityInState,
+          _rampInDuration
+        )
+        .SetEase(_rampInEase);
+
+      _fovTween?.Kill();
+      _fovTween = DOTween.To(
+        () => player.MainCamera.Lens.FieldOfView,
+        fov =>
+        {
+          var lens = player.MainCamera.Lens;
+          lens.FieldOfView = fov;
+          player.MainCamera.Lens = lens;
         },
-        _boostSpeedRatio,
-        _rampInDuration
-      )
-      .SetEase(_rampInEase);
-
-    _gravityRampTween?.Kill();
-    _gravityRampTween = DOTween
-      .To(() => player.GravityValue, g => player.GravityValue = g, _gravityInState, _rampInDuration)
-      .SetEase(_rampInEase);
-
-    _fovTween?.Kill();
-    _fovTween = DOTween.To(
-      () => player.MainCamera.Lens.FieldOfView,
-      fov =>
-      {
-        var lens = player.MainCamera.Lens;
-        lens.FieldOfView = fov;
-        player.MainCamera.Lens = lens;
-      },
-      _boostFOV,
-      _fovTransitionDuration
-    );
+        _boostFOV,
+        _fovTransitionDuration
+      );
+    });
+    _startSequence.Play();
   }
 
   public void Exit(Player player)
   {
+    _startSequence?.Kill();
+    _startSequence = null;
+    _inPropulsion = false;
+
+    if (_boostHitboxComponent != null)
+    {
+      _boostHitboxComponent.Hit.RemoveListener(OnBoostHitDetected);
+    }
+
     _hitRumbleCts?.Cancel();
     _hitRumbleCts?.Dispose();
     _hitRumbleCts = null;
@@ -264,7 +303,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
       )
       .SetEase(_rampOutEase);
 
-    // --- FOV de volta ao padrão ---
     _fovTween?.Kill();
     _fovTween = DOTween.To(
       () => player.MainCamera.Lens.FieldOfView,
@@ -283,6 +321,11 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   {
     player.RemoveBoost(_continuousBoostUsage * Time.deltaTime);
 
+    if (_inPropulsion)
+    {
+      return;
+    }
+
     if (player.BoostValue <= 0f)
     {
       player.ActionLayer.ExitState(this, player);
@@ -298,6 +341,11 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   public void FixedUpdate(Player player)
   {
+    if (_inPropulsion)
+    {
+      return;
+    }
+
     float x = player.MoveInput.x;
     float side = Mathf.Abs(x) > _inputDeadzone ? Mathf.Sign(x) : 0f;
 
