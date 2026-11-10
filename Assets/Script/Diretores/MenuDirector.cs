@@ -25,11 +25,9 @@ public class MenuDirector : MonoBehaviour
   [SerializeField]
   private float selectedPressedDuration = 0.12f;
 
-  [SerializeField]
-  private float panelTransitionDelay = 0.35f;
+  [Header("Atrase para Carregar a Fase")]
+  [SerializeField] private float _sceneLoadDelay = 0.5f;
 
-  [Header("Animação de Confirmação")]
-  [SerializeField] private float _starstDisplayDuration = 0.3f;
 
 
   [System.Serializable]
@@ -461,9 +459,62 @@ public class MenuDirector : MonoBehaviour
     Debug.Log("[MenuDirector] Quitted Game");
 #endif
   }
-
+  
   public void StartNewGamePlus(int slot)
   {
+    if (_loadingGame)
+      return;
+
+    StartCoroutine(PlayNewGamePlusSequence(slot));
+  }
+
+  private IEnumerator PlayNewGamePlusSequence(int slot)
+  {
+    _loadingGame = true;
+
+    GameObject selectedObject =
+        EventSystem.current.currentSelectedGameObject;
+
+    PandoraPhaseSelection phaseSelection = null;
+
+    if (selectedObject != null)
+    {
+      phaseSelection =
+          selectedObject.GetComponent<PandoraPhaseSelection>();
+
+      if (phaseSelection == null)
+      {
+        phaseSelection =
+            selectedObject.GetComponentInParent<PandoraPhaseSelection>();
+      }
+    }
+
+    // Inicia o gradiente e as estrelas.
+    if (phaseSelection != null)
+    {
+      phaseSelection.ShowGradiente();
+
+      yield return new WaitForSecondsRealtime(
+          phaseSelection.GetBlinkStartDelay()
+      );
+    }
+
+    // Inicia a piscada da Pandora.
+    if (PandoraNavigationIndicator.Instance != null)
+    {
+      PandoraNavigationIndicator.Instance.BlinkOnConfirm();
+
+      yield return new WaitForSecondsRealtime(
+          phaseSelection != null
+              ? phaseSelection.GetBlinkDuration()
+              : 1f
+      );
+    }
+
+    // Atraso extra antes de carregar a fase.
+    yield return new WaitForSecondsRealtime(_sceneLoadDelay);
+
+    // Prepara os dados antes de carregar a fase.
     DataDirector.Instance.SaveHasSave(false);
     GameContext.ShowStageIntro = true;
 
@@ -473,36 +524,11 @@ public class MenuDirector : MonoBehaviour
         root.SetActive(false);
     }
 
+    // Carrega a fase.
     SceneManager.LoadScene("Fase0");
   }
-
-  public void StartNewGamePlusWithStarts(int slot)
-  {
-    GameObject selectedObject =
-      EventSystem.current.currentSelectedGameObject;
-
-    if (selectedObject != null)
-    {
-      PandoraPhaseSelection phaseSelection =
-        selectedObject.GetComponent<PandoraPhaseSelection>();
-
-      if (phaseSelection != null)
-      {
-        phaseSelection.ShowStarts();
-        phaseSelection.ShowGradiente();
-      }
-    }
-
-    StartCoroutine(LoadNewGamePlusAfterStarts(slot));
-  }
-
-  private IEnumerator LoadNewGamePlusAfterStarts(int slot)
-  {
-    yield return new WaitForSecondsRealtime(_starstDisplayDuration);
-
-    StartNewGamePlus(slot);
-  }
-
+  
+  
   private void OnDestroy()
   {
     foreach (var panel in panels)

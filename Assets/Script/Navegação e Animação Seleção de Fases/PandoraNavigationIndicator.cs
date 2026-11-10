@@ -18,6 +18,19 @@ public class PandoraNavigationIndicator : MonoBehaviour
     [SerializeField] private float _moveDuration = 0.25f;
     [SerializeField] private Ease _moveEase = Ease.OutCubic;
 
+    [Header("Flutuação")]
+    [SerializeField] private float _floatHeight = 8f;
+    [SerializeField] private float _floatDuration = 0.8f;
+
+    [Header("Piscar ao confirmar")]
+    [SerializeField] private float _blinkDuration = 0.2f;
+    [SerializeField] private int _blinkLoops = 6;
+
+    private Tween _blinkTween;
+
+    private Tween _floatTween;
+    private float _currentY;
+
     private void Awake()
     {
         Instance = this;
@@ -28,38 +41,93 @@ public class PandoraNavigationIndicator : MonoBehaviour
 
     public void MoveTo(float horizontalPosition)
     {
-        if (_pandora == null || _positionReference == null) return;
+    if (_pandora == null || _positionReference == null)
+      return;
 
-        RectTransform parent = _pandora.parent as RectTransform;
+    RectTransform parent = _pandora.parent as RectTransform;
 
-        if (parent == null) return;
+    if (parent == null)
+      return;
 
-        Vector3 referenceLocal = 
-               parent.InverseTransformPoint(_positionReference.position);
+    Vector3 referenceLocal =
+        parent.InverseTransformPoint(_positionReference.position);
 
-        Vector3 currentPosition = _pandora.localPosition;
+    _floatTween?.Kill();
+    _pandora.DOKill();
 
-        _pandora.localPosition = new Vector3(
-          currentPosition.x,
-          referenceLocal.y,
-          currentPosition.z );
+    _currentY = referenceLocal.y;
 
-        float destinationX = referenceLocal.x + horizontalPosition;
+    _pandora.localPosition = new Vector3(
+        _pandora.localPosition.x,
+        _currentY,
+        _pandora.localPosition.z
+    );
 
-        _pandora.DOKill();
+    float destinationX = referenceLocal.x + horizontalPosition;
 
-         _pandora.DOLocalMoveX(destinationX, _moveDuration)
-                 .SetEase(_moveEase)
-                 .SetUpdate(true);
-    }
+    _pandora.DOLocalMoveX(destinationX, _moveDuration)
+        .SetEase(_moveEase)
+        .SetUpdate(true)
+        .OnComplete(StartFloating);
+  }
+
+  private void StartFloating()
+  {
+    if (_pandora == null)
+      return;
+
+    _floatTween?.Kill();
+
+    _pandora.localPosition = new Vector3(
+        _pandora.localPosition.x,
+        _currentY,
+        _pandora.localPosition.z
+    );
+
+    _floatTween = _pandora
+        .DOLocalMoveY(_currentY + _floatHeight, _floatDuration)
+        .SetEase(Ease.InOutSine)
+        .SetLoops(-1, LoopType.Yoyo)
+        .SetUpdate(true);
+  }
 
 
     private void OnDestroy()
     {
+
+        _floatTween?.Kill();
+        _blinkTween?.Kill();
+
+
         if (_pandora != null)
             _pandora.DOKill();
 
         if (Instance == this)
             Instance = null;
     }
+
+  public void BlinkOnConfirm()
+  {
+    if (_pandoraImage == null) return;
+
+    _blinkTween?.Kill();
+
+    Color color = _pandoraImage.color;
+    color.a = 1f;
+    _pandoraImage.color = color;
+
+    _blinkTween = _pandoraImage
+      .DOFade(0f, _blinkDuration)
+      .SetLoops(_blinkLoops, LoopType.Yoyo)
+      .SetUpdate(true)
+      .OnComplete(() =>
+      {
+        if (_pandoraImage != null)
+        {
+          Color finalColor = _pandoraImage.color;
+          finalColor.a = 1f;
+          _pandoraImage.color = finalColor;
+        }
+      });
+  }
 }

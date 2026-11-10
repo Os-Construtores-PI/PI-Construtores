@@ -1739,7 +1739,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 603115528}
   m_OnClick:
     m_PersistentCalls:
@@ -3385,6 +3385,10 @@ MonoBehaviour:
   _positionReference: {fileID: 1386396307}
   _moveDuration: 0.25
   _moveEase: 9
+  _floatHeight: 8
+  _floatDuration: 0.8
+  _blinkDuration: 0.2
+  _blinkLoops: 5
 --- !u!1 &1186317483
 GameObject:
   m_ObjectHideFlags: 0
@@ -3604,7 +3608,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1333099908}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: StartNewGamePlusWithStarts
+        m_MethodName: StartNewGamePlus
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3702,21 +3706,11 @@ MonoBehaviour:
   _horizontalPosition: 945
   _onPhaseConfirmed:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1333099908}
-        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: StartNewGamePlusWithStarts
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   _starts: {fileID: 1991071184}
   _gradiente: {fileID: 1322645880}
+  _gradienteMoveDistance: 150
+  _gradienteMoveDuration: 0.4
 --- !u!1 &1227975239
 GameObject:
   m_ObjectHideFlags: 0
@@ -3804,7 +3798,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1333099908}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: StartNewGamePlusWithStarts
+        m_MethodName: StartNewGamePlus
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3902,21 +3896,11 @@ MonoBehaviour:
   _horizontalPosition: 50
   _onPhaseConfirmed:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1333099908}
-        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: StartNewGamePlusWithStarts
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   _starts: {fileID: 1991071184}
   _gradiente: {fileID: 1322645880}
+  _gradienteMoveDistance: 150
+  _gradienteMoveDuration: 0.4
 --- !u!1 &1249940990
 GameObject:
   m_ObjectHideFlags: 0
@@ -4733,7 +4717,6 @@ MonoBehaviour:
   _rankingScrollbar: {fileID: 753168940}
   selectedPressedDuration: 0.12
   panelTransitionDelay: 0.2
-  _starstDisplayDuration: 0.3
   _defaultSelectables:
   - panel: 5
     selectable: {fileID: 753168938}
@@ -5450,7 +5433,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1333099908}
         m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: StartNewGamePlusWithStarts
+        m_MethodName: StartNewGamePlus
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5548,21 +5531,11 @@ MonoBehaviour:
   _horizontalPosition: 500
   _onPhaseConfirmed:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1333099908}
-        m_TargetAssemblyTypeName: MenuDirector, Assembly-CSharp
-        m_MethodName: StartNewGamePlusWithStarts
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   _starts: {fileID: 1991071184}
   _gradiente: {fileID: 1322645880}
+  _gradienteMoveDistance: 150
+  _gradienteMoveDuration: 0.4
 --- !u!1 &1658594349
 GameObject:
   m_ObjectHideFlags: 0
@@ -6164,7 +6137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1991071185
 RectTransform:
   m_ObjectHideFlags: 0

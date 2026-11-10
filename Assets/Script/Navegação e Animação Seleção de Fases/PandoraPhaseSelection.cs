@@ -24,21 +24,39 @@ public class PandoraPhaseSelection : MonoBehaviour,
   [Header("Efeitos Visuais")]
   [SerializeField] private GameObject _starts;
 
+  private Vector3 _startsOriginalScale;
+  private Tween _startsTween;
 
   [Header("Gradiente")]
   [SerializeField] private GameObject _gradiente;
+
+  private RectTransform _gradienteRect;
+  private Vector2 _gradienteOriginalPosition;
+  private Tween _gradienteTween;
+
+  [SerializeField] private float _gradienteMoveDistance = 150f;
+  [SerializeField] private float _gradienteMoveDuration = 0.4f;
+
 
   private void Awake()
   {
     _button = GetComponent<Button>();
 
-    if (_starts != null )
+    if (_starts != null)
     {
+      _startsOriginalScale = _starts.transform.localScale;
       _starts.SetActive(false);
     }
 
     if (_gradiente != null)
     {
+      _gradienteRect = _gradiente.GetComponent<RectTransform>();
+
+      if (_gradienteRect != null)
+      {
+        _gradienteOriginalPosition = _gradienteRect.anchoredPosition;
+      }
+
       _gradiente.SetActive(false);
     }
   }
@@ -77,6 +95,7 @@ public class PandoraPhaseSelection : MonoBehaviour,
 
     _isConfirming = true;
 
+
     Debug.Log("[PandoraPhaseSelection] Fase confirmada!");
 
     _onPhaseConfirmed?.Invoke();
@@ -93,10 +112,29 @@ public class PandoraPhaseSelection : MonoBehaviour,
 
   public void ShowStarts()
   {
-    if (_starts != null)
-    {
-      _starts.SetActive(true);
-    }
+    if (_starts == null) return;
+
+    _startsTween?.Kill();
+
+    Transform starsTransform = _starts.transform;
+
+    _starts.SetActive(true);
+    starsTransform.localScale = Vector3.zero;
+
+    _startsTween = DOTween.Sequence()
+        .AppendInterval(0.1f)
+        .Append(
+            starsTransform.DOScale(
+                _startsOriginalScale * 1.25f,
+                0.2f
+            ).SetEase(Ease.OutBack)
+        )
+        .Append(
+            starsTransform.DOScale(
+                _startsOriginalScale,
+                0.15f
+            ).SetEase(Ease.OutQuad)
+        );
   }
 
   public void HideStarts()
@@ -109,10 +147,47 @@ public class PandoraPhaseSelection : MonoBehaviour,
 
   public void ShowGradiente()
   {
-    if (_gradiente != null)
-    {
-      _gradiente.SetActive(true);
-    }
+    if (_gradiente == null || _gradienteRect == null)
+      return;
+
+    _gradienteTween?.Kill();
+    _startsTween?.Kill();
+
+    _gradiente.SetActive(true);
+
+    _gradienteRect.anchoredPosition =
+        _gradienteOriginalPosition + Vector2.up * _gradienteMoveDistance;
+
+    // Inicia a descida do gradiente.
+    Sequence sequence = DOTween.Sequence()
+        .SetUpdate(true);
+
+    sequence.Append(
+        _gradienteRect
+            .DOAnchorPos(_gradienteOriginalPosition, _gradienteMoveDuration)
+            .SetEase(Ease.OutCubic)
+    );
+
+    _gradienteTween = sequence;
+
+    // Faz as estrelas aparecerem quase junto com o gradiente.
+    DOVirtual.DelayedCall(0.1f, ShowStarts)
+        .SetUpdate(true);
+
   }
 
+  public float GetGradienteDuration()
+  {
+    return Mathf.Max(_gradienteMoveDuration, 0.55f);
+  }
+
+  public float GetBlinkStartDelay()
+  {
+    return Mathf.Max(0f, GetGradienteDuration() - 0.2f);
+  }
+
+  public float GetBlinkDuration()
+  {
+    return 0.2f * 5f;
+  }
 }
