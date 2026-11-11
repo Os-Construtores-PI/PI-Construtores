@@ -95,10 +95,50 @@ public class PandoraPhaseSelection : MonoBehaviour,
 
     _isConfirming = true;
 
+    // Impede a navegação entre os botões.
+    if (EventSystem.current != null)
+      EventSystem.current.sendNavigationEvents = false;
+
+    // Trava todos os botões de seleção de fase.
+    LockPhaseButtons();
+
+    // Trava o movimento da Pandora.
+    if (PandoraNavigationIndicator.Instance != null)
+      PandoraNavigationIndicator.Instance.LockPosition();
 
     Debug.Log("[PandoraPhaseSelection] Fase confirmada!");
 
     _onPhaseConfirmed?.Invoke();
+  }
+
+  private void LockPhaseButtons()
+  {
+    PandoraPhaseSelection[] phaseButtons =
+        FindObjectsByType<PandoraPhaseSelection>(
+            FindObjectsSortMode.None
+        );
+
+    foreach (var phase in phaseButtons)
+    {
+      if (phase == null)
+        continue;
+
+      // Impede novas confirmações e seleções.
+      phase._isConfirming = true;
+
+      if (phase._button != null)
+        phase._button.interactable = false;
+
+      // Interrompe animações de movimento do botão.
+      phase.transform.DOKill();
+
+      // Desativa a animação de seleção do botão.
+      MenuSelectable selectable =
+          phase.GetComponent<MenuSelectable>();
+
+      if (selectable != null)
+        selectable.enabled = false;
+    }
   }
 
   public void OnPointerEnter(PointerEventData eventData)

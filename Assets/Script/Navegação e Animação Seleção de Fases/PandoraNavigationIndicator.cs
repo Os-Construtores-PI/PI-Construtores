@@ -31,6 +31,8 @@ public class PandoraNavigationIndicator : MonoBehaviour
     private Tween _floatTween;
     private float _currentY;
 
+    private bool _isLocked;
+
     private void Awake()
     {
         Instance = this;
@@ -41,6 +43,10 @@ public class PandoraNavigationIndicator : MonoBehaviour
 
     public void MoveTo(float horizontalPosition)
     {
+
+    if (_isLocked) return;
+
+
     if (_pandora == null || _positionReference == null)
       return;
 
@@ -129,5 +135,15 @@ public class PandoraNavigationIndicator : MonoBehaviour
           _pandoraImage.color = finalColor;
         }
       });
+  }
+
+  public void LockPosition()
+  {
+    _isLocked = true;
+
+    _floatTween?.Kill();
+    _floatTween = null;
+
+    _pandora.DOKill();
   }
 }
