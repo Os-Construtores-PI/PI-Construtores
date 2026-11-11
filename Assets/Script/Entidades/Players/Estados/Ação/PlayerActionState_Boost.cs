@@ -37,13 +37,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   [SerializeField]
   private float _enterShakeDuration = 0.25f;
 
-  [Header("Boost Settings")]
-  [SerializeField]
-  private float _propulsionInterval = .6f;
-
-  [SerializeField]
-  private float _propulsionVelocity = 100f;
-
   [SerializeField]
   private float _continuousBoostUsage = 10f;
 
@@ -74,7 +67,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   private Tween _speedRampTween;
   private Tween _gravityRampTween;
-  private Sequence _startSequence;
   private float _currentBoostSpeedRatio = 1f;
 
   [Header("Vibração do Gamepad na Corrida")]
@@ -105,10 +97,8 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   private SphereCollider _boostCollectionCollider;
 
   private CancellationTokenSource _hitRumbleCts;
-
   private float _boostSpeedRatio;
   private string _boostSourceId;
-  private bool _inPropulsion;
 
   #endregion
 
@@ -169,73 +159,47 @@ public class PlayerActionStateBoost : IPlayerState<Player>
     _currentBoostSpeedRatio = 1f;
     _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, _currentBoostSpeedRatio);
 
-    _startSequence?.Kill();
-    _inPropulsion = false;
-    _startSequence = DOTween.Sequence();
-
-    _startSequence.AppendCallback(() =>
-    {
-      player.Motor.Engine.ForceUnground(.1f);
-      player.Motor.AddVelocity(player.transform.forward * _propulsionVelocity);
-      _inPropulsion = true;
-    });
-    _startSequence.AppendInterval(_propulsionInterval);
-    _startSequence.AppendCallback(() =>
-    {
-      _inPropulsion = false;
-
-      _speedRampTween?.Kill();
-      _speedRampTween = DOTween
-        .To(
-          () => _currentBoostSpeedRatio,
-          ratio =>
-          {
-            _currentBoostSpeedRatio = ratio;
-
-            if (!string.IsNullOrEmpty(_boostSourceId))
-            {
-              player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
-            }
-
-            _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
-          },
-          _boostSpeedRatio,
-          _rampInDuration
-        )
-        .SetEase(_rampInEase);
-
-      _gravityRampTween?.Kill();
-      _gravityRampTween = DOTween
-        .To(
-          () => player.GravityValue,
-          g => player.GravityValue = g,
-          _gravityInState,
-          _rampInDuration
-        )
-        .SetEase(_rampInEase);
-
-      _fovTween?.Kill();
-      _fovTween = DOTween.To(
-        () => player.MainCamera.Lens.FieldOfView,
-        fov =>
+    _speedRampTween?.Kill();
+    _speedRampTween = DOTween
+      .To(
+        () => _currentBoostSpeedRatio,
+        ratio =>
         {
-          var lens = player.MainCamera.Lens;
-          lens.FieldOfView = fov;
-          player.MainCamera.Lens = lens;
+          _currentBoostSpeedRatio = ratio;
+
+          if (!string.IsNullOrEmpty(_boostSourceId))
+          {
+            player.Stats.RemoveMultiplier(StatType.Speed, _boostSourceId);
+          }
+
+          _boostSourceId = player.Stats.ApplyMultiplier(StatType.Speed, ratio);
         },
-        _boostFOV,
-        _fovTransitionDuration
-      );
-    });
-    _startSequence.Play();
+        _boostSpeedRatio,
+        _rampInDuration
+      )
+      .SetEase(_rampInEase);
+
+    _gravityRampTween?.Kill();
+    _gravityRampTween = DOTween
+      .To(() => player.GravityValue, g => player.GravityValue = g, _gravityInState, _rampInDuration)
+      .SetEase(_rampInEase);
+
+    _fovTween?.Kill();
+    _fovTween = DOTween.To(
+      () => player.MainCamera.Lens.FieldOfView,
+      fov =>
+      {
+        var lens = player.MainCamera.Lens;
+        lens.FieldOfView = fov;
+        player.MainCamera.Lens = lens;
+      },
+      _boostFOV,
+      _fovTransitionDuration
+    );
   }
 
   public void Exit(Player player)
   {
-    _startSequence?.Kill();
-    _startSequence = null;
-    _inPropulsion = false;
-
     if (_boostHitboxComponent != null)
     {
       _boostHitboxComponent.Hit.RemoveListener(OnBoostHitDetected);
@@ -321,11 +285,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
   {
     player.RemoveBoost(_continuousBoostUsage * Time.deltaTime);
 
-    if (_inPropulsion)
-    {
-      return;
-    }
-
     if (player.BoostValue <= 0f)
     {
       player.ActionLayer.ExitState(this, player);
@@ -341,11 +300,6 @@ public class PlayerActionStateBoost : IPlayerState<Player>
 
   public void FixedUpdate(Player player)
   {
-    if (_inPropulsion)
-    {
-      return;
-    }
-
     float x = player.MoveInput.x;
     float side = Mathf.Abs(x) > _inputDeadzone ? Mathf.Sign(x) : 0f;
 

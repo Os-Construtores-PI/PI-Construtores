@@ -44,11 +44,8 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
   [SerializeField]
   private float _minScaleFactor = 0.2f;
 
-  [SerializeField]
-  private float _pursuitAcceleration = 5f;
-
-  [SerializeField]
-  private float _pursuitMaxSpeedMultiplier = 3f;
+  private float _pursuitAcceleration = 25f;
+  private float _pursuitMaxSpeedMultiplier = 6f;
 
   private Vector3 _initialScale;
   private Vector3 _initialPosition;
