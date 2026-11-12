@@ -8,9 +8,18 @@ public class GlobalEventBus : MonoBehaviour
 {
   public static GlobalEventBus Instance { get; private set; }
 
+
   public static bool HasInstance => Instance != null;
 
   #region Events
+  public static bool IsTutorialTimeFrozen { get; private set; }
+
+  public static void SetTutorialTimeFrozen(bool frozen)
+  {
+    IsTutorialTimeFrozen = frozen;
+  }
+
+
   public readonly PlayerComboEvent ComboUpdate = new();
   public readonly PlayerImpactEvent MaxComboReached = new();
   public readonly PlayerScoreEvent ScoreUpdate = new();

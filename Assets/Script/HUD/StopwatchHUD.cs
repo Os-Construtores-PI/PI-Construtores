@@ -8,13 +8,12 @@ public class StopwatchHUD : MonoBehaviour
 
   private float _elapsed = 0f;
   public float Elapsed => _elapsed;
-  public bool Elapsing = true;
 
   public int TotalSeconds => (int)_elapsed;
 
   private void Update()
   {
-    if (!Elapsing)
+    if (GlobalEventBus.IsTutorialTimeFrozen)
       return;
 
     _elapsed += Time.deltaTime;

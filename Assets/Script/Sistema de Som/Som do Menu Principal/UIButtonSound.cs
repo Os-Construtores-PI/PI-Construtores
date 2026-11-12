@@ -14,6 +14,12 @@ public class UIButtonSound
   private static GameObject _lastSelectedObject;
   private static bool _navigationStarted;
 
+  private void OnEnable()
+  {
+    _navigationStarted = false;
+    _lastSelectedObject = null;
+  }
+
   public void OnPointerEnter(PointerEventData eventData)
   {
     PlayHoverSound();
@@ -66,6 +72,9 @@ public class UIButtonSound
   {
     if (_uiAudioConfig == null ||
         AudioManager.Instance == null)
+      return;
+
+    if (_uiAudioConfig.Click == null)
       return;
 
     AudioManager.Instance.PlaySFX(_uiAudioConfig.Click);

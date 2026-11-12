@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DG.Tweening;
+using PLAYERTWO.PlatformerProject;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -61,9 +62,9 @@ public class HudDirector : MonoBehaviour
   private readonly Dictionary<int, Image> interactionImages = new();
   private readonly Dictionary<int, Sprite> originalSprites = new();
   private readonly Dictionary<int, CameraLogic> _playerCachedCameras = new();
+  private readonly HashSet<int> _interactionPopupVisiblePlayers = new();
   private readonly Dictionary<int, StopwatchHUD> _playerCachedStopwatches = new();
   private readonly HashSet<int> _tutorialPopupPlayers = new();
-  private readonly HashSet<int> _interactionPopupVisiblePlayers = new();
   private Dictionary<int, int> _playerCachedScores = new();
 
   private readonly Dictionary<int, CinemachineBasicMultiChannelPerlin> _playerNoises = new();
@@ -77,6 +78,8 @@ public class HudDirector : MonoBehaviour
   // ═══════════════════════════════════════════════════════════════════════════
 
   public CameraLogic GetCameraScript(int id) => _playerCachedCameras[id];
+
+  private bool _pauseClosingWithAnimation;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Unity Events
@@ -99,7 +102,6 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.ComboUpdate.AddListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.AddListener(MaxComboPanel);
     GlobalEventBus.Instance.ScoreUpdate.AddListener(ScorePanel);
-    GlobalEventBus.Instance.TimeRunning.AddListener(PauseStopwatch);
   }
 
   private void OnDisable()
@@ -119,7 +121,6 @@ public class HudDirector : MonoBehaviour
     GlobalEventBus.Instance.ComboUpdate.RemoveListener(ComboPanel);
     GlobalEventBus.Instance.MaxComboReached.RemoveListener(MaxComboPanel);
     GlobalEventBus.Instance.ScoreUpdate.RemoveListener(ScorePanel);
-    GlobalEventBus.Instance.TimeRunning.RemoveListener(PauseStopwatch);
   }
 
   private void OnDestroy()
@@ -638,24 +639,142 @@ public class HudDirector : MonoBehaviour
 
   public void InteractionPopup(int playerID, bool seeing, InteractableObject obj)
   {
-    if (!interactionTexts.ContainsKey(playerID) || !interactionImages.ContainsKey(playerID))
+    if (_tutorialPopupPlayers.Contains(playerID))
       return;
 
-    var text = interactionTexts[playerID];
-    var image = interactionImages[playerID];
+    if (!interactionTexts.TryGetValue(playerID, out var text) || text == null)
+      return;
+
+    if (!interactionImages.TryGetValue(playerID, out var image) || image == null)
+      return;
+
+    // Evita repetir a mesma solicitação continuamente.
+    bool isVisible = _interactionPopupVisiblePlayers.Contains(playerID);
+
+    if (isVisible == seeing)
+      return;
 
     if (!seeing)
     {
-      HidePanel(HudPanelType.InteractionPopup, playerID, independent: true);
-      text.DOColor(Color.white, PANEL_TWEEN_DURATION);
+      _interactionPopupVisiblePlayers.Remove(playerID);
+
+      HidePanel(
+          HudPanelType.InteractionPopup,
+          playerID,
+          independent: true
+      );
+
+      text.DOKill();
+      text.color = Color.white;
       text.text = string.Empty;
-      image.sprite = originalSprites[playerID];
+
+      if (originalSprites.TryGetValue(playerID, out var originalSprite))
+        image.sprite = originalSprite;
+
       return;
     }
 
-    string bindLabel = InputSystem.actions.FindAction("Interaction").GetBindingDisplayString();
+    var action = InputSystem.actions?.FindAction("Interaction");
+
+    string bindLabel = action != null
+        ? action.GetBindingDisplayString()
+        : "Interagir";
+
     ApplyInteractionVisuals(obj, text, image, bindLabel);
-    ShowPanel(HudPanelType.InteractionPopup, playerID, independent: true);
+
+    _interactionPopupVisiblePlayers.Add(playerID);
+
+    ShowPanel(
+        HudPanelType.InteractionPopup,
+        playerID,
+        independent: true
+    );
+  }
+
+  public bool TutorialInteractionPopup(int playerID, bool show)
+  {
+    if (!canvasMap.ContainsKey(playerID))
+    {
+      Debug.LogWarning(
+          $"[HudDirector] HUD não inicializado para o jogador {playerID}."
+      );
+      return false;
+    }
+
+    var panels = GetPanel(playerID, HudPanelType.InteractionPopup);
+
+    if (panels.Count == 0)
+    {
+      Debug.LogWarning(
+          "[HudDirector] Painel InteractionPopup não encontrado."
+      );
+      return false;
+    }
+
+    if (!interactionTexts.TryGetValue(playerID, out var text) || text == null)
+    {
+      Debug.LogWarning(
+          $"[HudDirector] Texto do popup não registrado para o jogador {playerID}."
+      );
+      return false;
+    }
+
+    if (show)
+    {
+      // Dá prioridade ao tutorial e bloqueia o popup comum.
+      _tutorialPopupPlayers.Add(playerID);
+      _interactionPopupVisiblePlayers.Remove(playerID);
+
+      var action = InputSystem.actions?.FindAction("Interaction");
+
+      text.DOKill();
+      text.text = action != null
+          ? action.GetBindingDisplayString()
+          : "Interagir";
+
+      text.color = Color.white;
+
+      if (interactionImages.TryGetValue(playerID, out var image)
+          && image != null
+          && originalSprites.TryGetValue(playerID, out var originalSpritess))
+      {
+        image.sprite = originalSpritess;
+      }
+
+      ShowPanel(
+          HudPanelType.InteractionPopup,
+          playerID,
+          independent: true
+      );
+
+      return true;
+    }
+
+    // Remove o estado do tutorial.
+    _tutorialPopupPlayers.Remove(playerID);
+    _interactionPopupVisiblePlayers.Remove(playerID);
+
+    text.DOKill();
+    text.text = string.Empty;
+    text.color = Color.white;
+
+    if (interactionImages.TryGetValue(playerID, out var imageToReset)
+        && imageToReset != null
+        && originalSprites.TryGetValue(playerID, out var originalSprite))
+    {
+      imageToReset.sprite = originalSprite;
+    }
+
+    // Esconde o popup imediatamente para não deixar o ícone preso.
+    HidePanel(
+        HudPanelType.InteractionPopup,
+        playerID,
+        independent: true,
+        fade: false,
+        instant: true
+    );
+
+    return true;
   }
 
   private void ApplyInteractionVisuals(
@@ -703,13 +822,19 @@ public class HudDirector : MonoBehaviour
     var holders = GetPanel(playerID, HudPanelType.Cutscene);
 
     foreach (var holder in holders)
-    foreach (var rect in holder.GetComponentsInChildren<RectTransform>(true))
-    {
-      if (rect.name == "Top" || rect.name == "Bottom")
-        result.Add(rect.gameObject);
-    }
+      foreach (var rect in holder.GetComponentsInChildren<RectTransform>(true))
+      {
+        if (rect.name == "Top" || rect.name == "Bottom")
+          result.Add(rect.gameObject);
+      }
 
     return result;
+  }
+
+
+  public void SetPauseClosingWithAnimation(bool closing)
+  {
+    _pauseClosingWithAnimation = closing;
   }
 
   private static void AnimateCinematicBars(
@@ -808,16 +933,46 @@ public class HudDirector : MonoBehaviour
   private void DeathPanel()
   {
     CursorOptions(visible: true);
-    if (AudioManager.Instance != null && _backgroundMusicConfig != null)
+
+    if (AudioManager.Instance != null &&
+        _backgroundMusicConfig != null)
     {
-      AudioManager.Instance.PlaySFX(_backgroundMusicConfig.GameOverMusic);
+      AudioManager.Instance.PlaySFX(
+          _backgroundMusicConfig.GameOverMusic
+      );
     }
+
+    BasicMenuLogic menuLogic =
+        FindFirstObjectByType<BasicMenuLogic>();
 
     ForEachPlayer(player =>
     {
-      ShowPanel(HudPanelType.GameOver, player.ID, independent: true);
+      ShowPanel(
+          HudPanelType.GameOver,
+          player.ID,
+          independent: true
+      );
+
       DisableHud(player.ID);
+
+      List<GameObject> deathPanels =
+          GetPanel(player.ID, HudPanelType.GameOver);
+
+      // O HUDDirector continua responsável pela entrada do painel.
+      // O BasicMenuLogic cuida apenas do delay e da entrada dos botões.
+      if (menuLogic != null)
+      {
+        menuLogic.PlayDeathPanelAnimation(deathPanels);
+      }
+      else
+      {
+        Debug.LogWarning(
+            "DeathPanel: BasicMenuLogic não foi encontrado."
+        );
+      }
     });
+
+
   }
 
   private void RespawnPanel()
@@ -842,8 +997,6 @@ public class HudDirector : MonoBehaviour
     {
       DisableHud(player.ID);
       var panel = ShowPanel(HudPanelType.EndGame, player.ID, independent: true);
-
-      player.PlayerInput.DeactivateInput();
       panel.PanelTween.OnComplete(() =>
       {
         if (panel.Panels.FirstOrDefault().GetComponent<EndGamePanel>() is { } endGamePanel)
@@ -869,7 +1022,6 @@ public class HudDirector : MonoBehaviour
               : 0f;
             ;
 
-            player.PlayerInput.ActivateInput();
             endGamePanel.Populate(score, previewScore, time, uuid, levelManager.GetRank(time));
           }
         }
@@ -903,19 +1055,17 @@ public class HudDirector : MonoBehaviour
   private void UpdateComboText(List<GameObject> panels, int comboIndex)
   {
     foreach (var go in panels)
-    {
       foreach (var text in go.GetComponentsInChildren<TextMeshProUGUI>())
       {
         if (!text.name.Contains("Output", StringComparison.OrdinalIgnoreCase))
           continue;
 
+        text.text = $"x{comboIndex + 1}";
         text.transform.DOKill();
-        text.SetText($"x{comboIndex + 1}");
         text.transform.localScale = Vector3.one;
         text.transform.DOPunchScale(Vector3.one * 0.4f, 0.3f, vibrato: 1, elasticity: 0.5f)
           .SetUpdate(UpdateType.Normal, isIndependentUpdate: true);
       }
-    }
   }
 
   private void TryShowComboPopup(int playerID, ComboPopupType comboPopupType)
@@ -987,16 +1137,30 @@ public class HudDirector : MonoBehaviour
   private void PausePanel(bool set)
   {
     CursorOptions(visible: set);
+
     ForEachPlayer(player =>
     {
       if (set)
       {
-        ShowPanel(HudPanelType.Pause, player.ID, independent: true);
+        ShowPanel(
+            HudPanelType.Pause,
+            player.ID,
+            independent: true
+        );
+
         DisableHud(player.ID);
       }
       else
       {
-        HidePanel(HudPanelType.Pause, player.ID, independent: true);
+        // A animação do BasicMenuLogic já terminou.
+        HidePanel(
+        HudPanelType.Pause,
+        player.ID,
+        independent: true,
+        fade: false,
+        instant: true
+    );
+
         EnableHUD(player.ID);
       }
     });
@@ -1005,88 +1169,6 @@ public class HudDirector : MonoBehaviour
   private void OptionsPausePanel(bool set) { } // TODO: abrir painel/cena de opções
 
   private void SoundOptionsPausePanel(bool set) { } // TODO: menu de som
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Tutorial
-  // ═══════════════════════════════════════════════════════════════════════════
-  public bool TutorialInteractionPopup(int playerID, bool show)
-  {
-    if (!canvasMap.ContainsKey(playerID))
-    {
-      Debug.LogWarning($"[HudDirector] HUD não inicializado para o jogador {playerID}.");
-      return false;
-    }
-
-    var panels = GetPanel(playerID, HudPanelType.InteractionPopup);
-
-    if (panels.Count == 0)
-    {
-      Debug.LogWarning("[HudDirector] Painel InteractionPopup não encontrado.");
-      return false;
-    }
-
-    if (!interactionTexts.TryGetValue(playerID, out var text) || text == null)
-    {
-      Debug.LogWarning($"[HudDirector] Texto do popup não registrado para o jogador {playerID}.");
-      return false;
-    }
-
-    if (show)
-    {
-      // Dá prioridade ao tutorial e bloqueia o popup comum.
-      _tutorialPopupPlayers.Add(playerID);
-      _interactionPopupVisiblePlayers.Remove(playerID);
-
-      var action =
-        InputSystem.actions != null ? InputSystem.actions.FindAction("Interaction") : null;
-
-      text.DOKill();
-      text.text = action != null ? action.GetBindingDisplayString() : "Interagir";
-
-      text.color = Color.white;
-
-      if (
-        interactionImages.TryGetValue(playerID, out var image)
-        && image != null
-        && originalSprites.TryGetValue(playerID, out var originalSpritess)
-      )
-      {
-        image.sprite = originalSpritess;
-      }
-
-      ShowPanel(HudPanelType.InteractionPopup, playerID, independent: true);
-
-      return true;
-    }
-
-    // Remove o estado do tutorial.
-    _tutorialPopupPlayers.Remove(playerID);
-    _interactionPopupVisiblePlayers.Remove(playerID);
-
-    text.DOKill();
-    text.text = string.Empty;
-    text.color = Color.white;
-
-    if (
-      interactionImages.TryGetValue(playerID, out var imageToReset)
-      && imageToReset != null
-      && originalSprites.TryGetValue(playerID, out var originalSprite)
-    )
-    {
-      imageToReset.sprite = originalSprite;
-    }
-
-    // Esconde o popup imediatamente para não deixar o ícone preso.
-    HidePanel(
-      HudPanelType.InteractionPopup,
-      playerID,
-      independent: true,
-      fade: false,
-      instant: true
-    );
-
-    return true;
-  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Helpers Gerais
@@ -1105,17 +1187,8 @@ public class HudDirector : MonoBehaviour
   public IEnumerable<GameObject> GetPanelObjects(int playerID, HudPanelType panel)
   {
     foreach (var root in GetPanel(playerID, panel))
-    foreach (var t in root.GetComponentsInChildren<Transform>(true))
-      yield return t.gameObject;
-  }
-
-  public void PauseStopwatch(int playerid, bool running)
-  {
-    var cachedStopwatch = _playerCachedStopwatches.FirstOrDefault(pair => pair.Key == playerid);
-    if (cachedStopwatch.Value != null)
-    {
-      cachedStopwatch.Value.Elapsing = running;
-    }
+      foreach (var t in root.GetComponentsInChildren<Transform>(true))
+        yield return t.gameObject;
   }
 
   public void ResetAllStopwatches()

@@ -640,122 +640,178 @@ public class BasicMenuLogic : MonoBehaviour
     if (deathPanels == null || deathPanels.Count == 0)
     {
       Debug.LogWarning(
-      "DeathPanel: nenhum painel GameOver foi encontrado."
+          "DeathPanel: nenhum painel GameOver foi encontrado."
       );
-
       return;
     }
 
     foreach (GameObject panel in deathPanels)
     {
-      if (panel == null)
+      if (panel == null || !panel.activeInHierarchy)
         continue;
 
-      // Localiza o RectTransform do painel recebido.
-      RectTransform panelBackground =
-          panel.GetComponent<RectTransform>();
+      // Busca os botões pertencentes ao painel GameOver.
+      Button[] panelButtons =
+          panel.GetComponentsInChildren<Button>(true);
 
-      if (panelBackground == null)
-      {
-        Debug.LogWarning(
-            $"DeathPanel: {panel.name} não possui RectTransform."
-        );
-
-        continue;
-      }
-
-      // Localiza os botões que pertencem a ESTE GameOver.
       List<RectTransform> buttons = new List<RectTransform>();
+      List<Vector3> originalScales = new List<Vector3>();
 
-      foreach (RectTransform configuredButton in _deathButtons)
+      foreach (Button uiButton in panelButtons)
       {
-        if (configuredButton == null)
+        if (uiButton == null)
           continue;
 
-        // Só aceita botões que pertencem ao painel recebido.
-        if (configuredButton.transform.IsChildOf(panel.transform))
-          buttons.Add(configuredButton);
+        RectTransform buttonTransform =
+            uiButton.GetComponent<RectTransform>();
+
+        if (buttonTransform == null)
+          continue;
+
+        buttons.Add(buttonTransform);
+        originalScales.Add(buttonTransform.localScale);
+
+        // Esconde os botões durante a entrada do painel.
+        buttonTransform.DOKill();
+        buttonTransform.localScale = Vector3.zero;
+
+        uiButton.interactable = false;
       }
 
-      // Se os botões configurados não pertencem ao painel,
-      // a animação não deve continuar com referências incorretas.
-      if (buttons.Count == 0)
-      {
-        Debug.LogWarning(
-            $"DeathPanel: nenhum botão de _deathButtons pertence " +
-            $"ao painel {panel.name}. Configure os botões corretamente."
-        );
-      }
+      // Aguarda a animação do painel controlada pelo HudDirector.
+      DOVirtual.DelayedCall(
+          _deathPanelDuration,
+          () =>
+          {
+            if (panel == null || !panel.activeInHierarchy)
+              return;
 
-      // Guarda a escala original do painel.
-      Vector3 originalPanelScale = panelBackground.localScale;
+            // Sequência responsável exclusivamente pelos botões.
+            Sequence buttonSequence = DOTween.Sequence()
+                  .SetUpdate(true);
 
-      // Prepara o painel para a animação.
-      panelBackground.DOKill();
+            for (int i = 0; i < buttons.Count; i++)
+            {
+              RectTransform button = buttons[i];
 
-      panelBackground.localScale =
-          originalPanelScale * _deathPanelScaleStarte;
+              if (button == null)
+                continue;
 
-      // Guarda as escalas originais dos botões ANTES de escondê-los.
-      List<Vector3> originalButtonScales = new List<Vector3>();
+              Button uiButton = button.GetComponent<Button>();
+              Vector3 originalScale = originalScales[i];
 
-      foreach (RectTransform button in buttons)
-      {
-        originalButtonScales.Add(button.localScale);
+              button.DOKill();
+              button.localScale = Vector3.zero;
 
-        button.DOKill();
-        button.localScale = Vector3.zero;
+              if (uiButton != null)
+                uiButton.interactable = false;
 
-        Button uiButton = button.GetComponent<Button>();
+              // Intervalo entre a aparição de cada botão.
+              buttonSequence.AppendInterval(_deathButtonDelay);
 
-        if (uiButton != null)
-          uiButton.interactable = false;
-      }
+              buttonSequence.Append(
+                    button
+                        .DOScale(
+                            originalScale,
+                            _deathButtonDuration
+                        )
+                        .SetEase(Ease.OutBack)
+                );
 
-      // Cria a sequência de animação.
-      Sequence sequence = DOTween.Sequence()
-          .SetUpdate(true);
+              // Libera a interação após a animação individual.
+              buttonSequence.AppendCallback(() =>
+              {
+                if (uiButton != null)
+                  uiButton.interactable = true;
+              });
+            }
 
-      // FASE 1: aparece o painel de morte.
-      sequence.Append(
-          panelBackground
-              .DOScale(
-                  originalPanelScale,
-                  _deathPanelDuration
-              )
-              .SetEase(Ease.OutBack)
-      );
+            // Executado somente após todos os botões aparecerem.
+            buttonSequence.OnComplete(() =>
+            {
+              if (panel == null || !panel.activeInHierarchy)
+                return;
 
-      // FASE 2: os botões aparecem individualmente.
-      for (int i = 0; i < buttons.Count; i++)
-      {
-        RectTransform button = buttons[i];
-        Vector3 originalScale = originalButtonScales[i];
+              if (EventSystem.current == null)
+              {
+                Debug.LogWarning(
+                      "GameOver: EventSystem não encontrado."
+                  );
+                return;
+              }
 
-        sequence.AppendInterval(_deathButtonDelay);
+              // Procura o botão de tentar novamente.
+              foreach (RectTransform buttonTransform in buttons)
+              {
+                if (buttonTransform == null)
+                  continue;
 
-        sequence.Append(
-            button
-                .DOScale(
-                    originalScale,
-                    _deathButtonDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
+                Button button =
+                      buttonTransform.GetComponent<Button>();
 
-        // Libera a interação depois da animação de cada botão.
-        sequence.AppendCallback(() =>
-        {
-          if (button == null)
-            return;
+                if (button == null)
+                  continue;
 
-          Button uiButton = button.GetComponent<Button>();
+                if (!button.gameObject.name.Contains(
+                      "Respawn",
+                      StringComparison.OrdinalIgnoreCase))
+                  continue;
 
-          if (uiButton != null)
-            uiButton.interactable = true;
-        });
-      }
+                if (!button.interactable)
+                  return;
+
+                // Destaca o botão e permite confirmar a ação.
+                EventSystem.current.SetSelectedGameObject(
+                      button.gameObject
+                  );
+
+                break;
+              }
+            });
+          }
+      ).SetUpdate(true);
     }
   }
-}
+
+  private void SelectRetryButton(List<RectTransform> buttons)
+  {
+    if (buttons == null || buttons.Count == 0) 
+      return;
+
+    if (EventSystem.current == null)
+    {
+      Debug.LogWarning(
+        "GameOver: EventSystem não encontrado."
+        );
+
+      return;
+    }
+
+    foreach (RectTransform buttonTransform in buttons)
+    {
+      if (buttonTransform == null)
+        continue;
+
+      Button button = buttonTransform.GetComponent<Button>();
+
+      if (button == null)
+        continue;
+
+      if (button.gameObject.name.Contains(
+        "Respawn",
+        StringComparison.OrdinalIgnoreCase))
+      {
+        if (!button.interactable)
+          return;
+
+        EventSystem.current.SetSelectedGameObject(button.gameObject);
+        return;
+      }
+    }
+
+    Debug.LogWarning(
+        "GameOver: botão Respawn não encontrado entre os botões do painel."
+    );
+  }
+  }
 #endregion
