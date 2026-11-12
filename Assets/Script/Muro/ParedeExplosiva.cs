@@ -1,46 +1,78 @@
+using System;
+using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
-public class ParedeExplosiva : MonoBehaviour
+public class ParedeExplosiva : MonoBehaviour, IRespawnable
 {
-    [Header("Configurações da Explosão")]
-    public float forcaExplosao = 300f;
-    public float raioExplosao = 5f;
-    public float forcaParaCima = 1f;
-
-    private bool jaDestruiu = false;
-
-    // Detecta quando o player encosta no collider "Is Trigger" do objeto pai
-    private void OnTriggerEnter(Collider other)
+  [Serializable]
+  private class Block
+  {
+    public Block(Rigidbody rb, GameObject go, Vector3 initPos)
     {
-        // Verifica se quem tocou foi o Player e se a parede ainda não foi destruída
-        if (other.CompareTag("Player") && !jaDestruiu)
-        {
-            jaDestruiu = true;
-            ExplodirParede(other.transform.position);
-        }
+      Rb = rb;
+      Go = go;
+      InitPos = initPos;
     }
 
-    void ExplodirParede(Vector3 posicaoDoToque)
+    public Rigidbody Rb;
+    public Vector3 InitPos;
+    public GameObject Go;
+  }
+
+  [Header("Explosion Settings")]
+  [SerializeField]
+  private float _explosionForce = 300f;
+
+  [SerializeField]
+  private float _explosionRadius = 5f;
+
+  [SerializeField]
+  private float _upsideForce = 1f;
+
+  [SerializeField]
+  private float _activeInterval = 2f;
+
+  private List<Block> _blocks = new();
+  private bool _destroyed = false;
+  public bool IsAlive => gameObject.activeInHierarchy;
+
+  private void Start()
+  {
+    Rigidbody[] rbs = GetComponentsInChildren<Rigidbody>();
+    foreach (Rigidbody rb in rbs)
     {
-        // Armazena todos os blocos filhos (os cubos da parede)
-        Rigidbody[] blocos = GetComponentsInChildren<Rigidbody>();
-
-        foreach (Rigidbody rb in blocos)
-        {
-            // Solta os blocos do objeto pai para que eles possam cair livremente
-            rb.transform.SetParent(null);
-
-            // Desativa o modo Kinematic para ativar a gravidade e a física instantaneamente
-            rb.isKinematic = false;
-
-            // Aplica a força que faz os blocos voarem pelo ar
-            rb.AddExplosionForce(forcaExplosao, posicaoDoToque, raioExplosao, forcaParaCima);
-
-            // Programa o bloco individual para desaparecer completamente em 5 segundos
-            Destroy(rb.gameObject, 5f);
-        }
-
-        // Destrói o objeto pai que sobrou vazio na cena
-        //Destroy(gameObject);
+      _blocks.Add(new(rb, rb.gameObject, rb.transform.position));
     }
+  }
+
+  private void OnTriggerEnter(Collider other)
+  {
+    if (other.CompareTag("Player") && !_destroyed)
+    {
+      _destroyed = true;
+      WallExplode(other.transform.position);
+    }
+  }
+
+  void WallExplode(Vector3 posicaoDoToque)
+  {
+    foreach (Block block in _blocks)
+    {
+      block.Rb.isKinematic = false;
+      block.Rb.AddExplosionForce(_explosionForce, posicaoDoToque, _explosionRadius, _upsideForce);
+      block.Rb.mass = 0.5f;
+      DOVirtual.DelayedCall(_activeInterval, () => gameObject.SetActive(false));
+    }
+  }
+
+  public void Respawn()
+  {
+    foreach (Block block in _blocks)
+    {
+      block.Rb.isKinematic = true;
+      block.Rb.mass = 0.5f;
+      gameObject.SetActive(true);
+    }
+  }
 }
