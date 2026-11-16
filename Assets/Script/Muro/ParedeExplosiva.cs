@@ -48,7 +48,12 @@ public class ParedeExplosiva : MonoBehaviour, IRespawnable
 
   private void OnTriggerEnter(Collider other)
   {
-    if (other.CompareTag("Player") && !_destroyed)
+    if (
+      other.CompareTag("Player")
+      && other.TryGetComponent(out Player player)
+      && player.ActionLayer.GetActive<PlayerActionStateBoost>() != null
+      && !_destroyed
+    )
     {
       _destroyed = true;
       WallExplode(other.transform.position);
