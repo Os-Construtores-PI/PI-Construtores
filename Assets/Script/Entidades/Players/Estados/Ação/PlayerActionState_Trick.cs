@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [Serializable]
@@ -92,10 +93,14 @@ public class PlayerActionStateTrick : IPlayerState<Player>
   private int _maxMiniJump = 2;
   private int _miniJumpCounter = 0;
 
-  [SerializeField]
   [Header("Combo")]
+  [SerializeField]
   private int _comboPerTrick = 3;
   int _trickCount = 0;
+
+  [Header("Components")]
+  [SerializeField]
+  private ArrowEffect _arrowEffect;
 
   public void Enter(Player entity)
   {
@@ -178,6 +183,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
       {
         _miniJumpCounter++;
         entity.Motor.Velocity = Vector3.up * _miniJumpForce;
+        _arrowEffect.ArrowEffectSequence();
       }
       entity.ComboUp();
     }
