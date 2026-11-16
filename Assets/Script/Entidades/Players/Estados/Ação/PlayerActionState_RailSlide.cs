@@ -44,7 +44,19 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private float _speedRampDuration = 0.25f;
 
+  // Boost
+  [Header("Boost no Trilho")]
+  [SerializeField]
+  private float _boostSpeedMultiplier = 1.4f;
+
+  [SerializeField]
+  private float _boostRampUpDuration = 0.4f;
+
+  [SerializeField]
+  private float _boostRampDownDuration = 0.8f;
+
   // Exit
+  [Header("Saída")]
   [SerializeField]
   private float _exitVelocityMultiplier = 1.35f;
 
@@ -54,9 +66,21 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private float _exitMinHorizontalSpeed = 8f;
 
+  [Header("Rotação na Saída")]
+  [SerializeField]
+  private bool _alignRotationOnRailEnd = true;
+
+  [SerializeField]
+  private bool _alignRotationOnCancel = false;
+
+  [SerializeField]
+  private bool _flattenExitPitch = true;
+
+  [Header("Modelo")]
   [SerializeField]
   private Vector3 _modelOffset = new(0f, 2f, 0f);
 
+  [Header("Recompensas")]
   [SerializeField]
   private int _slideIncrementScore = 1;
 
@@ -67,6 +91,9 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
   private Vector3 _targetPosition;
   private bool _hasTargetPosition = false;
+
+  private Quaternion _exitRotation;
+  private bool _hasExitRotation;
 
   public void SetRail(SplineContainer rail, RailObject railObject)
   {
@@ -82,10 +109,23 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     player.WantsToCancelRailSlide = false;
     _isExiting = false;
     _hasTargetPosition = false;
+    _hasExitRotation = false;
 
     if (CurrentRail == null || CurrentRail.Spline.Count == 0)
     {
       Debug.LogWarning("[RailSlide.Enter] Rail inválido! Saindo imediatamente.");
+      player.ActionLayer.ExitState(this, player);
+      return;
+    }
+
+    if (_currentRailObject == null)
+    {
+      CurrentRail.TryGetComponent(out _currentRailObject);
+    }
+
+    if (_currentRailObject == null)
+    {
+      Debug.LogWarning("[RailSlide.Enter] RailObject não encontrado! Saindo imediatamente.");
       player.ActionLayer.ExitState(this, player);
       return;
     }
@@ -109,9 +149,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     Vector3 currentVel = player.Motor.Engine.BaseVelocity;
     float entrySpeed = new Vector3(currentVel.x, 0f, currentVel.z).magnitude;
 
-    float minRailSpeed = CurrentRail.TryGetComponent(out RailObject railObj)
-      ? railObj.SlideSpeed * 0.4f
-      : 4f;
+    float minRailSpeed = _currentRailObject.SlideSpeed * 0.4f;
     _currentSpeed = Mathf.Max(entrySpeed, minRailSpeed);
 
     float3 tangentLocal = CurrentRail.Spline.EvaluateTangent(_railProgress);
@@ -152,24 +190,18 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     {
       _cancelRequested = false;
       player.WantsToCancelRailSlide = false;
-      ExitWithMomentum(player);
+      ExitWithMomentum(player, false);
       return;
     }
 
     if (player.WantsToCancelRailSlide)
     {
       player.WantsToCancelRailSlide = false;
-      ExitWithMomentum(player);
+      ExitWithMomentum(player, false);
       return;
     }
 
-    float targetSpeed = _currentRailObject.SlideSpeed;
-
-    _currentSpeed = Mathf.MoveTowards(
-      _currentSpeed,
-      targetSpeed,
-      targetSpeed / _speedRampDuration * Time.deltaTime
-    );
+    UpdateSpeed(player);
 
     float distanceThisFrame = _currentSpeed * Time.deltaTime;
     _railProgress += distanceThisFrame * _direction / _currentRailLength;
@@ -177,7 +209,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     if (_railProgress >= 1f || _railProgress <= 0f)
     {
       _railProgress = Mathf.Clamp01(_railProgress);
-      ExitWithMomentum(player);
+      ExitWithMomentum(player, true);
       return;
     }
 
@@ -204,6 +236,35 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   }
 
   // ═══════════════════════════════════════════════════════════════════════
+
+  private void UpdateSpeed(Player player)
+  {
+    float baseSpeed = _currentRailObject.SlideSpeed;
+    bool boostActive = IsBoostActive(player);
+    float targetSpeed = boostActive ? baseSpeed * _boostSpeedMultiplier : baseSpeed;
+
+    float rampDuration;
+    if (_currentSpeed < baseSpeed)
+    {
+      rampDuration = _speedRampDuration;
+    }
+    else if (targetSpeed > _currentSpeed)
+    {
+      rampDuration = _boostRampUpDuration;
+    }
+    else
+    {
+      rampDuration = _boostRampDownDuration;
+    }
+
+    float step = baseSpeed / Mathf.Max(rampDuration, 0.0001f) * Time.deltaTime;
+    _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, step);
+  }
+
+  private bool IsBoostActive(Player player)
+  {
+    return player.ActionLayer.GetActive<PlayerActionStateBoost>() != null;
+  }
 
   private void SetupPlayerForSlide(Player player)
   {
@@ -251,7 +312,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _hasTargetPosition = true;
   }
 
-  private void ExitWithMomentum(Player player)
+  private void ExitWithMomentum(Player player, bool reachedEnd)
   {
     if (CurrentRail == null || _isExiting)
     {
@@ -265,6 +326,8 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     );
     Vector3 exitDir = tangent.normalized * _direction;
     float exitSpeed = _currentSpeed * _exitVelocityMultiplier;
+
+    ComputeExitRotation(player, exitDir, reachedEnd);
 
     Vector3 horizontal = new(exitDir.x, 0f, exitDir.z);
     if (horizontal.sqrMagnitude < 0.001f)
@@ -286,6 +349,28 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     ApplyExitBuffAsync(player);
 
     player.ActionLayer.ExitState(this, player);
+  }
+
+  private void ComputeExitRotation(Player player, Vector3 exitDir, bool reachedEnd)
+  {
+    _hasExitRotation = false;
+
+    bool shouldAlign = reachedEnd ? _alignRotationOnRailEnd : _alignRotationOnCancel;
+    if (!shouldAlign)
+      return;
+
+    Vector3 lookDir = exitDir;
+    if (_flattenExitPitch)
+      lookDir.y = 0f;
+
+    if (lookDir.sqrMagnitude < 0.0001f)
+      lookDir = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up);
+
+    if (lookDir.sqrMagnitude < 0.0001f)
+      lookDir = Vector3.forward;
+
+    _exitRotation = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
+    _hasExitRotation = true;
   }
 
   private async void ApplyExitBuffAsync(Player player)
@@ -319,7 +404,24 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
       return;
 
     player.AnimatorComponent.SetBool(IsSlidingHash, false);
-    player.Motor.Engine.SetRotation(Quaternion.Euler(Vector3.up));
+
+    Quaternion finalRotation;
+    if (_hasExitRotation)
+    {
+      finalRotation = _exitRotation;
+    }
+    else
+    {
+      Vector3 flatForward = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up);
+      if (flatForward.sqrMagnitude < 0.0001f)
+        flatForward = Vector3.forward;
+
+      finalRotation = Quaternion.LookRotation(flatForward.normalized, Vector3.up);
+    }
+
+    player.Motor.Engine.SetRotation(finalRotation);
+    _hasExitRotation = false;
+
     player.CurrentJumpCount = 0;
     player.CurrentDashCount = 0;
     player.WillLock = true;
@@ -334,6 +436,7 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
     _isSnapping = false;
     _cancelRequested = false;
     _hasTargetPosition = false;
+    _hasExitRotation = false;
     _exitBuffCts?.Cancel();
     _exitBuffCts?.Dispose();
     CurrentRail = null;
