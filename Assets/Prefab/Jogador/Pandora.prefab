@@ -22904,9 +22904,15 @@ MonoBehaviour:
   RailSlide:
     _snapDuration: 0.12
     _speedRampDuration: 0.25
+    _boostSpeedMultiplier: 1.4
+    _boostRampUpDuration: 0.4
+    _boostRampDownDuration: 0.8
     _exitVelocityMultiplier: 1
     _exitVerticalBias: 1.6
     _exitMinHorizontalSpeed: 8
+    _alignRotationOnRailEnd: 1
+    _alignRotationOnCancel: 0
+    _flattenExitPitch: 1
     _modelOffset: {x: 0, y: 1.55, z: 0}
     _slideIncrementScore: 20
     _slideIncrementBoost: 20
@@ -22935,6 +22941,8 @@ MonoBehaviour:
       Duration: 0.5
       Ease: 6
     _sequences: []
+    _miniJumpForce: 80
+    _maxMiniJump: 1
     _comboPerTrick: 3
   Direction: {x: 0, y: 0, z: 0}
   DashDirection: {x: 0, y: 0, z: 0}
