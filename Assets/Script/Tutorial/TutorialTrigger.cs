@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -60,6 +61,8 @@ public class TutorialTrigger : MonoBehaviour
 
   private bool _esteTriggerAbriuTutorial;
 
+  private CameraLogic _cameraLogic;
+
   private void Start()
   {
 
@@ -93,6 +96,14 @@ public class TutorialTrigger : MonoBehaviour
             _tutorialGlobal = FindAnyObjectByType<TutorialGlobal>(FindObjectsInactive.Include);
 
         InscreverEventoTutorial();
+    }
+
+    if (_cameraLogic == null && _player != null)
+    {
+      _cameraLogic = FindObjectsByType<CameraLogic>(
+        FindObjectsInactive.Include,
+        FindObjectsSortMode.None
+    ).FirstOrDefault(camera => camera.ID == _player.ID);
     }
   }
 
@@ -237,6 +248,9 @@ public class TutorialTrigger : MonoBehaviour
     _tutorialConsumed = true;
 
     _esteTriggerAbriuTutorial = true;
+
+    if (_cameraLogic != null)
+      _cameraLogic.SpeedlinesFX(false);
 
 
     _tutorialGlobal.OpenTutorial(_tutorialVideo);

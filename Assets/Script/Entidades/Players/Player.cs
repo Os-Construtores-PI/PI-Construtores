@@ -280,6 +280,9 @@ public class Player : CombatEntities
     get { return _boostValue; }
     set
     {
+      // Impede a ativação do Boost durante o tutorial
+      if (GameContext.IsTutorialActive) return;
+
       _boostValue = Mathf.Clamp(value, 0f, _maxBoostValue);
       BoostChanged.Invoke(_boostValue / _maxBoostValue);
     }
