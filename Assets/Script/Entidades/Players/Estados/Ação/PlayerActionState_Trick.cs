@@ -89,6 +89,10 @@ public class PlayerActionStateTrick : IPlayerState<Player>
   private float _miniJumpForce = 50f;
 
   [SerializeField]
+  private int _maxMiniJump = 2;
+  private int _miniJumpCounter = 0;
+
+  [SerializeField]
   [Header("Combo")]
   private int _comboPerTrick = 3;
   int _trickCount = 0;
@@ -102,6 +106,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
     _buffer.Clear();
     _bufferTimer = 0f;
     _trickCount = 0;
+    _miniJumpCounter = 0;
     _timeInState = 0f;
   }
 
@@ -169,7 +174,11 @@ public class PlayerActionStateTrick : IPlayerState<Player>
 
     if (_trickCount % _comboPerTrick == 0)
     {
-      entity.Motor.Velocity = Vector3.up * _miniJumpForce;
+      if (_miniJumpCounter < _maxMiniJump)
+      {
+        _miniJumpCounter++;
+        entity.Motor.Velocity = Vector3.up * _miniJumpForce;
+      }
       entity.ComboUp();
     }
 
