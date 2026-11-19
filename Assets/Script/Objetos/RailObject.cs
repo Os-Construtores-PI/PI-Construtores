@@ -21,6 +21,9 @@ public class RailObject : MonoBehaviour
   [SerializeField, Range(0, 100)]
   private float _boostGrace = 0;
 
+  [SerializeField]
+  private LayerMask _segmentLayer = LayerMask.GetMask("Object");
+
   [Header("Cooldown de Reentrada")]
   [SerializeField]
   private float _reEntryCooldown = 0.35f;
@@ -95,7 +98,7 @@ public class RailObject : MonoBehaviour
 
       var segmentGO = new GameObject($"RailSegment_{i}");
       segmentGO.transform.SetParent(transform, false);
-      segmentGO.layer = gameObject.layer;
+      segmentGO.layer = _segmentLayer;
       segmentGO.transform.localPosition = localPos;
 
       if (tangentDir.sqrMagnitude > 0.0001f)

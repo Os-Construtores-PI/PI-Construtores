@@ -15,11 +15,11 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.31347683, g: 0.03604485, b: 0.509434, a: 0.6039216}
+  m_FogColor: {r: 0.30744925, g: 0.3346097, b: 0.4433962, a: 1}
   m_FogMode: 2
-  m_FogDensity: 0.001
-  m_LinearFogStart: 27.7
-  m_LinearFogEnd: 159.92
+  m_FogDensity: 0.003
+  m_LinearFogStart: 1
+  m_LinearFogEnd: 1.01
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
@@ -4326,7 +4326,7 @@ GameObject:
   - component: {fileID: 97713697}
   - component: {fileID: 97713696}
   - component: {fileID: 97713695}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4349,6 +4349,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -5439,7 +5442,7 @@ GameObject:
   - component: {fileID: 112641457}
   - component: {fileID: 112641456}
   - component: {fileID: 112641455}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5573,6 +5576,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -21832,7 +21838,7 @@ GameObject:
   - component: {fileID: 240074173}
   - component: {fileID: 240074172}
   - component: {fileID: 240074171}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -21944,6 +21950,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -37754,7 +37763,7 @@ GameObject:
   - component: {fileID: 623984793}
   - component: {fileID: 623984792}
   - component: {fileID: 623984791}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37777,6 +37786,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -41828,7 +41840,7 @@ GameObject:
   - component: {fileID: 722043562}
   - component: {fileID: 722043561}
   - component: {fileID: 722043560}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -41873,6 +41885,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -43943,7 +43958,7 @@ GameObject:
   - component: {fileID: 791470544}
   - component: {fileID: 791470543}
   - component: {fileID: 791470542}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43966,6 +43981,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -47207,7 +47225,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1675816085}
 --- !u!33 &834240335
@@ -54032,6 +54050,7 @@ Transform:
   - {fileID: 1743236935}
   - {fileID: 1965224796}
   - {fileID: 186059539}
+  - {fileID: 1377219701}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &970319463
@@ -55056,7 +55075,7 @@ GameObject:
   - component: {fileID: 984229646}
   - component: {fileID: 984229645}
   - component: {fileID: 984229644}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.12
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55079,6 +55098,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -66707,7 +66729,7 @@ GameObject:
   - component: {fileID: 998725750}
   - component: {fileID: 998725751}
   - component: {fileID: 998725752}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: NoInputZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -69163,7 +69185,7 @@ GameObject:
   - component: {fileID: 1019615283}
   - component: {fileID: 1019615282}
   - component: {fileID: 1019615281}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.11
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -69186,6 +69208,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -78477,7 +78502,7 @@ GameObject:
   - component: {fileID: 1283799616}
   - component: {fileID: 1283799615}
   - component: {fileID: 1283799614}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78522,6 +78547,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -79828,7 +79856,7 @@ GameObject:
   - component: {fileID: 1313099490}
   - component: {fileID: 1313099489}
   - component: {fileID: 1313099488}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -79940,6 +79968,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -81601,7 +81632,7 @@ GameObject:
   - component: {fileID: 1366739581}
   - component: {fileID: 1366739580}
   - component: {fileID: 1366739579}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -81624,6 +81655,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -82169,6 +82203,96 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 487492036122464948, guid: 62d427746132fe449bfcab342c83f716, type: 3}
   m_PrefabInstance: {fileID: 6792208744492609457}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1377219700
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1377219701}
+  - component: {fileID: 1377219704}
+  - component: {fileID: 1377219703}
+  m_Layer: 0
+  m_Name: Cube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1377219701
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377219700}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 128, y: 0, z: 1608}
+  m_LocalScale: {x: 5000, y: 5000, z: 5000}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 957722227}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1377219703
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377219700}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 83d5cea260636e0459255c9247c2d49c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1377219704
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377219700}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1377322287
 GameObject:
   m_ObjectHideFlags: 0
@@ -93115,7 +93239,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1383396378}
 --- !u!33 &1681539330
@@ -96001,7 +96125,7 @@ GameObject:
   - component: {fileID: 1711101190}
   - component: {fileID: 1711101189}
   - component: {fileID: 1711101188}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -96135,6 +96259,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -99862,7 +99989,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 358800441}
 --- !u!33 &1833191574
@@ -100514,7 +100641,7 @@ GameObject:
   - component: {fileID: 1841230103}
   - component: {fileID: 1841230102}
   - component: {fileID: 1841230101}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -100648,6 +100775,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
@@ -101947,7 +102077,7 @@ GameObject:
   - component: {fileID: 1890333540}
   - component: {fileID: 1890333539}
   - component: {fileID: 1890333538}
-  m_Layer: 9
+  m_Layer: 23
   m_Name: Spline.10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101970,6 +102100,9 @@ MonoBehaviour:
   defaultDirection: 0
   _lockRange: 50
   _boostGrace: 0
+  _segmentLayer:
+    serializedVersion: 2
+    m_Bits: 512
   _reEntryCooldown: 0.35
   _segmentLength: 3
   _segmentRadius: 1.5
