@@ -21,8 +21,8 @@ public class RailObject : MonoBehaviour
   [SerializeField, Range(0, 100)]
   private float _boostGrace = 0;
 
-  [SerializeField]
-  private LayerMask _segmentLayer = LayerMask.GetMask("Object");
+  [SerializeField, Range(0, 31)]
+  private int _segmentLayer = 9;
 
   [Header("Cooldown de Reentrada")]
   [SerializeField]
