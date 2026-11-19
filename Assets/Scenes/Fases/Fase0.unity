@@ -1073,7 +1073,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2124705421725058983, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
 --- !u!1 &25378644 stripped
@@ -2009,7 +2009,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
 --- !u!1001 &45196528
@@ -6784,7 +6784,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1902515488}
 --- !u!33 &145365675
@@ -23463,7 +23463,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2124705421725058983, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
 --- !u!4 &260025018 stripped
@@ -24808,7 +24808,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2124705421725058983, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
 --- !u!4 &294991464 stripped
@@ -26246,7 +26246,8 @@ PrefabInstance:
       value: Pedras04.1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: -8391222552659086748, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
@@ -26433,6 +26434,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
+      propertyPath: m_MeshLodSelectionBias
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
       propertyPath: m_Name
@@ -34861,7 +34866,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
 --- !u!1 &526442892
@@ -36878,7 +36883,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 189774765763880218, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
 --- !u!1 &599313076
@@ -38327,7 +38332,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 796130824}
 --- !u!33 &629700065
@@ -39366,33 +39371,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6dbbb354fa62d14458f1eec4ec7ef1a4, type: 3}
---- !u!1 &650092663 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -8391222552659086748, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
-  m_PrefabInstance: {fileID: 1463892077}
-  m_PrefabAsset: {fileID: 0}
---- !u!64 &650092665
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 650092663}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -5495902117074765545, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
 --- !u!1001 &653418874
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41421,7 +41399,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2124705421725058983, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
 --- !u!4 &709988758 stripped
@@ -73396,7 +73374,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1978615520}
 --- !u!33 &1165408527
@@ -74980,7 +74958,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 2038405763}
 --- !u!33 &1197842945
@@ -78971,7 +78949,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2124705421725058983, guid: 115697cbcb2f6ff418f3f6f9f61f72ca, type: 3}
 --- !u!1001 &1292053749
@@ -81711,7 +81689,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2511278509347024442, guid: f69d1838fb4b1a940862bfc1216e1110, type: 3}
 --- !u!4 &1366055045 stripped
@@ -87112,15 +87090,13 @@ PrefabInstance:
       value: Pedras04
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: -8391222552659086748, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
       insertIndex: -1
       addedObject: {fileID: 44157795}
-    - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 650092665}
     - targetCorrespondingSourceObject: {fileID: -6131274880062641608, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1704329948}
@@ -89075,7 +89051,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 2002947320}
 --- !u!33 &1546413825
@@ -95077,7 +95053,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 189774765763880218, guid: ce6705041a5d34c42b65cff6449d5785, type: 3}
 --- !u!1 &1706335722
@@ -97543,7 +97519,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1069417303}
 --- !u!33 &1765572495
@@ -106630,7 +106606,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 643265707}
 --- !u!33 &1968648007
@@ -109417,7 +109393,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1760089583}
 --- !u!33 &2067808424
@@ -112092,7 +112068,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1271760206}
 --- !u!33 &2137364164
