@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
@@ -6,13 +7,16 @@ public class MenuSlideIn : MonoBehaviour
 {
   [Header("Animação")]
   [SerializeField]
-  private float startOffset = 700f;
+  private float startOffset = 0f;
 
   [SerializeField]
   private float duration = 0.8f;
 
   [SerializeField]
-  private Ease ease = Ease.OutExpo;
+  private Ease enterEase = Ease.OutExpo;
+
+  [SerializeField]
+  private Ease exitEase = Ease.InExpo;
 
   [SerializeField]
   private float startDelay = 0f;
@@ -30,104 +34,147 @@ public class MenuSlideIn : MonoBehaviour
   [SerializeField]
   private float bounceTime = 0.15f;
 
+  [Header("Submenus")]
+  [SerializeField]
+  private bool animateChildMenus = true;
+
+  [SerializeField]
+  private float childStagger = 0.08f;
+
+  [SerializeField]
+  private bool controlledByParent = false;
+
   private RectTransform rect;
+  private RectTransform canvasRect;
   private Vector2 finalPosition;
+  private Vector3 originalScale;
+  private bool initialized;
+  private readonly List<MenuSlideIn> childMenus = new List<MenuSlideIn>();
 
   private void Awake()
   {
-    rect = GetComponent<RectTransform>();
-    finalPosition = rect.anchoredPosition;
+    Initialize();
   }
 
   private void OnEnable()
   {
-    PlayEnterAnimation();
+    if (!controlledByParent)
+    {
+      PlayEnterAnimation();
+    }
   }
 
-  public void PlayEnterAnimation()
+  private void Initialize()
   {
-    if (rect == null)
+    if (initialized)
     {
-      rect = GetComponent<RectTransform>();
-      finalPosition = rect.anchoredPosition;
+      return;
     }
+
+    rect = GetComponent<RectTransform>();
+    finalPosition = rect.anchoredPosition;
+    originalScale = rect.localScale;
+
+    Canvas canvas = GetComponentInParent<Canvas>();
+    canvasRect =
+      canvas != null
+        ? canvas.rootCanvas.GetComponent<RectTransform>()
+        : rect.parent as RectTransform;
+
+    initialized = true;
+  }
+
+  public Tween PlayEnterAnimation()
+  {
+    Initialize();
     rect.DOKill();
 
-    RectTransform canvasRect = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
+    rect.anchoredPosition = finalPosition + GetDirectionOffset();
+    rect.localScale = originalScale;
 
-    Vector2 offset = GetDirectionOffset(canvasRect);
+    Sequence seq = DOTween.Sequence().SetUpdate(true).SetLink(gameObject);
 
-    rect.anchoredPosition = finalPosition + offset;
-    rect.localScale = Vector3.one;
-
-    Sequence seq = DOTween.Sequence().SetUpdate(true);
-
-    seq.Append(rect.DOAnchorPos(finalPosition, duration).SetEase(ease).SetDelay(startDelay));
+    seq.AppendInterval(startDelay);
+    seq.Append(rect.DOAnchorPos(finalPosition, duration).SetEase(enterEase));
 
     if (bounce)
     {
-      seq.Join(rect.DOScale(bounceScale, bounceTime).SetLoops(2, LoopType.Yoyo));
+      seq.Append(rect.DOScale(originalScale * bounceScale, bounceTime).SetLoops(2, LoopType.Yoyo));
     }
 
-    seq.SetLink(gameObject);
-  }
+    CollectChildMenus();
 
-  public Tween PlayExitAnimation()
-  {
-    if (rect == null)
+    for (int i = 0; i < childMenus.Count; i++)
     {
-      rect = GetComponent<RectTransform>();
-      finalPosition = rect.anchoredPosition;
+      seq.Insert(startDelay + (i + 1) * childStagger, childMenus[i].PlayEnterAnimation());
     }
-
-    rect.DOKill();
-    RectTransform canvasRect = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
-
-    Vector2 offset = GetDirectionOffset(canvasRect);
-
-    rect.localScale = Vector3.one;
-
-    Sequence seq = DOTween.Sequence().SetUpdate(true);
-
-    if (bounce)
-    {
-      seq.Append(rect.DOScale(bounceScale, bounceTime).SetLoops(2, LoopType.Yoyo));
-    }
-
-    seq.Append(rect.DOAnchorPos(finalPosition + offset, duration).SetEase(Ease.InExpo));
-
-    seq.SetLink(gameObject);
 
     return seq;
   }
 
-  private Vector2 GetDirectionOffset(RectTransform canvasRect)
+  public Tween PlayExitAnimation()
   {
-    switch (direction)
+    Initialize();
+    rect.DOKill();
+
+    rect.localScale = originalScale;
+
+    Sequence seq = DOTween.Sequence().SetUpdate(true).SetLink(gameObject);
+
+    if (bounce)
     {
-      case SlideDirection.Right:
-      {
-        float screenOffset = canvasRect.rect.width + rect.rect.width;
-        return Vector2.right * screenOffset;
-      }
-      case SlideDirection.Left:
-      {
-        float screenOffset = canvasRect.rect.width + rect.rect.width;
-        return Vector2.left * screenOffset;
-      }
-      case SlideDirection.Up:
-      {
-        float screenOffset = canvasRect.rect.height + rect.rect.height;
-        return Vector2.up * screenOffset;
-      }
-      case SlideDirection.Down:
-      {
-        float screenOffset = canvasRect.rect.height + rect.rect.height;
-        return Vector2.down * screenOffset;
-      }
-      default:
-        return Vector2.zero;
+      seq.Append(rect.DOScale(originalScale * bounceScale, bounceTime).SetLoops(2, LoopType.Yoyo));
     }
+
+    seq.Append(rect.DOAnchorPos(finalPosition + GetDirectionOffset(), duration).SetEase(exitEase));
+
+    CollectChildMenus();
+
+    for (int i = 0; i < childMenus.Count; i++)
+    {
+      seq.Insert(i * childStagger, childMenus[i].PlayExitAnimation());
+    }
+
+    return seq;
+  }
+
+  public bool TryFindParentMenu(out MenuSlideIn parentMenu)
+  {
+    return transform.TryFindInParents(out parentMenu);
+  }
+
+  private void CollectChildMenus()
+  {
+    childMenus.Clear();
+
+    if (!animateChildMenus)
+    {
+      return;
+    }
+
+    transform.FindInChildren(childMenus, includeInactive: false, stopAtMatch: true);
+
+    for (int i = childMenus.Count - 1; i >= 0; i--)
+    {
+      if (!childMenus[i].controlledByParent)
+      {
+        childMenus.RemoveAt(i);
+      }
+    }
+  }
+
+  private Vector2 GetDirectionOffset()
+  {
+    bool horizontal = direction == SlideDirection.Left || direction == SlideDirection.Right;
+    float sign = direction == SlideDirection.Right || direction == SlideDirection.Up ? 1f : -1f;
+
+    float distance = horizontal
+      ? canvasRect.rect.width + rect.rect.width
+      : canvasRect.rect.height + rect.rect.height;
+
+    Vector2 axis = horizontal ? Vector2.right : Vector2.up;
+
+    return axis * (sign * (distance + startOffset));
   }
 
   public enum SlideDirection

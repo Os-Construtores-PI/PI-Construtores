@@ -1,7 +1,6 @@
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class StageIntroDirector : MonoBehaviour
@@ -12,15 +11,21 @@ public class StageIntroDirector : MonoBehaviour
 
   [Header("Text")]
   [SerializeField]
-  Image _stageNumber;
-
-  [Header("backGroundBlack")]
-  [SerializeField] GameObject _backGroundBlack;
-
-  [SerializeField] private float _backGroundHoldTime = 0.35f;
+  private Image _stageNumber;
 
   [SerializeField]
-  Image _stageTitle;
+  private Image _stageTitle;
+
+  [Header("backGroundBlack")]
+  [SerializeField]
+  private GameObject _backGroundBlack;
+
+  [SerializeField]
+  private float _backGroundHoldTime = 0.35f;
+
+  [Header("Sa√≠da")]
+  [SerializeField]
+  private float _resumeLeadTime = 0.3f;
 
   [SerializeField]
   private MenuSlideIn[] slideObjects;
@@ -34,37 +39,33 @@ public class StageIntroDirector : MonoBehaviour
 
   private IEnumerator PlayIntroOnStart()
   {
-    yield return null;
-
-    StageIntroData data = new StageIntroData();
-
+    StageIntroData data = new();
     yield return Play(data);
   }
-
 
   public IEnumerator Play(StageIntroData data)
   {
     if (data == null)
     {
-      Debug.LogError("StageIntroDirector: StageIntroData est· nulo.", this);
+      Debug.LogError("StageIntroDirector: StageIntroData est√° nulo.", this);
       yield break;
     }
 
     if (_root == null)
     {
-      Debug.LogError("StageIntroDirector: _root n„o foi atribuÌdo no Inspector.", this);
+      Debug.LogError("StageIntroDirector: _root n√£o foi atribu√≠do no Inspector.", this);
       yield break;
     }
 
     if (_stageNumber == null)
     {
-      Debug.LogError("StageIntroDirector: _stageNumber n„o foi atribuÌdo no Inspector.", this);
+      Debug.LogError("StageIntroDirector: _stageNumber n√£o foi atribu√≠do no Inspector.", this);
       yield break;
     }
 
     if (_stageTitle == null)
     {
-      Debug.LogError("StageIntroDirector: _stageTitle n„o foi atribuÌdo no Inspector.", this);
+      Debug.LogError("StageIntroDirector: _stageTitle n√£o foi atribu√≠do no Inspector.", this);
       yield break;
     }
 
@@ -74,8 +75,8 @@ public class StageIntroDirector : MonoBehaviour
     if (_backGroundBlack != null)
       _backGroundBlack.SetActive(true);
 
-    _stageNumber.sprite = data.StageTitleSprite;
-    _stageTitle.sprite = data.StageNumberSprite;
+    _stageNumber.sprite = data.StageNumberSprite;
+    _stageTitle.sprite = data.StageTitleSprite;
 
     _root.SetActive(true);
 
@@ -95,26 +96,39 @@ public class StageIntroDirector : MonoBehaviour
 
     yield return new WaitForSecondsRealtime(data.WaitTime);
 
-    Tween lastTween = null;
+    float exitDuration = StartExitAnimations();
+    float lead = Mathf.Clamp(_resumeLeadTime, 0f, exitDuration);
 
-    if (slideObjects != null)
-    {
-      foreach (var slide in slideObjects)
-      {
-        if (slide != null)
-          lastTween = slide.PlayExitAnimation();
-      }
-    }
-
-    if (lastTween != null)
-      yield return lastTween.WaitForCompletion();
-
-    yield return new WaitForSecondsRealtime(0.15f);
-
-    _root.SetActive(false);
+    yield return new WaitForSecondsRealtime(exitDuration - lead);
 
     Time.timeScale = 1;
+
+    yield return new WaitForSecondsRealtime(lead);
+
+    _root.SetActive(false);
     IsPlaying = false;
   }
-}
 
+  private float StartExitAnimations()
+  {
+    float longest = 0f;
+
+    if (slideObjects == null)
+      return longest;
+
+    foreach (var slide in slideObjects)
+    {
+      if (slide == null)
+        continue;
+
+      Tween tween = slide.PlayExitAnimation();
+
+      if (tween == null)
+        continue;
+
+      longest = Mathf.Max(longest, tween.Delay() + tween.Duration());
+    }
+
+    return longest;
+  }
+}
