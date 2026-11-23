@@ -144,6 +144,123 @@ public class ConditionalGate
 
 #endregion
 
+#region Extension
+
+public static class Extensions
+{
+  public static bool TryFindInParents<T>(
+    this Transform origin,
+    out T result,
+    int maxLevels = int.MaxValue,
+    Func<T, bool> filter = null
+  )
+    where T : Component
+  {
+    Transform current = origin.parent;
+    int level = 0;
+
+    while (current != null && level < maxLevels)
+    {
+      if (current.TryGetComponent(out T found) && (filter == null || filter(found)))
+      {
+        result = found;
+        return true;
+      }
+
+      current = current.parent;
+      level++;
+    }
+
+    result = null;
+    return false;
+  }
+
+  public static void FindInChildren<T>(
+    this Transform origin,
+    List<T> results,
+    bool includeInactive = false,
+    bool stopAtMatch = true,
+    int maxDepth = int.MaxValue,
+    Func<T, bool> filter = null
+  )
+    where T : Component
+  {
+    if (maxDepth <= 0)
+    {
+      return;
+    }
+
+    for (int i = 0; i < origin.childCount; i++)
+    {
+      Transform child = origin.GetChild(i);
+
+      if (!includeInactive && !child.gameObject.activeSelf)
+      {
+        continue;
+      }
+
+      bool matched = false;
+
+      if (child.TryGetComponent(out T found) && (filter == null || filter(found)))
+      {
+        results.Add(found);
+        matched = true;
+      }
+
+      if (matched && stopAtMatch)
+      {
+        continue;
+      }
+
+      child.FindInChildren(results, includeInactive, stopAtMatch, maxDepth - 1, filter);
+    }
+  }
+
+  public static bool TryFindNearestInChildren<T>(
+    this Transform origin,
+    out T result,
+    bool includeInactive = false,
+    int maxDepth = int.MaxValue
+  )
+    where T : Component
+  {
+    Queue<(Transform node, int depth)> queue = new();
+    queue.Enqueue((origin, 0));
+
+    while (queue.Count > 0)
+    {
+      (Transform node, int depth) = queue.Dequeue();
+
+      if (depth >= maxDepth)
+      {
+        continue;
+      }
+
+      for (int i = 0; i < node.childCount; i++)
+      {
+        Transform child = node.GetChild(i);
+
+        if (!includeInactive && !child.gameObject.activeSelf)
+        {
+          continue;
+        }
+
+        if (child.TryGetComponent(out result))
+        {
+          return true;
+        }
+
+        queue.Enqueue((child, depth + 1));
+      }
+    }
+
+    result = null;
+    return false;
+  }
+}
+
+#endregion
+
 #region Audio
 
 [Serializable]
