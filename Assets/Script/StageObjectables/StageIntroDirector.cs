@@ -16,13 +16,6 @@ public class StageIntroDirector : MonoBehaviour
   [SerializeField]
   private Image _stageTitle;
 
-  [Header("backGroundBlack")]
-  [SerializeField]
-  private GameObject _backGroundBlack;
-
-  [SerializeField]
-  private float _backGroundHoldTime = 0.35f;
-
   [Header("Saída")]
   [SerializeField]
   private float _resumeLeadTime = 0.3f;
@@ -31,12 +24,6 @@ public class StageIntroDirector : MonoBehaviour
   private MenuSlideIn[] slideObjects;
 
   public bool IsPlaying { get; private set; }
-
-  private IEnumerator PlayIntroOnStart()
-  {
-    StageIntroData data = new();
-    yield return Play(data);
-  }
 
   public IEnumerator Play(StageIntroData data)
   {
@@ -67,27 +54,9 @@ public class StageIntroDirector : MonoBehaviour
     IsPlaying = true;
     Time.timeScale = 0;
 
-    if (_backGroundBlack != null)
-      _backGroundBlack.SetActive(true);
-
     _stageNumber.sprite = data.StageNumberSprite;
     _stageTitle.sprite = data.StageTitleSprite;
-
     _root.SetActive(true);
-
-    if (slideObjects != null)
-    {
-      foreach (var slide in slideObjects)
-      {
-        if (slide != null)
-          slide.PlayEnterAnimation();
-      }
-    }
-
-    yield return new WaitForSecondsRealtime(_backGroundHoldTime);
-
-    if (_backGroundBlack != null)
-      _backGroundBlack.SetActive(false);
 
     yield return new WaitForSecondsRealtime(data.WaitTime);
 

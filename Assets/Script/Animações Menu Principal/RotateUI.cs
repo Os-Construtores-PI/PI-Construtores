@@ -4,13 +4,21 @@ using UnityEngine;
 public class RotateUI : MonoBehaviour
 {
   [Header("Rotation")]
-  [SerializeField] private float rotationSpeed = 30f;
-  [SerializeField] private bool clockWise = true;
+  [SerializeField]
+  private float rotationSpeed = 30f;
+
+  [SerializeField]
+  private bool clockWise = true;
 
   [Header("Floating")]
-  [SerializeField] private bool floating = false;
-  [SerializeField] private float floatDistance = 8f;
-  [SerializeField] private float floatDuration = 2f;
+  [SerializeField]
+  private bool floating = false;
+
+  [SerializeField]
+  private float floatDistance = 8f;
+
+  [SerializeField]
+  private float floatDuration = 2f;
 
   private RectTransform rect;
   private Vector2 startPos;
@@ -18,7 +26,6 @@ public class RotateUI : MonoBehaviour
   private Tween floatTween;
 
   private float _angle;
-
 
   private void Awake()
   {
@@ -30,8 +37,7 @@ public class RotateUI : MonoBehaviour
   {
     if (floating)
     {
-      floatTween = rect
-        .DOAnchorPosY(startPos.y + floatDistance, floatDuration)
+      floatTween = rect.DOAnchorPosY(startPos.y + floatDistance, floatDuration)
         .SetLoops(-1, LoopType.Yoyo)
         .SetEase(Ease.InOutSine)
         .SetLink(gameObject);
@@ -42,7 +48,7 @@ public class RotateUI : MonoBehaviour
   {
     float dir = clockWise ? -1f : 1f;
 
-    _angle += rotationSpeed * dir * Time.deltaTime;
+    _angle += rotationSpeed * dir * Time.unscaledDeltaTime;
 
     rect.localEulerAngles = new Vector3(0f, 0f, _angle);
   }

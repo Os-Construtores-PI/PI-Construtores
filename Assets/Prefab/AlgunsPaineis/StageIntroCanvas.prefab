@@ -71,7 +71,6 @@ RectTransform:
   - {fileID: 3827651390565395322}
   - {fileID: 6816073596204486545}
   - {fileID: 3467527571599873039}
-  - {fileID: 4839718984604429650}
   - {fileID: 6514839510598576457}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -338,12 +337,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 18
+  enterEase: 18
+  exitEase: 17
   startDelay: 0.02
   direction: 0
   bounce: 1
   bounceScale: 1.05
   bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
 --- !u!1 &5170615579409260185
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,7 +519,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -28, y: 168}
+  m_AnchoredPosition: {x: -182, y: 275}
   m_SizeDelta: {x: 245, y: 239}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3086760325877857026
@@ -603,6 +606,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4839718984604429650}
   - {fileID: 637236761753680774}
   - {fileID: 7809159086628968032}
   m_Father: {fileID: 4617783267489052554}
@@ -626,12 +630,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 18
+  enterEase: 18
+  exitEase: 17
   startDelay: 0.9
   direction: 1
   bounce: 1
   bounceScale: 1.05
   bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
 --- !u!1 &6799412341542451053
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,19 +723,23 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6799412341542451053}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 18
+  enterEase: 18
+  exitEase: 17
   startDelay: 0.1
-  direction: 1
+  direction: 0
   bounce: 1
   bounceScale: 1.05
   bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
 --- !u!1 &6801916471956809422
 GameObject:
   m_ObjectHideFlags: 0
@@ -739,7 +751,6 @@ GameObject:
   - component: {fileID: 4839718984604429650}
   - component: {fileID: 4470214468239220230}
   - component: {fileID: 8906974321571379944}
-  - component: {fileID: 4149790746311207016}
   m_Layer: 5
   m_Name: Panel-BackStageName
   m_TagString: Untagged
@@ -754,16 +765,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6801916471956809422}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4617783267489052554}
+  m_Father: {fileID: 6514839510598576457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -681.26, y: 0.000015259}
+  m_AnchoredPosition: {x: 228.73999, y: 0.000015259}
   m_SizeDelta: {x: 1362.5283, y: 298.4602}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4470214468239220230
@@ -804,26 +815,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4149790746311207016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6801916471956809422}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
-  startOffset: 700
-  duration: 0.8
-  ease: 18
-  startDelay: 0.2
-  direction: 1
-  bounce: 1
-  bounceScale: 1.05
-  bounceTime: 0.15
 --- !u!1 &7163616165385128439
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,12 +967,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 18
+  enterEase: 18
+  exitEase: 17
   startDelay: 0.5
   direction: 1
   bounce: 1
   bounceScale: 1.05
   bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
 --- !u!1 &7189670613501368661
 GameObject:
   m_ObjectHideFlags: 0
@@ -1075,6 +1070,7 @@ MonoBehaviour:
   _duration: 3
   ease: 4
   _entranceDelay: 0.8
+  _independent: 1
   _randomStart: 1
 --- !u!1 &7659398079914701735
 GameObject:
@@ -1169,6 +1165,7 @@ MonoBehaviour:
   _duration: 3
   ease: 4
   _entranceDelay: 0.8
+  _independent: 1
   _randomStart: 1
 --- !u!1 &8755845407666224033
 GameObject:
@@ -1224,9 +1221,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
   startOffset: 700
   duration: 0.8
-  ease: 18
+  enterEase: 18
+  exitEase: 17
   startDelay: 0.03
   direction: 0
   bounce: 1
   bounceScale: 1.05
   bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
