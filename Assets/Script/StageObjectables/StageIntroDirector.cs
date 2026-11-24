@@ -32,11 +32,6 @@ public class StageIntroDirector : MonoBehaviour
 
   public bool IsPlaying { get; private set; }
 
-  private void Start()
-  {
-    StartCoroutine(PlayIntroOnStart());
-  }
-
   private IEnumerator PlayIntroOnStart()
   {
     StageIntroData data = new();

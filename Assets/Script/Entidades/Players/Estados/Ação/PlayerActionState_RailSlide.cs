@@ -84,9 +84,6 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
   [SerializeField]
   private int _slideIncrementScore = 1;
 
-  [SerializeField]
-  private float _slideIncrementBoost = 1;
-
   private CancellationTokenSource _exitBuffCts;
 
   private Vector3 _targetPosition;
@@ -215,7 +212,6 @@ public class PlayerActionStateRailSlide : IPlayerState<Player>, IDisposable
 
     CalculateTargetPosition(player);
     player.AddScore(_slideIncrementScore);
-    player.AddBoost(_slideIncrementBoost * Time.deltaTime);
   }
 
   public void FixedUpdate(Player player) { }
