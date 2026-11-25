@@ -185,11 +185,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
       player.transform.rotation = Quaternion.LookRotation(player.DashDirection);
 
     player.DashDuration = player.DashDistance / player.DashSpeed;
-
-    // timeToExit agora funciona apenas como timeout de segurança (sem hit).
-    // Com hit, a saída é controlada pelo grace time em FixedUpdate.
-    // Com LockedTarget a colisão é praticamente garantida (dash mirado no alvo),
-    // então o buffer extra só é aplicado quando não há alvo travado.
     float safetyBuffer =
       player.LockedTarget != null ? _minCollisionCheckBuffer : _noHitSafetyBuffer;
     timeToExit = player.DashDuration + _dashWindupDuration + safetyBuffer;
@@ -220,8 +215,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
         _isWindingUp = false;
     }
 
-    // Saída sem colisão: apenas timeout de segurança.
-    // Saída com colisão: tratada abaixo, quando o grace time zera.
     if (!_hasHit && player.IsDashing)
     {
       if (timeToExitWalker < timeToExit)
@@ -300,18 +293,14 @@ public class PlayerActionStateDash : IPlayerState<Player>
       _hitboxComponent = null;
     }
     _currentPlayer = null;
-
     player.CanDash = true;
     player.IsDashing = false;
     LevelPlayerRotation(player);
-
     player.LocomotionLayer.ChangeState(player.Moving, player);
-
     _dashHitboxCollider.enabled = false;
     player.AnimatorComponent.ResetTrigger(Constants.AnimatorTriggerNames.Dash);
     player.EffectsSystem.StopEffect(EntityEffectType.PlayerDashEffect);
     Gamepad.current?.SetMotorSpeeds(0, 0);
-
     if (!_hasHit)
     {
       Vector3 postDash =
@@ -367,9 +356,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _hasHit = true;
     _isInGraceTime = true;
     _currentGraceTime = _graceTimeDuration;
-
-    // A saída do estado agora é controlada inteiramente pelo grace time
-    // (ver FixedUpdate), então não precisamos mais somar ao timeToExit aqui.
 
     _dashHitboxCollider.enabled = false;
 
