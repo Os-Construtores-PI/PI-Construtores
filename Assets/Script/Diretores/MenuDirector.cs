@@ -144,46 +144,96 @@ public class MenuDirector : MonoBehaviour
   /// </summary>
   private void SelectDefaultOrFirstButton(MenuPanelTypes panel)
   {
-    if (
-      defaultSelectableMap.TryGetValue(panel, out var defaultObj)
-      && defaultObj != null
-      && defaultObj.activeInHierarchy
-    )
+    // O SaveMenu deve iniciar diretamente em uma fase.
+    if (panel == MenuPanelTypes.SaveMenu)
     {
-      Button defaultButton = defaultObj.GetComponent<Button>();
-
-      if (defaultButton == null || defaultButton.interactable)
+      // Primeiro tenta utilizar o objeto configurado no Inspector.
+      if (defaultSelectableMap.TryGetValue(panel, out var defaultObj)
+          && IsValidPhaseSelection(defaultObj))
       {
-        EventSystem.current.SetSelectedGameObject(defaultObj);
-        Canvas.ForceUpdateCanvases();
+        SelectGameObject(defaultObj);
+        return;
+      }
+
+      // Se o padrão não for um botão de fase,
+      // procura automaticamente a primeira fase válida.
+      foreach (Button btn in currentButtons)
+      {
+        if (btn == null || !btn.interactable)
+          continue;
+
+        if (IsValidPhaseSelection(btn.gameObject))
+        {
+          SelectGameObject(btn.gameObject);
+          return;
+        }
+      }
+
+      Debug.LogWarning(
+          "[MenuDirector] Nenhum botão de seleção de fase encontrado!"
+      );
+
+      return;
+    }
+
+    // Comportamento normal dos demais painéis.
+    if (defaultSelectableMap.TryGetValue(panel, out var defaultButton)
+        && defaultButton != null
+        && defaultButton.activeInHierarchy)
+    {
+      Button button = defaultButton.GetComponent<Button>();
+
+      if (button == null || button.interactable)
+      {
+        SelectGameObject(defaultButton);
         return;
       }
     }
 
     if (panel == MenuPanelTypes.Menu && _newGame != null)
     {
-      Button newGameButton = _newGame.GetComponent<Button>();
+      Button button = _newGame.GetComponent<Button>();
 
-      if (
-        newGameButton != null
-        && newGameButton.gameObject.activeInHierarchy
-        && newGameButton.interactable
-      )
+      if (button != null
+          && button.gameObject.activeInHierarchy
+          && button.interactable)
       {
-        EventSystem.current.SetSelectedGameObject(newGameButton.gameObject);
-        Canvas.ForceUpdateCanvases();
+        SelectGameObject(button.gameObject);
         return;
       }
     }
 
-    foreach (var btn in currentButtons)
+    foreach (Button btn in currentButtons)
     {
-      if (btn != null && btn.gameObject.activeInHierarchy && btn.interactable)
+      if (btn != null
+          && btn.gameObject.activeInHierarchy
+          && btn.interactable)
       {
-        EventSystem.current.SetSelectedGameObject(btn.gameObject);
-        break;
+        SelectGameObject(btn.gameObject);
+        return;
       }
     }
+  }
+
+
+  private bool IsValidPhaseSelection(GameObject obj)
+  {
+    if (obj == null || !obj.activeInHierarchy)
+      return false;
+
+    Button button = obj.GetComponent<Button>();
+
+    if (button == null || !button.interactable)
+      return false;
+
+    return obj.GetComponent<PandoraPhaseSelection>() != null
+        || obj.GetComponentInParent<PandoraPhaseSelection>() != null;
+  }
+
+  private void SelectGameObject(GameObject obj)
+  {
+    EventSystem.current.SetSelectedGameObject(obj);
+    Canvas.ForceUpdateCanvases();
   }
 
   private bool BackPressed()
@@ -326,11 +376,15 @@ public class MenuDirector : MonoBehaviour
       // isso é feito em NotifyAnimationsFinished, nunca aqui.
       _pendingAnimationPanel = panel;
     }
+    else if (panel == MenuPanelTypes.Menu)
+    {
+      SelectDefaultOrFirstButton(panel);
+    }
     else
     {
       // Sem animação de entrada: a transição já está completa agora,
       // então pode selecionar imediatamente.
-      SelectDefaultOrFirstButton(panel);
+      FinishGenericPanelSelection(panel);
 
     }
 
@@ -459,7 +513,7 @@ public class MenuDirector : MonoBehaviour
     Debug.Log("[MenuDirector] Quitted Game");
 #endif
   }
-  
+
   public void StartNewGamePlus(int slot)
   {
     if (_loadingGame)
@@ -527,8 +581,8 @@ public class MenuDirector : MonoBehaviour
     // Carrega a fase.
     SceneManager.LoadScene("Fase0");
   }
-  
-  
+
+
   private void OnDestroy()
   {
     foreach (var panel in panels)
@@ -578,10 +632,25 @@ public class MenuDirector : MonoBehaviour
   /// </summary>
   private void FinishGenericPanelSelection(MenuPanelTypes panel)
   {
+    Canvas.ForceUpdateCanvases();
+
     SelectDefaultOrFirstButton(panel);
 
     GameObject selected =
         EventSystem.current.currentSelectedGameObject;
+
+    if (panel == MenuPanelTypes.SaveMenu && selected != null)
+    {
+      PandoraPhaseSelection phaseSelection =
+        selected.GetComponent<PandoraPhaseSelection>();
+
+      if (phaseSelection == null)
+        phaseSelection =
+          selected.GetComponentInParent<PandoraPhaseSelection>();
+
+
+      phaseSelection?.UpdatePandoraPosition();
+    }
 
     if (selected != null)
     {

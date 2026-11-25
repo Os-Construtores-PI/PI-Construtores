@@ -185,6 +185,18 @@ public class PandoraPhaseSelection : MonoBehaviour,
     }
   }
 
+  public void UpdatePandoraPosition()
+  {
+    if (_button == null)
+       _button = GetComponent<Button>();
+
+    if (_button == null || !_button.interactable) return;
+
+    if (PandoraNavigationIndicator.Instance == null) return;
+
+    PandoraNavigationIndicator.Instance.MoveTo(_horizontalPosition);
+  }
+
   public void ShowGradiente()
   {
     if (_gradiente == null || _gradienteRect == null)

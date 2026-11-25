@@ -72,6 +72,10 @@ public class CameraLogic : Entity
 
   public void SpeedlinesFX(bool set)
   {
+
+    if (set && GameContext.IsTutorialActive) return;
+
+
     if (set)
     {
       effects[EntityEffectType.PlayerSpeedEffect].Play();
