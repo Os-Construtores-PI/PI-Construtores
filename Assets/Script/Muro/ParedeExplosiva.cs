@@ -8,15 +8,17 @@ public class ParedeExplosiva : MonoBehaviour, IRespawnable
   [Serializable]
   private class Block
   {
-    public Block(Rigidbody rb, GameObject go, Vector3 initPos)
+    public Block(Rigidbody rb, Collider collider, GameObject go, Vector3 initPos)
     {
       Rb = rb;
       Go = go;
+      Collider = collider;
       InitPos = initPos;
     }
 
     public Rigidbody Rb;
     public Vector3 InitPos;
+    public Collider Collider;
     public GameObject Go;
   }
 
@@ -42,7 +44,10 @@ public class ParedeExplosiva : MonoBehaviour, IRespawnable
     Rigidbody[] rbs = GetComponentsInChildren<Rigidbody>();
     foreach (Rigidbody rb in rbs)
     {
-      _blocks.Add(new(rb, rb.gameObject, rb.transform.position));
+      if (rb.TryGetComponent(out Collider collider))
+      {
+        _blocks.Add(new(rb, collider, rb.gameObject, rb.transform.position));
+      }
     }
   }
 
@@ -67,7 +72,14 @@ public class ParedeExplosiva : MonoBehaviour, IRespawnable
       block.Rb.isKinematic = false;
       block.Rb.AddExplosionForce(_explosionForce, posicaoDoToque, _explosionRadius, _upsideForce);
       block.Rb.mass = 0.5f;
-      DOVirtual.DelayedCall(_activeInterval, () => gameObject.SetActive(false));
+      block.Collider.enabled = false;
+      DOVirtual.DelayedCall(
+        _activeInterval,
+        () =>
+        {
+          gameObject.SetActive(false);
+        }
+      );
     }
   }
 
@@ -77,6 +89,7 @@ public class ParedeExplosiva : MonoBehaviour, IRespawnable
     {
       block.Rb.isKinematic = true;
       block.Rb.mass = 0.5f;
+      block.Collider.enabled = true;
       gameObject.SetActive(true);
     }
   }
