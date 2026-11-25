@@ -423,7 +423,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
-  startOffset: 800
+  startOffset: 1000
   duration: 0.8
   enterEase: 18
   exitEase: 17
@@ -3832,6 +3832,7 @@ GameObject:
   - component: {fileID: 1339628685}
   - component: {fileID: 1339628687}
   - component: {fileID: 1339628686}
+  - component: {fileID: 1339628688}
   m_Layer: 5
   m_Name: FundoPreta
   m_TagString: Untagged
@@ -3896,6 +3897,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1339628684}
   m_CullTransparentMesh: 1
+--- !u!114 &1339628688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339628684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 2000
+  duration: 0.8
+  enterEase: 18
+  exitEase: 17
+  startDelay: 0
+  direction: 1
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
 --- !u!1 &1365194224
 GameObject:
   m_ObjectHideFlags: 0
@@ -5175,6 +5200,7 @@ GameObject:
   - component: {fileID: 2123027025}
   - component: {fileID: 2123027024}
   - component: {fileID: 2123027026}
+  - component: {fileID: 2123027027}
   m_Layer: 5
   m_Name: Elipse
   m_TagString: Untagged
@@ -5256,6 +5282,30 @@ MonoBehaviour:
   floating: 0
   floatDistance: 8
   floatDuration: 2
+--- !u!114 &2123027027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123027022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae81e6d7cdae42f41a2954ddf3b05a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSlideIn
+  startOffset: 1000
+  duration: 0.8
+  enterEase: 18
+  exitEase: 17
+  startDelay: 0
+  direction: 1
+  bounce: 1
+  bounceScale: 1.05
+  bounceTime: 0.15
+  animateChildMenus: 1
+  childStagger: 0.08
+  controlledByParent: 0
 --- !u!1 &2132457465
 GameObject:
   m_ObjectHideFlags: 0
