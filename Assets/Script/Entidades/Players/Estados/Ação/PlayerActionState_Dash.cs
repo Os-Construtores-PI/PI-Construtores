@@ -141,9 +141,6 @@ public class PlayerActionStateDash : IPlayerState<Player>
     _currentWindupTime = _dashWindupDuration;
 
     player.LocomotionLayer.ChangeState(player.Locked, player);
-    // NOTA: confirmar na implementação de HurtboxCollider se TriggerInvulnerability
-    // de fato desativa o collider (enabled = false) ou apenas seta uma flag de
-    // invencibilidade. A partir deste arquivo não é possível garantir qual dos dois.
     player.HurtboxCollider.TriggerInvulnerability(_disableDamageCooldown);
     _dashHitboxCollider.enabled = true;
 
