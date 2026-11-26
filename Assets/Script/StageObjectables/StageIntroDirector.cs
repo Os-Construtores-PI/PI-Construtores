@@ -56,7 +56,6 @@ public class StageIntroDirector : MonoBehaviour
 
     _stageNumber.sprite = data.StageNumberSprite;
     _stageTitle.sprite = data.StageTitleSprite;
-    _root.SetActive(true);
 
     yield return new WaitForSecondsRealtime(data.WaitTime);
 

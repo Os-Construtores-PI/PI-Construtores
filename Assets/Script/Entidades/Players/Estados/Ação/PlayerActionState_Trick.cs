@@ -182,7 +182,7 @@ public class PlayerActionStateTrick : IPlayerState<Player>
       if (_miniJumpCounter < _maxMiniJump)
       {
         _miniJumpCounter++;
-        entity.Motor.Velocity = Vector3.up * _miniJumpForce;
+        entity.Motor.AddVelocity(Vector3.up * _miniJumpForce);
         _arrowEffect.ArrowEffectSequence();
       }
       entity.ComboUp();
