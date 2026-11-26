@@ -19,17 +19,14 @@ public class PlayerActionStateJump : IPlayerState<Player>
   public void Enter(Player player)
   {
     player.Motor.Engine.ForceUnground(0.1f);
-
     Vector3 targetVelocity = player.Motor.Engine.BaseVelocity;
     float jumpY;
-
     float jumpMultiplier = 1f + player.CurrentJumpCount * _jumpHeightMultiplierPerExtraJump;
     jumpY = player.JumpForce * jumpMultiplier;
-
     if (player.TouchingWall)
     {
       Vector3 jumpDir = (Vector3.up + player.LastWallNormal * _wallJumpHorizontalBias).normalized;
-      targetVelocity = jumpDir * player.JumpForce * player.WallJumpMultiplier;
+      targetVelocity = player.JumpForce * player.WallJumpMultiplier * jumpDir;
       player.TouchingWall = false;
     }
     else
@@ -45,9 +42,7 @@ public class PlayerActionStateJump : IPlayerState<Player>
 
     player.CurrentJumpCount++;
     player.EffectsSystem?.PlayEffect(EntityEffectType.PlayerJumpEffect, 1);
-
     player.Motor.Engine.BaseVelocity = targetVelocity;
-
     player.ActionLayer.ExitState(this, player);
   }
 
