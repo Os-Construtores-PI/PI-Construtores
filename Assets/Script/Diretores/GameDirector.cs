@@ -168,13 +168,12 @@ public class GameDirector : MonoBehaviour
 
   private void OnTutorialStateChanged(bool active)
   {
-    Player player = playerDirector != null
-      ? playerDirector.FirstPlayerContext : null;
+    Player player = playerDirector != null ? playerDirector.FirstPlayerContext : null;
 
     if (player == null || player.AnimatorComponent == null)
       return;
 
-    if(active)
+    if (active)
     {
       if (!_animatorCongelado)
       {
@@ -224,9 +223,9 @@ public class GameDirector : MonoBehaviour
     if (hudDirector != null)
       hudDirector.ResetAllStopwatches();
 
-    yield return StartCoroutine(stageIntro.Play(stageData));
-
     if (player != null)
       SetLockPlayer(player, false);
+
+    StartCoroutine(stageIntro.Play(stageData));
   }
 }
