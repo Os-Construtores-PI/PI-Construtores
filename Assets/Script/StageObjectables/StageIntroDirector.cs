@@ -17,8 +17,8 @@ public class StageIntroDirector : MonoBehaviour
   private Image _stageTitle;
 
   [Header("Saída")]
-  [SerializeField]
-  private float _resumeLeadTime = 0.3f;
+  [SerializeField, Min(0f)]
+  private float _gameRunTime = 0.3f;
 
   [SerializeField]
   private MenuSlideIn[] slideObjects;
@@ -33,26 +33,14 @@ public class StageIntroDirector : MonoBehaviour
       yield break;
     }
 
-    if (_root == null)
+    if (_root == null || _stageNumber == null || _stageTitle == null)
     {
-      Debug.LogError("StageIntroDirector: _root não foi atribuído no Inspector.", this);
-      yield break;
-    }
-
-    if (_stageNumber == null)
-    {
-      Debug.LogError("StageIntroDirector: _stageNumber não foi atribuído no Inspector.", this);
-      yield break;
-    }
-
-    if (_stageTitle == null)
-    {
-      Debug.LogError("StageIntroDirector: _stageTitle não foi atribuído no Inspector.", this);
+      Debug.LogError("StageIntroDirector: referências do Inspector não atribuídas.", this);
       yield break;
     }
 
     IsPlaying = true;
-    Time.timeScale = 0;
+    Time.timeScale = 0f;
 
     _stageNumber.sprite = data.StageNumberSprite;
     _stageTitle.sprite = data.StageTitleSprite;
@@ -60,13 +48,13 @@ public class StageIntroDirector : MonoBehaviour
     yield return new WaitForSecondsRealtime(data.WaitTime);
 
     float exitDuration = StartExitAnimations();
-    float lead = Mathf.Clamp(_resumeLeadTime, 0f, exitDuration);
+    float runTime = Mathf.Min(_gameRunTime, exitDuration);
 
-    yield return new WaitForSecondsRealtime(exitDuration - lead);
+    yield return new WaitForSecondsRealtime(exitDuration - runTime);
 
-    Time.timeScale = 1;
+    Time.timeScale = 1f;
 
-    yield return new WaitForSecondsRealtime(lead);
+    yield return new WaitForSecondsRealtime(runTime);
 
     _root.SetActive(false);
     IsPlaying = false;
