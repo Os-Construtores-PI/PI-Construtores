@@ -944,6 +944,7 @@ public class Player : CombatEntities
 
     LocomotionLayer.Update(this);
     ActionLayer.Update(this);
+    // print(ActionLayer.CurrentTopState);
     ScanWithCamera();
   }
 
