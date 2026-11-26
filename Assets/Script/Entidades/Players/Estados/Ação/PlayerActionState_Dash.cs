@@ -107,7 +107,8 @@ public class PlayerActionStateDash : IPlayerState<Player>
   private bool _isInGraceTime;
 
   public PlayerActionType Type => PlayerActionType.Dash;
-  public HashSet<PlayerActionType> IncompatibleActions => new() { PlayerActionType.GroundSlam };
+  public HashSet<PlayerActionType> IncompatibleActions =>
+    new() { PlayerActionType.GroundSlam, PlayerActionType.RailSlide };
 
   public void Enter(Player player)
   {
