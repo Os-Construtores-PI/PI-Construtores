@@ -605,13 +605,18 @@ public class Player : CombatEntities
   #endregion
 
   #region Combo
-
   [Header("Combo")]
   [SerializeField]
   private List<ComboStage> _stagesOfCombo = new();
 
   [SerializeField]
   private List<HitboxComponent> _hitboxes = new();
+
+  [SerializeField, Min(1)]
+  private int _maxCombo = 20;
+
+  [SerializeField, Min(1)]
+  private int _popupInterval = 5;
 
   private readonly Timer _comboTimer = new();
   private readonly List<ComboPopupType> _comboPopupTypes = new()
@@ -621,13 +626,31 @@ public class Player : CombatEntities
     ComboPopupType.Awesome,
     ComboPopupType.Radical,
   };
-  private int _currentComboTypeIndex = -1;
-  private int _currentComboIndex = -1;
+
+  private int _comboCount;
   private int _highestComboIndex = -1;
 
   public int HighestComboIndex => _highestComboIndex;
 
   public void SetHighestComboIndex(int value) => _highestComboIndex = value;
+
+  private int CurrentStageIndex =>
+    _comboCount <= 0 ? -1 : Mathf.Min(_comboCount - 1, _stagesOfCombo.Count - 1);
+
+  public int CurrentComboMultiplier =>
+    CurrentStageIndex >= 0 ? _stagesOfCombo[CurrentStageIndex].Multiplier : 1;
+
+  private void OnValidate()
+  {
+    _maxCombo = Mathf.Max(1, _maxCombo);
+    _popupInterval = Mathf.Max(1, _popupInterval);
+
+    if (_stagesOfCombo.Count > 0 && _maxCombo < _stagesOfCombo.Count)
+      Debug.LogWarning(
+        $"{name}: _maxCombo ({_maxCombo}) é menor que a quantidade de estágios ({_stagesOfCombo.Count}). Os últimos estágios nunca serão alcançados.",
+        this
+      );
+  }
 
   private void SetupHitboxCombo()
   {
@@ -643,38 +666,27 @@ public class Player : CombatEntities
 
   public void ComboUp()
   {
-    int next = _currentComboIndex + 1;
-    _currentComboTypeIndex = Mathf.Min(next, _comboPopupTypes.Count - 1);
-
-    if (next >= _stagesOfCombo.Count)
-    {
-      ComboStage maxStage = _stagesOfCombo.Last();
-      _comboTimer.Start(maxStage.TimeToExitStage);
-
-      _highestComboIndex = Mathf.Max(_highestComboIndex, _stagesOfCombo.Count - 1);
-
-      GlobalEventBus.Instance.ComboUpdate.Invoke(
-        ID,
-        _stagesOfCombo.Count - 1,
-        _comboPopupTypes[_currentComboTypeIndex]
-      );
+    if (_stagesOfCombo.Count == 0)
       return;
+
+    bool increased = _comboCount < _maxCombo;
+    if (increased)
+      _comboCount++;
+
+    int stageIndex = CurrentStageIndex;
+    _highestComboIndex = Mathf.Max(_highestComboIndex, stageIndex);
+    _comboTimer.Start(_stagesOfCombo[stageIndex].TimeToExitStage);
+
+    ComboPopupType popup = ComboPopupType.None;
+    if (increased && _comboCount % _popupInterval == 0)
+    {
+      int milestoneIndex = _comboCount / _popupInterval - 1;
+      popup = _comboPopupTypes[Mathf.Min(milestoneIndex, _comboPopupTypes.Count - 1)];
     }
 
-    _currentComboIndex = next;
+    GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _comboCount, popup);
 
-    _highestComboIndex = Mathf.Max(_highestComboIndex, _currentComboIndex);
-
-    ComboStage stage = _stagesOfCombo[_currentComboIndex];
-    _comboTimer.Start(stage.TimeToExitStage);
-
-    GlobalEventBus.Instance.ComboUpdate.Invoke(
-      ID,
-      _currentComboIndex,
-      _comboPopupTypes[_currentComboTypeIndex]
-    );
-
-    if (_currentComboIndex == _stagesOfCombo.Count - 1)
+    if (increased && _comboCount == _maxCombo)
     {
       ImpactPopupType impact = Motor.IsGrounded ? ImpactPopupType.Slam : ImpactPopupType.Splash;
       GlobalEventBus.Instance.MaxComboReached.Invoke(ID, impact);
@@ -683,29 +695,20 @@ public class Player : CombatEntities
 
   public void ComboDown()
   {
-    _currentComboIndex--;
+    _comboCount--;
 
-    if (_currentComboIndex < 0)
+    if (_comboCount <= 0)
     {
-      _currentComboTypeIndex = -1;
+      _comboCount = 0;
       _comboTimer.Stop();
-      GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _currentComboIndex, ComboPopupType.None);
+      GlobalEventBus.Instance.ComboUpdate.Invoke(ID, 0, ComboPopupType.None);
       return;
     }
 
-    _currentComboTypeIndex = Mathf.Min(_currentComboIndex, _comboPopupTypes.Count - 1);
-
-    ComboStage stage = _stagesOfCombo[_currentComboIndex];
-    _comboTimer.Start(stage.TimeToExitStage);
-    GlobalEventBus.Instance.ComboUpdate.Invoke(
-      ID,
-      _currentComboIndex,
-      _comboPopupTypes[_currentComboTypeIndex]
-    );
+    int stageIndex = CurrentStageIndex;
+    _comboTimer.Start(_stagesOfCombo[stageIndex].TimeToExitStage);
+    GlobalEventBus.Instance.ComboUpdate.Invoke(ID, _comboCount, ComboPopupType.None);
   }
-
-  public int CurrentComboMultiplier =>
-    _currentComboIndex >= 0 ? _stagesOfCombo[_currentComboIndex].Multiplier : 1;
 
   #endregion
 
