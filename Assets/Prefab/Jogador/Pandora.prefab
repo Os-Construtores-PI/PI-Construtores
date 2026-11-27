@@ -705,6 +705,7 @@ GameObject:
   - component: {fileID: 7789881523433414622}
   - component: {fileID: 6156797117316262252}
   - component: {fileID: 2186962796461524329}
+  - component: {fileID: 609820648275224419}
   m_Layer: 6
   m_Name: Jump
   m_TagString: PlayerJumpEffect
@@ -5618,6 +5619,20 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &609820648275224419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1394454558303103595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28b149c58279c5a7aaa9684e34a30913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectWorker
+  effectType: 2
+  defaultDuration: 1
 --- !u!1 &1473791528786996497
 GameObject:
   m_ObjectHideFlags: 0
@@ -11121,6 +11136,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6609426651249470102}
   - component: {fileID: 8942938554387305108}
+  - component: {fileID: 5188203401773552008}
   m_Layer: 0
   m_Name: Movement
   m_TagString: MovementTrail
@@ -11253,6 +11269,19 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &5188203401773552008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2197975790149812677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eb3795b07b6e9dceabde763f8395235, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  trailType: 0
 --- !u!1 &2234039361203105799
 GameObject:
   m_ObjectHideFlags: 0
@@ -23074,6 +23103,8 @@ MonoBehaviour:
   - {fileID: 128975501231292720}
   - {fileID: 6507626406025360012}
   - {fileID: 6841662986189966198}
+  _maxCombo: 20
+  _popupInterval: 5
   enemyScanRadius: 10
   _railEntryRadius: 12
   _railEntryMinDot: 0.2
@@ -23320,6 +23351,7 @@ GameObject:
   - component: {fileID: 5306141469664626899}
   - component: {fileID: 7389513306486466478}
   - component: {fileID: 2326827722032630646}
+  - component: {fileID: 1467472930665675692}
   m_Layer: 6
   m_Name: Dash
   m_TagString: PlayerDashEffect
@@ -28212,6 +28244,20 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &1467472930665675692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4291314761729171403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28b149c58279c5a7aaa9684e34a30913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  effectType: 0
+  defaultDuration: 1
 --- !u!1 &4410883499802981546
 GameObject:
   m_ObjectHideFlags: 0
@@ -28328,6 +28374,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1160225203205433888}
   - component: {fileID: 36557895479078226}
+  - component: {fileID: 1999949581370612660}
   m_Layer: 0
   m_Name: MovementSupport1
   m_TagString: MovementSupport1Trail
@@ -28460,6 +28507,19 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1999949581370612660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4435107530396769448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eb3795b07b6e9dceabde763f8395235, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  trailType: 1
 --- !u!1 &4504631345479137515
 GameObject:
   m_ObjectHideFlags: 0
@@ -28937,6 +28997,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7311140714459182434}
   - component: {fileID: 7284683613354509337}
+  - component: {fileID: 548583489850738541}
   m_Layer: 0
   m_Name: MovementSupport2
   m_TagString: MovementSupport2Trail
@@ -29069,6 +29130,19 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &548583489850738541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4929376411470979541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eb3795b07b6e9dceabde763f8395235, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  trailType: 2
 --- !u!1 &5027497483967745991
 GameObject:
   m_ObjectHideFlags: 0
@@ -36572,6 +36646,7 @@ GameObject:
   - component: {fileID: 2863910345608394770}
   - component: {fileID: 4999327640567059575}
   - component: {fileID: 3538971312168685809}
+  - component: {fileID: 4156337859783804576}
   m_Layer: 6
   m_Name: Star
   m_TagString: PlayerTrickEffect
@@ -41457,6 +41532,20 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &4156337859783804576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8918122434946801636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28b149c58279c5a7aaa9684e34a30913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectWorker
+  effectType: 1
+  defaultDuration: 1
 --- !u!1 &9130256482538640529
 GameObject:
   m_ObjectHideFlags: 0

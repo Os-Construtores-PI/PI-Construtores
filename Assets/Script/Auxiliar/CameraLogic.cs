@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -13,10 +11,16 @@ public class CameraLogic : Entity
   [SerializeField]
   private Player playerTarget;
 
+  [Header("Efeitos")]
+  [SerializeField]
+  private Transform effectsRoot;
+
   private CinemachineCamera _currentCinemachineCamera;
   private CinemachineCamera _lockOnCinemachineCamera;
   private CinemachineInputAxisController inputAxisController;
-  private readonly Dictionary<EntityEffectType, ParticleSystem> effects = new();
+  private readonly EffectsWorker _effects = new();
+  private bool _effectsPaused;
+  private bool _speedlinesOn;
 
   public override void Awake()
   {
@@ -29,18 +33,19 @@ public class CameraLogic : Entity
   public override void Start()
   {
     base.Start();
-    GatherEffects();
+    _effects.InitEffects(effectsRoot ?? transform);
   }
 
   public void Update()
   {
-    if (Time.timeScale < 1)
+    bool paused = Time.timeScale < 1;
+    if (paused && !_effectsPaused)
     {
-      foreach (KeyValuePair<EntityEffectType, ParticleSystem> pair in effects)
-      {
-        pair.Value.Stop();
-      }
+      _effects.StopAllEffects();
+      _speedlinesOn = false;
     }
+    _effectsPaused = paused;
+
     if (playerTarget == null || _currentCinemachineCamera == null)
       return;
 
@@ -59,37 +64,24 @@ public class CameraLogic : Entity
       inputAxisController.enabled = true;
   }
 
-  private void GatherEffects()
-  {
-    foreach (ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())
-    {
-      if (Lookups.Effects.LookupTable.TryGetValue(particle.tag, out EntityEffectType effectType))
-      {
-        effects.Add(effectType, particle);
-      }
-    }
-  }
-
   public void SpeedlinesFX(bool set)
   {
-
-    if (set && GameContext.IsTutorialActive) return;
-
+    if (set == _speedlinesOn)
+      return;
 
     if (set)
     {
-      effects[EntityEffectType.PlayerSpeedEffect].Play();
+      if (GameContext.IsTutorialActive || Time.timeScale < 1)
+        return;
+
+      _effects.PlayEffect(EntityEffectType.PlayerSpeedEffect);
     }
     else
     {
-      effects[EntityEffectType.PlayerSpeedEffect].Stop();
+      _effects.StopEffect(EntityEffectType.PlayerSpeedEffect);
     }
-  }
 
-  private IEnumerator StopEffectsRoutine(EntityEffectType effectType, float waitTime)
-  {
-    yield return new WaitForSeconds(waitTime);
-    effects[effectType].Stop();
+    _speedlinesOn = set;
   }
 
   private void SetDistanceCulling()

@@ -8,28 +8,6 @@ using UnityEngine;
 
 public static class Lookups
 {
-  public static class Effects
-  {
-    public static Dictionary<string, EntityEffectType> LookupTable = new()
-    {
-      { EntityEffectType.PlayerJumpEffect.ToString(), EntityEffectType.PlayerJumpEffect },
-      { EntityEffectType.PlayerDashEffect.ToString(), EntityEffectType.PlayerDashEffect },
-      { EntityEffectType.PlayerBoostEffect.ToString(), EntityEffectType.PlayerBoostEffect },
-      { EntityEffectType.PlayerSpeedEffect.ToString(), EntityEffectType.PlayerSpeedEffect },
-      { EntityEffectType.EntityDeathEffect.ToString(), EntityEffectType.EntityDeathEffect },
-      { EntityEffectType.PlayerTrickEffect.ToString(), EntityEffectType.PlayerTrickEffect },
-    };
-  }
-
-  public static class Trails
-  {
-    public static Dictionary<string, TrailType> LookupTable = new()
-    {
-      { TrailType.MovementTrail.ToString(), TrailType.MovementTrail },
-      { TrailType.MovementSupport1Trail.ToString(), TrailType.MovementSupport1Trail },
-      { TrailType.MovementSupport2Trail.ToString(), TrailType.MovementSupport2Trail },
-    };
-  }
 }
 
 public static class CodeBaseFour

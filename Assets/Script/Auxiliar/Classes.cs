@@ -313,206 +313,90 @@ public class SoundsWorker<TEnum>
 
 #region Effects
 
-public class EffectsWorker : IDisposable
+public class EffectsWorker
 {
-  private readonly Dictionary<EntityEffectType, GameObject> effects = new();
-  private readonly Dictionary<EntityEffectType, CancellationTokenSource> activeTokens = new();
+  private readonly Dictionary<EntityEffectType, EffectWorker> _effects = new();
 
-  public void InitEffects(Transform transform)
+  public void InitEffects(Transform parent)
   {
-    effects.Clear();
-    CancelAllTokens();
+    _effects.Clear();
 
-    foreach (Transform child in transform)
+    foreach (Transform child in parent)
     {
-      if (Lookups.Effects.LookupTable.TryGetValue(child.tag, out EntityEffectType effectType))
-      {
-        effects.Add(effectType, child.gameObject);
-
-        foreach (ParticleSystem ps in child.GetComponentsInChildren<ParticleSystem>(true))
-        {
-          ParticleSystem.MainModule main = ps.main;
-          main.playOnAwake = false;
-        }
-
-        StopAndClear(effectType);
-      }
-    }
-  }
-
-  public async void PlayEffect(
-    EntityEffectType effectType,
-    float duration,
-    Action onComplete = null
-  )
-  {
-    if (!effects.TryGetValue(effectType, out GameObject effect) || !effect)
-      return;
-
-    ParticleSystem[] systems = effect.GetComponentsInChildren<ParticleSystem>(true);
-    if (systems.Length == 0)
-      return;
-
-    CancelToken(effectType);
-    var cts = new CancellationTokenSource();
-    activeTokens[effectType] = cts;
-
-    foreach (ParticleSystem ps in systems)
-    {
-      if (ps)
-        ps.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
-    }
-
-    await Task.Yield();
-
-    if (!IsCurrent(effectType, cts) || !effect)
-      return;
-
-    foreach (ParticleSystem ps in systems)
-    {
-      if (!ps)
+      if (!child.TryGetComponent(out EffectWorker worker))
         continue;
 
-      ps.Clear(false);
-      ps.Simulate(0f, false, true);
-      ps.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-      ParticleSystem.MainModule main = ps.main;
-      main.duration = duration;
-      main.loop = false;
-
-      ps.Play(false);
-    }
-
-    SetLights(effect, true);
-
-    try
-    {
-      await Task.Delay(TimeSpan.FromSeconds(duration), cts.Token);
-    }
-    catch (OperationCanceledException)
-    {
-      return;
-    }
-    catch (ObjectDisposedException)
-    {
-      return;
-    }
-
-    if (!IsCurrent(effectType, cts) || !effect)
-      return;
-
-    activeTokens.Remove(effectType);
-    StopAndClear(effectType);
-    onComplete?.Invoke();
-  }
-
-  private bool IsCurrent(EntityEffectType effectType, CancellationTokenSource cts) =>
-    activeTokens.TryGetValue(effectType, out var current) && ReferenceEquals(current, cts);
-
-  public void StopEffect(EntityEffectType effectType)
-  {
-    CancelToken(effectType);
-    StopAndClear(effectType);
-  }
-
-  public void ResetEffect(EntityEffectType effectType)
-  {
-    CancelToken(effectType);
-    StopAndClear(effectType);
-  }
-
-  private void StopAndClear(EntityEffectType effectType)
-  {
-    if (!effects.TryGetValue(effectType, out GameObject effect) || !effect) // <- Unity null check
-      return;
-
-    foreach (ParticleSystem ps in effect.GetComponentsInChildren<ParticleSystem>(true))
-    {
-      if (!ps)
-        continue;
-      ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-      ps.Clear(true);
-      ps.Simulate(0f, true, true);
-      ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-    }
-    SetLights(effect, false);
-  }
-
-  private void SetLights(GameObject effect, bool state)
-  {
-    if (!effect)
-      return;
-    foreach (Light light in effect.GetComponentsInChildren<Light>(true))
-      if (light)
-        light.enabled = state;
-  }
-
-  private void CancelToken(EntityEffectType effectType)
-  {
-    if (activeTokens.TryGetValue(effectType, out CancellationTokenSource cts))
-    {
-      cts.Cancel();
-      cts.Dispose();
-      activeTokens.Remove(effectType);
+      if (!_effects.TryAdd(worker.EffectType, worker))
+        Debug.LogWarning($"Efeito duplicado {worker.EffectType} em {parent.name}", child);
     }
   }
 
-  private void CancelAllTokens()
+  public void PlayEffect(EntityEffectType type, float duration = 0f, Action onComplete = null)
   {
-    foreach (var cts in activeTokens.Values)
-    {
-      cts.Cancel();
-      cts.Dispose();
-    }
-    activeTokens.Clear();
+    if (_effects.TryGetValue(type, out EffectWorker worker))
+      worker.Play(duration, onComplete);
   }
 
-  public void Dispose()
+  public void StopEffect(EntityEffectType type)
   {
-    CancelAllTokens();
-    effects.Clear();
+    if (_effects.TryGetValue(type, out EffectWorker worker))
+      worker.Stop();
+  }
+
+  public void StopAllEffects()
+  {
+    foreach (EffectWorker worker in _effects.Values)
+      if (worker)
+        worker.Stop();
   }
 }
 
 public class TrailsWorker
 {
-  private readonly Dictionary<TrailType, GameObject> _trails = new();
+  private readonly Dictionary<TrailType, TrailWorker> _trails = new();
 
   public void InitTrails(Transform parent)
   {
     _trails.Clear();
+
     foreach (Transform child in parent)
     {
-      if (Lookups.Trails.LookupTable.TryGetValue(child.tag, out TrailType trailType))
+      if (!child.TryGetComponent(out TrailWorker worker))
+        continue;
+
+      if (!_trails.TryAdd(worker.TrailType, worker))
       {
-        _trails.Add(trailType, child.gameObject);
-        StopEffect(trailType);
+        Debug.LogWarning($"Trail duplicado {worker.TrailType} em {parent.name}", child);
+        continue;
       }
+
+      worker.StopTrail();
     }
   }
 
   public void PlayEffect(TrailType trailType)
   {
-    if (
-      _trails.TryGetValue(trailType, out GameObject trail)
-      && trail.TryGetComponent(out TrailRenderer trailRenderer)
-    )
-    {
-      trailRenderer.Clear();
-      trailRenderer.emitting = true;
-    }
+    if (_trails.TryGetValue(trailType, out TrailWorker worker) && worker)
+      worker.PlayTrail();
   }
 
   public void StopEffect(TrailType trailType)
   {
-    if (
-      _trails.TryGetValue(trailType, out GameObject trail)
-      && trail.TryGetComponent(out TrailRenderer trailRenderer)
-    )
-    {
-      trailRenderer.emitting = false;
-    }
+    if (_trails.TryGetValue(trailType, out TrailWorker worker) && worker)
+      worker.StopTrail();
+  }
+
+  public void ResetEffect(TrailType trailType)
+  {
+    if (_trails.TryGetValue(trailType, out TrailWorker worker) && worker)
+      worker.ClearTrail();
+  }
+
+  public void ResetAll()
+  {
+    foreach (TrailWorker worker in _trails.Values)
+      if (worker)
+        worker.ClearTrail();
   }
 }
 

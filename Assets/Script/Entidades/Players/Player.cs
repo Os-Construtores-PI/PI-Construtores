@@ -984,9 +984,8 @@ public class Player : CombatEntities
     }
   }
 
-  public override void OnDestroy()
+  public virtual void OnDestroy()
   {
-    base.OnDestroy();
     DOTween.Kill(this);
     _countTween?.Kill();
     _popSequence?.Kill();

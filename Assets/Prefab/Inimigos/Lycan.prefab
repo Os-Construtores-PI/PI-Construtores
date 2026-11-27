@@ -1546,9 +1546,10 @@ GameObject:
   - component: {fileID: 7990090905324502707}
   - component: {fileID: 7990090905324502706}
   - component: {fileID: 4351779747960383473}
+  - component: {fileID: 3156725339659199332}
   m_Layer: 0
   m_Name: Death
-  m_TagString: EntityDeathEffect
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6345,6 +6346,20 @@ MonoBehaviour:
     shakesDelay: 0
   animatedLights: []
   fadeOutReference: {fileID: 0}
+--- !u!114 &3156725339659199332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7990090905324502708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28b149c58279c5a7aaa9684e34a30913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectWorker
+  effectType: 5
+  defaultDuration: 1
 --- !u!1 &8073850358551351043
 GameObject:
   m_ObjectHideFlags: 0

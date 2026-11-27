@@ -382,6 +382,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _distance: 10000
   playerTarget: {fileID: 0}
+  effectsRoot: {fileID: 2791555593648818258}
 --- !u!1 &8162336195883888919
 GameObject:
   m_ObjectHideFlags: 0
@@ -723,9 +724,10 @@ GameObject:
   - component: {fileID: 7527257105469813995}
   - component: {fileID: 8324541497809274846}
   - component: {fileID: 4626324325847789804}
+  - component: {fileID: 6149535336285529719}
   m_Layer: 16
   m_Name: Speed
-  m_TagString: PlayerSpeedEffect
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5548,3 +5550,18 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &6149535336285529719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8433037721739067622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28b149c58279c5a7aaa9684e34a30913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectWorker
+  effectType: 4
+  defaultDuration: 1
+  loop: 1
