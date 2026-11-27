@@ -189,7 +189,7 @@ public abstract class Enemies : CombatEntities, ILockable
 
   protected virtual void ResetForRespawn()
   {
-    EffectsSystem.ResetEffect(EntityEffectType.EntityDeathEffect);
+    EffectsSystem.StopEffect(EntityEffectType.EntityDeathEffect);
     target = null;
     playerInArea = false;
     memoryTriggered = false;

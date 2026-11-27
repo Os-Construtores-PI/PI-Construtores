@@ -189,9 +189,8 @@ public class WolfBasicEnemy : RigidbodyBasedEnemy
 
   protected void OnDisable() => Cleanup();
 
-  public override void OnDestroy()
+  public virtual void OnDestroy()
   {
-    base.OnDestroy();
     Cleanup();
   }
 

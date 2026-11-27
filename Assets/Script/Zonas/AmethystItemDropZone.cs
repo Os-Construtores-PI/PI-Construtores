@@ -64,9 +64,8 @@ public class AmethystItemDropZone : ItemDropZone, IRespawnable
     _initialPosition = transform.position;
   }
 
-  public override void OnDestroy()
+  public virtual void OnDestroy()
   {
-    base.OnDestroy();
     RespawnManager.Unregister(this);
     KillExistingAnimations();
   }
