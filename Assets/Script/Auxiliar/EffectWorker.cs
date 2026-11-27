@@ -10,6 +10,9 @@ public class EffectWorker : MonoBehaviour
   [SerializeField]
   private float defaultDuration = 1f;
 
+  [SerializeField]
+  private bool loop;
+
   private ParticleSystem[] _systems;
   private Light[] _lights;
   private CancellationTokenSource _cts;
@@ -57,6 +60,7 @@ public class EffectWorker : MonoBehaviour
     );
     _cts = cts;
     float time = duration > 0f ? duration : defaultDuration;
+    bool endless = loop && duration <= 0f;
 
     try
     {
@@ -73,12 +77,15 @@ public class EffectWorker : MonoBehaviour
 
         ParticleSystem.MainModule main = ps.main;
         main.duration = time;
-        main.loop = false;
+        main.loop = endless;
 
         ps.Play(false);
       }
 
       SetLights(true);
+
+      if (endless)
+        return;
 
       await Awaitable.WaitForSecondsAsync(time, cts.Token);
     }
@@ -94,7 +101,6 @@ public class EffectWorker : MonoBehaviour
     StopSystems();
     onComplete?.Invoke();
   }
-
   public void Stop()
   {
     if (_systems == null)
