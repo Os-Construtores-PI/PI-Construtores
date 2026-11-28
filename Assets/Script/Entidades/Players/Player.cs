@@ -1630,7 +1630,8 @@ public class Player : CombatEntities
     if (!GameObject.FindWithTag(TAG_GAME_CONTROLLER).TryGetComponent(out HudDirector hudDir))
       return;
 
-    SpeedLines.AddListener(hudDir.GetCameraScript(ID).SpeedlinesFX);
+    CameraLogic tmpCam = hudDir.GetCameraScript(ID);
+    SpeedLines.AddListener(tmpCam.SpeedlinesFX);
     _OnDamage.AddListener(() =>
       hudDir.CameraShake(ID, Damage.Amplitude, Damage.Frequency, Damage.Duration)
     );

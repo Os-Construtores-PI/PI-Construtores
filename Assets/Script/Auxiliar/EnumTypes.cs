@@ -160,6 +160,7 @@ public enum EntityEffectType
   PlayerTrickEffect,
   PlayerJumpEffect,
   PlayerBoostEffect,
+  PlayerBoostAcquireEffect,
   PlayerSpeedEffect,
   EntityDeathEffect,
 }
